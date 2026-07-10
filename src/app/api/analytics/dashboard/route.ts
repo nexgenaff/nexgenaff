@@ -9,15 +9,42 @@ export async function GET(request: Request) {
     const cookieHeader = request.headers.get('cookie') || ''
     const token = getTokenFromCookie(cookieHeader)
 
+    // Debug helper: if ?debug=1 is present, return diagnostic info on failures
+    const url = new URL(request.url)
+    const debug = url.searchParams.get('debug') === '1'
+
     if (!token) {
+      if (debug) {
+        return NextResponse.json(
+          { error: 'Unauthorized', details: { cookieHeader } },
+          { status: 401, headers: getCorsHeaders(origin) }
+        )
+      }
+
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401, headers: getCorsHeaders(origin) }
       )
     }
 
-    const user = await getUserFromToken(token)
+    let user = null
+    try {
+      user = await getUserFromToken(token)
+    } catch (err) {
+      console.error('getUserFromToken error:', err)
+      if (debug) {
+        return NextResponse.json({ error: 'getUserFromToken failed', message: String(err?.message || err), stack: err?.stack }, { status: 500, headers: getCorsHeaders(origin) })
+      }
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401, headers: getCorsHeaders(origin) }
+      )
+    }
+
     if (!user) {
+      if (debug) {
+        return NextResponse.json({ error: 'Unauthorized', details: { token } }, { status: 401, headers: getCorsHeaders(origin) })
+      }
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401, headers: getCorsHeaders(origin) }
