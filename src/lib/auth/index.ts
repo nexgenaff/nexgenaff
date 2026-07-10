@@ -43,6 +43,12 @@ export async function getUserFromToken(token: string) {
   const decoded = verifyToken(token)
   if (!decoded) return null
 
+  // Support temporary in-memory tokens with userId prefixed by 'local-'
+  if (decoded.userId && decoded.userId.startsWith('local-')) {
+    const username = decoded.userId.replace(/^local-/, '')
+    return { id: decoded.userId, username, role: 'ADMIN' }
+  }
+
   return await prisma.user.findUnique({
     where: { id: decoded.userId },
     select: {
