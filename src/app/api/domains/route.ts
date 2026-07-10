@@ -15,15 +15,30 @@ export async function GET(request: Request) {
     const cookieHeader = request.headers.get('cookie') || ''
     const token = getTokenFromCookie(cookieHeader)
 
+    const url = new URL(request.url)
+    const debug = url.searchParams.get('debug') === '1'
+
     if (!token) {
+      if (debug) {
+        return NextResponse.json({ error: 'Unauthorized', details: { cookieHeader } }, { status: 401, headers: getCorsHeaders(origin) })
+      }
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401, headers: getCorsHeaders(origin) }
       )
     }
 
-    const user = await getUserFromToken(token)
+    let user = null
+    try {
+      user = await getUserFromToken(token)
+    } catch (err) {
+      console.error('getUserFromToken error in /api/domains:', err)
+      if (debug) return NextResponse.json({ error: 'getUserFromToken failed', message: String(err?.message || err), stack: err?.stack }, { status: 500, headers: getCorsHeaders(origin) })
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401, headers: getCorsHeaders(origin) })
+    }
+
     if (!user) {
+      if (debug) return NextResponse.json({ error: 'Unauthorized', details: { token } }, { status: 401, headers: getCorsHeaders(origin) })
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401, headers: getCorsHeaders(origin) }
@@ -35,14 +50,17 @@ export async function GET(request: Request) {
       orderBy: { createdAt: 'desc' },
     })
 
-    const domainsWithInstructions = domains.map(domain => ({
-      ...domain,
-      verificationInstructions: getVerificationInstructions(domain.domain, user.id),
+    const domainsWithInstructions = domains.map(d => ({
+      ...d,
+      verificationInstructions: getVerificationInstructions(d.domain, user.id),
     }))
 
     return NextResponse.json(domainsWithInstructions, { headers: getCorsHeaders(origin) })
   } catch (error) {
     console.error('Error fetching domains:', error)
+    if (request.url.includes('?debug=1')) {
+      return NextResponse.json({ error: 'Failed to fetch domains', message: String(error?.message || error), stack: error?.stack }, { status: 500 })
+    }
     return NextResponse.json(
       { error: 'Failed to fetch domains' },
       { status: 500 }
