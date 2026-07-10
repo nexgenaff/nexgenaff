@@ -24,6 +24,11 @@ export async function GET(request: Request) {
       )
     }
 
+    // If temporary local user, return empty clicks instead of querying DB
+    if (user.id && typeof user.id === 'string' && user.id.startsWith('local-')) {
+      return NextResponse.json([], { headers: getCorsHeaders(origin) })
+    }
+
     const links = await prisma.linkAccount.findMany({
       where: { userId: user.id },
       select: { id: true },

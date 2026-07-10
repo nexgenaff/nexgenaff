@@ -24,13 +24,23 @@ export async function GET(request: Request) {
       )
     }
 
+    // If token is a temporary in-memory user (local- prefix), avoid DB queries and return placeholder stats
+    if (user.id && typeof user.id === 'string' && user.id.startsWith('local-')) {
+      return NextResponse.json({
+        totalClicks: 0,
+        uniqueClicks: 0,
+        botClicks: 0,
+        totalLinks: 0,
+      }, { headers: getCorsHeaders(origin) })
+    }
+
     const links = await prisma.linkAccount.findMany({
       where: { userId: user.id },
     })
 
-    const totalClicks = links.reduce((sum, link) => sum + link.totalClicks, 0)
-    const uniqueClicks = links.reduce((sum, link) => sum + link.uniqueClicks, 0)
-    const botClicks = links.reduce((sum, link) => sum + link.botClicks, 0)
+    const totalClicks = links.reduce((sum, link) => sum + (link.totalClicks || 0), 0)
+    const uniqueClicks = links.reduce((sum, link) => sum + (link.uniqueClicks || 0), 0)
+    const botClicks = links.reduce((sum, link) => sum + (link.botClicks || 0), 0)
 
     return NextResponse.json({
       totalClicks,
