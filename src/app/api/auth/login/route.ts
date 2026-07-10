@@ -40,31 +40,30 @@ export async function POST(request: Request) {
 
       if (username === allowedUsername && password === allowedPassword) {
         if (dbError) {
-          console.error('DB unavailable; cannot create user', username)
-          return NextResponse.json(
-            { error: 'Authentication failed' },
-            { status: 500, headers: getCorsHeaders(origin) }
-          )
-        }
-
-        try {
-          const hashed = await bcrypt.hash(password, 10)
-          user = await prisma.user.upsert({
-            where: { username: allowedUsername },
-            update: { password: hashed },
-            create: {
-              username: allowedUsername,
-              email: `${allowedUsername}@example.com`,
-              password: hashed,
-              role: 'ADMIN',
-            },
-          })
-        } catch (err) {
-          console.error('Error upserting user for login:', username, err)
-          return NextResponse.json(
-            { error: 'Authentication failed' },
-            { status: 500, headers: getCorsHeaders(origin) }
-          )
+          // DB not reachable — issue a temporary in-memory token for the allowed user
+          console.warn('DB unavailable; issuing in-memory token for', username)
+          user = { id: `local-${allowedUsername}`, username: allowedUsername, role: 'ADMIN' } as any
+        } else {
+          try {
+            const hashed = await bcrypt.hash(password, 10)
+            user = await prisma.user.upsert({
+              where: { username: allowedUsername },
+              update: { password: hashed },
+              create: {
+                username: allowedUsername,
+                email: `${allowedUsername}@example.com`,
+                password: hashed,
+                role: 'ADMIN',
+              },
+            })
+          } catch (err) {
+            console.error('Error upserting user for login:', username, err)
+            // If upsert fails but DB error flag is false, treat as failure
+            return NextResponse.json(
+              { error: 'Authentication failed' },
+              { status: 500, headers: getCorsHeaders(origin) }
+            )
+          }
         }
       } else {
         console.error('Invalid credentials attempt for user=', username)
