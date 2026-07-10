@@ -27,7 +27,7 @@ export function useAuth(): UseAuthReturn {
 
   const fetchUser = async () => {
     try {
-      const response = await fetch('/api/auth/me')
+      const response = await fetch('/api/auth/me', { credentials: 'include' })
       if (response.ok) {
         const data = await response.json()
         setUser(data)
@@ -54,9 +54,10 @@ export function useAuth(): UseAuthReturn {
       setLoading(true)
       const response = await fetch('/api/auth/login', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password }),
-      })
+              credentials: 'include',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ username, password }),
+            })
 
       const data = await response.json()
 
@@ -76,7 +77,7 @@ export function useAuth(): UseAuthReturn {
 
   const logout = async () => {
     try {
-      await fetch('/api/auth/logout', { method: 'POST' })
+      await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' })
       setUser(null)
       setIsAuthenticated(false)
       router.push('/login')

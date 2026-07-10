@@ -17,7 +17,7 @@ export default function DashboardLayout({
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const response = await fetch('/api/auth/me')
+        const response = await fetch('/api/auth/me', { credentials: 'include' })
         if (response.ok) {
           setIsAuthenticated(true)
         } else {

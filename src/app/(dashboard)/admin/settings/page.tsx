@@ -24,7 +24,7 @@ export default function SettingsPage() {
   }
 
   const handleLogout = async () => {
-    await fetch('/api/auth/logout', { method: 'POST' })
+    await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' })
     router.push('/login')
   }
 
