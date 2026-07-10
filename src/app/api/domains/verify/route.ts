@@ -1,0 +1,91 @@
+import { NextResponse } from 'next/server'
+import { prisma } from '@/lib/db/prisma'
+import { getUserFromToken, getTokenFromCookie } from '@/lib/auth'
+import { verifyDomain, getVerificationInstructions } from '@/lib/services/dns/verify'
+import { getCorsHeaders } from '@/config/cors'
+import { z } from 'zod'
+
+const verifySchema = z.object({
+  domainId: z.string(),
+})
+
+export async function POST(request: Request) {
+  try {
+    const origin = request.headers.get('origin') || null
+    const cookieHeader = request.headers.get('cookie') || ''
+    const token = getTokenFromCookie(cookieHeader)
+
+    if (!token) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401, headers: getCorsHeaders(origin) }
+      )
+    }
+
+    const user = await getUserFromToken(token)
+    if (!user) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401, headers: getCorsHeaders(origin) }
+      )
+    }
+
+    const body = await request.json()
+    const validation = verifySchema.safeParse(body)
+
+    if (!validation.success) {
+      return NextResponse.json(
+        { error: 'Invalid request', details: validation.error.errors },
+        { status: 400, headers: getCorsHeaders(origin) }
+      )
+    }
+
+    const domain = await prisma.customDomain.findUnique({
+      where: { id: validation.data.domainId },
+    })
+
+    if (!domain || domain.userId !== user.id) {
+      return NextResponse.json(
+        { error: 'Domain not found' },
+        { status: 404, headers: getCorsHeaders(origin) }
+      )
+    }
+
+    // ─── REAL DNS Verification ───
+    const verification = await verifyDomain(domain.domain, user.id)
+
+    if (verification.verified) {
+      await prisma.customDomain.update({
+        where: { id: domain.id },
+        data: {
+          verified: true,
+          verifiedAt: new Date(),
+        },
+      })
+    }
+
+    const instructions = getVerificationInstructions(domain.domain, user.id)
+
+    return NextResponse.json({
+      domainId: domain.id,
+      domain: domain.domain,
+      verified: verification.verified,
+      verification,
+      instructions,
+    }, { headers: getCorsHeaders(origin) })
+  } catch (error) {
+    console.error('Domain verification error:', error)
+    return NextResponse.json(
+      { error: 'Failed to verify domain' },
+      { status: 500 }
+    )
+  }
+}
+
+export async function OPTIONS(request: Request) {
+  const origin = request.headers.get('origin') || '*'
+  return new NextResponse(null, {
+    status: 204,
+    headers: getCorsHeaders(origin),
+  })
+}

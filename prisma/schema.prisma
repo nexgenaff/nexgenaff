@@ -1,0 +1,248 @@
+
+---
+
+### ==================== PRISMA FILES (2) ====================
+
+---
+
+#### FILE 18: prisma/schema.prisma
+
+```prisma
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  username      String    @unique
+  email         String    @unique
+  password      String
+  role          UserRole  @default(ADMIN)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  lastLogin     DateTime?
+  
+  linkAccounts  LinkAccount[]
+  offerVault    OfferVault[]
+  customDomains CustomDomain[]
+  
+  @@map("users")
+}
+
+enum UserRole {
+  ADMIN
+  MANAGER
+}
+
+model LinkAccount {
+  id              String      @id @default(cuid())
+  accountName     String
+  slug            String      @unique
+  customDomainId  String?
+  customDomain    CustomDomain? @relation(fields: [customDomainId], references: [id])
+  userId          String
+  user            User        @relation(fields: [userId], references: [id])
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  isActive        Boolean     @default(true)
+  
+  totalClicks     Int         @default(0)
+  uniqueClicks    Int         @default(0)
+  botClicks       Int         @default(0)
+  
+  clicks          Click[]
+  geoStats        GeoStat[]
+  publicDashboard PublicDashboard?
+  
+  @@unique([slug, customDomainId])
+  @@map("link_accounts")
+}
+
+model CustomDomain {
+  id              String        @id @default(cuid())
+  domain          String        @unique
+  userId          String
+  user            User          @relation(fields: [userId], references: [id])
+  verified        Boolean       @default(false)
+  verifiedAt      DateTime?
+  sslEnabled      Boolean       @default(false)
+  isActive        Boolean       @default(true)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  
+  linkAccounts    LinkAccount[]
+  
+  @@map("custom_domains")
+}
+
+model OfferVault {
+  id              String        @id @default(cuid())
+  country         String
+  offerUrl        String
+  isActive        Boolean       @default(true)
+  isGlobal        Boolean       @default(false)
+  userId          String
+  user            User          @relation(fields: [userId], references: [id])
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  
+  @@unique([country, userId])
+  @@map("offer_vaults")
+}
+
+model PublicDashboard {
+  id              String        @id @default(cuid())
+  publicId        String        @unique
+  linkAccountId   String        @unique
+  linkAccount     LinkAccount   @relation(fields: [linkAccountId], references: [id])
+  isPrivate       Boolean       @default(false)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  
+  @@map("public_dashboards")
+}
+
+model Click {
+  id              String        @id @default(cuid())
+  linkAccountId   String
+  linkAccount     LinkAccount   @relation(fields: [linkAccountId], references: [id])
+  
+  timestamp       DateTime      @default(now())
+  ipAddress       String
+  country         String?
+  region          String?
+  city            String?
+  isp             String?
+  
+  browser         String?
+  browserVersion  String?
+  os              String?
+  deviceType      String?
+  deviceBrand     String?
+  screenResolution String?
+  
+  referrer        String?
+  language        String?
+  timeZone        String?
+  userAgent       String?
+  
+  isUnique        Boolean       @default(false)
+  isBot           Boolean       @default(false)
+  botScore        Float?        @default(0)
+  botReason       String?
+  
+  createdAt       DateTime      @default(now())
+  
+  @@index([linkAccountId])
+  @@index([timestamp])
+  @@index([country])
+  @@index([isUnique])
+  @@index([isBot])
+  @@map("clicks")
+}
+
+model GeoStat {
+  id              String        @id @default(cuid())
+  linkAccountId   String
+  linkAccount     LinkAccount   @relation(fields: [linkAccountId], references: [id])
+  
+  country         String
+  countryCode     String
+  clicks          Int           @default(0)
+  uniqueClicks    Int           @default(0)
+  botClicks       Int           @default(0)
+  
+  updatedAt       DateTime      @updatedAt
+  
+  @@unique([linkAccountId, country])
+  @@map("geo_stats")
+}
+
+model DailyAnalytics {
+  id              String        @id @default(cuid())
+  linkAccountId   String
+  linkAccount     LinkAccount   @relation(fields: [linkAccountId], references: [id])
+  
+  date            DateTime
+  clicks          Int           @default(0)
+  uniqueClicks    Int           @default(0)
+  botClicks       Int           @default(0)
+  
+  @@unique([linkAccountId, date])
+  @@map("daily_analytics")
+}
+
+model HourlyAnalytics {
+  id              String        @id @default(cuid())
+  linkAccountId   String
+  linkAccount     LinkAccount   @relation(fields: [linkAccountId], references: [id])
+  
+  hour            DateTime
+  clicks          Int           @default(0)
+  uniqueClicks    Int           @default(0)
+  botClicks       Int           @default(0)
+  
+  @@unique([linkAccountId, hour])
+  @@map("hourly_analytics")
+}
+
+model BrowserStat {
+  id              String        @id @default(cuid())
+  linkAccountId   String
+  linkAccount     LinkAccount   @relation(fields: [linkAccountId], references: [id])
+  
+  browser         String
+  clicks          Int           @default(0)
+  uniqueClicks    Int           @default(0)
+  botClicks       Int           @default(0)
+  
+  @@unique([linkAccountId, browser])
+  @@map("browser_stats")
+}
+
+model OSStat {
+  id              String        @id @default(cuid())
+  linkAccountId   String
+  linkAccount     LinkAccount   @relation(fields: [linkAccountId], references: [id])
+  
+  os              String
+  clicks          Int           @default(0)
+  uniqueClicks    Int           @default(0)
+  botClicks       Int           @default(0)
+  
+  @@unique([linkAccountId, os])
+  @@map("os_stats")
+}
+
+model DeviceStat {
+  id              String        @id @default(cuid())
+  linkAccountId   String
+  linkAccount     LinkAccount   @relation(fields: [linkAccountId], references: [id])
+  
+  deviceType      String
+  clicks          Int           @default(0)
+  uniqueClicks    Int           @default(0)
+  botClicks       Int           @default(0)
+  
+  @@unique([linkAccountId, deviceType])
+  @@map("device_stats")
+}
+
+model ReferrerStat {
+  id              String        @id @default(cuid())
+  linkAccountId   String
+  linkAccount     LinkAccount   @relation(fields: [linkAccountId], references: [id])
+  
+  referrer        String
+  clicks          Int           @default(0)
+  uniqueClicks    Int           @default(0)
+  botClicks       Int           @default(0)
+  
+  @@unique([linkAccountId, referrer])
+  @@map("referrer_stats")
+}
