@@ -48,6 +48,14 @@ model LinkAccount {
   clicks          Click[]
   geoStats        GeoStat[]
   publicDashboard PublicDashboard?
+
+  // Opposite relation fields for analytics and stats
+  dailyAnalytics   DailyAnalytics[]
+  hourlyAnalytics  HourlyAnalytics[]
+  browserStats     BrowserStat[]
+  osStats          OSStat[]
+  deviceStats      DeviceStat[]
+  referrerStats    ReferrerStat[]
   
   @@unique([slug, customDomainId])
   @@map("link_accounts")
