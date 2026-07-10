@@ -23,12 +23,26 @@ export default function DashboardPage() {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const response = await fetch('/api/analytics/dashboard')
+        const response = await fetch('/api/analytics/dashboard', { credentials: 'include' })
         if (response.status === 401) {
           router.push('/login')
           return
         }
-        const data = await response.json()
+        if (!response.ok) {
+          console.error('Failed to fetch stats, status:', response.status)
+          setStats({ totalClicks: 0, uniqueClicks: 0, totalLinks: 0, botClicks: 0 })
+          return
+        }
+
+        let data = null
+        try {
+          data = await response.json()
+        } catch (err) {
+          console.error('Failed to parse stats JSON:', err)
+          setStats({ totalClicks: 0, uniqueClicks: 0, totalLinks: 0, botClicks: 0 })
+          return
+        }
+
         setStats(data)
       } catch (error) {
         console.error('Failed to fetch stats:', error)
@@ -43,15 +57,19 @@ export default function DashboardPage() {
   const handleRefresh = async () => {
     setLoading(true)
     try {
-      const response = await fetch('/api/analytics/dashboard')
-      const data = await response.json()
-      setStats(data)
-    } catch (error) {
-      console.error('Failed to refresh stats:', error)
-    } finally {
-      setLoading(false)
+        const response = await fetch('/api/analytics/dashboard', { credentials: 'include' })
+        if (!response.ok) {
+          console.error('Failed to refresh stats, status:', response.status)
+          return
+        }
+        const data = await response.json()
+        setStats(data)
+      } catch (error) {
+        console.error('Failed to refresh stats:', error)
+      } finally {
+        setLoading(false)
+      }
     }
-  }
 
   if (loading) {
     return (

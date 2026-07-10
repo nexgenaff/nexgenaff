@@ -20,10 +20,16 @@ export default function RecentClicks() {
   useEffect(() => {
     const fetchClicks = async () => {
       try {
-        const response = await fetch('/api/analytics/recent')
+        const response = await fetch('/api/analytics/recent', { credentials: 'include' })
         if (response.ok) {
-          const data = await response.json()
-          setClicks(data)
+          try {
+            const data = await response.json()
+            setClicks(data)
+          } catch (err) {
+            console.error('Failed to parse recent clicks JSON:', err)
+          }
+        } else {
+          console.error('Failed to fetch recent clicks, status:', response.status)
         }
       } catch (error) {
         console.error('Failed to fetch clicks:', error)

@@ -115,6 +115,13 @@ export function Chart({ data, height = 220, type = 'line', options = {} }: Chart
     return <div className="w-full bg-white/5 rounded-xl animate-pulse" style={{ height }} />
   }
 
+  // Guard against invalid data shape to avoid ChartJS runtime errors
+  if (!data || !Array.isArray(data.labels) || !Array.isArray(data.datasets)) {
+    return <div className="w-full bg-white/5 rounded-xl p-6 text-center" style={{ height }}>
+      <p className="text-white/40">No chart data available</p>
+    </div>
+  }
+
   return (
     <div className="w-full" style={{ height }}>
       <Line data={data} options={defaultOptions} />
