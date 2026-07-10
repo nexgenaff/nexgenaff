@@ -18,25 +18,37 @@ export async function POST(request: Request) {
       )
     }
 
-    // Try normal credential verification
-    let user = await verifyCredentials(username, password)
+    // Try normal credential verification but handle DB errors gracefully
+    let user = null
+    let dbError = false
+    try {
+      user = await verifyCredentials(username, password)
+    } catch (err) {
+      console.error('verifyCredentials error:', err)
+      dbError = true
+    }
 
     // If no user found, allow auto-provisioning of a demo admin on first login
     // This helps in fresh deployments without running the seed script.
     if (!user) {
       // Only enable auto-creation for the default demo credentials
       if (username === 'admin' && password === 'admin123') {
-        const hashed = await bcrypt.hash(password, 10)
-        user = await prisma.user.upsert({
-          where: { username: 'admin' },
-          update: { password: hashed },
-          create: {
-            username: 'admin',
-            email: 'admin@nextgen.com',
-            password: hashed,
-            role: 'ADMIN',
-          },
-        })
+        // If DB isn't available, fall back to an in-memory demo user to allow login
+        if (dbError) {
+          user = { id: 'local-admin', username: 'admin', role: 'ADMIN' } as any
+        } else {
+          const hashed = await bcrypt.hash(password, 10)
+          user = await prisma.user.upsert({
+            where: { username: 'admin' },
+            update: { password: hashed },
+            create: {
+              username: 'admin',
+              email: 'admin@nextgen.com',
+              password: hashed,
+              role: 'ADMIN',
+            },
+          })
+        }
       } else {
         return NextResponse.json(
           { error: 'Invalid credentials' },
