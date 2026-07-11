@@ -282,10 +282,10 @@ export default function DomainsPage() {
                         <p className="text-xs text-white/30 mb-1">CNAME Record</p>
                         <div className="flex items-center gap-2">
                           <code className="text-xs font-mono text-indigo-400 flex-1 break-all">
-                            {domain.verificationInstructions.cname.host} → {domain.verificationInstructions.cname.value}
+                            {domain.verificationInstructions?.cname?.host || '—'} → {domain.verificationInstructions?.cname?.value || '—'}
                           </code>
                           <button
-                            onClick={() => copyToClipboard(`${domain.verificationInstructions.cname.host} → ${domain.verificationInstructions.cname.value}`)}
+                            onClick={() => copyToClipboard(`${domain.verificationInstructions?.cname?.host || ''} → ${domain.verificationInstructions?.cname?.value || ''}`)}
                             className="p-1 text-white/30 hover:text-white/60 transition"
                           >
                             <Copy className="w-3 h-3" />
@@ -296,10 +296,10 @@ export default function DomainsPage() {
                         <p className="text-xs text-white/30 mb-1">TXT Record</p>
                         <div className="flex items-center gap-2">
                           <code className="text-xs font-mono text-indigo-400 flex-1 break-all">
-                            {domain.verificationInstructions.txt.host} → {domain.verificationInstructions.txt.value}
+                            {domain.verificationInstructions?.txt?.host || '—'} → {domain.verificationInstructions?.txt?.value || '—'}
                           </code>
                           <button
-                            onClick={() => copyToClipboard(`${domain.verificationInstructions.txt.host} → ${domain.verificationInstructions.txt.value}`)}
+                            onClick={() => copyToClipboard(`${domain.verificationInstructions?.txt?.host || ''} → ${domain.verificationInstructions?.txt?.value || ''}`)}
                             className="p-1 text-white/30 hover:text-white/60 transition"
                           >
                             <Copy className="w-3 h-3" />

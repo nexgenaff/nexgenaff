@@ -1,16 +1,17 @@
-import { NextResponse } from 'next/server'
+import { NextResponse, type NextRequest } from 'next/server'
 import { prisma } from '@/lib/db/prisma'
 import { getCorsHeaders } from '@/config/cors'
 
 export async function GET(
-  request: Request,
-  { params }: { params: { publicId: string } }
+  request: NextRequest,
+  { params }: { params: Promise<{ publicId: string }> }
 ) {
   try {
     const origin = request.headers.get('origin') || null
+    const { publicId } = await params
     
     const dashboard = await prisma.publicDashboard.findUnique({
-      where: { publicId: params.publicId },
+      where: { publicId },
       include: {
         linkAccount: true,
       },

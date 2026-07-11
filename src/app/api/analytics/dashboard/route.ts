@@ -30,10 +30,11 @@ export async function GET(request: Request) {
     let user = null
     try {
       user = await getUserFromToken(token)
-    } catch (err) {
+    } catch (err: unknown) {
       console.error('getUserFromToken error:', err)
+      const error = err instanceof Error ? err : new Error(String(err))
       if (debug) {
-        return NextResponse.json({ error: 'getUserFromToken failed', message: String(err?.message || err), stack: err?.stack }, { status: 500, headers: getCorsHeaders(origin) })
+        return NextResponse.json({ error: 'getUserFromToken failed', message: error.message, stack: error.stack }, { status: 500, headers: getCorsHeaders(origin) })
       }
       return NextResponse.json(
         { error: 'Unauthorized' },

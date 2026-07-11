@@ -31,9 +31,10 @@ export async function GET(request: Request) {
     let user = null
     try {
       user = await getUserFromToken(token)
-    } catch (err) {
+    } catch (err: unknown) {
       console.error('getUserFromToken error in /api/domains:', err)
-      if (debug) return NextResponse.json({ error: 'getUserFromToken failed', message: String(err?.message || err), stack: err?.stack }, { status: 500, headers: getCorsHeaders(origin) })
+      const error = err instanceof Error ? err : new Error(String(err))
+      if (debug) return NextResponse.json({ error: 'getUserFromToken failed', message: error.message, stack: error.stack }, { status: 500, headers: getCorsHeaders(origin) })
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401, headers: getCorsHeaders(origin) })
     }
 
@@ -56,10 +57,11 @@ export async function GET(request: Request) {
     }))
 
     return NextResponse.json(domainsWithInstructions, { headers: getCorsHeaders(origin) })
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Error fetching domains:', error)
+    const err = error instanceof Error ? error : new Error(String(error))
     if (request.url.includes('?debug=1')) {
-      return NextResponse.json({ error: 'Failed to fetch domains', message: String(error?.message || error), stack: error?.stack }, { status: 500 })
+      return NextResponse.json({ error: 'Failed to fetch domains', message: err.message, stack: err.stack }, { status: 500 })
     }
     return NextResponse.json(
       { error: 'Failed to fetch domains' },

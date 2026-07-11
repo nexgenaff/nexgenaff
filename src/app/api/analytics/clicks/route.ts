@@ -102,14 +102,16 @@ export async function GET(request: Request) {
     }
 
     const total = await prisma.click.count({ where })
+    const page = params.page ?? 1
+    const limit = params.limit ?? 20
 
     const clicks = await prisma.click.findMany({
       where,
       orderBy: {
         [params.sortBy || 'createdAt']: params.sortOrder,
       },
-      skip: (params.page - 1) * params.limit,
-      take: params.limit,
+      skip: (page - 1) * limit,
+      take: limit,
       select: {
         id: true,
         ipAddress: true,
@@ -159,8 +161,8 @@ export async function GET(request: Request) {
     return NextResponse.json({
       clicks,
       total,
-      page: params.page,
-      totalPages: Math.ceil(total / params.limit),
+      page,
+      totalPages: Math.ceil(total / limit),
       filters: {
         countries: filterOptions[0].map(c => c.country).filter(Boolean),
         browsers: filterOptions[1].map(c => c.browser).filter(Boolean),

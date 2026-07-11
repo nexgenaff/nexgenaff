@@ -1,14 +1,14 @@
-import { NextResponse } from 'next/server'
+import { NextResponse, type NextRequest } from 'next/server'
 import { prisma } from '@/lib/db/prisma'
 import { BotDetectionService } from '@/lib/services/bot-detection'
 import { getGeoLocation } from '@/lib/services/geo/ip2location'
 
 export async function GET(
-  request: Request,
-  { params }: { params: { slug: string } }
+  request: NextRequest,
+  { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
-    const { slug } = params
+    const { slug } = await params
     const headers = request.headers
     const userAgent = headers.get('user-agent') || ''
     const ip = headers.get('x-forwarded-for') || headers.get('x-real-ip') || 'unknown'

@@ -1,16 +1,17 @@
-import { NextResponse } from 'next/server'
+import { NextResponse, type NextRequest } from 'next/server'
 import { prisma } from '@/lib/db/prisma'
 import { getUserFromToken, getTokenFromCookie } from '@/lib/auth'
 import { getCorsHeaders } from '@/config/cors'
 
 export async function DELETE(
-  request: Request,
-  { params }: { params: { id: string } }
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const origin = request.headers.get('origin') || null
     const cookieHeader = request.headers.get('cookie') || ''
     const token = getTokenFromCookie(cookieHeader)
+    const { id } = await params
 
     if (!token) {
       return NextResponse.json(
@@ -28,7 +29,7 @@ export async function DELETE(
     }
 
     const domain = await prisma.customDomain.findUnique({
-      where: { id: params.id },
+      where: { id },
     })
 
     if (!domain || domain.userId !== user.id) {
@@ -50,7 +51,7 @@ export async function DELETE(
     }
 
     await prisma.customDomain.delete({
-      where: { id: params.id },
+      where: { id },
     })
 
     return NextResponse.json(

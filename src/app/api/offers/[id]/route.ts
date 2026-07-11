@@ -1,16 +1,17 @@
-import { NextResponse } from 'next/server'
+import { NextResponse, type NextRequest } from 'next/server'
 import { prisma } from '@/lib/db/prisma'
 import { getUserFromToken, getTokenFromCookie } from '@/lib/auth'
 import { getCorsHeaders } from '@/config/cors'
 
 export async function PUT(
-  request: Request,
-  { params }: { params: { id: string } }
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const origin = request.headers.get('origin') || null
     const cookieHeader = request.headers.get('cookie') || ''
     const token = getTokenFromCookie(cookieHeader)
+    const { id } = await params
 
     if (!token) {
       return NextResponse.json(
@@ -31,7 +32,7 @@ export async function PUT(
     const { country, offerUrl, isActive, isGlobal } = body
 
     const offer = await prisma.offerVault.findUnique({
-      where: { id: params.id },
+      where: { id },
     })
 
     if (!offer || offer.userId !== user.id) {
@@ -46,14 +47,14 @@ export async function PUT(
         where: {
           userId: user.id,
           isGlobal: true,
-          id: { not: params.id },
+          id: { not: id },
         },
         data: { isGlobal: false },
       })
     }
 
     const updated = await prisma.offerVault.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         country: country?.toUpperCase(),
         offerUrl,
@@ -73,13 +74,14 @@ export async function PUT(
 }
 
 export async function DELETE(
-  request: Request,
-  { params }: { params: { id: string } }
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const origin = request.headers.get('origin') || null
     const cookieHeader = request.headers.get('cookie') || ''
     const token = getTokenFromCookie(cookieHeader)
+    const { id } = await params
 
     if (!token) {
       return NextResponse.json(
@@ -97,7 +99,7 @@ export async function DELETE(
     }
 
     const offer = await prisma.offerVault.findUnique({
-      where: { id: params.id },
+      where: { id },
     })
 
     if (!offer || offer.userId !== user.id) {
@@ -108,7 +110,7 @@ export async function DELETE(
     }
 
     await prisma.offerVault.delete({
-      where: { id: params.id },
+      where: { id },
     })
 
     return NextResponse.json(

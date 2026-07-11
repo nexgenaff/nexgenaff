@@ -20,7 +20,7 @@ export interface DNSVerificationResult {
 export async function verifyDomain(domain: string, userId: string): Promise<DNSVerificationResult> {
   const errors: string[] = []
   let cnameRecords: string[] = []
-  let txtRecords: string[] = []
+  let txtRecords: string[][] = []
   let mxRecords: string[] = []
   let cnameVerified = false
   let txtVerified = false
@@ -44,9 +44,10 @@ export async function verifyDomain(domain: string, userId: string): Promise<DNSV
 
     try {
       txtRecords = await resolveTxt(domain)
-      txtVerified = txtRecords.some(record =>
-        record.join('').includes(verificationToken) ||
-        record.join('').includes('verification')
+      const txtValues = txtRecords.map(record => record.join(''))
+      txtVerified = txtValues.some(value =>
+        value.includes(verificationToken) ||
+        value.includes('verification')
       )
       if (!txtVerified && txtRecords.length > 0) {
         errors.push(`TXT record does not contain verification token`)
@@ -78,7 +79,7 @@ export async function verifyDomain(domain: string, userId: string): Promise<DNSV
       verified,
       records: {
         cname: cnameRecords,
-        txt: txtRecords,
+        txt: txtRecords.flat(),
         mx: mxRecords,
         verified: cnameVerified || txtVerified,
       },
