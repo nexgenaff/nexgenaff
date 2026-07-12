@@ -45,8 +45,15 @@ export interface DNSVerificationResult {
 
 const PLATFORM_A_RECORDS = ['76.76.21.21', '76.76.21.22']
 
+function getParentDomain(domain: string): string {
+  const labels = domain.split('.')
+  if (labels.length <= 2) return domain
+  return labels.slice(1).join('.')
+}
+
 export async function verifyDomain(domain: string, userId: string): Promise<DNSVerificationResult> {
   const normalizedDomain = normalizeDomain(domain)
+  const parentDomain = getParentDomain(normalizedDomain)
   const errors: string[] = []
   let aRecords: string[] = []
   let cnameRecords: string[] = []
@@ -83,11 +90,30 @@ export async function verifyDomain(domain: string, userId: string): Promise<DNSV
     }
 
     try {
-      txtRecords = await resolveTxt(normalizedDomain)
-      const txtValues = txtRecords.map(record => record.join('')).filter(Boolean)
-      txtVerified = txtValues.some(value => value.includes(verificationToken))
+      const txtTargets = [normalizedDomain]
+      if (parentDomain && parentDomain !== normalizedDomain) {
+        txtTargets.push(parentDomain)
+      }
+
+      const uniqueTxtTargets = [...new Set(txtTargets)]
+      for (const txtTarget of uniqueTxtTargets) {
+        try {
+          const resolved = await resolveTxt(txtTarget)
+          const txtValues = resolved.map(record => record.join('')).filter(Boolean)
+          txtVerified = txtVerified || txtValues.some(value => value.includes(verificationToken))
+          if (txtValues.length > 0) {
+            txtRecords.push(...resolved)
+          }
+        } catch {
+          // Keep checking the parent zone if the lookup is unavailable on one target.
+        }
+      }
+
       if (!txtVerified && txtRecords.length > 0) {
         errors.push('TXT record does not contain the verification token')
+      }
+      if (!txtVerified) {
+        errors.push('No TXT record found')
       }
     } catch {
       errors.push('No TXT record found')
@@ -150,7 +176,7 @@ export function getVerificationInstructions(domain: string, userId: string): DNS
   const token = generateVerificationToken(userId, normalizedDomain)
   const labels = normalizedDomain.split('.')
   const isSubdomain = labels.length > 2
-  const recordHost = isSubdomain ? labels.slice(0, -2).join('.') : '@'
+  const subdomainHost = isSubdomain ? labels[0] : 'www'
 
   return {
     a: isSubdomain ? [] : [
@@ -159,13 +185,13 @@ export function getVerificationInstructions(domain: string, userId: string): DNS
     ],
     cname: [
       {
-        host: isSubdomain ? recordHost : 'www',
+        host: subdomainHost,
         value: 'cname.vercel-dns.com',
       },
     ],
     txt: [
       {
-        host: recordHost,
+        host: '@',
         value: token,
       },
     ],

@@ -15,3 +15,10 @@ test('generates Vercel-style DNS records for apex custom domains', () => {
   assert.ok(instructions.cname.some((record) => record.host === 'www' && record.value === 'cname.vercel-dns.com'))
   assert.ok(instructions.txt.some((record) => record.host === '@' && record.value.startsWith('nextgen-verify-')))
 })
+
+test('keeps TXT verification on the zone root for subdomains to avoid invalid CNAME+TXT collisions', () => {
+  const instructions = getVerificationInstructions('fast.prizenest.xyz', 'user-123')
+
+  assert.ok(instructions.cname.some((record) => record.host === 'fast' && record.value === 'cname.vercel-dns.com'))
+  assert.ok(instructions.txt.some((record) => record.host === '@' && record.value.startsWith('nextgen-verify-')))
+})

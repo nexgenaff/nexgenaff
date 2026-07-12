@@ -254,7 +254,7 @@ export default function DomainsPage() {
                     <li><span className="font-mono text-indigo-300">links</span> → <span className="font-mono text-indigo-300">cname.vercel-dns.com</span></li>
                   </ul>
                 </li>
-                <li>Then add the generated TXT verification token shown in the domain card below to the same host you are verifying.</li>
+                <li>Then add the generated TXT verification token shown in the domain card below to the root zone at <span className="font-mono text-indigo-300">@</span>. Do not create a TXT and CNAME on the exact same hostname.</li>
               </ol>
             </div>
 
