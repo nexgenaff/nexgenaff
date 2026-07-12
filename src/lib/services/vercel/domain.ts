@@ -148,6 +148,7 @@ export async function addDomainToProject(
   try {
     const response = await fetch(buildVercelDomainUrl(projectReference, domain, options.VERCEL_TEAM_ID), {
       method: 'POST',
+      cache: 'no-store',
       headers: buildVercelHeaders(token),
       body: JSON.stringify({ name: domain }),
     })
@@ -204,6 +205,7 @@ export async function verifyDomainOnVercel(
   try {
     const response = await fetch(buildVercelVerifyDomainUrl(projectReference, domain, options.VERCEL_TEAM_ID), {
       method: 'POST',
+      cache: 'no-store',
       headers: buildVercelHeaders(token),
     })
 

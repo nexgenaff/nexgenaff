@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db/prisma'
 import { getUserFromToken, getTokenFromCookie } from '@/lib/auth'
-import { verifyDomain, getVerificationInstructions } from '@/lib/services/dns/verify'
+import { verifyDomain } from '@/lib/services/dns/verify'
 import { buildVerificationInstructionsFromVercelRecords, verifyDomainOnVercel } from '@/lib/services/vercel/domain'
 import { getCorsHeaders } from '@/config/cors'
 import { z } from 'zod'
@@ -73,7 +73,6 @@ export async function POST(request: Request) {
     }
 
     const instructions = buildVerificationInstructionsFromVercelRecords(vercelVerification?.verification, domain.domain)
-      ?? getVerificationInstructions(domain.domain, user.id)
 
     return NextResponse.json({
       domainId: domain.id,
@@ -82,7 +81,12 @@ export async function POST(request: Request) {
       verification,
       vercelVerification,
       instructions,
-    }, { headers: getCorsHeaders(origin) })
+    }, {
+      headers: {
+        ...getCorsHeaders(origin),
+        'Cache-Control': 'no-store, no-cache, must-revalidate',
+      },
+    })
   } catch (error) {
     console.error('Domain verification error:', error)
     return NextResponse.json(

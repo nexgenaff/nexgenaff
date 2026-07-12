@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db/prisma'
 import { getUserFromToken, getTokenFromCookie } from '@/lib/auth'
-import { getVerificationInstructions, normalizeDomain } from '@/lib/services/dns/verify'
+import { normalizeDomain } from '@/lib/services/dns/verify'
 import {
   addDomainToProject,
   buildVerificationInstructionsFromVercelRecords,
@@ -60,7 +60,7 @@ export async function GET(request: Request) {
     })
 
     const domainsWithInstructions = await Promise.all(domains.map(async (domain) => {
-      let verificationInstructions = getVerificationInstructions(domain.domain, user.id)
+      let verificationInstructions: ReturnType<typeof buildVerificationInstructionsFromVercelRecords> | undefined
 
       try {
         const vercelVerification = await verifyDomainOnVercel(domain.domain, {
@@ -73,9 +73,9 @@ export async function GET(request: Request) {
         verificationInstructions = buildVerificationInstructionsFromVercelRecords(
           vercelVerification.verification,
           domain.domain
-        ) ?? verificationInstructions
+        ) ?? undefined
       } catch {
-        // Fall back to the local DNS instructions if Vercel is unavailable.
+        verificationInstructions = undefined
       }
 
       return {
@@ -84,7 +84,12 @@ export async function GET(request: Request) {
       }
     }))
 
-    return NextResponse.json(domainsWithInstructions, { headers: getCorsHeaders(origin) })
+    return NextResponse.json(domainsWithInstructions, {
+      headers: {
+        ...getCorsHeaders(origin),
+        'Cache-Control': 'no-store, no-cache, must-revalidate',
+      },
+    })
   } catch (error: unknown) {
     console.error('Error fetching domains:', error)
     const err = error instanceof Error ? error : new Error(String(error))
@@ -160,16 +165,18 @@ export async function POST(request: Request) {
     })
 
     const instructions = buildVerificationInstructionsFromVercelRecords(vercelBinding.verification, domain)
-      ?? getVerificationInstructions(domain, user.id)
 
     return NextResponse.json({
       ...newDomain,
-      verificationInstructions: instructions,
+      verificationInstructions: instructions ?? undefined,
       vercelBinding,
       message: 'Domain added. Please add the following DNS records to verify ownership.',
-    }, { 
-      status: 201, 
-      headers: getCorsHeaders(origin) 
+    }, {
+      status: 201,
+      headers: {
+        ...getCorsHeaders(origin),
+        'Cache-Control': 'no-store, no-cache, must-revalidate',
+      },
     })
   } catch (error) {
     console.error('Error adding domain:', error)

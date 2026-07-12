@@ -39,7 +39,7 @@ export default function DomainsPage() {
 
   const fetchDomains = useCallback(async () => {
     try {
-      const response = await fetch('/api/domains')
+      const response = await fetch('/api/domains', { cache: 'no-store' })
       if (response.status === 401) {
         router.push('/login')
         return
@@ -65,6 +65,7 @@ export default function DomainsPage() {
     try {
       const response = await fetch('/api/domains', {
         method: 'POST',
+        cache: 'no-store',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ domain: newDomain }),
       })
@@ -114,6 +115,7 @@ export default function DomainsPage() {
     try {
       const response = await fetch(`/api/domains/verify`, {
         method: 'POST',
+        cache: 'no-store',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ domainId: id }),
       })
