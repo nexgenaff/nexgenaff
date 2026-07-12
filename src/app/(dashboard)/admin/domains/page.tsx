@@ -35,6 +35,7 @@ export default function DomainsPage() {
   const [deleteError, setDeleteError] = useState('')
   const [formLoading, setFormLoading] = useState(false)
   const [latestInstructions, setLatestInstructions] = useState<Domain['verificationInstructions'] | null>(null)
+  const [latestStatusMessage, setLatestStatusMessage] = useState('')
   const [verifyingId, setVerifyingId] = useState<string | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
 
@@ -78,6 +79,7 @@ export default function DomainsPage() {
 
       const data = await response.json()
       setLatestInstructions(data.verificationInstructions ?? null)
+      setLatestStatusMessage(data.vercelVerification?.error || data.vercelBinding?.error || '')
       setNewDomain('')
       setShowForm(true)
       await fetchDomains()
@@ -268,6 +270,11 @@ export default function DomainsPage() {
             {latestInstructions && (
               <div className="bg-emerald-500/5 border border-emerald-500/20 rounded-xl p-4 space-y-3">
                 <p className="text-sm font-medium text-emerald-300">Live DNS values returned by Vercel</p>
+                {latestStatusMessage && (
+                  <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg px-3 py-2 text-xs text-amber-200">
+                    {latestStatusMessage}
+                  </div>
+                )}
                 <div className="grid grid-cols-1 gap-3">
                   {(latestInstructions.a?.length ?? 0) > 0 && (
                     <div className="bg-white/5 rounded-lg p-3">
