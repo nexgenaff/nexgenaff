@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db/prisma'
 import { getUserFromToken, getTokenFromCookie } from '@/lib/auth'
-import { normalizeDomain } from '@/lib/services/dns/verify'
+import { getVerificationInstructions, normalizeDomain } from '@/lib/services/dns/verify'
 import {
   addDomainToProject,
   buildVerificationInstructionsFromVercelRecords,
@@ -60,7 +60,8 @@ export async function GET(request: Request) {
     })
 
     const domainsWithInstructions = await Promise.all(domains.map(async (domain) => {
-      let verificationInstructions: ReturnType<typeof buildVerificationInstructionsFromVercelRecords> | undefined
+      const fallbackInstructions = getVerificationInstructions(domain.domain, user.id)
+      let verificationInstructions = fallbackInstructions
 
       try {
         const vercelVerification = await verifyDomainOnVercel(domain.domain, {
@@ -73,9 +74,9 @@ export async function GET(request: Request) {
         verificationInstructions = buildVerificationInstructionsFromVercelRecords(
           vercelVerification.verification,
           domain.domain
-        ) ?? undefined
+        ) ?? fallbackInstructions
       } catch {
-        verificationInstructions = undefined
+        verificationInstructions = fallbackInstructions
       }
 
       return {
@@ -164,11 +165,13 @@ export async function POST(request: Request) {
       VERCEL_TEAM_ID: process.env.VERCEL_TEAM_ID,
     })
 
+    const fallbackInstructions = getVerificationInstructions(domain, user.id)
     const instructions = buildVerificationInstructionsFromVercelRecords(vercelBinding.verification, domain)
+      ?? fallbackInstructions
 
     return NextResponse.json({
       ...newDomain,
-      verificationInstructions: instructions ?? undefined,
+      verificationInstructions: instructions,
       vercelBinding,
       message: 'Domain added. Please add the following DNS records to verify ownership.',
     }, {
