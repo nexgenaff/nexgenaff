@@ -5,6 +5,11 @@ import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { Plus, Trash2, CheckCircle, RefreshCw, XCircle, Copy } from 'lucide-react'
 
+interface DomainRecord {
+  host: string
+  value: string
+}
+
 interface Domain {
   id: string
   domain: string
@@ -14,8 +19,9 @@ interface Domain {
   isActive: boolean
   createdAt: string
   verificationInstructions?: {
-    cname: { host: string; value: string }
-    txt: { host: string; value: string }
+    a?: DomainRecord[]
+    cname?: DomainRecord[]
+    txt?: DomainRecord[]
   }
 }
 
@@ -124,8 +130,37 @@ export default function DomainsPage() {
     }
   }
 
-  const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text)
+  const copyToClipboard = async (text: string) => {
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(text)
+        return
+      }
+
+      const textarea = document.createElement('textarea')
+      textarea.value = text
+      textarea.setAttribute('readonly', '')
+      textarea.style.position = 'fixed'
+      textarea.style.opacity = '0'
+      document.body.appendChild(textarea)
+      textarea.select()
+      document.execCommand('copy')
+      document.body.removeChild(textarea)
+    } catch (error) {
+      console.error('Failed to copy to clipboard:', error)
+    }
+  }
+
+  const copyDnsInstructions = async (instructions?: Domain['verificationInstructions']) => {
+    if (!instructions) return
+
+    const lines = [
+      ...instructions.a?.map((record) => `A ${record.host} ${record.value}`) ?? [],
+      ...instructions.cname?.map((record) => `CNAME ${record.host} ${record.value}`) ?? [],
+      ...instructions.txt?.map((record) => `TXT ${record.host} ${record.value}`) ?? [],
+    ]
+
+    await copyToClipboard(lines.join('\n'))
   }
 
   if (loading) {
@@ -200,9 +235,27 @@ export default function DomainsPage() {
                 required
                 disabled={formLoading}
               />
-              <p className="text-xs text-white/20 mt-1">
-                Add a CNAME record pointing to <span className="text-indigo-400 font-mono">cname.vercel-dns.com</span>
-              </p>
+            </div>
+
+            <div className="bg-indigo-500/5 border border-indigo-500/20 rounded-xl p-4 text-sm text-white/70">
+              <p className="font-medium text-indigo-300 mb-2">DNS setup guide</p>
+              <ol className="space-y-2 list-decimal pl-5">
+                <li>Open your DNS provider settings for this domain.</li>
+                <li>
+                  If you are adding an apex/root domain such as <span className="font-mono text-indigo-300">example.com</span>, add two A records:
+                  <ul className="list-disc pl-5 mt-1 space-y-1">
+                    <li><span className="font-mono text-indigo-300">@</span> → <span className="font-mono text-indigo-300">76.76.21.21</span></li>
+                    <li><span className="font-mono text-indigo-300">@</span> → <span className="font-mono text-indigo-300">76.76.21.22</span></li>
+                  </ul>
+                </li>
+                <li>
+                  If you are adding a subdomain such as <span className="font-mono text-indigo-300">links.example.com</span>, the easiest path is a single CNAME record:
+                  <ul className="list-disc pl-5 mt-1 space-y-1">
+                    <li><span className="font-mono text-indigo-300">links</span> → <span className="font-mono text-indigo-300">cname.vercel-dns.com</span></li>
+                  </ul>
+                </li>
+                <li>Then add the generated TXT verification token shown in the domain card below to the same host you are verifying.</li>
+              </ol>
             </div>
 
             <button
@@ -296,37 +349,79 @@ export default function DomainsPage() {
 
                 {/* DNS Instructions */}
                 {domain.verificationInstructions && !domain.verified && (
-                  <div className="bg-indigo-500/5 border border-indigo-500/20 rounded-xl p-4 space-y-2">
-                    <p className="text-sm font-medium text-indigo-400">📋 DNS Verification Instructions</p>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      <div className="bg-white/5 rounded-lg p-3">
-                        <p className="text-xs text-white/30 mb-1">CNAME Record</p>
-                        <div className="flex items-center gap-2">
-                          <code className="text-xs font-mono text-indigo-400 flex-1 break-all">
-                            {domain.verificationInstructions?.cname?.host || '—'} → {domain.verificationInstructions?.cname?.value || '—'}
-                          </code>
-                          <button
-                            onClick={() => copyToClipboard(`${domain.verificationInstructions?.cname?.host || ''} → ${domain.verificationInstructions?.cname?.value || ''}`)}
-                            className="p-1 text-white/30 hover:text-white/60 transition"
-                          >
-                            <Copy className="w-3 h-3" />
-                          </button>
+                  <div className="bg-indigo-500/5 border border-indigo-500/20 rounded-xl p-4 space-y-3">
+                    <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                      <p className="text-sm font-medium text-indigo-400">📋 DNS Verification Instructions</p>
+                      <button
+                        onClick={() => copyDnsInstructions(domain.verificationInstructions)}
+                        className="px-3 py-1 text-xs rounded-lg border border-indigo-400/30 text-indigo-300 hover:bg-indigo-500/10 transition"
+                      >
+                        Copy DNS records
+                      </button>
+                    </div>
+                    <div className="grid grid-cols-1 gap-3">
+                      {(domain.verificationInstructions?.a?.length ?? 0) > 0 && (
+                        <div className="bg-white/5 rounded-lg p-3">
+                          <p className="text-xs text-white/30 mb-2">A Record</p>
+                          <div className="space-y-2">
+                            {domain.verificationInstructions?.a?.map((record, index) => (
+                              <div key={`a-${index}`} className="flex items-center gap-2">
+                                <code className="text-xs font-mono text-indigo-400 flex-1 break-all">
+                                  {record.host} → {record.value}
+                                </code>
+                                <button
+                                  onClick={() => copyToClipboard(`A ${record.host} ${record.value}`)}
+                                  className="p-1 text-white/30 hover:text-white/60 transition"
+                                >
+                                  <Copy className="w-3 h-3" />
+                                </button>
+                              </div>
+                            ))}
+                          </div>
                         </div>
-                      </div>
-                      <div className="bg-white/5 rounded-lg p-3">
-                        <p className="text-xs text-white/30 mb-1">TXT Record</p>
-                        <div className="flex items-center gap-2">
-                          <code className="text-xs font-mono text-indigo-400 flex-1 break-all">
-                            {domain.verificationInstructions?.txt?.host || '—'} → {domain.verificationInstructions?.txt?.value || '—'}
-                          </code>
-                          <button
-                            onClick={() => copyToClipboard(`${domain.verificationInstructions?.txt?.host || ''} → ${domain.verificationInstructions?.txt?.value || ''}`)}
-                            className="p-1 text-white/30 hover:text-white/60 transition"
-                          >
-                            <Copy className="w-3 h-3" />
-                          </button>
+                      )}
+
+                      {(domain.verificationInstructions?.cname?.length ?? 0) > 0 && (
+                        <div className="bg-white/5 rounded-lg p-3">
+                          <p className="text-xs text-white/30 mb-2">CNAME Record</p>
+                          <div className="space-y-2">
+                            {domain.verificationInstructions?.cname?.map((record, index) => (
+                              <div key={`cname-${index}`} className="flex items-center gap-2">
+                                <code className="text-xs font-mono text-indigo-400 flex-1 break-all">
+                                  {record.host} → {record.value}
+                                </code>
+                                <button
+                                  onClick={() => copyToClipboard(`CNAME ${record.host} ${record.value}`)}
+                                  className="p-1 text-white/30 hover:text-white/60 transition"
+                                >
+                                  <Copy className="w-3 h-3" />
+                                </button>
+                              </div>
+                            ))}
+                          </div>
                         </div>
-                      </div>
+                      )}
+
+                      {(domain.verificationInstructions?.txt?.length ?? 0) > 0 && (
+                        <div className="bg-white/5 rounded-lg p-3">
+                          <p className="text-xs text-white/30 mb-2">TXT Record</p>
+                          <div className="space-y-2">
+                            {domain.verificationInstructions?.txt?.map((record, index) => (
+                              <div key={`txt-${index}`} className="flex items-center gap-2">
+                                <code className="text-xs font-mono text-indigo-400 flex-1 break-all">
+                                  {record.host} → {record.value}
+                                </code>
+                                <button
+                                  onClick={() => copyToClipboard(`TXT ${record.host} ${record.value}`)}
+                                  className="p-1 text-white/30 hover:text-white/60 transition"
+                                >
+                                  <Copy className="w-3 h-3" />
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 )}

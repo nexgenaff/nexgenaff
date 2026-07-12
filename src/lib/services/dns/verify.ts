@@ -3,6 +3,7 @@ import dns from 'dns'
 import crypto from 'crypto'
 import { promisify } from 'util'
 
+const resolveA = promisify(dns.resolve4)
 const resolveCname = promisify(dns.resolveCname)
 const resolveTxt = promisify(dns.resolveTxt)
 const resolveMx = promisify(dns.resolveMx)
@@ -19,9 +20,21 @@ export function normalizeDomain(domain: string): string {
   }
 }
 
+export interface DNSRecordInstruction {
+  host: string
+  value: string
+}
+
+export interface DNSVerificationInstructions {
+  a: DNSRecordInstruction[]
+  cname: DNSRecordInstruction[]
+  txt: DNSRecordInstruction[]
+}
+
 export interface DNSVerificationResult {
   verified: boolean
   records: {
+    a: string[]
     cname: string[]
     txt: string[]
     mx: string[]
@@ -30,12 +43,16 @@ export interface DNSVerificationResult {
   errors?: string[]
 }
 
+const PLATFORM_A_RECORDS = ['76.76.21.21', '76.76.21.22']
+
 export async function verifyDomain(domain: string, userId: string): Promise<DNSVerificationResult> {
   const normalizedDomain = normalizeDomain(domain)
   const errors: string[] = []
+  let aRecords: string[] = []
   let cnameRecords: string[] = []
   let txtRecords: string[][] = []
   let mxRecords: string[] = []
+  let aVerified = false
   let cnameVerified = false
   let txtVerified = false
 
@@ -43,7 +60,18 @@ export async function verifyDomain(domain: string, userId: string): Promise<DNSV
     const verificationToken = generateVerificationToken(userId, normalizedDomain)
 
     try {
-      cnameRecords = await resolveCname(normalizedDomain)
+      aRecords = await resolveA(normalizedDomain)
+      aVerified = aRecords.some(record => PLATFORM_A_RECORDS.includes(record))
+      if (!aVerified && aRecords.length > 0) {
+        errors.push(`A record does not point to our platform: ${aRecords.join(', ')}`)
+      }
+    } catch {
+      errors.push('No A record found')
+    }
+
+    try {
+      const cnameLookup = normalizedDomain.startsWith('www.') ? normalizedDomain : `www.${normalizedDomain}`
+      cnameRecords = await resolveCname(cnameLookup)
       cnameVerified = cnameRecords.some(record =>
         /vercel-custom-domain|cname\.vercel-dns\.com|vercel-dns\.com/i.test(record)
       )
@@ -51,7 +79,7 @@ export async function verifyDomain(domain: string, userId: string): Promise<DNSV
         errors.push(`CNAME does not point to our platform: ${cnameRecords.join(', ')}`)
       }
     } catch {
-      errors.push('No CNAME record found')
+      // Optional www CNAME is not required for apex-domain ownership verification.
     }
 
     try {
@@ -72,7 +100,7 @@ export async function verifyDomain(domain: string, userId: string): Promise<DNSV
       // MX records are optional
     }
 
-    const verified = cnameVerified && txtVerified
+    const verified = (aVerified || cnameVerified) && txtVerified
 
     if (verified) {
       await prisma.customDomain.update({
@@ -87,10 +115,11 @@ export async function verifyDomain(domain: string, userId: string): Promise<DNSV
     return {
       verified,
       records: {
+        a: aRecords,
         cname: cnameRecords,
         txt: txtRecords.flat(),
         mx: mxRecords,
-        verified: cnameVerified && txtVerified,
+        verified: (aVerified || cnameVerified) && txtVerified,
       },
       errors: errors.length > 0 ? errors : undefined,
     }
@@ -99,6 +128,7 @@ export async function verifyDomain(domain: string, userId: string): Promise<DNSV
     return {
       verified: false,
       records: {
+        a: [],
         cname: [],
         txt: [],
         mx: [],
@@ -115,20 +145,29 @@ function generateVerificationToken(userId: string, domain: string): string {
   return `nextgen-verify-${hash.digest('hex').substring(0, 16)}`
 }
 
-export function getVerificationInstructions(domain: string, userId: string): {
-  cname: { host: string; value: string }
-  txt: { host: string; value: string }
-} {
+export function getVerificationInstructions(domain: string, userId: string): DNSVerificationInstructions {
   const normalizedDomain = normalizeDomain(domain)
   const token = generateVerificationToken(userId, normalizedDomain)
+  const labels = normalizedDomain.split('.')
+  const isSubdomain = labels.length > 2
+  const recordHost = isSubdomain ? labels.slice(0, -2).join('.') : '@'
+
   return {
-    cname: {
-      host: normalizedDomain,
-      value: 'cname.vercel-dns.com',
-    },
-    txt: {
-      host: normalizedDomain,
-      value: token,
-    },
+    a: isSubdomain ? [] : [
+      { host: '@', value: '76.76.21.21' },
+      { host: '@', value: '76.76.21.22' },
+    ],
+    cname: [
+      {
+        host: isSubdomain ? recordHost : 'www',
+        value: 'cname.vercel-dns.com',
+      },
+    ],
+    txt: [
+      {
+        host: recordHost,
+        value: token,
+      },
+    ],
   }
 }

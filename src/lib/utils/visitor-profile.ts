@@ -5,6 +5,16 @@ export interface VisitorProfile {
   deviceType: string | null
 }
 
+const BOT_BROWSER_PATTERNS = [
+  /googlebot/i, /bingbot/i, /yandex/i, /baidu/i,
+  /duckduckbot/i, /slurp/i, /facebookexternalhit/i,
+  /twitterbot/i, /linkedinbot/i, /ahrefsbot/i,
+  /semrushbot/i, /petalbot/i, /mj12bot/i,
+  /rogerbot/i, /dotbot/i, /screamingfrog/i,
+  /sitebulb/i, /curl\//i, /wget\//i,
+  /python-requests\//i
+]
+
 const BROWSER_PATTERNS = [
   { name: 'Brave', pattern: /Brave\/(\d+(?:\.\d+)*)/i },
   { name: 'Edge', pattern: /Edg(?:e|A|iOS)?\/(\d+(?:\.\d+)*)/i },
@@ -29,6 +39,13 @@ const DEVICE_PATTERNS = [
 ]
 
 function getBrowserProfile(userAgent: string) {
+  if (BOT_BROWSER_PATTERNS.some((pattern) => pattern.test(userAgent))) {
+    return {
+      browser: 'Bot',
+      browserVersion: null,
+    }
+  }
+
   for (const candidate of BROWSER_PATTERNS) {
     const match = userAgent.match(candidate.pattern)
     if (match) {
