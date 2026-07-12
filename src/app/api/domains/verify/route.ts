@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db/prisma'
 import { getUserFromToken, getTokenFromCookie } from '@/lib/auth'
 import { verifyDomain, getVerificationInstructions } from '@/lib/services/dns/verify'
+import { verifyDomainOnVercel } from '@/lib/services/vercel/domain'
 import { getCorsHeaders } from '@/config/cors'
 import { z } from 'zod'
 
@@ -54,7 +55,16 @@ export async function POST(request: Request) {
     // ─── REAL DNS Verification ───
     const verification = await verifyDomain(domain.domain, user.id)
 
-    if (verification.verified) {
+    const vercelVerification = verification.verified
+      ? await verifyDomainOnVercel(domain.domain, {
+          VERCEL_TOKEN: process.env.VERCEL_TOKEN,
+          VERCEL_PROJECT_ID: process.env.VERCEL_PROJECT_ID,
+          VERCEL_PROJECT_NAME: process.env.VERCEL_PROJECT_NAME,
+          VERCEL_TEAM_ID: process.env.VERCEL_TEAM_ID,
+        })
+      : null
+
+    if (verification.verified && vercelVerification?.verified) {
       await prisma.customDomain.update({
         where: { id: domain.id },
         data: {
@@ -69,8 +79,9 @@ export async function POST(request: Request) {
     return NextResponse.json({
       domainId: domain.id,
       domain: domain.domain,
-      verified: verification.verified,
+      verified: verification.verified && Boolean(vercelVerification?.verified),
       verification,
+      vercelVerification,
       instructions,
     }, { headers: getCorsHeaders(origin) })
   } catch (error) {

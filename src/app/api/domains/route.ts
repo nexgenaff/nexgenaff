@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db/prisma'
 import { getUserFromToken, getTokenFromCookie } from '@/lib/auth'
 import { getVerificationInstructions, normalizeDomain } from '@/lib/services/dns/verify'
+import { addDomainToProject } from '@/lib/services/vercel/domain'
 import { getCorsHeaders } from '@/config/cors'
 import { z } from 'zod'
 
@@ -127,11 +128,19 @@ export async function POST(request: Request) {
       },
     })
 
+    const vercelBinding = await addDomainToProject(domain, {
+      VERCEL_TOKEN: process.env.VERCEL_TOKEN,
+      VERCEL_PROJECT_ID: process.env.VERCEL_PROJECT_ID,
+      VERCEL_PROJECT_NAME: process.env.VERCEL_PROJECT_NAME,
+      VERCEL_TEAM_ID: process.env.VERCEL_TEAM_ID,
+    })
+
     const instructions = getVerificationInstructions(domain, user.id)
 
     return NextResponse.json({
       ...newDomain,
       verificationInstructions: instructions,
+      vercelBinding,
       message: 'Domain added. Please add the following DNS records to verify ownership.',
     }, { 
       status: 201, 
