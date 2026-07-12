@@ -40,14 +40,33 @@ export function buildVercelHeaders(token: string): Record<string, string> {
   }
 }
 
-function buildInstructionHost(normalizedDomain: string, recordDomain: string): string {
+function getParentDomain(domain: string): string {
+  const labels = domain.split('.')
+  if (labels.length <= 2) {
+    return domain
+  }
+
+  return labels.slice(1).join('.')
+}
+
+function buildInstructionHost(normalizedDomain: string, recordDomain: string, recordType: string): string {
   const normalizedRecordDomain = normalizeDomain(recordDomain)
 
-  if (!normalizedRecordDomain || normalizedRecordDomain === normalizedDomain) {
+  if (!normalizedRecordDomain) {
     return '@'
   }
 
-  const suffix = `.${normalizedDomain}`
+  if (normalizedRecordDomain === normalizedDomain) {
+    if (recordType === 'CNAME') {
+      return normalizedDomain.split('.')[0] || '@'
+    }
+
+    return '@'
+  }
+
+  const parentDomain = getParentDomain(normalizedDomain)
+  const suffix = `.${parentDomain}`
+
   if (normalizedRecordDomain.endsWith(suffix)) {
     return normalizedRecordDomain.slice(0, -suffix.length) || '@'
   }
@@ -91,7 +110,7 @@ export function buildVerificationInstructionsFromVercelRecords(
       continue
     }
 
-    const host = buildInstructionHost(normalizedDomain, recordDomain)
+    const host = buildInstructionHost(normalizedDomain, recordDomain, type)
 
     if (type === 'A') {
       a.push({ host, value })

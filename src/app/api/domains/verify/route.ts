@@ -55,14 +55,12 @@ export async function POST(request: Request) {
     // ─── REAL DNS Verification ───
     const verification = await verifyDomain(domain.domain, user.id)
 
-    const vercelVerification = verification.verified
-      ? await verifyDomainOnVercel(domain.domain, {
-          VERCEL_TOKEN: process.env.VERCEL_TOKEN,
-          VERCEL_PROJECT_ID: process.env.VERCEL_PROJECT_ID,
-          VERCEL_PROJECT_NAME: process.env.VERCEL_PROJECT_NAME,
-          VERCEL_TEAM_ID: process.env.VERCEL_TEAM_ID,
-        })
-      : null
+    const vercelVerification = await verifyDomainOnVercel(domain.domain, {
+      VERCEL_TOKEN: process.env.VERCEL_TOKEN,
+      VERCEL_PROJECT_ID: process.env.VERCEL_PROJECT_ID,
+      VERCEL_PROJECT_NAME: process.env.VERCEL_PROJECT_NAME,
+      VERCEL_TEAM_ID: process.env.VERCEL_TEAM_ID,
+    })
 
     if (verification.verified && vercelVerification?.verified) {
       await prisma.customDomain.update({

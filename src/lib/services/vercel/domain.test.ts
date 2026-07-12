@@ -56,3 +56,24 @@ test('maps authoritative Vercel verification records into DNS instructions', () 
     { host: '@', value: 'nextgen-verify-token' },
   ])
 })
+
+test('preserves the real hostname for subdomain ownership checks and surfaces the _vercel TXT record', () => {
+  const instructions = buildVerificationInstructionsFromVercelRecords(
+    [
+      { type: 'CNAME', domain: 'go.prizenest.xyz', value: 'cb1bb6704c9efb4a.vercel-dns-017.com.' },
+      { type: 'TXT', domain: '_vercel.prizenest.xyz', value: 'vc-domain-verify=go.prizenest.xyz,d9d58134cc78338ae99b' },
+    ],
+    'go.prizenest.xyz'
+  )
+
+  if (!instructions) {
+    throw new Error('Expected Vercel instructions to be generated for the linked-domain scenario')
+  }
+
+  assert.deepEqual(instructions.cname, [
+    { host: 'go', value: 'cb1bb6704c9efb4a.vercel-dns-017.com.' },
+  ])
+  assert.deepEqual(instructions.txt, [
+    { host: '_vercel', value: 'vc-domain-verify=go.prizenest.xyz,d9d58134cc78338ae99b' },
+  ])
+})
