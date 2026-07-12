@@ -29,7 +29,7 @@ export async function PUT(
     }
 
     const body = await request.json()
-    const { country, offerUrl, isActive, isGlobal } = body
+    const { country, groupName, offerUrl, isActive, isGlobal, priority, rotationMode } = body
 
     const offer = await prisma.offerVault.findUnique({
       where: { id },
@@ -42,24 +42,29 @@ export async function PUT(
       )
     }
 
-    if (isGlobal) {
-      await prisma.offerVault.updateMany({
-        where: {
-          userId: user.id,
-          isGlobal: true,
-          id: { not: id },
-        },
-        data: { isGlobal: false },
-      })
-    }
+    const nextCountry = Boolean(isGlobal)
+      ? 'GLOBAL'
+      : typeof country === 'string'
+        ? country.trim().toUpperCase()
+        : offer.country
+
+    const nextGroupName = typeof groupName === 'string' ? groupName.trim() || null : offer.groupName
+    const nextOfferUrl = typeof offerUrl === 'string' ? offerUrl.trim() : offer.offerUrl
+    const nextPriority = Number.isFinite(Number(priority))
+      ? Math.max(1, Math.min(999, Number(priority)))
+      : offer.priority
+    const nextRotationMode = rotationMode === 'RANDOM' ? 'RANDOM' : 'PRIORITY'
 
     const updated = await prisma.offerVault.update({
       where: { id },
       data: {
-        country: country?.toUpperCase(),
-        offerUrl,
+        country: nextCountry,
+        groupName: nextGroupName,
+        offerUrl: nextOfferUrl,
         isActive,
         isGlobal,
+        priority: nextPriority,
+        rotationMode: nextRotationMode,
       },
     })
 

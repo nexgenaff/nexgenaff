@@ -4,6 +4,9 @@ import { verifyCredentials, generateToken } from '@/lib/auth'
 import { getCorsHeaders } from '@/config/cors'
 import { prisma } from '@/lib/db/prisma'
 
+const ADMIN_USERNAME = process.env.ADMIN_USERNAME?.trim() || 'admin'
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD?.trim() || 'admin123'
+
 export async function POST(request: Request) {
   try {
     const origin = request.headers.get('origin') || null
@@ -32,33 +35,28 @@ export async function POST(request: Request) {
       dbError = true
     }
 
-    // If no user found, upsert the specific account you provided to allow immediate login
-    // NOTE: we do not create generic demo accounts. Only create the requested user when exact credentials match.
+    // If no user was found in the database, fall back to the configured admin credential pair
+    // so the app can still bootstrap a usable dashboard in local/dev environments.
     if (!user) {
-      const allowedUsername = 'ilymratul122'
-      const allowedPassword = 'ilymratul122'
-
-      if (username === allowedUsername && password === allowedPassword) {
+      if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
         if (dbError) {
-          // DB not reachable — issue a temporary in-memory token for the allowed user
           console.warn('DB unavailable; issuing in-memory token for', username)
-          user = { id: `local-${allowedUsername}`, username: allowedUsername, role: 'ADMIN' } as any
+          user = { id: `local-${ADMIN_USERNAME}`, username: ADMIN_USERNAME, role: 'ADMIN' } as any
         } else {
           try {
-            const hashed = await bcrypt.hash(password, 10)
+            const hashed = await bcrypt.hash(ADMIN_PASSWORD, 10)
             user = await prisma.user.upsert({
-              where: { username: allowedUsername },
+              where: { username: ADMIN_USERNAME },
               update: { password: hashed },
               create: {
-                username: allowedUsername,
-                email: `${allowedUsername}@example.com`,
+                username: ADMIN_USERNAME,
+                email: `${ADMIN_USERNAME}@example.com`,
                 password: hashed,
                 role: 'ADMIN',
               },
             })
           } catch (err) {
             console.error('Error upserting user for login:', username, err)
-            // If upsert fails but DB error flag is false, treat as failure
             return NextResponse.json(
               { error: 'Authentication failed' },
               { status: 500, headers: getCorsHeaders(origin) }

@@ -1,12 +1,15 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db/prisma'
 import { getUserFromToken, getTokenFromCookie } from '@/lib/auth'
-import { getVerificationInstructions } from '@/lib/services/dns/verify'
+import { getVerificationInstructions, normalizeDomain } from '@/lib/services/dns/verify'
 import { getCorsHeaders } from '@/config/cors'
 import { z } from 'zod'
 
 const domainSchema = z.object({
-  domain: z.string().min(1).max(255),
+  domain: z.string().trim().min(1).max(255).transform((value) => normalizeDomain(value)),
+}).refine((result) => Boolean(result.domain), {
+  message: 'Please enter a valid domain name',
+  path: ['domain'],
 })
 
 export async function GET(request: Request) {
@@ -101,7 +104,7 @@ export async function POST(request: Request) {
       )
     }
 
-    const { domain } = validation.data
+    const domain = validation.data.domain
 
     const existing = await prisma.customDomain.findUnique({
       where: { domain },

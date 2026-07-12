@@ -66,7 +66,27 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json()
-    const { accountName, slug, customDomainId } = body
+    const { accountName, slug, customDomainId, offerGroupName } = body
+
+    if (customDomainId) {
+      const attachedDomain = await prisma.customDomain.findUnique({
+        where: { id: customDomainId },
+      })
+
+      if (!attachedDomain || attachedDomain.userId !== user.id) {
+        return NextResponse.json(
+          { error: 'Selected custom domain does not exist or is not owned by your account' },
+          { status: 400, headers: getCorsHeaders(origin) }
+        )
+      }
+
+      if (!attachedDomain.verified || !attachedDomain.isActive) {
+        return NextResponse.json(
+          { error: 'Only verified and active custom domains can be attached to a link' },
+          { status: 400, headers: getCorsHeaders(origin) }
+        )
+      }
+    }
 
     if (!accountName || !slug) {
       return NextResponse.json(
@@ -93,6 +113,7 @@ export async function POST(request: Request) {
         accountName,
         slug,
         customDomainId: customDomainId || null,
+        offerGroupName: typeof offerGroupName === 'string' ? offerGroupName.trim() || null : null,
         userId: user.id,
         publicDashboard: {
           create: { publicId },

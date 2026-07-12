@@ -2,6 +2,67 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { prisma } from '@/lib/db/prisma'
 import { BotDetectionService } from '@/lib/services/bot-detection'
 import { getGeoLocation } from '@/lib/services/geo/ip2location'
+import { parseVisitorProfile } from '@/lib/utils/visitor-profile'
+
+const normalizeGroupName = (value?: string | null) => value?.trim() ?? ''
+
+const selectRotatingOffer = (offers: Array<{ id: string; priority: number; rotationMode: string; offerUrl: string; country: string; isGlobal: boolean; isActive: boolean; createdAt: Date; groupName: string | null }>) => {
+  if (!offers.length) return null
+  if (offers.length === 1) return offers[0]
+
+  const randomPool = offers.filter((offer) => offer.rotationMode === 'RANDOM')
+  if (randomPool.length > 0) {
+    return randomPool[Math.floor(Math.random() * randomPool.length)]
+  }
+
+  const sorted = [...offers].sort((a, b) => {
+    if (b.priority !== a.priority) return b.priority - a.priority
+    return a.createdAt.getTime() - b.createdAt.getTime()
+  })
+
+  return sorted[0]
+}
+
+const selectGroupOffer = async (
+  userId: string,
+  country: string,
+  groupName: string,
+) => {
+  const regionalGroupCandidates = await prisma.offerVault.findMany({
+    where: {
+      userId,
+      country,
+      groupName,
+      isActive: true,
+      isGlobal: false,
+    },
+    orderBy: [
+      { priority: 'desc' },
+      { createdAt: 'asc' },
+    ],
+  })
+
+  let offer = selectRotatingOffer(regionalGroupCandidates)
+
+  if (!offer) {
+    const globalGroupCandidates = await prisma.offerVault.findMany({
+      where: {
+        userId,
+        groupName,
+        isActive: true,
+        isGlobal: true,
+      },
+      orderBy: [
+        { priority: 'desc' },
+        { createdAt: 'asc' },
+      ],
+    })
+
+    offer = selectRotatingOffer(globalGroupCandidates)
+  }
+
+  return offer
+}
 
 export async function GET(
   request: NextRequest,
@@ -11,9 +72,10 @@ export async function GET(
     const { slug } = await params
     const headers = request.headers
     const userAgent = headers.get('user-agent') || ''
-    const ip = headers.get('x-forwarded-for') || headers.get('x-real-ip') || 'unknown'
+    const ip = headers.get('cf-connecting-ip') || headers.get('true-client-ip') || headers.get('x-real-ip') || headers.get('x-forwarded-for') || 'unknown'
     const referrer = headers.get('referer') || headers.get('referrer') || ''
     const origin = headers.get('origin') || ''
+    const visitorProfile = parseVisitorProfile(userAgent)
 
     const link = await prisma.linkAccount.findUnique({
       where: { slug },
@@ -36,6 +98,10 @@ export async function GET(
           ipAddress: ip,
           userAgent: userAgent,
           referrer: referrer || '',
+          browser: visitorProfile.browser,
+          browserVersion: visitorProfile.browserVersion,
+          os: visitorProfile.os,
+          deviceType: visitorProfile.deviceType,
           isBot: true,
           botScore: botResult.score,
           botReason: botResult.reasons.join(', '),
@@ -56,25 +122,49 @@ export async function GET(
       return response
     }
 
-    const geo = await getGeoLocation(ip)
-    const country = geo?.country_code || 'US'
+    const geo = await getGeoLocation(ip, headers)
+    const country = (geo?.country_code || 'UNKNOWN').toUpperCase()
 
-    let offer = await prisma.offerVault.findFirst({
-      where: {
-        country: country,
-        isActive: true,
-        userId: link.userId,
-      },
-    })
+    let offer = null
+
+    if (link.offerGroupName) {
+      offer = await selectGroupOffer(link.userId, country, link.offerGroupName)
+    }
 
     if (!offer) {
-      offer = await prisma.offerVault.findFirst({
+      const regionalCandidates = await prisma.offerVault.findMany({
+        where: {
+          country,
+          isActive: true,
+          userId: link.userId,
+          isGlobal: false,
+        },
+        orderBy: [
+          { priority: 'desc' },
+          { createdAt: 'asc' },
+        ],
+      })
+
+      const namedGroupCandidates = regionalCandidates.filter((offer) => normalizeGroupName(offer.groupName))
+      const directCountryCandidates = regionalCandidates.filter((offer) => !normalizeGroupName(offer.groupName))
+
+      offer = selectRotatingOffer(namedGroupCandidates.length ? namedGroupCandidates : directCountryCandidates)
+    }
+
+    if (!offer) {
+      const globalCandidates = await prisma.offerVault.findMany({
         where: {
           isGlobal: true,
           isActive: true,
           userId: link.userId,
         },
+        orderBy: [
+          { priority: 'desc' },
+          { createdAt: 'asc' },
+        ],
       })
+
+      offer = selectRotatingOffer(globalCandidates)
     }
 
     if (!offer) {
@@ -92,7 +182,10 @@ export async function GET(
         region: geo?.region || null,
         city: geo?.city || null,
         isp: geo?.isp || null,
-        browser: 'Unknown',
+        browser: visitorProfile.browser,
+        browserVersion: visitorProfile.browserVersion,
+        os: visitorProfile.os,
+        deviceType: visitorProfile.deviceType,
         referrer: referrer || null,
         isUnique: true,
         isBot: false,

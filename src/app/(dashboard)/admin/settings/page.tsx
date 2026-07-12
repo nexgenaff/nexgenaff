@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
-import { Sun, Moon, User, Mail, Key, LogOut, AlertTriangle, Trash2, RefreshCw, Shield, Globe, Bell, Database } from 'lucide-react'
+import { Sun, Moon, User, Mail, Key, LogOut, AlertTriangle, Trash2, RefreshCw, Shield } from 'lucide-react'
 
 export default function SettingsPage() {
   const router = useRouter()

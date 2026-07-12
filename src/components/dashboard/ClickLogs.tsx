@@ -24,7 +24,6 @@ import {
   Clock,
   RefreshCw,
   Loader2,
-  Globe,
 } from 'lucide-react'
 
 interface Click {
@@ -197,6 +196,30 @@ export default function ClickLogs() {
     })
   }
 
+  const getReferrerInfo = (referrer: string | null) => {
+    if (!referrer) return { hostname: 'Direct', href: null }
+
+    const trimmed = referrer.trim()
+    if (!trimmed) return { hostname: 'Direct', href: null }
+
+    const normalizedHref = /^[a-z][a-z\d+\-.]*:\/\//i.test(trimmed)
+      ? trimmed
+      : `https://${trimmed}`
+
+    try {
+      const parsed = new URL(normalizedHref)
+      return {
+        hostname: parsed.hostname || 'Referrer',
+        href: parsed.toString(),
+      }
+    } catch {
+      return {
+        hostname: trimmed.split('/')[0] || 'Referrer',
+        href: null,
+      }
+    }
+  }
+
   const handleExport = async () => {
     try {
       const params = new URLSearchParams({
@@ -235,7 +258,7 @@ export default function ClickLogs() {
 
       if (!response.ok) throw new Error('Failed to delete click')
 
-      fetchClicks(false)
+      await fetchClicks(false)
     } catch (error) {
       console.error('Failed to delete click:', error)
     }
@@ -513,17 +536,25 @@ export default function ClickLogs() {
                     </div>
                   </td>
                   <td className="px-4 py-3 text-sm text-white/30 max-w-[150px] truncate">
-                    {click.referrer ? (
-                      <a
-                        href={click.referrer}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-1 text-indigo-400 hover:underline transition"
-                      >
-                        {new URL(click.referrer).hostname}
-                        <ExternalLink className="w-3 h-3 flex-shrink-0" />
-                      </a>
-                    ) : (
+                    {click.referrer ? (() => {
+                      const referrerInfo = getReferrerInfo(click.referrer)
+                      return (
+                        <a
+                          href={referrerInfo.href || '#'}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-1 text-indigo-400 hover:underline transition"
+                          onClick={(event) => {
+                            if (!referrerInfo.href) {
+                              event.preventDefault()
+                            }
+                          }}
+                        >
+                          {referrerInfo.hostname}
+                          <ExternalLink className="w-3 h-3 flex-shrink-0" />
+                        </a>
+                      )
+                    })() : (
                       <span className="text-white/20">Direct</span>
                     )}
                   </td>

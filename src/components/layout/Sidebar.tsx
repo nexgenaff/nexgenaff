@@ -97,13 +97,16 @@ export default function Sidebar() {
 
       <div className={`p-4 border-t border-white/5 ${collapsed && !isMobile ? 'text-center' : ''}`}>
         <div className={`flex ${collapsed && !isMobile ? 'flex-col items-center' : 'items-center gap-3'}`}>
-          <div className="w-10 h-10 rounded-full bg-gradient-to-r from-indigo-600 to-purple-600 flex items-center justify-center text-white font-semibold shadow-lg flex-shrink-0">
-            <span className="text-sm">A</span>
+          <div className="relative">
+            <div className="w-10 h-10 rounded-full bg-gradient-to-r from-indigo-600 to-purple-600 flex items-center justify-center text-white font-semibold shadow-lg flex-shrink-0">
+              <span className="text-sm">A</span>
+            </div>
+            <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-400 rounded-full border-2 border-slate-950" />
           </div>
           {(!collapsed || isMobile) && (
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-white truncate">Admin</p>
-              <p className="text-xs text-white/30 truncate">admin@nextgen.com</p>
+              <p className="text-xs text-white/30 truncate">Pro workspace</p>
             </div>
           )}
         </div>

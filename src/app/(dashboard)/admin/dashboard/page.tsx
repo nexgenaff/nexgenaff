@@ -1,75 +1,150 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import StatsCards from '@/components/dashboard/StatsCards'
 import RecentClicks from '@/components/dashboard/RecentClicks'
 import ClickLogs from '@/components/dashboard/ClickLogs'
-import { RefreshCw, Plus } from 'lucide-react'
+import { GeoInsights } from '@/components/dashboard/GeoInsights'
+import { TrafficBreakdown } from '@/components/dashboard/TrafficBreakdown'
+import { RefreshCw, Plus, Globe2 } from 'lucide-react'
+
+interface DashboardStats {
+  totalClicks: number
+  uniqueClicks: number
+  totalLinks: number
+  botClicks: number
+  chartData?: {
+    labels: string[]
+    datasets: {
+      label: string
+      data: number[]
+      borderColor: string
+      backgroundColor: string
+      fill?: boolean
+      tension?: number
+      pointRadius?: number
+    }[]
+  }
+  hourlyChartData?: {
+    labels: string[]
+    datasets: {
+      label: string
+      data: number[]
+      borderColor: string
+      backgroundColor: string
+      fill?: boolean
+      tension?: number
+      pointRadius?: number
+    }[]
+  }
+  geoData?: {
+    country: string
+    clicks: number
+    uniqueClicks: number
+  }[]
+  countryBreakdown?: {
+    country: string
+    clicks: number
+    uniqueClicks: number
+  }[]
+  referrerBreakdown?: {
+    name: string
+    clicks: number
+    uniqueClicks: number
+  }[]
+  browserBreakdown?: {
+    name: string
+    clicks: number
+    uniqueClicks: number
+  }[]
+  deviceBreakdown?: {
+    name: string
+    clicks: number
+    uniqueClicks: number
+  }[]
+}
+
+const defaultChartData = {
+  labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+  datasets: [
+    {
+      label: 'Clicks',
+      data: [0, 0, 0, 0, 0, 0, 0],
+      borderColor: '#8B5CF6',
+      backgroundColor: 'rgba(139, 92, 246, 0.14)',
+      fill: true,
+      tension: 0.35,
+      pointRadius: 3,
+    },
+  ],
+}
 
 export default function DashboardPage() {
   const router = useRouter()
-  const [stats, setStats] = useState({
+  const [stats, setStats] = useState<DashboardStats>({
     totalClicks: 0,
     uniqueClicks: 0,
     totalLinks: 0,
     botClicks: 0,
   })
+  const [chartData, setChartData] = useState(defaultChartData)
+  const [hourlyChartData, setHourlyChartData] = useState(defaultChartData)
+  const [geoData, setGeoData] = useState<{ country: string; clicks: number; uniqueClicks: number }[]>([])
+  const [countryBreakdown, setCountryBreakdown] = useState<{ country: string; clicks: number; uniqueClicks: number }[]>([])
+  const [referrerBreakdown, setReferrerBreakdown] = useState<{ name: string; clicks: number; uniqueClicks: number }[]>([])
+  const [browserBreakdown, setBrowserBreakdown] = useState<{ name: string; clicks: number; uniqueClicks: number }[]>([])
+  const [deviceBreakdown, setDeviceBreakdown] = useState<{ name: string; clicks: number; uniqueClicks: number }[]>([])
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState<'overview' | 'logs'>('overview')
+  const [period, setPeriod] = useState<'week' | 'month' | 'year'>('week')
+
+  const loadDashboardData = useCallback(async () => {
+    try {
+      const response = await fetch(`/api/analytics/dashboard?period=${period}`, { credentials: 'include' })
+      if (response.status === 401) {
+        router.push('/login')
+        return
+      }
+      if (!response.ok) {
+        console.error('Failed to fetch stats, status:', response.status)
+        setStats({ totalClicks: 0, uniqueClicks: 0, totalLinks: 0, botClicks: 0 })
+        setChartData(defaultChartData)
+        setHourlyChartData(defaultChartData)
+        setGeoData([])
+        setCountryBreakdown([])
+        setReferrerBreakdown([])
+        setBrowserBreakdown([])
+        setDeviceBreakdown([])
+        return
+      }
+
+      const data = await response.json()
+      setStats(data)
+      setChartData(data.chartData || defaultChartData)
+      setHourlyChartData(data.hourlyChartData || defaultChartData)
+      setGeoData(data.geoData || [])
+      setCountryBreakdown(data.countryBreakdown || [])
+      setReferrerBreakdown(data.referrerBreakdown || [])
+      setBrowserBreakdown(data.browserBreakdown || [])
+      setDeviceBreakdown(data.deviceBreakdown || [])
+    } catch (error) {
+      console.error('Failed to fetch stats:', error)
+    } finally {
+      setLoading(false)
+    }
+  }, [period, router])
 
   useEffect(() => {
-    const fetchStats = async () => {
-      try {
-        const response = await fetch('/api/analytics/dashboard', { credentials: 'include' })
-        if (response.status === 401) {
-          router.push('/login')
-          return
-        }
-        if (!response.ok) {
-          console.error('Failed to fetch stats, status:', response.status)
-          setStats({ totalClicks: 0, uniqueClicks: 0, totalLinks: 0, botClicks: 0 })
-          return
-        }
-
-        let data = null
-        try {
-          data = await response.json()
-        } catch (err) {
-          console.error('Failed to parse stats JSON:', err)
-          setStats({ totalClicks: 0, uniqueClicks: 0, totalLinks: 0, botClicks: 0 })
-          return
-        }
-
-        setStats(data)
-      } catch (error) {
-        console.error('Failed to fetch stats:', error)
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    fetchStats()
-  }, [router])
+    void loadDashboardData()
+  }, [loadDashboardData])
 
   const handleRefresh = async () => {
     setLoading(true)
-    try {
-        const response = await fetch('/api/analytics/dashboard', { credentials: 'include' })
-        if (!response.ok) {
-          console.error('Failed to refresh stats, status:', response.status)
-          return
-        }
-        const data = await response.json()
-        setStats(data)
-      } catch (error) {
-        console.error('Failed to refresh stats:', error)
-      } finally {
-        setLoading(false)
-      }
-    }
+    await loadDashboardData()
+  }
 
   if (loading) {
     return (
@@ -84,15 +159,18 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <motion.div 
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
+        className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 rounded-3xl border border-white/10 bg-gradient-to-br from-white/8 via-white/5 to-white/[0.04] p-5 sm:p-6 shadow-2xl shadow-indigo-950/20"
       >
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-white">Dashboard <span className="gradient-text">Pro</span></h1>
-          <p className="text-sm sm:text-base text-white/30 mt-1">Welcome back! Here's your performance overview.</p>
+          <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-emerald-300">
+            <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse"></span>
+            Live dashboard
+          </div>
+          <h1 className="text-2xl sm:text-3xl font-bold text-white mt-3">Dashboard <span className="gradient-text">Pro</span></h1>
+          <p className="text-sm sm:text-base text-white/30 mt-1">Welcome back! Your geo-aware campaign performance is ready to review.</p>
         </div>
         <div className="flex flex-wrap gap-3">
           <button 
@@ -112,10 +190,14 @@ export default function DashboardPage() {
         </div>
       </motion.div>
 
-      {/* Stats Cards */}
-      <StatsCards stats={stats} />
+      <StatsCards
+        stats={stats}
+        chartData={chartData}
+        hourlyChartData={hourlyChartData}
+        period={period}
+        onPeriodChange={setPeriod}
+      />
 
-      {/* Tabs */}
       <div className="flex gap-2 border-b border-white/5">
         <button
           onClick={() => setActiveTab('overview')}
@@ -139,59 +221,19 @@ export default function DashboardPage() {
         </button>
       </div>
 
-      {/* Content */}
       {activeTab === 'overview' ? (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2">
+          <div className="lg:col-span-2 space-y-6">
             <RecentClicks />
           </div>
           <div className="space-y-6">
-            {/* Quick Actions */}
-            <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-4 sm:p-6 card-hover">
-              <h3 className="text-lg font-semibold text-white mb-4">⚡ Quick Actions</h3>
-              <div className="space-y-3">
-                <Link href="/admin/links/create" className="flex items-center justify-between w-full px-4 py-3 bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 rounded-xl hover:bg-indigo-500/20 transition group">
-                  <span className="flex items-center gap-2">➕ Create New Link</span>
-                  <span className="group-hover:translate-x-1 transition">→</span>
-                </Link>
-                <Link href="/admin/offers" className="flex items-center justify-between w-full px-4 py-3 bg-white/5 text-white/60 rounded-xl hover:bg-white/10 transition group">
-                  <span className="flex items-center gap-2">📦 Manage Offers</span>
-                  <span className="group-hover:translate-x-1 transition">→</span>
-                </Link>
-                <Link href="/admin/domains" className="flex items-center justify-between w-full px-4 py-3 bg-white/5 text-white/60 rounded-xl hover:bg-white/10 transition group">
-                  <span className="flex items-center gap-2">🌐 Custom Domains</span>
-                  <span className="group-hover:translate-x-1 transition">→</span>
-                </Link>
-              </div>
-            </div>
+            <GeoInsights geoData={geoData} countryBreakdown={countryBreakdown} />
+            <TrafficBreakdown
+              referrerBreakdown={referrerBreakdown}
+              browserBreakdown={browserBreakdown}
+              deviceBreakdown={deviceBreakdown}
+            />
 
-            {/* System Status */}
-            <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-4 sm:p-6 card-hover">
-              <h3 className="text-lg font-semibold text-white mb-4">📊 System Status</h3>
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-white/40">API Status</span>
-                  <span className="flex items-center gap-2 text-sm text-green-400">
-                    <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
-                    Operational
-                  </span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-white/40">Database</span>
-                  <span className="flex items-center gap-2 text-sm text-green-400">
-                    <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
-                    Connected
-                  </span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-white/40">Uptime</span>
-                  <span className="text-sm font-medium text-white">99.9%</span>
-                </div>
-                <div className="mt-3 h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
-                  <div className="h-full w-[99.9%] bg-gradient-to-r from-indigo-600 to-purple-600 rounded-full animate-pulse"></div>
-                </div>
-              </div>
-            </div>
           </div>
         </div>
       ) : (

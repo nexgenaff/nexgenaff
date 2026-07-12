@@ -14,6 +14,7 @@ export interface LinkAccount {
   slug: string
   customDomainId: string | null
   customDomain: CustomDomain | null
+  offerGroupName: string | null
   userId: string
   createdAt: string
   updatedAt: string
@@ -39,9 +40,12 @@ export interface CustomDomain {
 export interface OfferVault {
   id: string
   country: string
+  groupName: string | null
   offerUrl: string
   isActive: boolean
   isGlobal: boolean
+  priority: number
+  rotationMode: 'PRIORITY' | 'RANDOM'
   userId: string
   createdAt: string
   updatedAt: string

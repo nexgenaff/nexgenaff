@@ -35,6 +35,7 @@ model LinkAccount {
   slug            String      @unique
   customDomainId  String?
   customDomain    CustomDomain? @relation(fields: [customDomainId], references: [id])
+  offerGroupName  String?
   userId          String
   user            User        @relation(fields: [userId], references: [id])
   createdAt       DateTime    @default(now())
@@ -58,6 +59,7 @@ model LinkAccount {
   referrerStats    ReferrerStat[]
   
   @@unique([slug, customDomainId])
+  @@index([userId, offerGroupName])
   @@map("link_accounts")
 }
 
@@ -78,18 +80,28 @@ model CustomDomain {
   @@map("custom_domains")
 }
 
+enum OfferRotationMode {
+  PRIORITY
+  RANDOM
+}
+
 model OfferVault {
-  id              String        @id @default(cuid())
+  id              String              @id @default(cuid())
   country         String
+  groupName       String?
   offerUrl        String
-  isActive        Boolean       @default(true)
-  isGlobal        Boolean       @default(false)
+  isActive        Boolean             @default(true)
+  isGlobal        Boolean             @default(false)
+  priority        Int                 @default(100)
+  rotationMode    OfferRotationMode   @default(PRIORITY)
   userId          String
-  user            User          @relation(fields: [userId], references: [id])
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
-  
-  @@unique([country, userId])
+  user            User                @relation(fields: [userId], references: [id])
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+
+  @@index([userId, country, isActive])
+  @@index([userId, groupName, isActive])
+  @@index([userId, isGlobal, isActive])
   @@map("offer_vaults")
 }
 

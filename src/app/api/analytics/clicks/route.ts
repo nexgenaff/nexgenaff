@@ -178,10 +178,89 @@ export async function GET(request: Request) {
   }
 }
 
+export async function DELETE(request: Request) {
+  try {
+    const origin = request.headers.get('origin') || null
+    const cookieHeader = request.headers.get('cookie') || ''
+    const token = getTokenFromCookie(cookieHeader)
+
+    if (!token) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401, headers: getCorsHeaders(origin) }
+      )
+    }
+
+    const user = await getUserFromToken(token)
+    if (!user) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401, headers: getCorsHeaders(origin) }
+      )
+    }
+
+    const url = new URL(request.url)
+    const id = url.searchParams.get('id')
+
+    if (!id) {
+      return NextResponse.json(
+        { error: 'Click id required' },
+        { status: 400, headers: getCorsHeaders(origin) }
+      )
+    }
+
+    const click = await prisma.click.findUnique({
+      where: { id },
+      include: {
+        linkAccount: true,
+      },
+    })
+
+    if (!click || click.linkAccount.userId !== user.id) {
+      return NextResponse.json(
+        { error: 'Click not found' },
+        { status: 404, headers: getCorsHeaders(origin) }
+      )
+    }
+
+    await prisma.$transaction([
+      prisma.click.delete({
+        where: { id },
+      }),
+      prisma.linkAccount.update({
+        where: { id: click.linkAccountId },
+        data: {
+          totalClicks: { decrement: 1 },
+          ...(click.isUnique ? { uniqueClicks: { decrement: 1 } } : {}),
+          ...(click.isBot ? { botClicks: { decrement: 1 } } : {}),
+        },
+      }),
+    ])
+
+    return NextResponse.json(
+      { success: true },
+      { headers: getCorsHeaders(origin) }
+    )
+  } catch (error) {
+    console.error('Error deleting click:', error)
+    return NextResponse.json(
+      { error: 'Failed to delete click' },
+      { status: 500 }
+    )
+  }
+}
+
 export async function OPTIONS(request: Request) {
   const origin = request.headers.get('origin') || '*'
-  return new NextResponse(null, {
+  const response = new NextResponse(null, {
     status: 204,
-    headers: getCorsHeaders(origin),
   })
+
+  response.headers.set('Access-Control-Allow-Origin', origin)
+  response.headers.set('Access-Control-Allow-Credentials', 'true')
+  response.headers.set('Access-Control-Allow-Methods', 'GET,POST,DELETE,OPTIONS')
+  response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization, Cookie, Origin')
+  response.headers.set('Access-Control-Max-Age', '86400')
+
+  return response
 }

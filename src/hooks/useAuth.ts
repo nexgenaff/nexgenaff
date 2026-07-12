@@ -68,7 +68,7 @@ export function useAuth(): UseAuthReturn {
       await fetchUser()
       router.push('/admin/dashboard')
       return { success: true }
-    } catch (error) {
+    } catch {
       return { success: false, error: 'An unexpected error occurred' }
     } finally {
       setLoading(false)

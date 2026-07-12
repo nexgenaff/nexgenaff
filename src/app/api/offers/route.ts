@@ -64,35 +64,40 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json()
-    const { country, offerUrl, isGlobal } = body
+    const country = typeof body?.country === 'string' ? body.country.trim().toUpperCase() : ''
+    const groupName = typeof body?.groupName === 'string' ? body.groupName.trim() : ''
+    const offerUrl = typeof body?.offerUrl === 'string' ? body.offerUrl.trim() : ''
+    const isGlobal = Boolean(body?.isGlobal)
+    const priorityValue = Number(body?.priority)
+    const priority = Number.isFinite(priorityValue)
+      ? Math.max(1, Math.min(999, priorityValue))
+      : 100
+    const rotationMode = body?.rotationMode === 'RANDOM' ? 'RANDOM' : 'PRIORITY'
+    const resolvedCountry = isGlobal ? 'GLOBAL' : country
 
-    if (!country || !offerUrl) {
+    if ((!resolvedCountry && !isGlobal) || !offerUrl) {
       return NextResponse.json(
         { error: 'Country and offer URL required' },
         { status: 400, headers: getCorsHeaders(origin) }
       )
     }
 
-    if (isGlobal) {
-      await prisma.offerVault.updateMany({
-        where: { userId: user.id, isGlobal: true },
-        data: { isGlobal: false },
-      })
-    }
-
     const offer = await prisma.offerVault.create({
       data: {
-        country: country.toUpperCase(),
+        country: resolvedCountry,
+        groupName: groupName || null,
         offerUrl,
-        isGlobal: isGlobal || false,
+        isGlobal,
         isActive: true,
+        priority,
+        rotationMode,
         userId: user.id,
       },
     })
 
-    return NextResponse.json(offer, { 
-      status: 201, 
-      headers: getCorsHeaders(origin) 
+    return NextResponse.json(offer, {
+      status: 201,
+      headers: getCorsHeaders(origin)
     })
   } catch (error) {
     console.error('Error creating offer:', error)

@@ -13,7 +13,7 @@ import {
   Filler,
   BarElement,
 } from 'chart.js'
-import { Line } from 'react-chartjs-2'
+import { Line, Bar } from 'react-chartjs-2'
 
 ChartJS.register(
   CategoryScale,
@@ -108,6 +108,16 @@ export function Chart({ data, height = 220, type = 'line', options = {} }: Chart
       duration: 600,
       easing: 'easeOutQuart' as const,
     },
+    elements: {
+      line: {
+        borderWidth: 3,
+        tension: 0.38,
+      },
+      point: {
+        radius: 3,
+        hoverRadius: 5,
+      },
+    },
     ...options,
   }
 
@@ -115,16 +125,30 @@ export function Chart({ data, height = 220, type = 'line', options = {} }: Chart
     return <div className="w-full bg-white/5 rounded-xl animate-pulse" style={{ height }} />
   }
 
-  // Guard against invalid data shape to avoid ChartJS runtime errors
   if (!data || !Array.isArray(data.labels) || !Array.isArray(data.datasets)) {
     return <div className="w-full bg-white/5 rounded-xl p-6 text-center" style={{ height }}>
       <p className="text-white/40">No chart data available</p>
     </div>
   }
 
+  const normalizedData = {
+    ...data,
+    datasets: data.datasets.map((dataset) => ({
+      ...dataset,
+      borderWidth: dataset.borderWidth ?? 3,
+      tension: dataset.tension ?? 0.35,
+      pointRadius: dataset.pointRadius ?? 3,
+      fill: dataset.fill ?? true,
+    })),
+  }
+
   return (
     <div className="w-full" style={{ height }}>
-      <Line data={data} options={defaultOptions} />
+      {type === 'bar' ? (
+        <Bar data={normalizedData} options={defaultOptions} />
+      ) : (
+        <Line data={normalizedData} options={defaultOptions} />
+      )}
     </div>
   )
 }

@@ -76,9 +76,104 @@ export async function GET(
 
     const totalClicks = await prisma.click.count({ where })
 
+    const trendRows = await prisma.click.findMany({
+      where,
+      orderBy: { createdAt: 'asc' },
+      select: {
+        createdAt: true,
+        isUnique: true,
+      },
+    })
+
+    const trendMap = {
+      total: new Map<string, number>(),
+      unique: new Map<string, number>(),
+    }
+    const trendDays: Array<{ key: string; label: string }> = []
+    const today = new Date()
+
+    for (let index = 6; index >= 0; index -= 1) {
+      const date = new Date(today)
+      date.setDate(today.getDate() - index)
+      date.setHours(0, 0, 0, 0)
+
+      const key = date.toISOString().slice(0, 10)
+      trendDays.push({
+        key,
+        label: date.toLocaleDateString('en-US', { weekday: 'short' }),
+      })
+      trendMap.total.set(key, 0)
+      trendMap.unique.set(key, 0)
+    }
+
+    trendRows.forEach((row) => {
+      const createdAt = new Date(row.createdAt)
+      const key = createdAt.toISOString().slice(0, 10)
+      if (trendMap.total.has(key)) {
+        trendMap.total.set(key, (trendMap.total.get(key) || 0) + 1)
+      }
+      if (row.isUnique && trendMap.unique.has(key)) {
+        trendMap.unique.set(key, (trendMap.unique.get(key) || 0) + 1)
+      }
+    })
+
+    const clickTrend = {
+      labels: trendDays.map((day) => day.label),
+      datasets: [
+        {
+          label: 'Total Clicks',
+          data: trendDays.map((day) => trendMap.total.get(day.key) || 0),
+          borderColor: '#22D3EE',
+          backgroundColor: 'rgba(34, 211, 238, 0.14)',
+          fill: true,
+          tension: 0.35,
+          pointRadius: 3,
+        },
+        {
+          label: 'Unique Clicks',
+          data: trendDays.map((day) => trendMap.unique.get(day.key) || 0),
+          borderColor: '#34D399',
+          backgroundColor: 'rgba(52, 211, 153, 0.14)',
+          fill: true,
+          tension: 0.35,
+          pointRadius: 3,
+        },
+      ],
+    }
+
+    const geoRows = await prisma.click.findMany({
+      where,
+      select: {
+        country: true,
+        isUnique: true,
+      },
+    })
+
+    const geoBreakdown = new Map<string, { totalClicks: number; uniqueClicks: number }>()
+
+    geoRows.forEach((row) => {
+      const country = row.country || 'Unknown'
+      const current = geoBreakdown.get(country) || { totalClicks: 0, uniqueClicks: 0 }
+      current.totalClicks += 1
+      if (row.isUnique) {
+        current.uniqueClicks += 1
+      }
+      geoBreakdown.set(country, current)
+    })
+
+    const geoSummary = Array.from(geoBreakdown.entries())
+      .map(([country, stats]) => ({
+        country,
+        totalClicks: stats.totalClicks,
+        uniqueClicks: stats.uniqueClicks,
+      }))
+      .sort((a, b) => b.uniqueClicks - a.uniqueClicks || b.totalClicks - a.totalClicks)
+
     return NextResponse.json({
       totalClicks: dashboard.linkAccount.totalClicks,
       uniqueClicks: dashboard.linkAccount.uniqueClicks,
+      geoSummary,
+      clickTrend,
       clicks: clicks.map(c => ({
         id: c.id,
         ipAddress: c.ipAddress,

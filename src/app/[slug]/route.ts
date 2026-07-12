@@ -6,7 +6,19 @@ import { parseVisitorProfile } from '@/lib/utils/visitor-profile'
 
 const normalizeGroupName = (value?: string | null) => value?.trim() ?? ''
 
-const selectRotatingOffer = (offers: Array<{ id: string; priority: number; rotationMode: string; offerUrl: string; country: string; isGlobal: boolean; isActive: boolean; createdAt: Date; groupName: string | null }>) => {
+const selectRotatingOffer = (
+  offers: Array<{
+    id: string
+    priority: number
+    rotationMode: string
+    offerUrl: string
+    country: string
+    isGlobal: boolean
+    isActive: boolean
+    createdAt: Date
+    groupName: string | null
+  }>
+) => {
   if (!offers.length) return null
   if (offers.length === 1) return offers[0]
 

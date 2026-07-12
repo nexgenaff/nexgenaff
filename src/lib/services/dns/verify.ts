@@ -1,10 +1,23 @@
 import { prisma } from '@/lib/db/prisma'
 import dns from 'dns'
+import crypto from 'crypto'
 import { promisify } from 'util'
 
 const resolveCname = promisify(dns.resolveCname)
 const resolveTxt = promisify(dns.resolveTxt)
 const resolveMx = promisify(dns.resolveMx)
+
+export function normalizeDomain(domain: string): string {
+  const trimmed = domain.trim().toLowerCase().replace(/^https?:\/\//i, '').replace(/\/.*$/, '').replace(/\.$/, '')
+
+  if (!trimmed) return ''
+
+  try {
+    return new URL(`https://${trimmed}`).hostname.replace(/\.$/, '')
+  } catch {
+    return trimmed
+  }
+}
 
 export interface DNSVerificationResult {
   verified: boolean
@@ -18,6 +31,7 @@ export interface DNSVerificationResult {
 }
 
 export async function verifyDomain(domain: string, userId: string): Promise<DNSVerificationResult> {
+  const normalizedDomain = normalizeDomain(domain)
   const errors: string[] = []
   let cnameRecords: string[] = []
   let txtRecords: string[][] = []
@@ -26,40 +40,35 @@ export async function verifyDomain(domain: string, userId: string): Promise<DNSV
   let txtVerified = false
 
   try {
-    const verificationToken = generateVerificationToken(userId, domain)
+    const verificationToken = generateVerificationToken(userId, normalizedDomain)
 
     try {
-      cnameRecords = await resolveCname(domain)
+      cnameRecords = await resolveCname(normalizedDomain)
       cnameVerified = cnameRecords.some(record =>
-        record.includes('vercel-custom-domain') ||
-        record.includes('cname.vercel-dns.com') ||
-        record.includes('vercel-dns.com')
+        /vercel-custom-domain|cname\.vercel-dns\.com|vercel-dns\.com/i.test(record)
       )
       if (!cnameVerified && cnameRecords.length > 0) {
         errors.push(`CNAME does not point to our platform: ${cnameRecords.join(', ')}`)
       }
-    } catch (error) {
+    } catch {
       errors.push('No CNAME record found')
     }
 
     try {
-      txtRecords = await resolveTxt(domain)
-      const txtValues = txtRecords.map(record => record.join(''))
-      txtVerified = txtValues.some(value =>
-        value.includes(verificationToken) ||
-        value.includes('verification')
-      )
+      txtRecords = await resolveTxt(normalizedDomain)
+      const txtValues = txtRecords.map(record => record.join('')).filter(Boolean)
+      txtVerified = txtValues.some(value => value.includes(verificationToken))
       if (!txtVerified && txtRecords.length > 0) {
-        errors.push(`TXT record does not contain verification token`)
+        errors.push('TXT record does not contain the verification token')
       }
-    } catch (error) {
+    } catch {
       errors.push('No TXT record found')
     }
 
     try {
-      const mx = await resolveMx(domain)
+      const mx = await resolveMx(normalizedDomain)
       mxRecords = mx.map(r => r.exchange)
-    } catch (error) {
+    } catch {
       // MX records are optional
     }
 
@@ -67,7 +76,7 @@ export async function verifyDomain(domain: string, userId: string): Promise<DNSV
 
     if (verified) {
       await prisma.customDomain.update({
-        where: { domain },
+        where: { domain: normalizedDomain },
         data: {
           verified: true,
           verifiedAt: new Date(),
@@ -81,7 +90,7 @@ export async function verifyDomain(domain: string, userId: string): Promise<DNSV
         cname: cnameRecords,
         txt: txtRecords.flat(),
         mx: mxRecords,
-        verified: cnameVerified || txtVerified,
+        verified: cnameVerified && txtVerified,
       },
       errors: errors.length > 0 ? errors : undefined,
     }
@@ -101,9 +110,8 @@ export async function verifyDomain(domain: string, userId: string): Promise<DNSV
 }
 
 function generateVerificationToken(userId: string, domain: string): string {
-  const crypto = require('crypto')
   const hash = crypto.createHash('sha256')
-  hash.update(`${userId}:${domain}:${process.env.JWT_SECRET}`)
+  hash.update(`${userId}:${domain}:${process.env.JWT_SECRET || 'nextgen-local-secret'}`)
   return `nextgen-verify-${hash.digest('hex').substring(0, 16)}`
 }
 
@@ -111,14 +119,15 @@ export function getVerificationInstructions(domain: string, userId: string): {
   cname: { host: string; value: string }
   txt: { host: string; value: string }
 } {
-  const token = generateVerificationToken(userId, domain)
+  const normalizedDomain = normalizeDomain(domain)
+  const token = generateVerificationToken(userId, normalizedDomain)
   return {
     cname: {
-      host: domain,
+      host: normalizedDomain,
       value: 'cname.vercel-dns.com',
     },
     txt: {
-      host: domain,
+      host: normalizedDomain,
       value: token,
     },
   }

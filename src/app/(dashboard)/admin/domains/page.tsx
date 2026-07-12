@@ -1,9 +1,9 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
-import { Plus, Trash2, CheckCircle, RefreshCw, XCircle, Copy, ExternalLink } from 'lucide-react'
+import { Plus, Trash2, CheckCircle, RefreshCw, XCircle, Copy } from 'lucide-react'
 
 interface Domain {
   id: string
@@ -26,14 +26,12 @@ export default function DomainsPage() {
   const [showForm, setShowForm] = useState(false)
   const [newDomain, setNewDomain] = useState('')
   const [formError, setFormError] = useState('')
+  const [deleteError, setDeleteError] = useState('')
   const [formLoading, setFormLoading] = useState(false)
   const [verifyingId, setVerifyingId] = useState<string | null>(null)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
 
-  useEffect(() => {
-    fetchDomains()
-  }, [])
-
-  const fetchDomains = async () => {
+  const fetchDomains = useCallback(async () => {
     try {
       const response = await fetch('/api/domains')
       if (response.status === 401) {
@@ -47,7 +45,11 @@ export default function DomainsPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [router])
+
+  useEffect(() => {
+    void fetchDomains()
+  }, [fetchDomains])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -79,18 +81,25 @@ export default function DomainsPage() {
   const handleDelete = async (id: string) => {
     if (!confirm('Are you sure you want to delete this domain?')) return
 
+    setDeleteError('')
+    setDeletingId(id)
+
     try {
       const response = await fetch(`/api/domains/${id}`, {
         method: 'DELETE',
       })
 
       if (!response.ok) {
-        throw new Error('Failed to delete domain')
+        const data = await response.json().catch(() => null)
+        throw new Error(data?.error || 'Failed to delete domain')
       }
 
-      fetchDomains()
+      await fetchDomains()
     } catch (error) {
       console.error('Error deleting domain:', error)
+      setDeleteError(error instanceof Error ? error.message : 'Failed to delete domain')
+    } finally {
+      setDeletingId(null)
     }
   }
 
@@ -133,6 +142,12 @@ export default function DomainsPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
+      {deleteError && (
+        <div className="bg-red-500/10 backdrop-blur text-red-400 p-3 rounded-xl text-sm border border-red-500/20">
+          {deleteError}
+        </div>
+      )}
+
       <motion.div 
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
@@ -266,9 +281,15 @@ export default function DomainsPage() {
                     )}
                     <button
                       onClick={() => handleDelete(domain.id)}
-                      className="px-3 py-1 text-sm border border-red-500/30 text-red-400 rounded-lg hover:bg-red-500/10 transition flex items-center gap-1"
+                      disabled={deletingId === domain.id}
+                      className="px-3 py-1 text-sm border border-red-500/30 text-red-400 rounded-lg hover:bg-red-500/10 transition flex items-center gap-1 disabled:opacity-50"
                     >
-                      <Trash2 className="w-3 h-3" /> Delete
+                      {deletingId === domain.id ? (
+                        <span className="w-3 h-3 border-2 border-red-400 border-t-transparent rounded-full animate-spin"></span>
+                      ) : (
+                        <Trash2 className="w-3 h-3" />
+                      )}
+                      {deletingId === domain.id ? 'Deleting...' : 'Delete'}
                     </button>
                   </div>
                 </div>
