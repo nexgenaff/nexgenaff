@@ -153,6 +153,7 @@ export async function addDomainToProject(
     })
 
     const payload = await response.json().catch(() => null)
+    const verification = Array.isArray(payload?.verification) ? payload.verification : []
 
     if (!response.ok) {
       return {
@@ -160,6 +161,7 @@ export async function addDomainToProject(
         verified: false,
         domain,
         projectReference,
+        verification,
         error: payload?.error?.message || payload?.message || 'Failed to add domain to the Vercel project.',
       }
     }
@@ -169,7 +171,7 @@ export async function addDomainToProject(
       verified: Boolean(payload?.verified ?? false),
       domain: payload?.name || domain,
       projectReference,
-      verification: Array.isArray(payload?.verification) ? payload.verification : [],
+      verification,
     }
   } catch (error) {
     return {
@@ -206,6 +208,7 @@ export async function verifyDomainOnVercel(
     })
 
     const payload = await response.json().catch(() => null)
+    const verification = Array.isArray(payload?.verification) ? payload.verification : []
 
     if (!response.ok) {
       return {
@@ -213,6 +216,7 @@ export async function verifyDomainOnVercel(
         verified: false,
         domain,
         projectReference,
+        verification,
         error: payload?.error?.message || payload?.message || 'Failed to verify domain on Vercel.',
       }
     }
@@ -222,7 +226,7 @@ export async function verifyDomainOnVercel(
       verified: Boolean(payload?.verified ?? false),
       domain: payload?.name || domain,
       projectReference,
-      verification: Array.isArray(payload?.verification) ? payload.verification : [],
+      verification,
     }
   } catch (error) {
     return {
