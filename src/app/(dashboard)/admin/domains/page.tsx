@@ -242,21 +242,23 @@ export default function DomainsPage() {
             <div className="bg-indigo-500/5 border border-indigo-500/20 rounded-xl p-4 text-sm text-white/70">
               <p className="font-medium text-indigo-300 mb-2">DNS setup guide</p>
               <ol className="space-y-2 list-decimal pl-5">
-                <li>Open your DNS provider settings for this domain.</li>
+                <li>Open your DNS provider settings for this domain and add the exact DNS values shown in the domain card below.</li>
                 <li>
-                  If you are adding an apex/root domain such as <span className="font-mono text-indigo-300">example.com</span>, add two A records:
+                  If you are adding an apex/root domain such as <span className="font-mono text-indigo-300">example.com</span>, use two A records:
                   <ul className="list-disc pl-5 mt-1 space-y-1">
                     <li><span className="font-mono text-indigo-300">@</span> → <span className="font-mono text-indigo-300">76.76.21.21</span></li>
                     <li><span className="font-mono text-indigo-300">@</span> → <span className="font-mono text-indigo-300">76.76.21.22</span></li>
                   </ul>
                 </li>
                 <li>
-                  If you are adding a subdomain such as <span className="font-mono text-indigo-300">links.example.com</span>, the easiest path is a single CNAME record:
+                  If you are adding a subdomain such as <span className="font-mono text-indigo-300">go.prizenest.xyz</span>, add the subdomain host shown by Vercel for the CNAME record, for example:
                   <ul className="list-disc pl-5 mt-1 space-y-1">
-                    <li><span className="font-mono text-indigo-300">links</span> → <span className="font-mono text-indigo-300">cname.vercel-dns.com</span></li>
+                    <li><span className="font-mono text-indigo-300">go</span> → <span className="font-mono text-indigo-300">cb1bb6704c9efb4a.vercel-dns-017.com.</span></li>
                   </ul>
                 </li>
-                <li>Then add the generated TXT verification token shown in the domain card below to the root zone at <span className="font-mono text-indigo-300">@</span>. Do not create a TXT and CNAME on the exact same hostname.</li>
+                <li>
+                  For linked domains or Vercel ownership verification, the TXT record may be required on <span className="font-mono text-indigo-300">_vercel</span> instead of the root <span className="font-mono text-indigo-300">@</span> host. Copy the exact TXT value from Vercel and do not place a CNAME and TXT on the same hostname.
+                </li>
               </ol>
             </div>
 
