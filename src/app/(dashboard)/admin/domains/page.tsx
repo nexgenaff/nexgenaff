@@ -34,6 +34,7 @@ export default function DomainsPage() {
   const [formError, setFormError] = useState('')
   const [deleteError, setDeleteError] = useState('')
   const [formLoading, setFormLoading] = useState(false)
+  const [latestInstructions, setLatestInstructions] = useState<Domain['verificationInstructions'] | null>(null)
   const [verifyingId, setVerifyingId] = useState<string | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
 
@@ -75,9 +76,11 @@ export default function DomainsPage() {
         throw new Error(data.error || 'Failed to add domain')
       }
 
+      const data = await response.json()
+      setLatestInstructions(data.verificationInstructions ?? null)
       setNewDomain('')
-      setShowForm(false)
-      fetchDomains()
+      setShowForm(true)
+      await fetchDomains()
     } catch (err: any) {
       setFormError(err.message)
     } finally {
@@ -261,6 +264,76 @@ export default function DomainsPage() {
                 </li>
               </ol>
             </div>
+
+            {latestInstructions && (
+              <div className="bg-emerald-500/5 border border-emerald-500/20 rounded-xl p-4 space-y-3">
+                <p className="text-sm font-medium text-emerald-300">Live DNS values returned by Vercel</p>
+                <div className="grid grid-cols-1 gap-3">
+                  {(latestInstructions.a?.length ?? 0) > 0 && (
+                    <div className="bg-white/5 rounded-lg p-3">
+                      <p className="text-xs text-white/30 mb-2">A Record</p>
+                      <div className="space-y-2">
+                        {latestInstructions.a?.map((record, index) => (
+                          <div key={`latest-a-${index}`} className="flex items-center gap-2">
+                            <code className="text-xs font-mono text-emerald-400 flex-1 break-all">
+                              {record.host} → {record.value}
+                            </code>
+                            <button
+                              onClick={() => copyToClipboard(`A ${record.host} ${record.value}`)}
+                              className="p-1 text-white/30 hover:text-white/60 transition"
+                            >
+                              <Copy className="w-3 h-3" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {(latestInstructions.cname?.length ?? 0) > 0 && (
+                    <div className="bg-white/5 rounded-lg p-3">
+                      <p className="text-xs text-white/30 mb-2">CNAME Record</p>
+                      <div className="space-y-2">
+                        {latestInstructions.cname?.map((record, index) => (
+                          <div key={`latest-cname-${index}`} className="flex items-center gap-2">
+                            <code className="text-xs font-mono text-emerald-400 flex-1 break-all">
+                              {record.host} → {record.value}
+                            </code>
+                            <button
+                              onClick={() => copyToClipboard(`CNAME ${record.host} ${record.value}`)}
+                              className="p-1 text-white/30 hover:text-white/60 transition"
+                            >
+                              <Copy className="w-3 h-3" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {(latestInstructions.txt?.length ?? 0) > 0 && (
+                    <div className="bg-white/5 rounded-lg p-3">
+                      <p className="text-xs text-white/30 mb-2">TXT Record</p>
+                      <div className="space-y-2">
+                        {latestInstructions.txt?.map((record, index) => (
+                          <div key={`latest-txt-${index}`} className="flex items-center gap-2">
+                            <code className="text-xs font-mono text-emerald-400 flex-1 break-all">
+                              {record.host} → {record.value}
+                            </code>
+                            <button
+                              onClick={() => copyToClipboard(`TXT ${record.host} ${record.value}`)}
+                              className="p-1 text-white/30 hover:text-white/60 transition"
+                            >
+                              <Copy className="w-3 h-3" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
 
             <button
               type="submit"

@@ -165,14 +165,24 @@ export async function POST(request: Request) {
       VERCEL_TEAM_ID: process.env.VERCEL_TEAM_ID,
     })
 
+    const vercelVerification = await verifyDomainOnVercel(domain, {
+      VERCEL_TOKEN: process.env.VERCEL_TOKEN,
+      VERCEL_PROJECT_ID: process.env.VERCEL_PROJECT_ID,
+      VERCEL_PROJECT_NAME: process.env.VERCEL_PROJECT_NAME,
+      VERCEL_TEAM_ID: process.env.VERCEL_TEAM_ID,
+    })
+
     const fallbackInstructions = getVerificationInstructions(domain, user.id)
-    const instructions = buildVerificationInstructionsFromVercelRecords(vercelBinding.verification, domain)
-      ?? fallbackInstructions
+    const instructions = buildVerificationInstructionsFromVercelRecords(
+      vercelVerification.verification ?? vercelBinding.verification,
+      domain
+    ) ?? fallbackInstructions
 
     return NextResponse.json({
       ...newDomain,
       verificationInstructions: instructions,
       vercelBinding,
+      vercelVerification,
       message: 'Domain added. Please add the following DNS records to verify ownership.',
     }, {
       status: 201,
