@@ -5,6 +5,7 @@ import {
   buildVercelDomainUrl,
   getVercelProjectReference,
   buildVercelHeaders,
+  buildVerificationInstructionsFromVercelRecords,
 } from './domain'
 
 test('prefers Vercel project id when configured', () => {
@@ -27,4 +28,31 @@ test('builds bearer auth headers for Vercel API calls', () => {
 
   assert.equal(headers.Authorization, 'Bearer token-123')
   assert.equal(headers['Content-Type'], 'application/json')
+})
+
+test('maps authoritative Vercel verification records into DNS instructions', () => {
+  const instructions = buildVerificationInstructionsFromVercelRecords(
+    [
+      { type: 'A', domain: 'example.com', value: '76.76.21.21' },
+      { type: 'A', domain: 'example.com', value: '76.76.21.22' },
+      { type: 'CNAME', domain: 'www.example.com', value: 'cname.vercel-dns.com' },
+      { type: 'TXT', domain: 'example.com', value: 'nextgen-verify-token' },
+    ],
+    'example.com'
+  )
+
+  if (!instructions) {
+    throw new Error('Expected Vercel instructions to be generated')
+  }
+
+  assert.deepEqual(instructions.a, [
+    { host: '@', value: '76.76.21.21' },
+    { host: '@', value: '76.76.21.22' },
+  ])
+  assert.deepEqual(instructions.cname, [
+    { host: 'www', value: 'cname.vercel-dns.com' },
+  ])
+  assert.deepEqual(instructions.txt, [
+    { host: '@', value: 'nextgen-verify-token' },
+  ])
 })

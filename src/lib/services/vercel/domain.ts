@@ -1,3 +1,6 @@
+import type { DNSVerificationInstructions } from '@/lib/services/dns/verify'
+import { normalizeDomain } from '@/lib/services/dns/verify'
+
 export interface VercelDomainOptions {
   VERCEL_PROJECT_ID?: string
   VERCEL_PROJECT_NAME?: string
@@ -34,6 +37,75 @@ export function buildVercelHeaders(token: string): Record<string, string> {
   return {
     Authorization: `Bearer ${token}`,
     'Content-Type': 'application/json',
+  }
+}
+
+function buildInstructionHost(normalizedDomain: string, recordDomain: string): string {
+  const normalizedRecordDomain = normalizeDomain(recordDomain)
+
+  if (!normalizedRecordDomain || normalizedRecordDomain === normalizedDomain) {
+    return '@'
+  }
+
+  const suffix = `.${normalizedDomain}`
+  if (normalizedRecordDomain.endsWith(suffix)) {
+    return normalizedRecordDomain.slice(0, -suffix.length) || '@'
+  }
+
+  return normalizedRecordDomain
+}
+
+function uniqueRecords(records: Array<{ host: string; value: string }>): Array<{ host: string; value: string }> {
+  const seen = new Set<string>()
+
+  return records.filter((record) => {
+    const key = `${record.host}::${record.value}`
+    if (seen.has(key)) {
+      return false
+    }
+
+    seen.add(key)
+    return true
+  })
+}
+
+export function buildVerificationInstructionsFromVercelRecords(
+  verification: Array<{ type?: string; domain?: string; value?: string }> = [],
+  domain: string
+): DNSVerificationInstructions | null {
+  const normalizedDomain = normalizeDomain(domain)
+  if (!normalizedDomain || verification.length === 0) {
+    return null
+  }
+
+  const a: Array<{ host: string; value: string }> = []
+  const cname: Array<{ host: string; value: string }> = []
+  const txt: Array<{ host: string; value: string }> = []
+
+  for (const record of verification) {
+    const type = String(record.type || '').toUpperCase()
+    const value = String(record.value || '').trim()
+    const recordDomain = typeof record.domain === 'string' ? record.domain : ''
+
+    if (!value || !recordDomain) {
+      continue
+    }
+
+    const host = buildInstructionHost(normalizedDomain, recordDomain)
+
+    if (type === 'A') {
+      a.push({ host, value })
+    } else if (type === 'CNAME') {
+      cname.push({ host, value })
+    } else if (type === 'TXT') {
+      txt.push({ host, value })
+    }
+  }
+
+  return {
+    a: uniqueRecords(a),
+    cname: uniqueRecords(cname),
+    txt: uniqueRecords(txt),
   }
 }
 

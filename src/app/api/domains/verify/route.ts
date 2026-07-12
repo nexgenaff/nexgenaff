@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db/prisma'
 import { getUserFromToken, getTokenFromCookie } from '@/lib/auth'
 import { verifyDomain, getVerificationInstructions } from '@/lib/services/dns/verify'
-import { verifyDomainOnVercel } from '@/lib/services/vercel/domain'
+import { buildVerificationInstructionsFromVercelRecords, verifyDomainOnVercel } from '@/lib/services/vercel/domain'
 import { getCorsHeaders } from '@/config/cors'
 import { z } from 'zod'
 
@@ -74,7 +74,8 @@ export async function POST(request: Request) {
       })
     }
 
-    const instructions = getVerificationInstructions(domain.domain, user.id)
+    const instructions = buildVerificationInstructionsFromVercelRecords(vercelVerification?.verification, domain.domain)
+      ?? getVerificationInstructions(domain.domain, user.id)
 
     return NextResponse.json({
       domainId: domain.id,

@@ -2,7 +2,11 @@ import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db/prisma'
 import { getUserFromToken, getTokenFromCookie } from '@/lib/auth'
 import { getVerificationInstructions, normalizeDomain } from '@/lib/services/dns/verify'
-import { addDomainToProject } from '@/lib/services/vercel/domain'
+import {
+  addDomainToProject,
+  buildVerificationInstructionsFromVercelRecords,
+  verifyDomainOnVercel,
+} from '@/lib/services/vercel/domain'
 import { getCorsHeaders } from '@/config/cors'
 import { z } from 'zod'
 
@@ -55,9 +59,29 @@ export async function GET(request: Request) {
       orderBy: { createdAt: 'desc' },
     })
 
-    const domainsWithInstructions = domains.map(d => ({
-      ...d,
-      verificationInstructions: getVerificationInstructions(d.domain, user.id),
+    const domainsWithInstructions = await Promise.all(domains.map(async (domain) => {
+      let verificationInstructions = getVerificationInstructions(domain.domain, user.id)
+
+      try {
+        const vercelVerification = await verifyDomainOnVercel(domain.domain, {
+          VERCEL_TOKEN: process.env.VERCEL_TOKEN,
+          VERCEL_PROJECT_ID: process.env.VERCEL_PROJECT_ID,
+          VERCEL_PROJECT_NAME: process.env.VERCEL_PROJECT_NAME,
+          VERCEL_TEAM_ID: process.env.VERCEL_TEAM_ID,
+        })
+
+        verificationInstructions = buildVerificationInstructionsFromVercelRecords(
+          vercelVerification.verification,
+          domain.domain
+        ) ?? verificationInstructions
+      } catch {
+        // Fall back to the local DNS instructions if Vercel is unavailable.
+      }
+
+      return {
+        ...domain,
+        verificationInstructions,
+      }
     }))
 
     return NextResponse.json(domainsWithInstructions, { headers: getCorsHeaders(origin) })
@@ -135,7 +159,8 @@ export async function POST(request: Request) {
       VERCEL_TEAM_ID: process.env.VERCEL_TEAM_ID,
     })
 
-    const instructions = getVerificationInstructions(domain, user.id)
+    const instructions = buildVerificationInstructionsFromVercelRecords(vercelBinding.verification, domain)
+      ?? getVerificationInstructions(domain, user.id)
 
     return NextResponse.json({
       ...newDomain,
