@@ -65,7 +65,8 @@ export async function GET(request: Request) {
 
       try {
         const vercelVerification = await verifyDomainOnVercel(domain.domain, {
-          VERCEL_TOKEN: process.env.VERCEL_TOKEN,
+          VERCEL_TOKEN: process.env.VERCEL_TOKEN || process.env.VERCEL_API_TOKEN,
+          VERCEL_API_TOKEN: process.env.VERCEL_API_TOKEN || process.env.VERCEL_TOKEN,
           VERCEL_PROJECT_ID: process.env.VERCEL_PROJECT_ID,
           VERCEL_PROJECT_NAME: process.env.VERCEL_PROJECT_NAME,
           VERCEL_TEAM_ID: process.env.VERCEL_TEAM_ID,
@@ -159,14 +160,16 @@ export async function POST(request: Request) {
     })
 
     const vercelBinding = await addDomainToProject(domain, {
-      VERCEL_TOKEN: process.env.VERCEL_TOKEN,
+      VERCEL_TOKEN: process.env.VERCEL_TOKEN || process.env.VERCEL_API_TOKEN,
+      VERCEL_API_TOKEN: process.env.VERCEL_API_TOKEN || process.env.VERCEL_TOKEN,
       VERCEL_PROJECT_ID: process.env.VERCEL_PROJECT_ID,
       VERCEL_PROJECT_NAME: process.env.VERCEL_PROJECT_NAME,
       VERCEL_TEAM_ID: process.env.VERCEL_TEAM_ID,
     })
 
     const vercelVerification = await verifyDomainOnVercel(domain, {
-      VERCEL_TOKEN: process.env.VERCEL_TOKEN,
+      VERCEL_TOKEN: process.env.VERCEL_TOKEN || process.env.VERCEL_API_TOKEN,
+      VERCEL_API_TOKEN: process.env.VERCEL_API_TOKEN || process.env.VERCEL_TOKEN,
       VERCEL_PROJECT_ID: process.env.VERCEL_PROJECT_ID,
       VERCEL_PROJECT_NAME: process.env.VERCEL_PROJECT_NAME,
       VERCEL_TEAM_ID: process.env.VERCEL_TEAM_ID,

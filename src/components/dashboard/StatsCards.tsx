@@ -2,7 +2,7 @@
 
 import { StatsCard } from '@/components/ui/StatsCard'
 import { Chart } from '@/components/ui/Chart'
-import { MousePointerClick, Users, Link2, Bot } from 'lucide-react'
+import { MousePointerClick, Users, Link2 } from 'lucide-react'
 
 interface StatsCardsProps {
   stats: {
@@ -29,11 +29,23 @@ interface StatsCardsProps {
       backgroundColor: string
     }[]
   }
+  countryBreakdown?: {
+    country: string
+    clicks: number
+    uniqueClicks: number
+  }[]
   period?: 'week' | 'month' | 'year'
   onPeriodChange?: (period: 'week' | 'month' | 'year') => void
 }
 
-export default function StatsCards({ stats, chartData, hourlyChartData, period = 'week', onPeriodChange }: StatsCardsProps) {
+export default function StatsCards({
+  stats,
+  chartData,
+  hourlyChartData,
+  countryBreakdown = [],
+  period = 'week',
+  onPeriodChange,
+}: StatsCardsProps) {
   const defaultChartData = {
     labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
     datasets: [
@@ -51,18 +63,13 @@ export default function StatsCards({ stats, chartData, hourlyChartData, period =
 
   const data = chartData || defaultChartData
   const hourlyData = hourlyChartData || defaultChartData
-  const countryHighlights = (data.datasets || [])
-    .filter(dataset => !['Clicks', 'Unique Visitors'].includes(dataset.label))
-    .map(dataset => ({
-      label: dataset.label,
-      total: dataset.data.reduce((sum, value) => sum + (Number(value) || 0), 0),
-    }))
-    .sort((a, b) => b.total - a.total)
+  const countryHighlights = [...(countryBreakdown || [])]
+    .sort((a, b) => b.clicks - a.clicks)
     .slice(0, 3)
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
         <StatsCard
           title="Total Clicks"
           value={stats.totalClicks}
@@ -86,14 +93,6 @@ export default function StatsCards({ stats, chartData, hourlyChartData, period =
           color="purple"
           subtitle="Active campaigns"
           delay={200}
-        />
-        <StatsCard
-          title="Bot Detected"
-          value={stats.botClicks}
-          icon={Bot}
-          color="red"
-          subtitle="Blocked bots"
-          delay={300}
         />
       </div>
 
@@ -169,11 +168,12 @@ export default function StatsCards({ stats, chartData, hourlyChartData, period =
                 <p className="text-sm text-white/40">No geo-click series available yet.</p>
               ) : (
                 countryHighlights.map((country) => (
-                  <div key={country.label} className="rounded-xl border border-white/10 bg-white/5 p-3">
+                  <div key={country.country} className="rounded-xl border border-white/10 bg-white/5 p-3">
                     <div className="flex items-center justify-between gap-3">
-                      <span className="text-sm font-medium text-white">{country.label}</span>
-                      <span className="text-sm text-cyan-300">{country.total} clicks</span>
+                      <span className="text-sm font-medium text-white">{country.country}</span>
+                      <span className="text-sm text-cyan-300">{country.clicks} clicks</span>
                     </div>
+                    <div className="mt-1 text-xs text-white/45">{country.uniqueClicks} unique geo clicks</div>
                   </div>
                 ))
               )}

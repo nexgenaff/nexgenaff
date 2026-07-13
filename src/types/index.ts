@@ -79,6 +79,7 @@ export interface Click {
   language: string | null
   timeZone: string | null
   userAgent: string | null
+  clickSignature: string | null
   isUnique: boolean
   isBot: boolean
   botScore: number | null

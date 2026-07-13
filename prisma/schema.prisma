@@ -123,6 +123,7 @@ model Click {
   linkAccount     LinkAccount   @relation(fields: [linkAccountId], references: [id])
   
   timestamp       DateTime      @default(now())
+  clickSignature  String?
   ipAddress       String
   country         String?
   region          String?
@@ -149,6 +150,9 @@ model Click {
   createdAt       DateTime      @default(now())
   
   @@index([linkAccountId])
+  @@index([userAgent])
+  @@index([clickSignature])
+  @@index([linkAccountId, clickSignature, createdAt])
   @@index([timestamp])
   @@index([country])
   @@index([isUnique])

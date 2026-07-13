@@ -91,12 +91,6 @@ export default function AnalyticsPage() {
       tone: 'text-emerald-400',
     },
     {
-      label: 'Bot protection',
-      value: `${formatNumber(stats.botClicks)} blocked`,
-      detail: 'AI filtering active',
-      tone: 'text-rose-400',
-    },
-    {
       label: 'Reach today',
       value: `${formatNumber(stats.uniqueClicks)} unique`,
       detail: 'Distinct visitors',

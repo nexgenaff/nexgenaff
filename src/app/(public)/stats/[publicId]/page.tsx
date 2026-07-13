@@ -2,6 +2,7 @@
 
 import { use, useState, useEffect } from 'react'
 import { formatNumber } from '@/lib/utils/helpers'
+import { getCountryFlag, getCountryLabel } from '@/lib/utils/country'
 import { Chart } from '@/components/ui/Chart'
 import {
   Eye,
@@ -50,10 +51,17 @@ interface Stats {
     id: string
     timestamp: string
     country: string
+    region: string | null
+    city: string | null
+    isp: string | null
     browser: string
+    browserVersion: string | null
+    os: string | null
+    deviceType: string | null
+    deviceBrand: string | null
+    userAgent: string | null
     ipAddress: string
     referrer: string | null
-    deviceType: string | null
     isUnique: boolean
     isBot: boolean
     createdAt: string
@@ -98,17 +106,6 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
     fetchStats()
   }, [publicId, page, search, filterCountry, filterUnique])
 
-  const getCountryFlag = (country: string | null) => {
-    if (!country) return '🌍'
-    const flags: Record<string, string> = {
-      'US': '🇺🇸', 'GB': '🇬🇧', 'CA': '🇨🇦', 'AU': '🇦🇺',
-      'DE': '🇩🇪', 'FR': '🇫🇷', 'JP': '🇯🇵', 'CN': '🇨🇳',
-      'IN': '🇮🇳', 'BR': '🇧🇷', 'RU': '🇷🇺', 'ZA': '🇿🇦',
-      'ES': '🇪🇸', 'IT': '🇮🇹', 'MX': '🇲🇽', 'KR': '🇰🇷',
-    }
-    return flags[country] || '🌍'
-  }
-
   const getDeviceIcon = (deviceType: string | null) => {
     if (!deviceType) return <Monitor className="w-4 h-4" />
     const device = deviceType.toLowerCase()
@@ -119,6 +116,39 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
       return <Tablet className="w-4 h-4" />
     }
     return <Monitor className="w-4 h-4" />
+  }
+
+  const getBrowserLabel = (click: Stats['clicks'][number]) => {
+    const browser = click.browser || 'Unknown Browser'
+    const version = click.browserVersion
+    return version ? `${browser} ${version}` : browser
+  }
+
+  const getDeviceLabel = (click: Stats['clicks'][number]) => {
+    const brand = click.deviceBrand || click.deviceType || 'Unknown Device'
+    const os = click.os || 'Unknown OS'
+    return `${brand} • ${os}`
+  }
+
+  const getLocationSummary = (click: Stats['clicks'][number]) => {
+    const countryLabel = getCountryLabel(click.country)
+    const cityRegion = [click.city, click.region].filter(Boolean).join(', ')
+    const ispLabel = click.isp?.trim()
+
+    return (
+      <div className="space-y-1">
+        <div className="flex items-center gap-2">
+          <span className="text-base">{getCountryFlag(click.country)}</span>
+          <span className="font-medium text-white/85">{countryLabel}</span>
+        </div>
+        {(cityRegion || ispLabel) && (
+          <div className="text-[11px] text-white/40">
+            {cityRegion}
+            {cityRegion && ispLabel ? ` • ${ispLabel}` : ispLabel}
+          </div>
+        )}
+      </div>
+    )
   }
 
   const formatDate = (date: string) => {
@@ -259,7 +289,7 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
                 <div className="flex items-center gap-3">
                   <div className="text-4xl">{getCountryFlag(topCountry.country)}</div>
                   <div>
-                    <div className="text-xl font-semibold text-white">{topCountry.country}</div>
+                    <div className="text-xl font-semibold text-white">{getCountryLabel(topCountry.country)}</div>
                     <div className="text-sm text-white/55">Best-performing region currently</div>
                   </div>
                 </div>
@@ -294,7 +324,7 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
                   <div key={`${entry.country}-${index}`} className="flex items-center justify-between rounded-2xl border border-white/10 bg-slate-950/55 px-3 py-2 text-sm">
                     <div className="flex items-center gap-2 text-white/75">
                       <span>{getCountryFlag(entry.country)}</span>
-                      <span>{entry.country}</span>
+                      <span>{getCountryLabel(entry.country)}</span>
                     </div>
                     <div className="text-white/55">{formatNumber(entry.uniqueClicks)} unique</div>
                   </div>
@@ -356,7 +386,7 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
                       <option value="">All countries</option>
                       {countries.map((country) => (
                         <option key={country} value={country}>
-                          {getCountryFlag(country)} {country}
+                          {getCountryFlag(country)} {getCountryLabel(country)}
                         </option>
                       ))}
                     </select>
@@ -390,6 +420,7 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
                   <th className="px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-[0.24em] text-white/30 whitespace-nowrap">IP</th>
                   <th className="px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-[0.24em] text-white/30 whitespace-nowrap">Location</th>
                   <th className="px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-[0.24em] text-white/30 whitespace-nowrap">Device</th>
+                  <th className="px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-[0.24em] text-white/30 whitespace-nowrap">Browser</th>
                   <th className="px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-[0.24em] text-white/30 whitespace-nowrap">Referrer</th>
                   <th className="px-4 py-3 text-center text-[11px] font-semibold uppercase tracking-[0.24em] text-white/30 whitespace-nowrap">Status</th>
                 </tr>
@@ -405,15 +436,17 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
                         {click.ipAddress || 'N/A'}
                       </td>
                       <td className="px-4 py-3 text-sm text-white/65">
-                        <div className="flex items-center gap-2">
-                          <span className="text-base">{getCountryFlag(click.country)}</span>
-                          <span>{click.country || 'Unknown'}</span>
-                        </div>
+                        {getLocationSummary(click)}
                       </td>
                       <td className="px-4 py-3 text-sm text-white/65">
                         <div className="flex items-center gap-2">
                           <span className="text-white/45">{getDeviceIcon(click.deviceType)}</span>
-                          <span>{click.browser || 'Unknown'}</span>
+                          <span>{getDeviceLabel(click)}</span>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 text-sm text-white/65">
+                        <div className="flex items-center gap-2">
+                          <span>{getBrowserLabel(click)}</span>
                         </div>
                       </td>
                       <td className="px-4 py-3 text-sm text-white/55">

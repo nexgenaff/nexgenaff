@@ -131,15 +131,29 @@ export function Chart({ data, height = 220, type = 'line', options = {} }: Chart
     </div>
   }
 
-  const normalizedData = {
-    ...data,
-    datasets: data.datasets.map((dataset) => ({
+  const safeLabels = Array.isArray(data.labels) ? data.labels : []
+  const safeDatasets = data.datasets
+    .filter(Boolean)
+    .filter((dataset): dataset is NonNullable<typeof dataset> => !!dataset && Array.isArray(dataset.data))
+    .map((dataset) => ({
       ...dataset,
+      data: dataset.data.map((value) => (Number.isFinite(Number(value)) ? Number(value) : 0)),
       borderWidth: dataset.borderWidth ?? 3,
       tension: dataset.tension ?? 0.35,
       pointRadius: dataset.pointRadius ?? 3,
       fill: dataset.fill ?? true,
-    })),
+    }))
+
+  if (!safeLabels.length || safeDatasets.length === 0) {
+    return <div className="w-full bg-white/5 rounded-xl p-6 text-center" style={{ height }}>
+      <p className="text-white/40">No chart data available</p>
+    </div>
+  }
+
+  const normalizedData = {
+    ...data,
+    labels: safeLabels,
+    datasets: safeDatasets,
   }
 
   return (

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
+import { getCountryFlag, getCountryLabel } from '@/lib/utils/country'
 import {
   Search,
   Filter,
@@ -14,8 +15,6 @@ import {
   Monitor,
   Smartphone,
   Tablet,
-  Bot,
-  User,
   CheckCircle,
   XCircle,
   ExternalLink,
@@ -32,11 +31,14 @@ interface Click {
   country: string | null
   region: string | null
   city: string | null
+  isp: string | null
   referrer: string | null
   browser: string | null
   browserVersion: string | null
   os: string | null
   deviceType: string | null
+  deviceBrand: string | null
+  userAgent: string | null
   isUnique: boolean
   isBot: boolean
   botScore: number | null
@@ -52,7 +54,6 @@ interface Filters {
   browser: string
   deviceType: string
   isUnique: string
-  isBot: string
   startDate: string
   endDate: string
   search: string
@@ -86,7 +87,6 @@ export default function ClickLogs() {
     browser: '',
     deviceType: '',
     isUnique: '',
-    isBot: '',
     startDate: '',
     endDate: '',
     search: '',
@@ -111,7 +111,6 @@ export default function ClickLogs() {
         ...(filters.browser && { browser: filters.browser }),
         ...(filters.deviceType && { deviceType: filters.deviceType }),
         ...(filters.isUnique && { isUnique: filters.isUnique }),
-        ...(filters.isBot && { isBot: filters.isBot }),
         ...(filters.startDate && { startDate: filters.startDate }),
         ...(filters.endDate && { endDate: filters.endDate }),
         ...(filters.search && { search: filters.search }),
@@ -152,7 +151,6 @@ export default function ClickLogs() {
       browser: '',
       deviceType: '',
       isUnique: '',
-      isBot: '',
       startDate: '',
       endDate: '',
       search: '',
@@ -160,17 +158,6 @@ export default function ClickLogs() {
       sortOrder: 'desc',
     })
     setPage(1)
-  }
-
-  const getCountryFlag = (country: string | null) => {
-    if (!country) return '🌍'
-    const flags: Record<string, string> = {
-      'US': '🇺🇸', 'GB': '🇬🇧', 'CA': '🇨🇦', 'AU': '🇦🇺',
-      'DE': '🇩🇪', 'FR': '🇫🇷', 'JP': '🇯🇵', 'CN': '🇨🇳',
-      'IN': '🇮🇳', 'BR': '🇧🇷', 'RU': '🇷🇺', 'ZA': '🇿🇦',
-      'ES': '🇪🇸', 'IT': '🇮🇹', 'MX': '🇲🇽', 'KR': '🇰🇷',
-    }
-    return flags[country] || '🌍'
   }
 
   const getDeviceIcon = (deviceType: string | null) => {
@@ -220,6 +207,40 @@ export default function ClickLogs() {
     }
   }
 
+  const getBrowserLabel = (click: Click) => {
+    const browser = click.browser || 'Unknown Browser'
+    const version = click.browserVersion
+    return version ? `${browser} ${version}` : browser
+  }
+
+  const getDeviceLabel = (click: Click) => {
+    const os = click.os || click.deviceType || 'Unknown OS'
+    const brand = click.deviceBrand || click.deviceType || 'Unknown Device'
+    return `${os} • ${brand}`
+  }
+
+  const getLocationSummary = (click: Click) => {
+    const countryLabel = getCountryLabel(click.country)
+    const locationParts = [click.city, click.region].filter(Boolean)
+    const locationText = locationParts.join(', ')
+    const ispText = click.isp?.trim()
+
+    return (
+      <div className="flex flex-col gap-0.5">
+        <div className="flex items-center gap-1.5">
+          <span>{getCountryFlag(click.country)}</span>
+          <span className="font-medium text-white/80">{countryLabel}</span>
+        </div>
+        {(locationText || ispText) && (
+          <div className="text-[11px] text-white/25">
+            {locationText}
+            {locationText && ispText ? ` • ${ispText}` : ispText}
+          </div>
+        )}
+      </div>
+    )
+  }
+
   const handleExport = async () => {
     try {
       const params = new URLSearchParams({
@@ -227,7 +248,6 @@ export default function ClickLogs() {
         ...(filters.browser && { browser: filters.browser }),
         ...(filters.deviceType && { deviceType: filters.deviceType }),
         ...(filters.isUnique && { isUnique: filters.isUnique }),
-        ...(filters.isBot && { isBot: filters.isBot }),
         ...(filters.startDate && { startDate: filters.startDate }),
         ...(filters.endDate && { endDate: filters.endDate }),
         ...(filters.search && { search: filters.search }),
@@ -270,6 +290,17 @@ export default function ClickLogs() {
       return value !== '' && value !== 'desc' && value !== 'createdAt'
     }).length
   }, [filters])
+
+  const summary = useMemo(() => {
+    return clicks.reduce(
+      (acc, click) => {
+        if (click.isUnique) acc.unique += 1
+        else acc.duplicate += 1
+        return acc
+      },
+      { unique: 0, duplicate: 0 }
+    )
+  }, [clicks])
 
   if (loading) {
     return (
@@ -343,8 +374,8 @@ export default function ClickLogs() {
 
       {showFilters && (
         <div className="p-4 sm:p-6 border-b border-white/5 bg-white/5 animate-fadeInUp">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-3">
+            <div className="xl:col-span-2">
               <label className="form-label">Search</label>
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
@@ -353,7 +384,7 @@ export default function ClickLogs() {
                   value={filters.search}
                   onChange={(e) => handleFilterChange('search', e.target.value)}
                   className="form-input pl-10"
-                  placeholder="Search IP, country..."
+                  placeholder="Search IP, referrer, country..."
                 />
               </div>
             </div>
@@ -389,7 +420,7 @@ export default function ClickLogs() {
             </div>
 
             <div>
-              <label className="form-label">Device Type</label>
+              <label className="form-label">Device</label>
               <select
                 value={filters.deviceType}
                 onChange={(e) => handleFilterChange('deviceType', e.target.value)}
@@ -409,22 +440,9 @@ export default function ClickLogs() {
                 onChange={(e) => handleFilterChange('isUnique', e.target.value)}
                 className="form-select"
               >
-                <option value="">All</option>
-                <option value="true">✅ Unique</option>
-                <option value="false">🔄 Duplicate</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="form-label">Bot Status</label>
-              <select
-                value={filters.isBot}
-                onChange={(e) => handleFilterChange('isBot', e.target.value)}
-                className="form-select"
-              >
-                <option value="">All</option>
-                <option value="true">🤖 Bot</option>
-                <option value="false">👤 Human</option>
+                <option value="">All traffic</option>
+                <option value="true">Unique only</option>
+                <option value="false">Duplicates</option>
               </select>
             </div>
 
@@ -455,17 +473,30 @@ export default function ClickLogs() {
               className="px-3 py-1.5 text-sm border border-white/10 rounded-lg hover:bg-white/5 transition text-white/30"
             >
               <X className="w-4 h-4 inline mr-1" />
-              Clear Filters
+              Clear
             </button>
             <button
               onClick={() => setShowFilters(false)}
               className="px-3 py-1.5 text-sm btn-gradient rounded-lg"
             >
-              Apply Filters
+              Apply
             </button>
           </div>
         </div>
       )}
+
+      <div className="px-4 sm:px-6 py-4 border-b border-white/5 bg-white/[0.02]">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-3 py-2">
+            <div className="text-[11px] uppercase tracking-[0.24em] text-emerald-200/70">Unique</div>
+            <div className="mt-1 text-sm font-semibold text-white">{summary.unique}</div>
+          </div>
+          <div className="rounded-xl border border-amber-500/20 bg-amber-500/10 px-3 py-2">
+            <div className="text-[11px] uppercase tracking-[0.24em] text-amber-200/70">Duplicates</div>
+            <div className="mt-1 text-sm font-semibold text-white">{summary.duplicate}</div>
+          </div>
+        </div>
+      </div>
 
       <div className="overflow-x-auto">
         <table className="w-full">
@@ -483,7 +514,9 @@ export default function ClickLogs() {
                 </button>
               </th>
               <th className="px-4 py-3 text-left text-xs font-medium text-white/30 uppercase tracking-wider whitespace-nowrap">IP Address</th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-white/30 uppercase tracking-wider whitespace-nowrap">Campaign</th>
               <th className="px-4 py-3 text-left text-xs font-medium text-white/30 uppercase tracking-wider whitespace-nowrap">Location</th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-white/30 uppercase tracking-wider whitespace-nowrap">Device</th>
               <th className="px-4 py-3 text-left text-xs font-medium text-white/30 uppercase tracking-wider whitespace-nowrap">Browser</th>
               <th className="px-4 py-3 text-left text-xs font-medium text-white/30 uppercase tracking-wider whitespace-nowrap">Referrer</th>
               <th className="px-4 py-3 text-center text-xs font-medium text-white/30 uppercase tracking-wider whitespace-nowrap">Status</th>
@@ -505,7 +538,7 @@ export default function ClickLogs() {
               clicks.map((click, index) => (
                 <tr
                   key={click.id}
-                  className="hover:bg-white/5 transition-all duration-200 animate-fadeInUp"
+                  className={`transition-all duration-200 animate-fadeInUp ${click.isUnique ? 'hover:bg-white/5' : 'bg-amber-500/5 hover:bg-amber-500/10'}`}
                   style={{ animationDelay: `${index * 50}ms` }}
                 >
                   <td className="px-4 py-3 text-sm text-white/50 whitespace-nowrap">
@@ -518,21 +551,23 @@ export default function ClickLogs() {
                     {click.ipAddress}
                   </td>
                   <td className="px-4 py-3 text-sm text-white/50">
-                    <div className="flex items-center gap-1">
-                      {getCountryFlag(click.country)}
-                      <span>{click.country || 'Unknown'}</span>
-                      {click.city && (
-                        <span className="text-xs text-white/20">({click.city})</span>
-                      )}
+                    <div className="flex flex-col gap-0.5">
+                      <span className="font-medium text-white/80">{click.linkAccount.accountName}</span>
+                      <span className="text-[11px] text-white/35">/{click.linkAccount.slug}</span>
                     </div>
+                  </td>
+                  <td className="px-4 py-3 text-sm text-white/50">
+                    {getLocationSummary(click)}
                   </td>
                   <td className="px-4 py-3 text-sm text-white/50">
                     <div className="flex items-center gap-1">
                       {getDeviceIcon(click.deviceType)}
-                      <span className="truncate max-w-[100px]">{click.browser || 'Unknown'}</span>
-                      {click.os && (
-                        <span className="text-xs text-white/20 hidden sm:inline">{click.os}</span>
-                      )}
+                      <span className="truncate max-w-[140px]">{getDeviceLabel(click)}</span>
+                    </div>
+                  </td>
+                  <td className="px-4 py-3 text-sm text-white/50">
+                    <div className="flex items-center gap-1">
+                      <span className="truncate max-w-[140px]">{getBrowserLabel(click)}</span>
                     </div>
                   </td>
                   <td className="px-4 py-3 text-sm text-white/30 max-w-[150px] truncate">
@@ -560,22 +595,13 @@ export default function ClickLogs() {
                   </td>
                   <td className="px-4 py-3 text-center">
                     <div className="flex flex-wrap items-center justify-center gap-1">
-                      {click.isBot ? (
-                        <span className="badge badge-danger flex items-center gap-1">
-                          <Bot className="w-3 h-3" /> Bot
-                        </span>
-                      ) : (
-                        <span className="badge badge-success flex items-center gap-1">
-                          <User className="w-3 h-3" /> Human
-                        </span>
-                      )}
                       {click.isUnique ? (
                         <span className="badge badge-success flex items-center gap-1">
-                          <CheckCircle className="w-3 h-3" /> ✓
+                          <CheckCircle className="w-3 h-3" /> Unique
                         </span>
                       ) : (
                         <span className="badge badge-warning flex items-center gap-1">
-                          <XCircle className="w-3 h-3" /> ✗
+                          <XCircle className="w-3 h-3" /> Duplicate
                         </span>
                       )}
                     </div>

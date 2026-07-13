@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { prisma } from '@/lib/db/prisma'
 import { BotDetectionService } from '@/lib/services/bot-detection'
+import { CLICK_DEDUPE_WINDOW_MS, buildClickFingerprint, isDuplicateVisit } from '@/lib/services/click-detection'
 import { getGeoLocation } from '@/lib/services/geo/ip2location'
 import { parseVisitorProfile } from '@/lib/utils/visitor-profile'
 
@@ -37,7 +38,6 @@ const selectGroupOffer = async (
   userId: string,
   country: string,
   groupName: string,
-  linkId: string
 ) => {
   const regionalGroupCandidates = await prisma.offerVault.findMany({
     where: {
@@ -99,6 +99,34 @@ export async function GET(
       return new NextResponse('Link not found', { status: 404 })
     }
 
+    const clickFingerprint = buildClickFingerprint({
+      linkId: link.id,
+      ipAddress: ip,
+      userAgent,
+      browser: visitorProfile.browser,
+      os: visitorProfile.os,
+      deviceType: visitorProfile.deviceType,
+    })
+    const duplicateWindowStart = new Date(Date.now() - CLICK_DEDUPE_WINDOW_MS)
+    const recentDuplicate = await prisma.click.findFirst({
+      where: {
+        linkAccountId: link.id,
+        clickSignature: clickFingerprint,
+        createdAt: {
+          gte: duplicateWindowStart,
+        },
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    })
+
+    const now = new Date()
+    const isDuplicate = Boolean(
+      recentDuplicate &&
+      isDuplicateVisit(recentDuplicate.createdAt, now, CLICK_DEDUPE_WINDOW_MS)
+    )
+
     const botService = new BotDetectionService()
     const botResult = await botService.detect(userAgent, ip)
 
@@ -106,6 +134,7 @@ export async function GET(
       await prisma.click.create({
         data: {
           linkAccountId: link.id,
+          clickSignature: clickFingerprint,
           ipAddress: ip,
           userAgent: userAgent,
           referrer: referrer || '',
@@ -113,6 +142,7 @@ export async function GET(
           browserVersion: visitorProfile.browserVersion,
           os: visitorProfile.os,
           deviceType: visitorProfile.deviceType,
+          deviceBrand: visitorProfile.deviceBrand,
           isBot: true,
           botScore: botResult.score,
           botReason: botResult.reasons.join(', '),
@@ -139,7 +169,7 @@ export async function GET(
     let offer = null
 
     if (link.offerGroupName) {
-      offer = await selectGroupOffer(link.userId, country, link.offerGroupName, link.id)
+      offer = await selectGroupOffer(link.userId, country, link.offerGroupName)
     }
 
     if (!offer) {
@@ -187,6 +217,7 @@ export async function GET(
     await prisma.click.create({
       data: {
         linkAccountId: link.id,
+        clickSignature: clickFingerprint,
         ipAddress: ip,
         userAgent: userAgent,
         country: country,
@@ -197,8 +228,9 @@ export async function GET(
         browserVersion: visitorProfile.browserVersion,
         os: visitorProfile.os,
         deviceType: visitorProfile.deviceType,
+        deviceBrand: visitorProfile.deviceBrand,
         referrer: referrer || null,
-        isUnique: true,
+        isUnique: !isDuplicate,
         isBot: false,
       },
     })
@@ -207,7 +239,7 @@ export async function GET(
       where: { id: link.id },
       data: {
         totalClicks: { increment: 1 },
-        uniqueClicks: { increment: 1 },
+        ...(isDuplicate ? {} : { uniqueClicks: { increment: 1 } }),
       },
     })
 

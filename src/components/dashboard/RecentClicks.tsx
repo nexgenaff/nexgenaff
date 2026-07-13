@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import { formatDate } from '@/lib/utils/helpers'
-import { Globe, Bot, User, Clock, Copy, CheckCircle, XCircle } from 'lucide-react'
+import { getCountryFlag, getCountryLabel } from '@/lib/utils/country'
+import { Globe, Clock, Copy, CheckCircle, XCircle } from 'lucide-react'
 
 interface Click {
   id: string
@@ -40,17 +41,6 @@ export default function RecentClicks() {
 
     fetchClicks()
   }, [])
-
-  const getCountryFlag = (country: string | null) => {
-    if (!country) return '🌍'
-    const flags: Record<string, string> = {
-      'US': '🇺🇸', 'GB': '🇬🇧', 'CA': '🇨🇦', 'AU': '🇦🇺',
-      'DE': '🇩🇪', 'FR': '🇫🇷', 'JP': '🇯🇵', 'CN': '🇨🇳',
-      'IN': '🇮🇳', 'BR': '🇧🇷', 'RU': '🇷🇺', 'ZA': '🇿🇦',
-      'ES': '🇪🇸', 'IT': '🇮🇹', 'MX': '🇲🇽', 'KR': '🇰🇷',
-    }
-    return flags[country] || '🌍'
-  }
 
   if (loading) {
     return (
@@ -105,17 +95,8 @@ export default function RecentClicks() {
               <div className="flex-1 min-w-0">
                 <div className="flex flex-wrap items-center gap-2">
                   <p className="text-sm font-medium text-white truncate">
-                    {click.country || 'Unknown Location'}
+                    {getCountryLabel(click.country)}
                   </p>
-                  {click.isBot ? (
-                    <span className="badge badge-danger flex items-center gap-1">
-                      <Bot className="w-3 h-3" /> Bot
-                    </span>
-                  ) : (
-                    <span className="badge badge-success flex items-center gap-1">
-                      <User className="w-3 h-3" /> Human
-                    </span>
-                  )}
                   {click.isUnique ? (
                     <span className="badge badge-success flex items-center gap-1">
                       <CheckCircle className="w-3 h-3" /> Unique

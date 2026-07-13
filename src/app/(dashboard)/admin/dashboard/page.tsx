@@ -7,7 +7,6 @@ import { motion } from 'framer-motion'
 import StatsCards from '@/components/dashboard/StatsCards'
 import RecentClicks from '@/components/dashboard/RecentClicks'
 import ClickLogs from '@/components/dashboard/ClickLogs'
-import { GeoInsights } from '@/components/dashboard/GeoInsights'
 import { TrafficBreakdown } from '@/components/dashboard/TrafficBreakdown'
 import { RefreshCw, Plus, Globe2 } from 'lucide-react'
 
@@ -194,6 +193,7 @@ export default function DashboardPage() {
         stats={stats}
         chartData={chartData}
         hourlyChartData={hourlyChartData}
+        countryBreakdown={countryBreakdown}
         period={period}
         onPeriodChange={setPeriod}
       />
@@ -227,13 +227,11 @@ export default function DashboardPage() {
             <RecentClicks />
           </div>
           <div className="space-y-6">
-            <GeoInsights geoData={geoData} countryBreakdown={countryBreakdown} />
             <TrafficBreakdown
               referrerBreakdown={referrerBreakdown}
               browserBreakdown={browserBreakdown}
               deviceBreakdown={deviceBreakdown}
             />
-
           </div>
         </div>
       ) : (

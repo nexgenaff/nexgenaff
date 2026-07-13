@@ -3,6 +3,7 @@
 import { motion } from 'framer-motion'
 import { MapPinned } from 'lucide-react'
 import { formatNumber } from '@/lib/utils/helpers'
+import { getCountryFlag, getCountryLabel, normalizeCountryCode } from '@/lib/utils/country'
 
 interface GeoInsightItem {
   country: string
@@ -13,84 +14,6 @@ interface GeoInsightItem {
 interface GeoInsightsProps {
   geoData: GeoInsightItem[]
   countryBreakdown?: GeoInsightItem[]
-}
-
-const getCountryFlag = (country: string) => {
-  const flags: Record<string, string> = {
-    US: '🇺🇸',
-    GB: '🇬🇧',
-    CA: '🇨🇦',
-    AU: '🇦🇺',
-    DE: '🇩🇪',
-    FR: '🇫🇷',
-    JP: '🇯🇵',
-    CN: '🇨🇳',
-    IN: '🇮🇳',
-    BR: '🇧🇷',
-    RU: '🇷🇺',
-    ZA: '🇿🇦',
-    ES: '🇪🇸',
-    IT: '🇮🇹',
-    MX: '🇲🇽',
-    KR: '🇰🇷',
-    NL: '🇳🇱',
-    AE: '🇦🇪',
-    SG: '🇸🇬',
-    SE: '🇸🇪',
-    NZ: '🇳🇿',
-    TR: '🇹🇷',
-    ID: '🇮🇩',
-    PH: '🇵🇭',
-    UA: '🇺🇦',
-    PL: '🇵🇱',
-    AR: '🇦🇷',
-    CH: '🇨🇭',
-    NG: '🇳🇬',
-    MY: '🇲🇾',
-    TH: '🇹🇭',
-    VN: '🇻🇳',
-  }
-
-  return flags[country] || '🌍'
-}
-
-const getCountryName = (country: string) => {
-  const names: Record<string, string> = {
-    US: 'United States',
-    GB: 'United Kingdom',
-    CA: 'Canada',
-    AU: 'Australia',
-    DE: 'Germany',
-    FR: 'France',
-    JP: 'Japan',
-    CN: 'China',
-    IN: 'India',
-    BR: 'Brazil',
-    RU: 'Russia',
-    ZA: 'South Africa',
-    ES: 'Spain',
-    IT: 'Italy',
-    MX: 'Mexico',
-    KR: 'South Korea',
-    NL: 'Netherlands',
-    AE: 'United Arab Emirates',
-    SG: 'Singapore',
-    SE: 'Sweden',
-    NZ: 'New Zealand',
-    TR: 'Turkey',
-    ID: 'Indonesia',
-    PH: 'Philippines',
-    UA: 'Ukraine',
-    PL: 'Poland',
-    AR: 'Argentina',
-    CH: 'Switzerland',
-    NG: 'Nigeria',
-    MY: 'Malaysia',
-    TH: 'Thailand',
-    VN: 'Vietnam',
-  }
-
-  return names[country] || country || 'Unknown'
 }
 
 export function GeoInsights({ geoData, countryBreakdown }: GeoInsightsProps) {
@@ -130,7 +53,8 @@ export function GeoInsights({ geoData, countryBreakdown }: GeoInsightsProps) {
   }))
 
   marketData.forEach((item) => {
-    const region = regionMap[item.country] || 'Other'
+    const normalizedCountry = normalizeCountryCode(item.country) || item.country.toUpperCase()
+    const region = regionMap[normalizedCountry] || 'Other'
     const regionIndex = regionIntensity.findIndex((entry) => entry.region === region)
     if (regionIndex >= 0) {
       regionIntensity[regionIndex].value += item.clicks
@@ -221,8 +145,8 @@ export function GeoInsights({ geoData, countryBreakdown }: GeoInsightsProps) {
                       {getCountryFlag(item.country)}
                     </span>
                     <div className="min-w-0">
-                      <div className="truncate text-xs font-semibold text-white">{getCountryName(item.country)}</div>
-                      <div className="text-[10px] text-white/40">{item.country || 'Unknown'}</div>
+                      <div className="truncate text-xs font-semibold text-white">{getCountryLabel(item.country)}</div>
+                      <div className="text-[10px] text-white/40">{getCountryLabel(item.country)}</div>
                     </div>
                   </div>
                   <span className="text-[11px] font-semibold text-cyan-300">{formatNumber(item.clicks)}</span>
@@ -262,8 +186,8 @@ export function GeoInsights({ geoData, countryBreakdown }: GeoInsightsProps) {
                     {getCountryFlag(item.country)}
                   </span>
                   <div className="min-w-0">
-                    <p className="truncate text-sm font-medium text-white">{getCountryName(item.country)}</p>
-                    <p className="text-xs text-white/35">{item.country || 'Unknown'} • {formatNumber(item.uniqueClicks)} unique visitors</p>
+                    <p className="truncate text-sm font-medium text-white">{getCountryLabel(item.country)}</p>
+                    <p className="text-xs text-white/35">{getCountryLabel(item.country)} • {formatNumber(item.uniqueClicks)} unique visitors</p>
                   </div>
                 </div>
                 <div className="text-right">

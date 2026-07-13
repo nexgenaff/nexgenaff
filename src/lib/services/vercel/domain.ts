@@ -6,6 +6,7 @@ export interface VercelDomainOptions {
   VERCEL_PROJECT_NAME?: string
   VERCEL_TEAM_ID?: string
   VERCEL_TOKEN?: string
+  VERCEL_API_TOKEN?: string
 }
 
 export interface VercelDomainApiResult {
@@ -21,14 +22,18 @@ export function getVercelProjectReference(options: VercelDomainOptions): string 
   return options.VERCEL_PROJECT_ID || options.VERCEL_PROJECT_NAME || ''
 }
 
+export function getVercelApiToken(options: VercelDomainOptions): string {
+  return options.VERCEL_TOKEN || options.VERCEL_API_TOKEN || ''
+}
+
 export function buildVercelDomainUrl(projectReference: string, domain: string, teamId?: string): string {
-  const url = new URL(`https://api.vercel.com/v10/projects/${projectReference}/domains`)
+  const url = new URL(`https://api.vercel.com/v9/projects/${projectReference}/domains`)
   if (teamId) url.searchParams.set('teamId', teamId)
   return url.toString()
 }
 
 export function buildVercelVerifyDomainUrl(projectReference: string, domain: string, teamId?: string): string {
-  const url = new URL(`https://api.vercel.com/v10/projects/${projectReference}/domains/${encodeURIComponent(domain)}/verify`)
+  const url = new URL(`https://api.vercel.com/v9/projects/${projectReference}/domains/${encodeURIComponent(domain)}/verify`)
   if (teamId) url.searchParams.set('teamId', teamId)
   return url.toString()
 }
@@ -133,7 +138,7 @@ export async function addDomainToProject(
   options: VercelDomainOptions = {}
 ): Promise<VercelDomainApiResult> {
   const projectReference = getVercelProjectReference(options)
-  const token = options.VERCEL_TOKEN
+  const token = getVercelApiToken(options)
 
   if (!projectReference || !token) {
     return {
@@ -190,7 +195,7 @@ export async function verifyDomainOnVercel(
   options: VercelDomainOptions = {}
 ): Promise<VercelDomainApiResult> {
   const projectReference = getVercelProjectReference(options)
-  const token = options.VERCEL_TOKEN
+  const token = getVercelApiToken(options)
 
   if (!projectReference || !token) {
     return {

@@ -3,6 +3,9 @@ export interface VisitorProfile {
   browserVersion: string | null
   os: string | null
   deviceType: string | null
+  deviceBrand: string | null
+  appName: string | null
+  appVersion: string | null
 }
 
 const BOT_BROWSER_PATTERNS = [
@@ -15,20 +18,28 @@ const BOT_BROWSER_PATTERNS = [
   /python-requests\//i
 ]
 
+const APP_PATTERNS = [
+  { name: 'Facebook', pattern: /FBAN\//i },
+  { name: 'Instagram', pattern: /Instagram/i },
+  { name: 'TikTok', pattern: /TikTok/i },
+  { name: 'Telegram', pattern: /Telegram/i },
+  { name: 'WhatsApp', pattern: /WhatsApp/i },
+]
+
 const BROWSER_PATTERNS = [
   { name: 'Brave', pattern: /Brave\/(\d+(?:\.\d+)*)/i },
   { name: 'Edge', pattern: /Edg(?:e|A|iOS)?\/(\d+(?:\.\d+)*)/i },
   { name: 'Opera', pattern: /OPR\/(\d+(?:\.\d+)*)/i },
   { name: 'Chrome', pattern: /Chrome\/(\d+(?:\.\d+)*)/i },
   { name: 'Firefox', pattern: /Firefox\/(\d+(?:\.\d+)*)/i },
-  { name: 'Safari', pattern: /Version\/(\d+(?:\.\d+)*)\s+Safari/i },
+  { name: 'Safari', pattern: /Version\/(\d+(?:\.\d+)*)(?:[^\n]*?)Safari/i },
 ]
 
 const OS_PATTERNS = [
-  { name: 'Windows', pattern: /Windows NT (?:\d+\.\d+)/i },
-  { name: 'macOS', pattern: /Mac OS X/i },
   { name: 'iOS', pattern: /(iPhone|iPad|iPod)/i },
   { name: 'Android', pattern: /Android/i },
+  { name: 'Windows', pattern: /Windows NT (?:\d+\.\d+)/i },
+  { name: 'macOS', pattern: /Mac OS X/i },
   { name: 'Linux', pattern: /Linux/i },
 ]
 
@@ -38,11 +49,42 @@ const DEVICE_PATTERNS = [
   { name: 'Desktop', pattern: /Windows|Macintosh|Linux|X11/i },
 ]
 
+const DEVICE_BRAND_PATTERNS = [
+  { name: 'iPhone', pattern: /iPhone/i },
+  { name: 'iPad', pattern: /iPad/i },
+  { name: 'Pixel', pattern: /Pixel/i },
+  { name: 'Samsung', pattern: /Samsung|SM-/i },
+  { name: 'Huawei', pattern: /Huawei/i },
+  { name: 'OnePlus', pattern: /OnePlus/i },
+  { name: 'Nexus', pattern: /Nexus/i },
+  { name: 'Xiaomi', pattern: /Xiaomi|Mi /i },
+]
+
+function getAppProfile(userAgent: string) {
+  const app = APP_PATTERNS.find((candidate) => candidate.pattern.test(userAgent))
+  if (!app) return { appName: null, appVersion: null }
+
+  const versionMatch = userAgent.match(/(?:FBAV|Instagram|TikTok|Telegram|WhatsApp)\/?(\d+(?:\.\d+)*)/i)
+
+  return {
+    appName: app.name,
+    appVersion: versionMatch?.[1] || null,
+  }
+}
+
 function getBrowserProfile(userAgent: string) {
   if (BOT_BROWSER_PATTERNS.some((pattern) => pattern.test(userAgent))) {
     return {
       browser: 'Bot',
       browserVersion: null,
+    }
+  }
+
+  const appProfile = getAppProfile(userAgent)
+  if (appProfile.appName) {
+    return {
+      browser: appProfile.appName,
+      browserVersion: appProfile.appVersion,
     }
   }
 
@@ -84,6 +126,11 @@ function getDeviceProfile(userAgent: string) {
   return 'Desktop'
 }
 
+function getDeviceBrand(userAgent: string): string | null {
+  const match = DEVICE_BRAND_PATTERNS.find((candidate) => candidate.pattern.test(userAgent))
+  return match?.name || null
+}
+
 export function parseVisitorProfile(userAgent: string): VisitorProfile {
   const normalized = userAgent.trim()
   if (!normalized) {
@@ -92,17 +139,25 @@ export function parseVisitorProfile(userAgent: string): VisitorProfile {
       browserVersion: null,
       os: null,
       deviceType: null,
+      deviceBrand: null,
+      appName: null,
+      appVersion: null,
     }
   }
 
   const browser = getBrowserProfile(normalized)
   const os = getOsProfile(normalized)
   const deviceType = getDeviceProfile(normalized)
+  const deviceBrand = getDeviceBrand(normalized)
+  const appProfile = getAppProfile(normalized)
 
   return {
     browser: browser.browser,
     browserVersion: browser.browserVersion,
     os,
     deviceType,
+    deviceBrand,
+    appName: appProfile.appName,
+    appVersion: appProfile.appVersion,
   }
 }

@@ -3,6 +3,7 @@ import assert from 'node:assert/strict'
 
 import {
   buildVercelDomainUrl,
+  buildVercelVerifyDomainUrl,
   getVercelProjectReference,
   buildVercelHeaders,
   buildVerificationInstructionsFromVercelRecords,
@@ -20,7 +21,13 @@ test('prefers Vercel project id when configured', () => {
 test('builds the add-domain API URL with optional team query', () => {
   const url = buildVercelDomainUrl('proj_123', 'fast.prizenest.xyz', 'team_456')
 
-  assert.equal(url, 'https://api.vercel.com/v10/projects/proj_123/domains?teamId=team_456')
+  assert.equal(url, 'https://api.vercel.com/v9/projects/proj_123/domains?teamId=team_456')
+})
+
+test('builds the verify-domain API URL with optional team query', () => {
+  const url = buildVercelVerifyDomainUrl('proj_123', 'fast.prizenest.xyz', 'team_456')
+
+  assert.equal(url, 'https://api.vercel.com/v9/projects/proj_123/domains/fast.prizenest.xyz/verify?teamId=team_456')
 })
 
 test('builds bearer auth headers for Vercel API calls', () => {
