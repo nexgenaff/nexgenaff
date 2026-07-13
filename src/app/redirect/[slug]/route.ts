@@ -111,7 +111,10 @@ export async function GET(
     })
 
     const now = new Date()
-    const isUnique = !mostRecentClick || !isDuplicateVisit(new Date(mostRecentClick.createdAt), now, CLICK_DEDUPE_WINDOW_MS)
+    const isDuplicate = mostRecentClick
+      ? isDuplicateVisit(new Date(mostRecentClick.createdAt), now, CLICK_DEDUPE_WINDOW_MS)
+      : false
+    const isUnique = !isDuplicate
 
     const botService = new BotDetectionService()
     const botResult = await botService.detect(userAgent, ip)
@@ -200,26 +203,28 @@ export async function GET(
 
     const finalUrl = buildRedirectTargetUrl(offer.offerUrl, slug)
 
-    await prisma.click.create({
-      data: {
-        linkAccountId: link.id,
-        clickSignature: clickFingerprint,
-        ipAddress: ip,
-        userAgent: userAgent,
-        country: country || null,
-        region: geo?.region || null,
-        city: geo?.city || null,
-        isp: geo?.isp || null,
-        browser: visitorProfile.browser,
-        browserVersion: visitorProfile.browserVersion,
-        os: visitorProfile.os,
-        deviceType: visitorProfile.deviceType,
-        deviceBrand: visitorProfile.deviceBrand,
-        referrer: referrer || null,
-        isUnique,
-        isBot: false,
-      },
-    })
+    if (isUnique) {
+      await prisma.click.create({
+        data: {
+          linkAccountId: link.id,
+          clickSignature: clickFingerprint,
+          ipAddress: ip,
+          userAgent: userAgent,
+          country: country || null,
+          region: geo?.region || null,
+          city: geo?.city || null,
+          isp: geo?.isp || null,
+          browser: visitorProfile.browser,
+          browserVersion: visitorProfile.browserVersion,
+          os: visitorProfile.os,
+          deviceType: visitorProfile.deviceType,
+          deviceBrand: visitorProfile.deviceBrand,
+          referrer: referrer || null,
+          isUnique,
+          isBot: false,
+        },
+      })
+    }
 
     await prisma.linkAccount.update({
       where: { id: link.id },

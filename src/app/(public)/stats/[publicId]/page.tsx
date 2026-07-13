@@ -22,7 +22,6 @@ import {
   Tablet,
   Clock,
   Sparkles,
-  ShieldCheck,
   ChevronDown,
 } from 'lucide-react'
 import { Logo } from '@/components/ui/Logo'
@@ -130,6 +129,16 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
     return `${brand} • ${os}`
   }
 
+  const getReferrerHostname = (referrer: string | null) => {
+    if (!referrer) return 'Direct'
+
+    try {
+      return new URL(referrer).hostname || 'Referrer'
+    } catch {
+      return referrer.split('/')[0] || 'Referrer'
+    }
+  }
+
   const getLocationSummary = (click: Stats['clicks'][number]) => {
     const countryLabel = getCountryLabel(click.country)
     const cityRegion = [click.city, click.region].filter(Boolean).join(', ')
@@ -231,12 +240,6 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
             </div>
           </div>
 
-          <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white/55 backdrop-blur-xl">
-            <div className="flex items-center gap-2">
-              <ShieldCheck className="h-4 w-4 text-emerald-300" />
-              Live public performance overview
-            </div>
-          </div>
         </div>
 
         <div className="mb-8 grid gap-4 sm:grid-cols-3">
@@ -357,11 +360,6 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
                 <span className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-xs text-white/50 whitespace-nowrap">
                   {totalClicks} records
                 </span>
-                {stats?.pagination && (
-                  <span className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1 text-[11px] uppercase tracking-[0.2em] text-emerald-300 whitespace-nowrap">
-                    Live
-                  </span>
-                )}
               </div>
 
               <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
@@ -410,7 +408,75 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
             </div>
           </div>
 
-          <div className="overflow-x-auto">
+          <div className="block md:hidden">
+            {stats?.clicks && stats.clicks.length > 0 ? (
+              <div className="space-y-3 p-3">
+                {stats.clicks.slice((page - 1) * limit, page * limit).map((click) => (
+                  <div key={click.id} className="rounded-2xl border border-white/10 bg-slate-950/40 p-3 text-sm text-white/70">
+                    <div className="mb-2 flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2 text-xs text-white/45">
+                        <Clock className="h-3.5 w-3.5" />
+                        {formatDate(click.createdAt || click.timestamp)}
+                      </div>
+                      <div className="flex items-center justify-end gap-1.5">
+                        {click.isBot ? (
+                          <span className="inline-flex items-center gap-1 rounded-full border border-rose-500/20 bg-rose-500/10 px-2.5 py-1 text-[11px] text-rose-200">
+                            <Bot className="h-3.5 w-3.5" /> Bot
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1 text-[11px] text-emerald-200">
+                            <User className="h-3.5 w-3.5" /> Human
+                          </span>
+                        )}
+                        {click.isUnique ? (
+                          <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1 text-[11px] text-emerald-200">
+                            <CheckCircle className="h-3.5 w-3.5" /> Unique
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 rounded-full border border-amber-500/20 bg-amber-500/10 px-2.5 py-1 text-[11px] text-amber-200">
+                            <XCircle className="h-3.5 w-3.5" /> Duplicate
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="space-y-2 text-[13px]">
+                      <div className="flex items-start justify-between gap-3">
+                        <span className="text-white/35">IP</span>
+                        <span className="max-w-[62%] break-all text-right text-cyan-300/90">{click.ipAddress || 'N/A'}</span>
+                      </div>
+                      <div className="flex items-start justify-between gap-3">
+                        <span className="text-white/35">Location</span>
+                        <span className="max-w-[62%] text-right">{getLocationSummary(click)}</span>
+                      </div>
+                      <div className="flex items-start justify-between gap-3">
+                        <span className="text-white/35">Device</span>
+                        <span className="max-w-[62%] text-right">{getDeviceLabel(click)}</span>
+                      </div>
+                      <div className="flex items-start justify-between gap-3">
+                        <span className="text-white/35">Browser</span>
+                        <span className="max-w-[62%] text-right">{getBrowserLabel(click)}</span>
+                      </div>
+                      <div className="flex items-start justify-between gap-3">
+                        <span className="text-white/35">Referrer</span>
+                        <span className="max-w-[62%] break-all text-right text-indigo-300">{getReferrerHostname(click.referrer)}</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="px-4 py-14 text-center text-white/40">
+                <div className="flex flex-col items-center gap-3">
+                  <Eye className="h-12 w-12 text-white/10" />
+                  <div className="text-lg font-semibold text-white/70">No clicks recorded yet</div>
+                  <div className="text-sm text-white/35">This public report will populate once traffic starts flowing.</div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="hidden md:block overflow-x-auto">
             <table className="min-w-[980px] w-full">
               <thead className="bg-white/[0.03]">
                 <tr>
@@ -457,7 +523,7 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
                             rel="noopener noreferrer"
                             className="inline-flex items-center gap-1 text-indigo-300 transition hover:text-indigo-200"
                           >
-                            {new URL(click.referrer).hostname}
+                            {getReferrerHostname(click.referrer)}
                             <ExternalLink className="h-3.5 w-3.5" />
                           </a>
                         ) : (
