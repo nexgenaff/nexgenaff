@@ -59,13 +59,15 @@ export function Chart({ data, height = 220, type = 'line', options = {} }: Chart
     plugins: {
       legend: {
         position: 'top' as const,
+        align: 'start' as const,
         labels: {
-          color: 'rgba(255,255,255,0.4)',
-          font: { size: 10, weight: '600', family: 'Inter' },
+          color: 'rgba(255,255,255,0.72)',
+          font: { size: 10, weight: '700', family: 'Inter' },
           boxWidth: 10,
           boxHeight: 10,
           borderRadius: 3,
           useBorderRadius: true,
+          padding: 12,
         },
       },
       tooltip: {
@@ -87,15 +89,17 @@ export function Chart({ data, height = 220, type = 'line', options = {} }: Chart
       x: {
         grid: { color: 'rgba(255,255,255,0.03)', drawBorder: false },
         ticks: {
-          color: 'rgba(255,255,255,0.15)',
-          font: { size: 10, weight: '500', family: 'Inter' },
+          color: 'rgba(255,255,255,0.4)',
+          font: { size: 10, weight: '600', family: 'Inter' },
+          padding: 8,
         },
       },
       y: {
         grid: { color: 'rgba(255,255,255,0.03)', drawBorder: false },
         ticks: {
-          color: 'rgba(255,255,255,0.15)',
-          font: { size: 10, weight: '500', family: 'Inter' },
+          color: 'rgba(255,255,255,0.4)',
+          font: { size: 10, weight: '600', family: 'Inter' },
+          padding: 8,
         },
         beginAtZero: true,
       },

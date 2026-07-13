@@ -46,6 +46,17 @@ const COUNTRY_NAME_LOOKUP: Record<string, string> = {
   VN: 'Vietnam',
 }
 
+const LOCAL_DEV_GEO_FALLBACK: GeoLocation = {
+  country_code: 'US',
+  country_name: 'United States',
+  region: 'California',
+  city: 'San Francisco',
+  latitude: 37.7749,
+  longitude: -122.4194,
+  isp: 'Local Development',
+  timezone: 'America/Los_Angeles',
+}
+
 function normalizeCountryCode(value?: string | null): string | null {
   const raw = value?.trim()
   if (!raw) return null
@@ -65,6 +76,11 @@ function normalizeClientIp(rawIp?: string | null): string {
   if (!candidate) return 'unknown'
 
   return candidate
+}
+
+function isLocalDevelopmentIp(ip: string): boolean {
+  const normalized = normalizeClientIp(ip).toLowerCase()
+  return normalized === 'unknown' || normalized === '127.0.0.1' || normalized === 'localhost' || normalized === '::1' || normalized === '::ffff:127.0.0.1' || normalized === '0:0:0:0:0:0:0:1'
 }
 
 function getCountryCodeFromHeaders(headers?: Headers): string | null {
@@ -118,22 +134,13 @@ export async function getGeoLocation(ip: string, headers?: Headers): Promise<Geo
       return headerGeo
     }
 
+    if (isLocalDevelopmentIp(normalizedIp)) {
+      return LOCAL_DEV_GEO_FALLBACK
+    }
+
     if (!apiKey) {
       console.warn('IP2LOCATION_API_KEY not set; using deterministic fallback geo')
       return getFallbackLocation(normalizedIp)
-    }
-
-    if (normalizedIp === '127.0.0.1' || normalizedIp === 'localhost' || normalizedIp === '::1' || normalizedIp === 'unknown' || normalizedIp === '::ffff:127.0.0.1' || normalizedIp === '0:0:0:0:0:0:0:1') {
-      return {
-        country_code: 'US',
-        country_name: 'United States',
-        region: 'California',
-        city: 'San Francisco',
-        latitude: 37.7749,
-        longitude: -122.4194,
-        isp: 'Local Development',
-        timezone: 'America/Los_Angeles',
-      }
     }
 
     const response = await axios.get('https://api.ip2location.io/', {

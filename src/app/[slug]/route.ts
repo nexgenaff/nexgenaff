@@ -3,6 +3,7 @@ import { prisma } from '@/lib/db/prisma'
 import { BotDetectionService } from '@/lib/services/bot-detection'
 import { CLICK_DEDUPE_WINDOW_MS, buildClickFingerprint, isDuplicateVisit } from '@/lib/services/click-detection'
 import { getGeoLocation } from '@/lib/services/geo/ip2location'
+import { buildRedirectTargetUrl } from '@/lib/utils/redirect'
 import { parseVisitorProfile } from '@/lib/utils/visitor-profile'
 
 const normalizeGroupName = (value?: string | null) => value?.trim() ?? ''
@@ -107,25 +108,6 @@ export async function GET(
       os: visitorProfile.os,
       deviceType: visitorProfile.deviceType,
     })
-    const duplicateWindowStart = new Date(Date.now() - CLICK_DEDUPE_WINDOW_MS)
-    const recentDuplicate = await prisma.click.findFirst({
-      where: {
-        linkAccountId: link.id,
-        clickSignature: clickFingerprint,
-        createdAt: {
-          gte: duplicateWindowStart,
-        },
-      },
-      orderBy: {
-        createdAt: 'desc',
-      },
-    })
-
-    const now = new Date()
-    const isDuplicate = Boolean(
-      recentDuplicate &&
-      isDuplicateVisit(recentDuplicate.createdAt, now, CLICK_DEDUPE_WINDOW_MS)
-    )
 
     const botService = new BotDetectionService()
     const botResult = await botService.detect(userAgent, ip)
@@ -212,7 +194,7 @@ export async function GET(
       return new NextResponse('No offer found', { status: 404 })
     }
 
-    const finalUrl = `${offer.offerUrl}${slug}`
+    const finalUrl = buildRedirectTargetUrl(offer.offerUrl, slug)
 
     await prisma.click.create({
       data: {
@@ -230,7 +212,7 @@ export async function GET(
         deviceType: visitorProfile.deviceType,
         deviceBrand: visitorProfile.deviceBrand,
         referrer: referrer || null,
-        isUnique: !isDuplicate,
+        isUnique: true,
         isBot: false,
       },
     })
@@ -239,7 +221,7 @@ export async function GET(
       where: { id: link.id },
       data: {
         totalClicks: { increment: 1 },
-        ...(isDuplicate ? {} : { uniqueClicks: { increment: 1 } }),
+        uniqueClicks: { increment: 1 },
       },
     })
 

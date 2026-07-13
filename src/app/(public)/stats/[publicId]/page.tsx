@@ -160,8 +160,8 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
     })
   }
 
-  const countries = stats?.clicks
-    ? Array.from(new Set(stats.clicks.map((c) => c.country).filter((country): country is string => Boolean(country))))
+  const countries = stats?.geoSummary
+    ? Array.from(new Set(stats.geoSummary.map((entry) => entry.country).filter((country): country is string => Boolean(country))))
     : []
 
   const topCountry = stats?.geoSummary?.[0]

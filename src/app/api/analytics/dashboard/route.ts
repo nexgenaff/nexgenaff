@@ -77,14 +77,10 @@ export async function GET(request: Request) {
 
     const links = await prisma.linkAccount.findMany({
       where: { userId: user.id },
-      select: { id: true, totalClicks: true, uniqueClicks: true, botClicks: true },
+      select: { id: true },
     })
 
     const linkIds = links.map(link => link.id)
-
-    const totalClicks = links.reduce((sum, link) => sum + (link.totalClicks || 0), 0)
-    const uniqueClicks = links.reduce((sum, link) => sum + (link.uniqueClicks || 0), 0)
-    const botClicks = links.reduce((sum, link) => sum + (link.botClicks || 0), 0)
 
     const requestedPeriod = url.searchParams.get('period') || 'week'
     const now = new Date()
@@ -139,10 +135,15 @@ export async function GET(request: Request) {
             referrer: true,
             createdAt: true,
             isUnique: true,
+            isBot: true,
           },
           orderBy: { createdAt: 'asc' },
         })
       : []
+
+    const totalClicks = clicks.length
+    const uniqueClicks = clicks.filter((click) => click.isUnique).length
+    const botClicks = clicks.filter((click) => click.isBot).length
 
     const trendValues = Array.from({ length: bucketCount }, () => 0)
     const uniqueTrendValues = Array.from({ length: bucketCount }, () => 0)

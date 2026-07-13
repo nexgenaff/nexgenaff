@@ -87,6 +87,12 @@ export async function GET(
     })
 
     const totalClicks = await prisma.click.count({ where })
+    const uniqueClicks = await prisma.click.count({
+      where: {
+        ...where,
+        isUnique: true,
+      },
+    })
 
     const trendRows = await prisma.click.findMany({
       where,
@@ -182,8 +188,8 @@ export async function GET(
       .sort((a, b) => b.uniqueClicks - a.uniqueClicks || b.totalClicks - a.totalClicks)
 
     return NextResponse.json({
-      totalClicks: dashboard.linkAccount.totalClicks,
-      uniqueClicks: dashboard.linkAccount.uniqueClicks,
+      totalClicks,
+      uniqueClicks,
       geoSummary,
       clickTrend,
       clicks: clicks.map(c => ({

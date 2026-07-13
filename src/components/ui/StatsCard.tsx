@@ -39,27 +39,27 @@ export function StatsCard({
       initial={{ opacity: 0, y: 20, scale: 0.95 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ duration: 0.5, delay: delay / 1000 }}
-      className="stat-card bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6"
+      className="stat-card rounded-3xl border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.075),rgba(255,255,255,0.03))] p-5 sm:p-6 shadow-[0_10px_35px_rgba(15,23,42,0.32)]"
     >
-      <div className="flex items-start justify-between">
+      <div className="flex items-start justify-between gap-4">
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-medium text-white/30">{title}</p>
-          <p className="text-2xl sm:text-3xl font-bold text-white mt-1 animate-countUp">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-white/35">{title}</p>
+          <p className="mt-2 text-[30px] font-extrabold leading-none tracking-[-0.03em] text-white animate-countUp sm:text-[34px]">
             {formatNumber(value)}
           </p>
           {subtitle && (
-            <p className="text-xs sm:text-sm text-white/20 mt-1 truncate">
+            <p className="mt-2 text-[11px] uppercase tracking-[0.18em] text-white/30 truncate">
               {subtitle}
             </p>
           )}
         </div>
-        <div className={`rounded-xl p-2.5 sm:p-3 flex-shrink-0 ${colorClasses[color]}`}>
+        <div className={`rounded-2xl p-3 flex-shrink-0 border border-white/10 ${colorClasses[color]}`}>
           <Icon className="w-5 h-5 sm:w-6 sm:h-6" />
         </div>
       </div>
 
       {trend !== undefined && (
-        <div className="mt-3 sm:mt-4 flex flex-wrap items-center gap-2">
+        <div className="mt-4 flex flex-wrap items-center gap-2">
           <span className={`text-xs sm:text-sm font-medium ${isPositive ? 'text-green-400' : 'text-red-400'}`}>
             {isPositive ? '↑' : '↓'} {Math.abs(trend)}%
           </span>
@@ -67,7 +67,7 @@ export function StatsCard({
         </div>
       )}
 
-      <div className="mt-3 h-0.5 w-full bg-gradient-to-r from-indigo-500/20 via-purple-500/20 to-transparent rounded-full"></div>
+      <div className="mt-4 h-px w-full bg-gradient-to-r from-indigo-500/30 via-purple-500/25 to-transparent"></div>
     </motion.div>
   )
 }
