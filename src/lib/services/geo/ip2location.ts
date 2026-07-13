@@ -80,7 +80,23 @@ function normalizeClientIp(rawIp?: string | null): string {
 
 function isLocalDevelopmentIp(ip: string): boolean {
   const normalized = normalizeClientIp(ip).toLowerCase()
-  return normalized === 'unknown' || normalized === '127.0.0.1' || normalized === 'localhost' || normalized === '::1' || normalized === '::ffff:127.0.0.1' || normalized === '0:0:0:0:0:0:0:1'
+
+  if (normalized === 'unknown' || normalized === 'localhost') return true
+  if (normalized === '127.0.0.1' || normalized === '::1' || normalized === '::ffff:127.0.0.1' || normalized === '0:0:0:0:0:0:0:1') return true
+  if (normalized.startsWith('fc') || normalized.startsWith('fd')) return true
+
+  const ipv4Match = normalized.match(/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/)
+  if (!ipv4Match) return false
+
+  const [first, second] = ipv4Match.slice(1, 3).map(Number)
+  if (Number.isNaN(first) || Number.isNaN(second)) return false
+
+  return first === 10
+    || first === 127
+    || (first === 192 && second === 168)
+    || (first === 169 && second === 254)
+    || (first === 100 && second >= 64 && second <= 127)
+    || (first === 172 && second >= 16 && second <= 31)
 }
 
 function getCountryCodeFromHeaders(headers?: Headers): string | null {

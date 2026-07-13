@@ -11,3 +11,13 @@ test('uses a stable local dev geolocation fallback instead of returning an unkno
   assert.equal(geo?.country_name, 'United States')
   assert.equal(geo?.city, 'San Francisco')
 })
+
+test('treats private-network local dev IPs as development traffic for geo fallback', async () => {
+  delete process.env.IP2LOCATION_API_KEY
+
+  const geo = await getGeoLocation('192.168.1.42', new Headers())
+
+  assert.equal(geo?.country_code, 'US')
+  assert.equal(geo?.country_name, 'United States')
+  assert.equal(geo?.city, 'San Francisco')
+})
