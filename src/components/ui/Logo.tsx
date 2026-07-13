@@ -1,6 +1,7 @@
 'use client'
 
-import { Rocket, Shield, Sparkles, Zap } from 'lucide-react'
+import Image from 'next/image'
+import { Sparkles, Zap } from 'lucide-react'
 import { cn } from '@/lib/utils/helpers'
 import { useState, useEffect } from 'react'
 
@@ -61,6 +62,12 @@ export function Logo({
   }
 
   const sizes = sizeClasses[size]
+  const logoDimensions = {
+    sm: 32,
+    md: 40,
+    lg: 48,
+    xl: 64,
+  }
 
   return (
     <div
@@ -81,24 +88,22 @@ export function Logo({
         
         <div
           className={cn(
-            'relative flex items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-600 to-purple-600 shadow-lg shadow-indigo-500/30',
+            'relative flex items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-br from-indigo-600 to-purple-600 shadow-lg shadow-indigo-500/30',
             showAnimation && 'group-hover:scale-105 transition-transform duration-300',
             sizes.iconContainer
           )}
         >
-          <Rocket
+          <Image
+            src="/favicon.png"
+            alt="NexGen Affiliates logo"
+            width={logoDimensions[size]}
+            height={logoDimensions[size]}
             className={cn(
-              sizes.icon,
-              'text-white',
+              'h-full w-full object-cover',
               showAnimation && mounted && 'animate-float'
             )}
+            priority
           />
-          <div className={cn(
-            'absolute -bottom-1 -right-1 rounded-full bg-indigo-500 p-0.5 shadow-lg',
-            sizes.badge
-          )}>
-            <Shield className="w-full h-full text-white" />
-          </div>
         </div>
 
         {showAnimation && mounted && (
@@ -126,7 +131,7 @@ export function Logo({
               showAnimation && 'group-hover:scale-105 transition-transform duration-300'
             )}
           >
-            NextGen Pro
+            NexGen Affiliates
           </span>
           {variant === 'full' && (
             <span className={cn(

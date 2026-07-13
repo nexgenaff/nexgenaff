@@ -61,7 +61,7 @@ export default function LoginPage() {
 
           <div className="text-center mb-8">
             <h1 className="text-2xl font-bold text-white">Welcome Back</h1>
-            <p className="text-white/40 mt-1 text-sm">Sign in to your Pro account</p>
+            <p className="text-white/40 mt-1 text-sm">Sign in to your dashboard</p>
           </div>
 
           {error && (
@@ -130,11 +130,7 @@ export default function LoginPage() {
             </Link>
           </div>
 
-          <div className="mt-4 text-center text-xs text-white/20 bg-white/5 p-3 rounded-xl border border-white/5">
-            <p className="font-medium text-white/40">Demo Credentials</p>
-            <p>Username: <span className="text-indigo-400 font-mono">admin</span></p>
-            <p>Password: <span className="text-indigo-400 font-mono">admin123</span></p>
-          </div>
+
         </div>
       </motion.div>
     </div>

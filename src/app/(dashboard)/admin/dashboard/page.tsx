@@ -165,7 +165,7 @@ export default function DashboardPage() {
             <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse"></span>
             Live dashboard
           </div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-white mt-3">Dashboard <span className="gradient-text">Pro</span></h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-white mt-3">Dashboard</h1>
           <p className="text-sm sm:text-base text-white/30 mt-1">Welcome back! Your geo-aware campaign performance is ready to review.</p>
         </div>
         <div className="flex flex-wrap gap-3">

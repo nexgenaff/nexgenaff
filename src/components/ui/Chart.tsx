@@ -38,6 +38,8 @@ interface ChartProps {
       borderWidth?: number
       tension?: number
       pointRadius?: number
+      pointBackgroundColor?: string
+      pointBorderColor?: string
       fill?: boolean
     }[]
   }

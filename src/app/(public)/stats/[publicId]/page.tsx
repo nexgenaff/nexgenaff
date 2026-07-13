@@ -29,6 +29,7 @@ import { Logo } from '@/components/ui/Logo'
 interface Stats {
   totalClicks: number
   uniqueClicks: number
+  botClicks: number
   geoSummary: Array<{
     country: string
     totalClicks: number
@@ -173,6 +174,14 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
     ? Array.from(new Set(stats.geoSummary.map((entry) => entry.country).filter((country): country is string => Boolean(country))))
     : []
 
+  const currentDateTime = new Date().toLocaleString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  })
+
   const topCountry = stats?.geoSummary?.[0]
   const secondaryCountries = stats?.geoSummary?.slice(1, 4) || []
   const chartData = stats?.clickTrend || {
@@ -226,24 +235,28 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
   }
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(99,102,241,0.18),_transparent_32%),linear-gradient(180deg,#050816,#0b1120_40%,#020617)] py-8 sm:py-12">
-      <div className="container mx-auto max-w-7xl px-4">
-        <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <div className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(99,102,241,0.18),_transparent_32%),linear-gradient(180deg,#050816,#0b1120_40%,#020617)] py-3 sm:py-4">
+      <div className="container mx-auto max-w-7xl px-3 sm:px-4">
+        <div className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-3">
             <Logo variant="compact" size="lg" showAnimation={true} />
-            <div>
-              <div className="mb-1 inline-flex items-center gap-2 rounded-full border border-cyan-400/20 bg-cyan-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-cyan-300">
-                <Sparkles className="h-3.5 w-3.5" />
-                Shared report
+            <div className="space-y-2">
+              <div className="inline-flex items-center gap-2 rounded-full border border-cyan-400/30 bg-slate-950/70 px-3.5 py-1.5 text-[10px] font-medium tracking-[0.24em] text-cyan-100 shadow-[0_0_0_1px_rgba(34,211,238,0.12),0_10px_28px_rgba(34,211,238,0.16)] backdrop-blur-xl sm:text-[11px]">
+                <Sparkles className="h-3.5 w-3.5 text-cyan-300" />
+                {currentDateTime}
               </div>
-              <h1 className="text-2xl font-bold text-white sm:text-3xl">Public Analytics Dashboard</h1>
+              <div className="flex items-center gap-2">
+                <h1 className="bg-gradient-to-r from-cyan-200 via-white to-indigo-200 bg-clip-text text-2xl font-black tracking-[-0.04em] text-transparent sm:text-3xl">
+                  Public Analytics Dashboard
+                </h1>
+              </div>
             </div>
           </div>
 
         </div>
 
-        <div className="mb-8 grid gap-4 sm:grid-cols-3">
-          <div className="rounded-3xl border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.03))] p-5 backdrop-blur-xl">
+        <div className="mb-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          <div className="rounded-2xl border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.03))] p-4 backdrop-blur-xl">
             <div className="flex items-center gap-3">
               <div className="rounded-2xl bg-indigo-500/10 p-2.5 text-indigo-300">
                 <MousePointerClick className="h-5 w-5" />
@@ -255,7 +268,7 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
             </div>
           </div>
 
-          <div className="rounded-3xl border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.03))] p-5 backdrop-blur-xl">
+          <div className="rounded-2xl border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.03))] p-4 backdrop-blur-xl">
             <div className="flex items-center gap-3">
               <div className="rounded-2xl bg-emerald-500/10 p-2.5 text-emerald-300">
                 <Users className="h-5 w-5" />
@@ -267,7 +280,7 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
             </div>
           </div>
 
-          <div className="rounded-3xl border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.03))] p-5 backdrop-blur-xl">
+          <div className="rounded-2xl border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.03))] p-4 backdrop-blur-xl">
             <div className="flex items-center gap-3">
               <div className="rounded-2xl bg-violet-500/10 p-2.5 text-violet-300">
                 <Globe2 className="h-5 w-5" />
@@ -278,66 +291,43 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
               </div>
             </div>
           </div>
-        </div>
 
-        <div className="mb-6 grid gap-4 xl:grid-cols-[1.1fr_0.9fr]">
-          <div className="rounded-3xl border border-cyan-400/20 bg-[linear-gradient(180deg,rgba(34,211,238,0.12),rgba(15,23,42,0.85))] p-5 backdrop-blur-xl">
-            <div className="mb-3 flex items-center gap-2 text-cyan-300">
-              <Sparkles className="h-4 w-4" />
-              <span className="text-[11px] font-semibold uppercase tracking-[0.24em]">Top geography</span>
+          <div className="rounded-2xl border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.03))] p-4 backdrop-blur-xl">
+            <div className="flex items-center gap-3">
+              <div className="rounded-2xl bg-rose-500/10 p-2.5 text-rose-300">
+                <Bot className="h-5 w-5" />
+              </div>
+              <div>
+                <div className="text-[11px] uppercase tracking-[0.24em] text-white/35">Bot clicks</div>
+                <div className="mt-1 text-2xl font-bold text-white">{formatNumber(stats?.botClicks || 0)}</div>
+              </div>
             </div>
-
-            {topCountry ? (
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="text-4xl">{getCountryFlag(topCountry.country)}</div>
-                  <div>
-                    <div className="text-xl font-semibold text-white">{getCountryLabel(topCountry.country)}</div>
-                    <div className="text-sm text-white/55">Best-performing region currently</div>
-                  </div>
-                </div>
-
-                <div className="grid gap-2 sm:grid-cols-2">
-                  <div className="rounded-2xl border border-white/10 bg-slate-950/55 px-3 py-2">
-                    <div className="text-[11px] uppercase tracking-[0.24em] text-white/35">Total clicks</div>
-                    <div className="mt-1 text-lg font-semibold text-white">{formatNumber(topCountry.totalClicks)}</div>
-                  </div>
-                  <div className="rounded-2xl border border-white/10 bg-slate-950/55 px-3 py-2">
-                    <div className="text-[11px] uppercase tracking-[0.24em] text-white/35">Unique clicks</div>
-                    <div className="mt-1 text-lg font-semibold text-emerald-300">{formatNumber(topCountry.uniqueClicks)}</div>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div className="rounded-2xl border border-dashed border-white/10 bg-slate-950/45 px-4 py-6 text-sm text-white/45">
-                No geo data available yet.
-              </div>
-            )}
           </div>
 
-          <div className="rounded-3xl border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.05),rgba(255,255,255,0.02))] p-5 backdrop-blur-xl">
-            <div className="mb-3 flex items-center gap-2 text-white/75">
-              <Globe2 className="h-4 w-4 text-violet-300" />
-              <span className="text-[11px] font-semibold uppercase tracking-[0.24em]">Geo leaderboard</span>
-            </div>
+        </div>
 
-            <div className="space-y-2">
-              {secondaryCountries.length > 0 ? (
-                secondaryCountries.map((entry, index) => (
-                  <div key={`${entry.country}-${index}`} className="flex items-center justify-between rounded-2xl border border-white/10 bg-slate-950/55 px-3 py-2 text-sm">
-                    <div className="flex items-center gap-2 text-white/75">
-                      <span>{getCountryFlag(entry.country)}</span>
-                      <span>{getCountryLabel(entry.country)}</span>
-                    </div>
-                    <div className="text-white/55">{formatNumber(entry.uniqueClicks)} unique</div>
+        <div className="mb-6 rounded-3xl border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.05),rgba(255,255,255,0.02))] p-5 backdrop-blur-xl">
+          <div className="mb-3 flex items-center gap-2 text-white/75">
+            <Globe2 className="h-4 w-4 text-violet-300" />
+            <span className="text-[11px] font-semibold uppercase tracking-[0.24em]">Geo leaderboard</span>
+          </div>
+
+          <div className="space-y-2">
+            {secondaryCountries.length > 0 ? (
+              secondaryCountries.map((entry, index) => (
+                <div key={`${entry.country}-${index}`} className="flex items-center justify-between rounded-2xl border border-white/10 bg-slate-950/55 px-3 py-2 text-sm">
+                  <div className="flex items-center gap-2 text-white/75">
+                    <span>{getCountryFlag(entry.country)}</span>
+                    <span>{getCountryLabel(entry.country)}</span>
                   </div>
-                ))
-              ) : (
-                <div className="rounded-2xl border border-dashed border-white/10 bg-slate-950/45 px-4 py-5 text-sm text-white/45">
-                  Add traffic to unlock country ranking insights.
+                  <div className="text-white/55">{formatNumber(entry.uniqueClicks)} unique</div>
                 </div>
-              )}
-            </div>
+              ))
+            ) : (
+              <div className="rounded-2xl border border-dashed border-white/10 bg-slate-950/45 px-4 py-5 text-sm text-white/45">
+                Add traffic to unlock country ranking insights.
+              </div>
+            )}
           </div>
         </div>
 
@@ -599,7 +589,7 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
 
         <div className="mt-8 flex flex-col items-center justify-between gap-4 border-t border-white/5 pt-4 sm:flex-row">
           <Logo variant="compact" size="sm" showAnimation={true} />
-          <p className="text-xs text-white/25">Powered by NextGen Affiliates Pro</p>
+          <p className="text-xs text-white/25">Powered by NexGen Affiliates</p>
         </div>
       </div>
     </div>

@@ -9,12 +9,17 @@ const inter = Inter({
 })
 
 export const metadata: Metadata = {
-  title: 'NextGen Affiliates Pro',
-  description: 'Premium Affiliate Tracking & Geo Redirect Platform',
-  keywords: 'affiliate, tracking, geo-redirect, link management, analytics',
-  authors: [{ name: 'NextGen Affiliates' }],
+  title: 'NexGen Affiliates',
+  description: 'Affiliate tracking, geo redirect, and public analytics for modern marketing teams.',
+  keywords: 'affiliate tracking, geo redirect, link management, public analytics, SEO optimize',
+  authors: [{ name: 'NexGen Affiliates' }],
   icons: {
     icon: '/favicon.ico',
+  },
+  openGraph: {
+    title: 'NexGen Affiliates',
+    description: 'Affiliate tracking, geo redirect, and public analytics for modern marketing teams.',
+    type: 'website',
   },
 }
 

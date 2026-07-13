@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { prisma } from '@/lib/db/prisma'
 import { BotDetectionService } from '@/lib/services/bot-detection'
-import { buildClickFingerprint, CLICK_DEDUPE_WINDOW_MS, isDuplicateVisit } from '@/lib/services/click-detection'
+import { buildClickFingerprint, CLICK_DEDUPE_WINDOW_MS, isDuplicateClickEvent } from '@/lib/services/click-detection'
 import { getGeoLocation } from '@/lib/services/geo/ip2location'
 import { buildRedirectTargetUrl } from '@/lib/utils/redirect'
 import { parseVisitorProfile } from '@/lib/utils/visitor-profile'
@@ -112,19 +112,38 @@ export async function GET(
     const mostRecentClick = await prisma.click.findFirst({
       where: {
         linkAccountId: link.id,
-        clickSignature: clickFingerprint,
+        OR: [
+          { clickSignature: clickFingerprint },
+          { ipAddress: ip },
+          { userAgent },
+        ],
       },
       orderBy: {
         createdAt: 'desc',
       },
       select: {
         createdAt: true,
+        clickSignature: true,
+        ipAddress: true,
+        userAgent: true,
       },
     })
 
     const now = new Date()
     const isDuplicate = mostRecentClick
-      ? isDuplicateVisit(new Date(mostRecentClick.createdAt), now, CLICK_DEDUPE_WINDOW_MS)
+      ? isDuplicateClickEvent(
+          new Date(mostRecentClick.createdAt),
+          now,
+          {
+            clickSignature: clickFingerprint,
+            ipAddress: ip,
+            userAgent,
+            lastClickSignature: mostRecentClick.clickSignature,
+            lastIpAddress: mostRecentClick.ipAddress,
+            lastUserAgent: mostRecentClick.userAgent,
+          },
+          CLICK_DEDUPE_WINDOW_MS,
+        )
       : false
     const isUnique = !isDuplicate
 

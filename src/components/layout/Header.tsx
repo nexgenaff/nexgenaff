@@ -1,7 +1,8 @@
 'use client'
 
+import Image from 'next/image'
 import { useState, useEffect } from 'react'
-import { Sun, Moon, Bell, User, Search } from 'lucide-react'
+import { Sun, Moon, Bell, Search } from 'lucide-react'
 import { Logo } from '@/components/ui/Logo'
 
 export default function Header() {
@@ -71,8 +72,15 @@ export default function Header() {
             <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
           </button>
           <div className="relative">
-            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gradient-to-r from-indigo-600 to-purple-600 flex items-center justify-center text-white font-semibold shadow-lg flex-shrink-0">
-              <User className="w-5 h-5" />
+            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full overflow-hidden bg-gradient-to-r from-indigo-600 to-purple-600 shadow-lg flex-shrink-0">
+              <Image
+                src="/favicon.png"
+                alt="Admin profile image"
+                width={40}
+                height={40}
+                className="h-full w-full object-cover"
+                priority
+              />
             </div>
             <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-400 rounded-full border-2 border-slate-950" />
           </div>

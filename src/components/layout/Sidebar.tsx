@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useState, useEffect } from 'react'
@@ -98,8 +99,15 @@ export default function Sidebar() {
       <div className={`p-4 border-t border-white/5 ${collapsed && !isMobile ? 'text-center' : ''}`}>
         <div className={`flex ${collapsed && !isMobile ? 'flex-col items-center' : 'items-center gap-3'}`}>
           <div className="relative">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-r from-indigo-600 to-purple-600 flex items-center justify-center text-white font-semibold shadow-lg flex-shrink-0">
-              <span className="text-sm">A</span>
+            <div className="w-10 h-10 rounded-full overflow-hidden bg-gradient-to-r from-indigo-600 to-purple-600 shadow-lg flex-shrink-0">
+              <Image
+                src="/favicon.png"
+                alt="Admin profile image"
+                width={40}
+                height={40}
+                className="h-full w-full object-cover"
+                priority
+              />
             </div>
             <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-400 rounded-full border-2 border-slate-950" />
           </div>

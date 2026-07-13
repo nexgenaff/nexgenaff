@@ -31,13 +31,12 @@ export async function GET(
     const country = url.searchParams.get('country') || ''
     const unique = url.searchParams.get('unique') || ''
 
-    const where: any = {
+    const baseWhere: any = {
       linkAccountId: dashboard.linkAccountId,
-      isBot: false,
     }
 
     if (search) {
-      where.OR = [
+      baseWhere.OR = [
         { ipAddress: { contains: search, mode: 'insensitive' } },
         { country: { contains: search, mode: 'insensitive' } },
         { browser: { contains: search, mode: 'insensitive' } },
@@ -51,17 +50,27 @@ export async function GET(
     }
 
     if (country) {
-      where.country = country
+      baseWhere.country = country
     }
 
     if (unique === 'true') {
-      where.isUnique = true
+      baseWhere.isUnique = true
     } else if (unique === 'false') {
-      where.isUnique = false
+      baseWhere.isUnique = false
+    }
+
+    const visibleWhere: any = {
+      ...baseWhere,
+      isBot: false,
+    }
+
+    const botWhere: any = {
+      ...baseWhere,
+      isBot: true,
     }
 
     const clicks = await prisma.click.findMany({
-      where,
+      where: visibleWhere,
       orderBy: { createdAt: 'desc' },
       skip: (page - 1) * limit,
       take: limit,
@@ -86,16 +95,17 @@ export async function GET(
       },
     })
 
-    const totalClicks = await prisma.click.count({ where })
+    const totalClicks = await prisma.click.count({ where: visibleWhere })
     const uniqueClicks = await prisma.click.count({
       where: {
-        ...where,
+        ...visibleWhere,
         isUnique: true,
       },
     })
+    const botClicks = await prisma.click.count({ where: botWhere })
 
     const trendRows = await prisma.click.findMany({
-      where,
+      where: visibleWhere,
       orderBy: { createdAt: 'asc' },
       select: {
         createdAt: true,
@@ -160,7 +170,7 @@ export async function GET(
     }
 
     const geoRows = await prisma.click.findMany({
-      where,
+      where: visibleWhere,
       select: {
         country: true,
         isUnique: true,
@@ -192,6 +202,7 @@ export async function GET(
     return NextResponse.json({
       totalClicks,
       uniqueClicks,
+      botClicks,
       geoSummary,
       clickTrend,
       clicks: clicks.map(c => ({
