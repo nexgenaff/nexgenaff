@@ -97,7 +97,7 @@ export default function StatsCards({
       </div>
 
       <div className="rounded-[28px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.07),rgba(255,255,255,0.03))] p-4 sm:p-6 shadow-[0_10px_35px_rgba(15,23,42,0.32)] animate-fadeInUp delay-400">
-        <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="mb-4 flex flex-col gap-4 sm:mb-6 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-cyan-400/20 bg-cyan-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-cyan-300">
               <span className="text-[10px]">●</span>
@@ -142,7 +142,7 @@ export default function StatsCards({
           }}
         />
 
-        <div className="mt-6 grid grid-cols-1 lg:grid-cols-[1.15fr_0.85fr] gap-4">
+        <div className="mt-4 grid grid-cols-1 gap-4 lg:mt-6 lg:grid-cols-[1.15fr_0.85fr]">
           <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
             <div className="mb-3">
               <h4 className="text-sm font-semibold text-white">🕒 Daily Hourly Traffic</h4>

@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { prisma } from '@/lib/db/prisma'
 import { BotDetectionService } from '@/lib/services/bot-detection'
-import { CLICK_DEDUPE_WINDOW_MS, buildClickFingerprint, isDuplicateVisit } from '@/lib/services/click-detection'
+import { buildClickFingerprint, CLICK_DEDUPE_WINDOW_MS, isDuplicateVisit } from '@/lib/services/click-detection'
 import { getGeoLocation } from '@/lib/services/geo/ip2location'
 import { buildRedirectTargetUrl } from '@/lib/utils/redirect'
 import { parseVisitorProfile } from '@/lib/utils/visitor-profile'
@@ -109,6 +109,22 @@ export async function GET(
       deviceType: visitorProfile.deviceType,
     })
 
+    const mostRecentClick = await prisma.click.findFirst({
+      where: {
+        linkAccountId: link.id,
+        clickSignature: clickFingerprint,
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+      select: {
+        createdAt: true,
+      },
+    })
+
+    const now = new Date()
+    const isUnique = !mostRecentClick || !isDuplicateVisit(new Date(mostRecentClick.createdAt), now, CLICK_DEDUPE_WINDOW_MS)
+
     const botService = new BotDetectionService()
     const botResult = await botService.detect(userAgent, ip)
 
@@ -212,7 +228,7 @@ export async function GET(
         deviceType: visitorProfile.deviceType,
         deviceBrand: visitorProfile.deviceBrand,
         referrer: referrer || null,
-        isUnique: true,
+        isUnique,
         isBot: false,
       },
     })
@@ -221,7 +237,7 @@ export async function GET(
       where: { id: link.id },
       data: {
         totalClicks: { increment: 1 },
-        uniqueClicks: { increment: 1 },
+        ...(isUnique ? { uniqueClicks: { increment: 1 } } : {}),
       },
     })
 

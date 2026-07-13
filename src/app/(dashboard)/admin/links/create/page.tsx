@@ -11,7 +11,6 @@ import {
   Sparkles,
   CheckCircle2,
   Globe2,
-  ShieldCheck,
   Orbit,
   Copy,
   Check,

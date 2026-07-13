@@ -33,8 +33,8 @@ export default function Header() {
   }
 
   return (
-    <header className="bg-white/5 backdrop-blur-xl border-b border-white/10 px-4 sm:px-6 py-3 sm:py-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
+    <header className="sticky top-0 z-20 bg-white/5 backdrop-blur-xl border-b border-white/10 px-4 sm:px-6 py-3 sm:py-4">
+      <div className="flex flex-wrap items-center justify-between gap-3 pl-12 md:pl-0">
         <div className="flex items-center gap-3 min-w-0">
           <Logo variant="compact" size="sm" showAnimation={true} />
           <span className="text-white/10 hidden sm:inline">|</span>

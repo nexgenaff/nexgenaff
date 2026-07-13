@@ -499,7 +499,7 @@ export default function ClickLogs() {
       </div>
 
       <div className="overflow-x-auto">
-        <table className="w-full">
+        <table className="min-w-[1120px] w-full">
           <thead className="bg-white/5">
             <tr>
               <th className="px-4 py-3 text-left text-xs font-medium text-white/30 uppercase tracking-wider whitespace-nowrap">

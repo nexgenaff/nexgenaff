@@ -1,7 +1,7 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 
-import { buildClickFingerprint, isDuplicateVisit } from './index'
+import { buildClickFingerprint, isDuplicateVisit, isUniqueVisit } from './index'
 
 test('buildClickFingerprint stays stable for the same visitor signature', () => {
   const first = buildClickFingerprint({
@@ -38,4 +38,11 @@ test('does not mark a visit as duplicate once the dedupe window has expired', ()
   const lastSeenAt = new Date('2026-07-13T09:30:00Z')
 
   assert.equal(isDuplicateVisit(lastSeenAt, now, 10 * 60 * 1000), false)
+})
+
+test('marks a repeat visitor as not unique when the same fingerprint is seen inside the dedupe window', () => {
+  const now = new Date('2026-07-13T10:00:00Z')
+  const lastSeenAt = new Date('2026-07-13T09:55:00Z')
+
+  assert.equal(isUniqueVisit(lastSeenAt, now, 10 * 60 * 1000), false)
 })

@@ -83,11 +83,11 @@ export default function RecentClicks() {
           <p className="text-sm text-white/30 mt-1">Start sharing your links to see activity</p>
         </div>
       ) : (
-        <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2">
+        <div className="space-y-3 max-h-[320px] sm:max-h-[420px] overflow-y-auto pr-1 sm:pr-2">
           {clicks.slice(0, 10).map((click) => (
             <div
               key={click.id}
-              className="flex items-center gap-3 sm:gap-4 p-2.5 sm:p-3 rounded-xl hover:bg-white/5 transition-all duration-200 group border border-transparent hover:border-white/5"
+              className="flex flex-col gap-3 rounded-xl border border-transparent p-2.5 transition-all duration-200 hover:bg-white/5 hover:border-white/5 sm:flex-row sm:items-center sm:gap-4 sm:p-3"
             >
               <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-indigo-500/10 flex items-center justify-center text-xl sm:text-2xl flex-shrink-0">
                 {getCountryFlag(click.country)}
@@ -107,17 +107,17 @@ export default function RecentClicks() {
                     </span>
                   )}
                 </div>
-                <div className="flex flex-wrap items-center gap-2 mt-0.5">
-                  <span className="text-xs text-white/40 flex items-center gap-1">
+                <div className="mt-1 flex flex-wrap items-center gap-2 text-xs">
+                  <span className="text-white/40 flex items-center gap-1">
                     <Globe className="w-3 h-3" /> {click.browser || 'Unknown'}
                   </span>
-                  <span className="text-xs text-white/20 hidden xs:inline">•</span>
-                  <span className="text-xs text-white/30">
+                  <span className="text-white/20">•</span>
+                  <span className="text-white/30">
                     {formatDate(new Date(click.createdAt))}
                   </span>
                 </div>
               </div>
-              <button className="flex-shrink-0 p-1.5 text-white/20 hover:text-white/60 opacity-0 group-hover:opacity-100 transition-all duration-200 hover:scale-110">
+              <button className="flex-shrink-0 p-1.5 text-white/20 hover:text-white/60 opacity-60 transition-all duration-200 hover:scale-110 sm:opacity-0 sm:group-hover:opacity-100">
                 <Copy className="w-4 h-4" />
               </button>
             </div>

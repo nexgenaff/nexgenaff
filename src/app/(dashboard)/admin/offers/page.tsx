@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { AnimatePresence, motion } from 'framer-motion'
@@ -7,7 +8,6 @@ import {
   Plus,
   Edit,
   Trash2,
-  Globe,
   Check,
   X,
   Power,
@@ -28,18 +28,6 @@ interface Offer {
   isGlobal: boolean
   priority: number
   rotationMode: 'PRIORITY' | 'RANDOM'
-}
-
-const getFlagEmoji = (code: string) => {
-  if (!code || code === 'GLOBAL') return '🌐'
-
-  const normalized = code.toUpperCase()
-  if (normalized.length !== 2) return '🌍'
-
-  const first = normalized.charCodeAt(0) - 65 + 0x1f1e6
-  const second = normalized.charCodeAt(1) - 65 + 0x1f1e6
-
-  return String.fromCodePoint(first, second)
 }
 
 const getFlagImageUrl = (code: string) => {
@@ -783,10 +771,12 @@ export default function OffersPage() {
                     <span className="flex min-w-0 items-center gap-3">
                       {selectedCountry ? (
                         <>
-                          <img
+                          <Image
                             src={selectedCountry.code === 'GLOBAL' ? 'https://flagcdn.com/w40/gb.png' : getFlagImageUrl(selectedCountry.code)}
                             alt={`${selectedCountry.code} flag`}
-                            className="h-5 w-7 rounded-sm object-cover"
+                            width={28}
+                            height={20}
+                            className="rounded-sm object-cover"
                           />
                           <span className="truncate text-sm font-medium text-white">{selectedCountry.code}</span>
                           <span className="truncate text-xs text-white/45">{selectedCountry.name}</span>
@@ -807,10 +797,12 @@ export default function OffersPage() {
                           onClick={() => handleCountrySelect(country.code)}
                           className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left transition hover:bg-white/5"
                         >
-                          <img
+                          <Image
                             src={country.code === 'GLOBAL' ? 'https://flagcdn.com/w40/gb.png' : getFlagImageUrl(country.code)}
                             alt={`${country.code} flag`}
-                            className="h-5 w-7 rounded-sm object-cover"
+                            width={28}
+                            height={20}
+                            className="rounded-sm object-cover"
                           />
                           <div className="min-w-0">
                             <div className="text-sm font-semibold text-white">{country.code === 'GLOBAL' ? 'GLOBAL' : country.code}</div>
@@ -888,10 +880,12 @@ export default function OffersPage() {
                         <div className="mt-3 flex flex-wrap gap-2">
                           {selectedGroupCountries.map((country) => (
                             <div key={country} className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[11px] text-white/75">
-                              <img
+                              <Image
                                 src={getFlagImageUrl(country === 'GLOBAL' ? 'GLOBAL' : country)}
                                 alt={`${country} flag`}
-                                className="h-4 w-4 rounded-sm object-cover"
+                                width={16}
+                                height={16}
+                                className="rounded-sm object-cover"
                               />
                               {country === 'GLOBAL' ? 'Global Smart Link' : country}
                             </div>
@@ -1146,10 +1140,12 @@ export default function OffersPage() {
                   <div className="mt-3 flex flex-wrap gap-2">
                     {poolCountries.map((country) => (
                       <div key={country} className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-slate-950/60 px-3 py-1 text-[11px] text-white/70">
-                        <img
+                        <Image
                           src={getFlagImageUrl(country === 'GLOBAL SMART LINK' ? 'GLOBAL' : country)}
                           alt={`${country} flag`}
-                          className="h-4 w-4 rounded-sm border border-white/10 object-cover"
+                          width={16}
+                          height={16}
+                          className="rounded-sm border border-white/10 object-cover"
                         />
                         {country}
                       </div>
@@ -1168,10 +1164,12 @@ export default function OffersPage() {
                           <div className="min-w-0">
                             <div className="flex flex-wrap items-center gap-2">
                               <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-black/20 px-3 py-1 text-[11px] font-semibold text-white/80">
-                                <img
+                                <Image
                                   src={getFlagImageUrl(offer.country)}
                                   alt={`${offer.country} flag`}
-                                  className="h-4 w-4 rounded-sm border border-white/10 object-cover"
+                                  width={16}
+                                  height={16}
+                                  className="rounded-sm border border-white/10 object-cover"
                                 />
                                 {offer.isGlobal ? 'Global Smart Link' : offer.country}
                               </div>

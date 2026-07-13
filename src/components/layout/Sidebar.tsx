@@ -128,7 +128,7 @@ export default function Sidebar() {
       <>
         <button
           onClick={() => setMobileOpen(!mobileOpen)}
-          className="fixed top-4 left-4 z-50 p-2 bg-white/5 backdrop-blur-xl border border-white/10 rounded-xl lg:hidden"
+          className="fixed top-3 left-3 z-50 p-2 bg-white/5 backdrop-blur-xl border border-white/10 rounded-xl md:hidden"
         >
           {mobileOpen ? <X className="w-5 h-5 text-white" /> : <Menu className="w-5 h-5 text-white" />}
         </button>

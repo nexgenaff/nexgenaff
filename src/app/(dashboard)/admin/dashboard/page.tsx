@@ -8,7 +8,7 @@ import StatsCards from '@/components/dashboard/StatsCards'
 import RecentClicks from '@/components/dashboard/RecentClicks'
 import ClickLogs from '@/components/dashboard/ClickLogs'
 import { TrafficBreakdown } from '@/components/dashboard/TrafficBreakdown'
-import { RefreshCw, Plus, Globe2 } from 'lucide-react'
+import { RefreshCw, Plus } from 'lucide-react'
 
 interface DashboardStats {
   totalClicks: number
@@ -91,7 +91,6 @@ export default function DashboardPage() {
   })
   const [chartData, setChartData] = useState(defaultChartData)
   const [hourlyChartData, setHourlyChartData] = useState(defaultChartData)
-  const [geoData, setGeoData] = useState<{ country: string; clicks: number; uniqueClicks: number }[]>([])
   const [countryBreakdown, setCountryBreakdown] = useState<{ country: string; clicks: number; uniqueClicks: number }[]>([])
   const [referrerBreakdown, setReferrerBreakdown] = useState<{ name: string; clicks: number; uniqueClicks: number }[]>([])
   const [browserBreakdown, setBrowserBreakdown] = useState<{ name: string; clicks: number; uniqueClicks: number }[]>([])
@@ -112,7 +111,6 @@ export default function DashboardPage() {
         setStats({ totalClicks: 0, uniqueClicks: 0, totalLinks: 0, botClicks: 0 })
         setChartData(defaultChartData)
         setHourlyChartData(defaultChartData)
-        setGeoData([])
         setCountryBreakdown([])
         setReferrerBreakdown([])
         setBrowserBreakdown([])
@@ -124,7 +122,6 @@ export default function DashboardPage() {
       setStats(data)
       setChartData(data.chartData || defaultChartData)
       setHourlyChartData(data.hourlyChartData || defaultChartData)
-      setGeoData(data.geoData || [])
       setCountryBreakdown(data.countryBreakdown || [])
       setReferrerBreakdown(data.referrerBreakdown || [])
       setBrowserBreakdown(data.browserBreakdown || [])

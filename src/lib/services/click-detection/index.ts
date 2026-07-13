@@ -38,4 +38,8 @@ export function isDuplicateVisit(lastSeenAt: Date, now: Date, windowMs = CLICK_D
   return Number.isFinite(delta) && delta >= 0 && delta <= windowMs
 }
 
+export function isUniqueVisit(lastSeenAt: Date, now: Date, windowMs = CLICK_DEDUPE_WINDOW_MS): boolean {
+  return !isDuplicateVisit(lastSeenAt, now, windowMs)
+}
+
 export const CLICK_DEDUPE_WINDOW = CLICK_DEDUPE_WINDOW_MS

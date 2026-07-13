@@ -411,7 +411,7 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
           </div>
 
           <div className="overflow-x-auto">
-            <table className="w-full">
+            <table className="min-w-[980px] w-full">
               <thead className="bg-white/[0.03]">
                 <tr>
                   <th className="px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-[0.24em] text-white/30 whitespace-nowrap">
