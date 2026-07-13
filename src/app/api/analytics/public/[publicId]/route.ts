@@ -170,7 +170,9 @@ export async function GET(
     const geoBreakdown = new Map<string, { totalClicks: number; uniqueClicks: number }>()
 
     geoRows.forEach((row) => {
-      const country = row.country || 'Unknown'
+      const country = row.country?.trim()
+      if (!country) return
+
       const current = geoBreakdown.get(country) || { totalClicks: 0, uniqueClicks: 0 }
       current.totalClicks += 1
       if (row.isUnique) {
@@ -195,7 +197,7 @@ export async function GET(
       clicks: clicks.map(c => ({
         id: c.id,
         ipAddress: c.ipAddress,
-        country: c.country || 'Unknown',
+        country: c.country || null,
         region: c.region || null,
         city: c.city || null,
         isp: c.isp || null,

@@ -171,7 +171,9 @@ export async function GET(request: Request) {
       trendValues[bucketIndex] += 1
       if (click.isUnique) uniqueTrendValues[bucketIndex] += 1
 
-      const country = (click.country || 'Unknown').trim() || 'Unknown'
+      const country = (click.country || '').trim()
+      if (!country) return
+
       const current = geoMap.get(country) || { clicks: 0, uniqueClicks: 0 }
       current.clicks += 1
       if (click.isUnique) current.uniqueClicks += 1

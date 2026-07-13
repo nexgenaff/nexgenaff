@@ -36,6 +36,7 @@ const COUNTRY_NAME_LOOKUP: Record<string, string> = {
   TR: 'Turkey',
   ID: 'Indonesia',
   PH: 'Philippines',
+  BD: 'Bangladesh',
   UA: 'Ukraine',
   PL: 'Poland',
   AR: 'Argentina',
@@ -140,6 +141,87 @@ function getHeaderGeoLocation(headers?: Headers): GeoLocation | null {
   }
 }
 
+async function getPublicGeoLocation(ip: string): Promise<GeoLocation | null> {
+  const candidates = [
+    `https://ipwho.is/${encodeURIComponent(ip)}?output=json`,
+    `https://freeipapi.com/api/json/${encodeURIComponent(ip)}`,
+    `https://api.country.is/${encodeURIComponent(ip)}`,
+  ]
+
+  for (const url of candidates) {
+    try {
+      const response = await fetch(url, {
+        headers: {
+          Accept: 'application/json',
+        },
+        cache: 'no-store',
+      })
+
+      if (!response.ok) {
+        continue
+      }
+
+      const payload = await response.json() as Record<string, unknown>
+
+      if (url.includes('ipwho.is')) {
+        const countryCode = normalizeCountryCode(
+          typeof payload.country_code === 'string' ? payload.country_code : typeof payload.country === 'string' ? payload.country : null
+        )
+        if (!countryCode) continue
+
+        return {
+          country_code: countryCode,
+          country_name: typeof payload.country === 'string' ? payload.country : COUNTRY_NAME_LOOKUP[countryCode] || countryCode,
+          region: typeof payload.region === 'string' ? payload.region : 'Unknown',
+          city: typeof payload.city === 'string' ? payload.city : 'Unknown',
+          latitude: Number.parseFloat(String(payload.latitude ?? '0')) || 0,
+          longitude: Number.parseFloat(String(payload.longitude ?? '0')) || 0,
+          isp: typeof payload.isp === 'string' ? payload.isp : 'Unknown',
+          timezone: typeof payload.timezone === 'string' ? payload.timezone : 'UTC',
+        }
+      }
+
+      if (url.includes('freeipapi')) {
+        const countryCode = normalizeCountryCode(
+          typeof payload.countryCode === 'string' ? payload.countryCode : null
+        )
+        if (!countryCode) continue
+
+        return {
+          country_code: countryCode,
+          country_name: typeof payload.countryName === 'string' ? payload.countryName : COUNTRY_NAME_LOOKUP[countryCode] || countryCode,
+          region: 'Unknown',
+          city: 'Unknown',
+          latitude: Number.parseFloat(String(payload.latitude ?? '0')) || 0,
+          longitude: Number.parseFloat(String(payload.longitude ?? '0')) || 0,
+          isp: typeof payload.ipAddress === 'string' ? payload.ipAddress : 'Unknown',
+          timezone: Array.isArray(payload.timeZones) && payload.timeZones.length > 0 ? String(payload.timeZones[0]) : 'UTC',
+        }
+      }
+
+      if (url.includes('api.country.is')) {
+        const countryCode = normalizeCountryCode(typeof payload.country === 'string' ? payload.country : null)
+        if (!countryCode) continue
+
+        return {
+          country_code: countryCode,
+          country_name: COUNTRY_NAME_LOOKUP[countryCode] || countryCode,
+          region: 'Unknown',
+          city: 'Unknown',
+          latitude: 0,
+          longitude: 0,
+          isp: 'Unknown',
+          timezone: 'UTC',
+        }
+      }
+    } catch {
+      continue
+    }
+  }
+
+  return null
+}
+
 export async function getGeoLocation(ip: string, headers?: Headers): Promise<GeoLocation | null> {
   try {
     const apiKey = process.env.IP2LOCATION_API_KEY
@@ -155,8 +237,9 @@ export async function getGeoLocation(ip: string, headers?: Headers): Promise<Geo
     }
 
     if (!apiKey) {
-      console.warn('IP2LOCATION_API_KEY not set; using deterministic fallback geo')
-      return getFallbackLocation(normalizedIp)
+      console.warn('IP2LOCATION_API_KEY not set; trying public geo fallback lookup')
+      const publicGeo = await getPublicGeoLocation(normalizedIp)
+      return publicGeo || getFallbackLocation(normalizedIp)
     }
 
     const response = await axios.get('https://api.ip2location.io/', {
@@ -184,19 +267,21 @@ export async function getGeoLocation(ip: string, headers?: Headers): Promise<Geo
     return getFallbackLocation(normalizedIp)
   } catch (error) {
     console.error('IP2Location error:', error)
-    return getFallbackLocation(normalizeClientIp(ip))
+    const normalizedIp = normalizeClientIp(ip)
+    const publicGeo = await getPublicGeoLocation(normalizedIp)
+    return publicGeo || getFallbackLocation(normalizedIp)
   }
 }
 
 function getFallbackLocation(ip: string): GeoLocation {
   return {
-    country_code: 'UNKNOWN',
-    country_name: 'Unknown',
-    region: 'Unknown',
-    city: 'Unknown',
+    country_code: '',
+    country_name: '',
+    region: '',
+    city: '',
     latitude: 0,
     longitude: 0,
-    isp: ip === 'unknown' ? 'Unknown' : ip,
+    isp: ip === 'unknown' ? '' : ip,
     timezone: 'UTC',
   }
 }

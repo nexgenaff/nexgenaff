@@ -23,6 +23,7 @@ const COUNTRY_FLAGS: Record<string, string> = {
   TR: '🇹🇷',
   ID: '🇮🇩',
   PH: '🇵🇭',
+  BD: '🇧🇩',
   UA: '🇺🇦',
   PL: '🇵🇱',
   AR: '🇦🇷',
@@ -83,6 +84,7 @@ const COUNTRY_NAME_TO_CODE: Record<string, string> = {
   turkey: 'TR',
   indonesia: 'ID',
   philippines: 'PH',
+  bangladesh: 'BD',
   ukraine: 'UA',
   poland: 'PL',
   argentina: 'AR',
@@ -133,6 +135,7 @@ const COUNTRY_LABELS: Record<string, string> = {
   TR: 'Turkey',
   ID: 'Indonesia',
   PH: 'Philippines',
+  BD: 'Bangladesh',
   UA: 'Ukraine',
   PL: 'Poland',
   AR: 'Argentina',
@@ -185,18 +188,18 @@ export function getCountryFlag(country?: string | null): string {
 }
 
 export function getCountryLabel(country?: string | null): string {
-  if (!country) return 'Unknown'
+  if (!country) return ''
 
   const trimmed = country.trim()
-  if (!trimmed) return 'Unknown'
+  if (!trimmed) return ''
 
   const upper = trimmed.toUpperCase()
   if (upper === 'UNKNOWN' || upper === 'N/A' || upper === 'NULL') {
-    return 'Unknown'
+    return ''
   }
 
   const normalizedCode = normalizeCountryCode(trimmed)
-  if (!normalizedCode) return 'Unknown'
+  if (!normalizedCode) return trimmed
 
-  return COUNTRY_LABELS[normalizedCode] || 'Unknown'
+  return COUNTRY_LABELS[normalizedCode] || trimmed
 }

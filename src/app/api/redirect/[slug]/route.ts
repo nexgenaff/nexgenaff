@@ -136,7 +136,7 @@ export async function GET(
     }
 
     const geo = await getGeoLocation(ip, headers)
-    const country = (geo?.country_code || 'UNKNOWN').toUpperCase()
+    const country = (geo?.country_code || '').toUpperCase()
 
     let offer = null
 
@@ -192,7 +192,7 @@ export async function GET(
         clickSignature: clickFingerprint,
         ipAddress: ip,
         userAgent: userAgent,
-        country: country,
+        country: country || null,
         region: geo?.region || null,
         city: geo?.city || null,
         isp: geo?.isp || null,

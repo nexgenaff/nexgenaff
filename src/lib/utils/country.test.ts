@@ -28,7 +28,14 @@ test('supports common country aliases and long-form names', () => {
   assert.equal(getCountryLabel('Republic of Korea'), 'South Korea')
 })
 
+test('recognizes Bangladesh country codes and labels', () => {
+  assert.equal(getCountryFlag('BD'), '🇧🇩')
+  assert.equal(getCountryLabel('BD'), 'Bangladesh')
+  assert.equal(getCountryFlag('Bangladesh'), '🇧🇩')
+  assert.equal(getCountryLabel('Bangladesh'), 'Bangladesh')
+})
+
 test('falls back safely for unknown country values', () => {
   assert.equal(getCountryFlag('UNKNOWN'), '🌍')
-  assert.equal(getCountryLabel('UNKNOWN'), 'Unknown')
+  assert.equal(getCountryLabel('UNKNOWN'), '')
 })
