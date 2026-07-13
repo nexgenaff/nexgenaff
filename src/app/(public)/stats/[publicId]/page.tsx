@@ -351,14 +351,14 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
         <div className="overflow-hidden rounded-3xl border border-white/10 bg-white/5 backdrop-blur-xl">
           <div className="border-b border-white/5 p-4 sm:p-6">
             <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-              <div className="flex items-center gap-2 text-white">
-                <Eye className="h-5 w-5 text-cyan-300" />
+              <div className="flex flex-wrap items-center gap-2 text-white">
+                <Eye className="h-5 w-5 text-cyan-300 shrink-0" />
                 <h2 className="text-lg font-semibold">Click activity</h2>
-                <span className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-xs text-white/50">
+                <span className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-xs text-white/50 whitespace-nowrap">
                   {totalClicks} records
                 </span>
                 {stats?.pagination && (
-                  <span className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1 text-[11px] uppercase tracking-[0.2em] text-emerald-300">
+                  <span className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1 text-[11px] uppercase tracking-[0.2em] text-emerald-300 whitespace-nowrap">
                     Live
                   </span>
                 )}
