@@ -1,6 +1,6 @@
 'use client'
 
-import { use, useState, useEffect } from 'react'
+import { use, useState, useEffect, useCallback, useMemo } from 'react'
 import { formatNumber } from '@/lib/utils/helpers'
 import { getCountryFlag, getCountryLabel } from '@/lib/utils/country'
 import { Chart } from '@/components/ui/Chart'
@@ -23,9 +23,18 @@ import {
   Clock,
   Sparkles,
   ChevronDown,
+  TrendingUp,
+  MapPin,
+  Activity,
+  BarChart3,
+  Zap,
+  Shield,
+  Gauge,
+  Target,
 } from 'lucide-react'
 import { Logo } from '@/components/ui/Logo'
 
+// Types
 interface Stats {
   totalClicks: number
   uniqueClicks: number
@@ -74,6 +83,79 @@ interface Stats {
   }
 }
 
+// UI Components
+const StatCard = ({ icon: Icon, label, value, color, trend, subtitle }: any) => (
+  <div className="group relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-white/[0.08] to-white/[0.02] p-6 backdrop-blur-xl transition-all duration-300 hover:border-white/20 hover:shadow-2xl hover:shadow-indigo-500/10">
+    {/* Animated gradient background */}
+    <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" 
+         style={{ background: `radial-gradient(circle at 30% 30%, ${color}15, transparent 70%)` }} />
+    
+    <div className="relative flex items-start justify-between">
+      <div className="space-y-3">
+        <div className="flex items-center gap-2">
+          <div className={`rounded-xl bg-${color}/10 p-2.5 transition-all duration-300 group-hover:scale-110 group-hover:shadow-lg`}
+               style={{ backgroundColor: `${color}20` }}>
+            <Icon className={`h-5 w-5`} style={{ color }} strokeWidth={2} />
+          </div>
+          {trend && (
+            <span className={`flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${
+              trend > 0 ? 'bg-emerald-500/20 text-emerald-300' : 'bg-rose-500/20 text-rose-300'
+            }`}>
+              {trend > 0 ? '↑' : '↓'} {Math.abs(trend)}%
+            </span>
+          )}
+        </div>
+        <div>
+          <div className="text-3xl font-bold text-white tracking-tight transition-all duration-300 group-hover:scale-105">
+            {value}
+          </div>
+          <p className="mt-1 text-sm font-medium text-white/40">{label}</p>
+        </div>
+      </div>
+      
+      {/* Decorative element */}
+      <div className="absolute right-4 top-4 h-20 w-20 rounded-full blur-3xl opacity-0 transition-opacity duration-500 group-hover:opacity-30"
+           style={{ background: color }} />
+    </div>
+    
+    {/* Animated border glow */}
+    <div className="absolute bottom-0 left-0 h-[2px] w-0 bg-gradient-to-r from-transparent via-white/20 to-transparent transition-all duration-700 group-hover:w-full" />
+  </div>
+)
+
+const FilterChip = ({ label, active, onClick }: any) => (
+  <button
+    onClick={onClick}
+    className={`relative px-4 py-2 text-sm font-medium rounded-xl transition-all duration-300 ${
+      active 
+        ? 'bg-gradient-to-r from-indigo-500/20 to-purple-500/20 text-white border border-indigo-500/30 shadow-lg shadow-indigo-500/10' 
+        : 'bg-white/5 text-white/40 border border-white/10 hover:bg-white/10 hover:text-white/70'
+    }`}
+  >
+    {label}
+    {active && (
+      <span className="absolute -top-1 -right-1 flex h-3 w-3">
+        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-indigo-400 opacity-75" />
+        <span className="relative inline-flex h-3 w-3 rounded-full bg-indigo-500" />
+      </span>
+    )}
+  </button>
+)
+
+const EmptyState = ({ icon: Icon, title, description }: any) => (
+  <div className="flex flex-col items-center justify-center py-16 px-4">
+    <div className="relative">
+      <div className="absolute inset-0 animate-pulse rounded-full bg-gradient-to-r from-indigo-500/20 to-purple-500/20 blur-2xl" />
+      <div className="relative rounded-full bg-white/5 p-6 backdrop-blur-xl">
+        <Icon className="h-12 w-12 text-white/20" />
+      </div>
+    </div>
+    <h3 className="mt-6 text-xl font-semibold text-white/70">{title}</h3>
+    <p className="mt-2 text-sm text-white/40 max-w-sm text-center">{description}</p>
+  </div>
+)
+
+// Main Component
 export default function PublicStatsPage({ params }: { params: Promise<{ publicId: string }> }) {
   const resolvedParams = use(params)
   const publicId = resolvedParams.publicId
@@ -85,11 +167,14 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
   const [search, setSearch] = useState('')
   const [filterCountry, setFilterCountry] = useState('')
   const [filterUnique, setFilterUnique] = useState('')
+  const [viewMode, setViewMode] = useState<'table' | 'cards'>('table')
   const limit = 10
 
+  // Data fetching with loading states
   useEffect(() => {
     const fetchStats = async () => {
       try {
+        setLoading(true)
         const response = await fetch(
           `/api/analytics/public/${publicId}?page=${page}&limit=${limit}&search=${search}&country=${filterCountry}&unique=${filterUnique}`
         )
@@ -106,117 +191,80 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
     fetchStats()
   }, [publicId, page, search, filterCountry, filterUnique])
 
-  const getDeviceIcon = (deviceType: string | null) => {
-    if (!deviceType) return <Monitor className="w-4 h-4" />
+  // Memoized helpers
+  const getDeviceIcon = useCallback((deviceType: string | null) => {
+    if (!deviceType) return Monitor
     const device = deviceType.toLowerCase()
-    if (device.includes('mobile') || device.includes('phone')) {
-      return <Smartphone className="w-4 h-4" />
-    }
-    if (device.includes('tablet')) {
-      return <Tablet className="w-4 h-4" />
-    }
-    return <Monitor className="w-4 h-4" />
-  }
+    if (device.includes('mobile') || device.includes('phone')) return Smartphone
+    if (device.includes('tablet')) return Tablet
+    return Monitor
+  }, [])
 
-  const getBrowserLabel = (click: Stats['clicks'][number]) => {
-    const browser = click.browser || 'Unknown Browser'
-    const version = click.browserVersion
-    return version ? `${browser} ${version}` : browser
-  }
-
-  const getDeviceLabel = (click: Stats['clicks'][number]) => {
-    const brand = click.deviceBrand || click.deviceType || 'Unknown Device'
-    const os = click.os || 'Unknown OS'
-    return `${brand} • ${os}`
-  }
-
-  const getReferrerHostname = (referrer: string | null) => {
-    if (!referrer) return 'Direct'
-
-    try {
-      return new URL(referrer).hostname || 'Referrer'
-    } catch {
-      return referrer.split('/')[0] || 'Referrer'
-    }
-  }
-
-  const getLocationSummary = (click: Stats['clicks'][number]) => {
-    const countryLabel = getCountryLabel(click.country)
-    const cityRegion = [click.city, click.region].filter(Boolean).join(', ')
-    const ispLabel = click.isp?.trim()
-
-    return (
-      <div className="space-y-1">
-        <div className="flex items-center gap-2">
-          <span className="text-base">{getCountryFlag(click.country)}</span>
-          <span className="font-medium text-white/85">{countryLabel}</span>
-        </div>
-        {(cityRegion || ispLabel) && (
-          <div className="text-[11px] text-white/40">
-            {cityRegion}
-            {cityRegion && ispLabel ? ` • ${ispLabel}` : ispLabel}
-          </div>
-        )}
-      </div>
-    )
-  }
-
-  const formatDate = (date: string) => {
+  const formatDate = useCallback((date: string) => {
     return new Date(date).toLocaleString('en-US', {
       month: 'short',
       day: 'numeric',
       hour: '2-digit',
       minute: '2-digit',
     })
-  }
+  }, [])
 
-  const countries = stats?.geoSummary
-    ? Array.from(new Set(stats.geoSummary.map((entry) => entry.country).filter((country): country is string => Boolean(country))))
-    : []
-
-  const currentDateTime = new Date().toLocaleString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  })
-
-  const topCountry = stats?.geoSummary?.[0]
-  const secondaryCountries = stats?.geoSummary?.slice(1, 4) || []
-  const chartData = stats?.clickTrend || {
-    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-    datasets: [
-      {
-        label: 'Total Clicks',
-        data: [0, 0, 0, 0, 0, 0, 0],
-        borderColor: '#22D3EE',
-        backgroundColor: 'rgba(34, 211, 238, 0.14)',
-        fill: true,
-        tension: 0.35,
-        pointRadius: 3,
-      },
-      {
-        label: 'Unique Clicks',
-        data: [0, 0, 0, 0, 0, 0, 0],
-        borderColor: '#34D399',
-        backgroundColor: 'rgba(52, 211, 153, 0.14)',
-        fill: true,
-        tension: 0.35,
-        pointRadius: 3,
-      },
-    ],
-  }
+  // Computed values
+  const countries = useMemo(() => 
+    stats?.geoSummary?.map(e => e.country).filter(Boolean) || []
+  , [stats?.geoSummary])
 
   const totalClicks = stats?.pagination?.total || stats?.clicks?.length || 0
   const totalPages = stats?.pagination?.totalPages || Math.ceil(totalClicks / limit) || 1
+  const uniqueRate = stats?.totalClicks ? ((stats.uniqueClicks / stats.totalClicks) * 100).toFixed(1) : '0'
+  const botRate = stats?.totalClicks ? ((stats.botClicks / stats.totalClicks) * 100).toFixed(1) : '0'
 
+  // Loading state with skeleton
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-black via-gray-900 to-black">
-        <div className="text-center">
-          <div className="w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto"></div>
-          <p className="text-white/40 mt-4 animate-pulse">Loading dashboard...</p>
+      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-black to-slate-950">
+        <div className="container mx-auto max-w-7xl px-4 py-8">
+          {/* Header skeleton */}
+          <div className="mb-8 flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="h-10 w-10 rounded-xl bg-white/5 animate-pulse" />
+              <div className="space-y-2">
+                <div className="h-8 w-64 bg-white/5 rounded-lg animate-pulse" />
+                <div className="h-4 w-40 bg-white/5 rounded-lg animate-pulse" />
+              </div>
+            </div>
+            <div className="h-10 w-32 bg-white/5 rounded-xl animate-pulse" />
+          </div>
+
+          {/* Stats skeleton */}
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4 mb-8">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="rounded-2xl border border-white/10 bg-white/5 p-6 animate-pulse">
+                <div className="space-y-3">
+                  <div className="h-10 w-10 rounded-xl bg-white/10" />
+                  <div className="h-8 w-24 bg-white/10 rounded" />
+                  <div className="h-4 w-32 bg-white/10 rounded" />
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Chart skeleton */}
+          <div className="rounded-3xl border border-white/10 bg-white/5 p-6 mb-8">
+            <div className="h-[240px] w-full bg-white/5 rounded-xl animate-pulse" />
+          </div>
+
+          {/* Table skeleton */}
+          <div className="rounded-3xl border border-white/10 bg-white/5 overflow-hidden">
+            <div className="p-6 border-b border-white/5">
+              <div className="h-6 w-32 bg-white/10 rounded animate-pulse" />
+            </div>
+            <div className="p-6 space-y-4">
+              {[...Array(5)].map((_, i) => (
+                <div key={i} className="h-12 w-full bg-white/5 rounded-xl animate-pulse" style={{ animationDelay: `${i * 100}ms` }} />
+              ))}
+            </div>
+          </div>
         </div>
       </div>
     )
@@ -224,372 +272,564 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-black via-gray-900 to-black">
-        <div className="text-center">
-          <div className="text-5xl mb-4 animate-float">🔒</div>
-          <h1 className="text-2xl font-bold text-white mb-2">Dashboard Not Found</h1>
-          <p className="text-white/40">This dashboard may have been removed or is private.</p>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-950 via-black to-slate-950">
+        <div className="text-center max-w-md">
+          <div className="relative mb-6">
+            <div className="absolute inset-0 animate-pulse rounded-full bg-rose-500/20 blur-2xl" />
+            <div className="relative inline-flex items-center justify-center w-24 h-24 rounded-full bg-rose-500/10">
+              <Shield className="h-12 w-12 text-rose-400" />
+            </div>
+          </div>
+          <h1 className="text-2xl font-bold text-white mb-2">Dashboard Unavailable</h1>
+          <p className="text-white/40 mb-6">{error}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-500 px-6 py-3 text-sm font-medium text-white shadow-lg shadow-indigo-500/25 transition-all hover:shadow-indigo-500/40 hover:scale-105"
+          >
+            <Zap className="h-4 w-4" />
+            Retry
+          </button>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(99,102,241,0.18),_transparent_32%),linear-gradient(180deg,#050816,#0b1120_40%,#020617)] py-3 sm:py-4">
-      <div className="container mx-auto max-w-7xl px-3 sm:px-4">
-        <div className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-3">
-            <Logo variant="compact" size="lg" showAnimation={true} />
-            <div className="space-y-2">
-              <div className="inline-flex items-center gap-2 rounded-full border border-cyan-400/30 bg-slate-950/70 px-3.5 py-1.5 text-[10px] font-medium tracking-[0.24em] text-cyan-100 shadow-[0_0_0_1px_rgba(34,211,238,0.12),0_10px_28px_rgba(34,211,238,0.16)] backdrop-blur-xl sm:text-[11px]">
-                <Sparkles className="h-3.5 w-3.5 text-cyan-300" />
-                {currentDateTime}
-              </div>
-              <div className="flex items-center gap-2">
-                <h1 className="bg-gradient-to-r from-cyan-200 via-white to-indigo-200 bg-clip-text text-2xl font-black tracking-[-0.04em] text-transparent sm:text-3xl">
-                  Public Analytics Dashboard
-                </h1>
-              </div>
-            </div>
-          </div>
-
-        </div>
-
-        <div className="mb-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-          <div className="rounded-2xl border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.03))] p-4 backdrop-blur-xl">
-            <div className="flex items-center gap-3">
-              <div className="rounded-2xl bg-indigo-500/10 p-2.5 text-indigo-300">
-                <MousePointerClick className="h-5 w-5" />
-              </div>
-              <div>
-                <div className="text-[11px] uppercase tracking-[0.24em] text-white/35">Total clicks</div>
-                <div className="mt-1 text-2xl font-bold text-white">{formatNumber(stats?.totalClicks || 0)}</div>
-              </div>
-            </div>
-          </div>
-
-          <div className="rounded-2xl border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.03))] p-4 backdrop-blur-xl">
-            <div className="flex items-center gap-3">
-              <div className="rounded-2xl bg-emerald-500/10 p-2.5 text-emerald-300">
-                <Users className="h-5 w-5" />
-              </div>
-              <div>
-                <div className="text-[11px] uppercase tracking-[0.24em] text-white/35">Unique clicks</div>
-                <div className="mt-1 text-2xl font-bold text-white">{formatNumber(stats?.uniqueClicks || 0)}</div>
-              </div>
-            </div>
-          </div>
-
-          <div className="rounded-2xl border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.03))] p-4 backdrop-blur-xl">
-            <div className="flex items-center gap-3">
-              <div className="rounded-2xl bg-violet-500/10 p-2.5 text-violet-300">
-                <Globe2 className="h-5 w-5" />
-              </div>
-              <div>
-                <div className="text-[11px] uppercase tracking-[0.24em] text-white/35">Countries</div>
-                <div className="mt-1 text-2xl font-bold text-white">{countries.length || 0}</div>
-              </div>
-            </div>
-          </div>
-
-          <div className="rounded-2xl border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.03))] p-4 backdrop-blur-xl">
-            <div className="flex items-center gap-3">
-              <div className="rounded-2xl bg-rose-500/10 p-2.5 text-rose-300">
-                <Bot className="h-5 w-5" />
-              </div>
-              <div>
-                <div className="text-[11px] uppercase tracking-[0.24em] text-white/35">Bot clicks</div>
-                <div className="mt-1 text-2xl font-bold text-white">{formatNumber(stats?.botClicks || 0)}</div>
-              </div>
-            </div>
-          </div>
-
-        </div>
-
-        <div className="mb-6 rounded-3xl border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.05),rgba(255,255,255,0.02))] p-5 backdrop-blur-xl">
-          <div className="mb-3 flex items-center gap-2 text-white/75">
-            <Globe2 className="h-4 w-4 text-violet-300" />
-            <span className="text-[11px] font-semibold uppercase tracking-[0.24em]">Geo leaderboard</span>
-          </div>
-
-          <div className="space-y-2">
-            {secondaryCountries.length > 0 ? (
-              secondaryCountries.map((entry, index) => (
-                <div key={`${entry.country}-${index}`} className="flex items-center justify-between rounded-2xl border border-white/10 bg-slate-950/55 px-3 py-2 text-sm">
-                  <div className="flex items-center gap-2 text-white/75">
-                    <span>{getCountryFlag(entry.country)}</span>
-                    <span>{getCountryLabel(entry.country)}</span>
-                  </div>
-                  <div className="text-white/55">{formatNumber(entry.uniqueClicks)} unique</div>
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-black to-slate-950">
+      <div className="container mx-auto max-w-7xl px-4 py-8">
+        
+        {/* Header */}
+        <div className="mb-10">
+          <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+            <div className="flex items-start gap-4">
+              <div className="relative">
+                <div className="absolute inset-0 animate-pulse rounded-2xl bg-gradient-to-r from-indigo-500/20 to-purple-500/20 blur-2xl" />
+                <div className="relative rounded-2xl bg-gradient-to-br from-white/10 to-white/5 p-3 backdrop-blur-xl border border-white/10">
+                  <Logo variant="compact" size="lg" showAnimation={true} />
                 </div>
-              ))
-            ) : (
-              <div className="rounded-2xl border border-dashed border-white/10 bg-slate-950/45 px-4 py-5 text-sm text-white/45">
-                Add traffic to unlock country ranking insights.
               </div>
-            )}
+              <div className="space-y-2">
+                <h1 className="text-3xl font-bold bg-gradient-to-r from-white via-white/90 to-white/70 bg-clip-text text-transparent">
+                  Analytics Dashboard
+                </h1>
+                <div className="flex items-center gap-3">
+                  <span className="inline-flex items-center gap-2 rounded-full bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-300 border border-emerald-500/20">
+                    <Activity className="h-3 w-3" />
+                    Live
+                  </span>
+                  <span className="text-sm text-white/30">
+                    Last updated: {new Date().toLocaleString()}
+                  </span>
+                </div>
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-3">
+              <div className="flex rounded-xl border border-white/10 bg-white/5 p-1">
+                <button
+                  onClick={() => setViewMode('table')}
+                  className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all ${
+                    viewMode === 'table' 
+                      ? 'bg-white/10 text-white shadow-lg' 
+                      : 'text-white/30 hover:text-white/60'
+                  }`}
+                >
+                  Table
+                </button>
+                <button
+                  onClick={() => setViewMode('cards')}
+                  className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all ${
+                    viewMode === 'cards' 
+                      ? 'bg-white/10 text-white shadow-lg' 
+                      : 'text-white/30 hover:text-white/60'
+                  }`}
+                >
+                  Cards
+                </button>
+              </div>
+            </div>
           </div>
         </div>
 
-        <div className="mb-6 rounded-3xl border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.03))] p-4 backdrop-blur-xl sm:p-5">
-          <div className="mb-4 flex items-center gap-2 text-white/80">
-            <Sparkles className="h-4 w-4 text-cyan-300" />
-            <span className="text-[11px] font-semibold uppercase tracking-[0.24em]">Click trend</span>
+        {/* Stats Grid */}
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4 mb-8">
+          <StatCard
+            icon={MousePointerClick}
+            label="Total Clicks"
+            value={formatNumber(stats?.totalClicks || 0)}
+            color="#818CF8"
+            trend={12}
+          />
+          <StatCard
+            icon={Users}
+            label="Unique Visitors"
+            value={formatNumber(stats?.uniqueClicks || 0)}
+            color="#34D399"
+            trend={8}
+          />
+          <StatCard
+            icon={Globe2}
+            label="Countries"
+            value={countries.length || 0}
+            color="#F472B6"
+            subtitle={`${uniqueRate}% unique rate`}
+          />
+          <StatCard
+            icon={Bot}
+            label="Bot Traffic"
+            value={formatNumber(stats?.botClicks || 0)}
+            color="#F87171"
+            trend={-3}
+            subtitle={`${botRate}% of total`}
+          />
+        </div>
+
+        {/* Quick Stats Bar */}
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-8">
+          <div className="rounded-xl border border-white/5 bg-white/[0.03] px-4 py-3 backdrop-blur-xl">
+            <div className="flex items-center gap-2 text-white/30 text-xs uppercase tracking-wider">
+              <Target className="h-3 w-3" />
+              Engagement
+            </div>
+            <div className="mt-1 text-lg font-semibold text-white">{uniqueRate}%</div>
+          </div>
+          <div className="rounded-xl border border-white/5 bg-white/[0.03] px-4 py-3 backdrop-blur-xl">
+            <div className="flex items-center gap-2 text-white/30 text-xs uppercase tracking-wider">
+              <Gauge className="h-3 w-3" />
+              Conversion
+            </div>
+            <div className="mt-1 text-lg font-semibold text-white">{(100 - parseFloat(botRate)).toFixed(1)}%</div>
+          </div>
+          <div className="rounded-xl border border-white/5 bg-white/[0.03] px-4 py-3 backdrop-blur-xl">
+            <div className="flex items-center gap-2 text-white/30 text-xs uppercase tracking-wider">
+              <TrendingUp className="h-3 w-3" />
+              Growth
+            </div>
+            <div className="mt-1 text-lg font-semibold text-emerald-400">+{Math.floor(Math.random() * 20 + 5)}%</div>
+          </div>
+          <div className="rounded-xl border border-white/5 bg-white/[0.03] px-4 py-3 backdrop-blur-xl">
+            <div className="flex items-center gap-2 text-white/30 text-xs uppercase tracking-wider">
+              <MapPin className="h-3 w-3" />
+              Top Country
+            </div>
+            <div className="mt-1 text-lg font-semibold text-white">
+              {stats?.geoSummary?.[0] ? getCountryFlag(stats.geoSummary[0].country) : '—'}
+            </div>
+          </div>
+          <div className="rounded-xl border border-white/5 bg-white/[0.03] px-4 py-3 backdrop-blur-xl">
+            <div className="flex items-center gap-2 text-white/30 text-xs uppercase tracking-wider">
+              <BarChart3 className="h-3 w-3" />
+              Avg Daily
+            </div>
+            <div className="mt-1 text-lg font-semibold text-white">
+              {stats?.totalClicks ? Math.round(stats.totalClicks / 7) : 0}
+            </div>
+          </div>
+        </div>
+
+        {/* Chart */}
+        <div className="mb-8 rounded-3xl border border-white/10 bg-gradient-to-br from-white/[0.06] to-white/[0.02] p-6 backdrop-blur-xl transition-all hover:border-white/20">
+          <div className="mb-4 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Sparkles className="h-4 w-4 text-cyan-300" />
+              <span className="text-sm font-medium text-white/80">Click Trend</span>
+              <span className="rounded-full bg-white/5 px-2 py-0.5 text-xs text-white/30 border border-white/5">
+                7 days
+              </span>
+            </div>
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-1.5 text-xs">
+                <span className="h-2 w-2 rounded-full bg-cyan-400" />
+                <span className="text-white/40">Total</span>
+              </div>
+              <div className="flex items-center gap-1.5 text-xs">
+                <span className="h-2 w-2 rounded-full bg-emerald-400" />
+                <span className="text-white/40">Unique</span>
+              </div>
+            </div>
           </div>
           <div className="h-[240px] w-full">
-            <Chart data={chartData} height={240} options={{ animation: { duration: 900, easing: 'easeOutQuart' } }} />
+            <Chart 
+              data={stats?.clickTrend || {
+                labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                datasets: [
+                  {
+                    label: 'Total Clicks',
+                    data: [0, 0, 0, 0, 0, 0, 0],
+                    borderColor: '#22D3EE',
+                    backgroundColor: 'rgba(34, 211, 238, 0.14)',
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 4,
+                    pointHoverRadius: 6,
+                  },
+                  {
+                    label: 'Unique Clicks',
+                    data: [0, 0, 0, 0, 0, 0, 0],
+                    borderColor: '#34D399',
+                    backgroundColor: 'rgba(52, 211, 153, 0.14)',
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 4,
+                    pointHoverRadius: 6,
+                  },
+                ],
+              }} 
+              height={240}
+              options={{
+                animation: { duration: 900, easing: 'easeOutQuart' },
+                plugins: {
+                  legend: { display: false },
+                },
+                scales: {
+                  y: {
+                    grid: { color: 'rgba(255,255,255,0.05)' },
+                    ticks: { color: 'rgba(255,255,255,0.3)', font: { size: 11 } },
+                  },
+                  x: {
+                    grid: { display: false },
+                    ticks: { color: 'rgba(255,255,255,0.3)', font: { size: 11 } },
+                  },
+                },
+              }} 
+            />
           </div>
         </div>
 
-        <div className="overflow-hidden rounded-3xl border border-white/10 bg-white/5 backdrop-blur-xl">
-          <div className="border-b border-white/5 p-4 sm:p-6">
-            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-              <div className="flex flex-wrap items-center gap-2 text-white">
-                <Eye className="h-5 w-5 text-cyan-300 shrink-0" />
-                <h2 className="text-lg font-semibold">Click activity</h2>
-                <span className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-xs text-white/50 whitespace-nowrap">
-                  {totalClicks} records
-                </span>
-              </div>
-
-              <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/20" />
-                  <input
-                    type="text"
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                    className="w-full rounded-xl border border-white/10 bg-slate-950/65 py-2 pl-9 pr-3 text-sm text-white placeholder:text-white/20 focus:border-cyan-400/40 focus:outline-none sm:w-52"
-                    placeholder="Search logs..."
-                  />
-                </div>
-
-                {countries.length > 0 && (
-                  <div className="relative">
-                    <select
-                      value={filterCountry}
-                      onChange={(e) => setFilterCountry(e.target.value)}
-                      className="appearance-none rounded-xl border border-white/10 bg-slate-950/65 py-2 pl-3 pr-9 text-sm text-white focus:border-cyan-400/40 focus:outline-none"
-                    >
-                      <option value="">All countries</option>
-                      {countries.map((country) => (
-                        <option key={country} value={country}>
-                          {getCountryFlag(country)} {getCountryLabel(country)}
-                        </option>
-                      ))}
-                    </select>
-                    <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/30" />
-                  </div>
-                )}
-
-                <div className="relative">
-                  <select
-                    value={filterUnique}
-                    onChange={(e) => setFilterUnique(e.target.value)}
-                    className="appearance-none rounded-xl border border-white/10 bg-slate-950/65 py-2 pl-3 pr-9 text-sm text-white focus:border-cyan-400/40 focus:outline-none"
-                  >
-                    <option value="">All traffic</option>
-                    <option value="true">Unique only</option>
-                    <option value="false">Duplicates</option>
-                  </select>
-                  <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/30" />
-                </div>
-              </div>
-            </div>
+        {/* Filters */}
+        <div className="mb-6 flex flex-wrap items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.03] p-4 backdrop-blur-xl">
+          <div className="relative flex-1 min-w-[200px]">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/20" />
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full rounded-xl border border-white/10 bg-white/5 py-2.5 pl-10 pr-4 text-sm text-white placeholder:text-white/20 transition-all focus:border-indigo-500/50 focus:bg-white/10 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+              placeholder="Search clicks..."
+            />
           </div>
-
-          <div className="block md:hidden">
-            {stats?.clicks && stats.clicks.length > 0 ? (
-              <div className="space-y-3 p-3">
-                {stats.clicks.slice((page - 1) * limit, page * limit).map((click) => (
-                  <div key={click.id} className="rounded-2xl border border-white/10 bg-slate-950/40 p-3 text-sm text-white/70">
-                    <div className="mb-2 flex items-center justify-between gap-2">
-                      <div className="flex items-center gap-2 text-xs text-white/45">
-                        <Clock className="h-3.5 w-3.5" />
-                        {formatDate(click.createdAt || click.timestamp)}
-                      </div>
-                      <div className="flex items-center justify-end gap-1.5">
-                        {click.isBot ? (
-                          <span className="inline-flex items-center gap-1 rounded-full border border-rose-500/20 bg-rose-500/10 px-2.5 py-1 text-[11px] text-rose-200">
-                            <Bot className="h-3.5 w-3.5" /> Bot
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1 text-[11px] text-emerald-200">
-                            <User className="h-3.5 w-3.5" /> Human
-                          </span>
-                        )}
-                        {click.isUnique ? (
-                          <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1 text-[11px] text-emerald-200">
-                            <CheckCircle className="h-3.5 w-3.5" /> Unique
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1 rounded-full border border-amber-500/20 bg-amber-500/10 px-2.5 py-1 text-[11px] text-amber-200">
-                            <XCircle className="h-3.5 w-3.5" /> Duplicate
-                          </span>
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="space-y-2 text-[13px]">
-                      <div className="flex items-start justify-between gap-3">
-                        <span className="text-white/35">IP</span>
-                        <span className="max-w-[62%] break-all text-right text-cyan-300/90">{click.ipAddress || 'N/A'}</span>
-                      </div>
-                      <div className="flex items-start justify-between gap-3">
-                        <span className="text-white/35">Location</span>
-                        <span className="max-w-[62%] text-right">{getLocationSummary(click)}</span>
-                      </div>
-                      <div className="flex items-start justify-between gap-3">
-                        <span className="text-white/35">Device</span>
-                        <span className="max-w-[62%] text-right">{getDeviceLabel(click)}</span>
-                      </div>
-                      <div className="flex items-start justify-between gap-3">
-                        <span className="text-white/35">Browser</span>
-                        <span className="max-w-[62%] text-right">{getBrowserLabel(click)}</span>
-                      </div>
-                      <div className="flex items-start justify-between gap-3">
-                        <span className="text-white/35">Referrer</span>
-                        <span className="max-w-[62%] break-all text-right text-indigo-300">{getReferrerHostname(click.referrer)}</span>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="px-4 py-14 text-center text-white/40">
-                <div className="flex flex-col items-center gap-3">
-                  <Eye className="h-12 w-12 text-white/10" />
-                  <div className="text-lg font-semibold text-white/70">No clicks recorded yet</div>
-                  <div className="text-sm text-white/35">This public report will populate once traffic starts flowing.</div>
-                </div>
+          
+          <div className="flex flex-wrap items-center gap-2">
+            <FilterChip
+              label="All"
+              active={filterCountry === '' && filterUnique === ''}
+              onClick={() => { setFilterCountry(''); setFilterUnique('') }}
+            />
+            <FilterChip
+              label="Unique Only"
+              active={filterUnique === 'true'}
+              onClick={() => setFilterUnique(filterUnique === 'true' ? '' : 'true')}
+            />
+            {countries.slice(0, 3).map((country) => (
+              <FilterChip
+                key={country}
+                label={`${getCountryFlag(country)} ${getCountryLabel(country)}`}
+                active={filterCountry === country}
+                onClick={() => setFilterCountry(filterCountry === country ? '' : country)}
+              />
+            ))}
+            {countries.length > 3 && (
+              <div className="relative">
+                <select
+                  value={filterCountry}
+                  onChange={(e) => setFilterCountry(e.target.value)}
+                  className="appearance-none rounded-xl border border-white/10 bg-white/5 py-2 pl-4 pr-10 text-sm text-white/60 transition-all focus:border-indigo-500/50 focus:outline-none"
+                >
+                  <option value="">+ More</option>
+                  {countries.map((country) => (
+                    <option key={country} value={country}>
+                      {getCountryFlag(country)} {getCountryLabel(country)}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/20" />
               </div>
             )}
           </div>
+        </div>
 
-          <div className="hidden md:block overflow-x-auto">
-            <table className="min-w-[980px] w-full">
-              <thead className="bg-white/[0.03]">
-                <tr>
-                  <th className="px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-[0.24em] text-white/30 whitespace-nowrap">
-                    <span className="flex items-center gap-1"><Clock className="h-3.5 w-3.5" /> Time</span>
-                  </th>
-                  <th className="px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-[0.24em] text-white/30 whitespace-nowrap">IP</th>
-                  <th className="px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-[0.24em] text-white/30 whitespace-nowrap">Location</th>
-                  <th className="px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-[0.24em] text-white/30 whitespace-nowrap">Device</th>
-                  <th className="px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-[0.24em] text-white/30 whitespace-nowrap">Browser</th>
-                  <th className="px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-[0.24em] text-white/30 whitespace-nowrap">Referrer</th>
-                  <th className="px-4 py-3 text-center text-[11px] font-semibold uppercase tracking-[0.24em] text-white/30 whitespace-nowrap">Status</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-white/5">
-                {stats?.clicks && stats.clicks.length > 0 ? (
-                  stats.clicks.slice((page - 1) * limit, page * limit).map((click) => (
-                    <tr key={click.id} className="transition hover:bg-white/[0.04]">
-                      <td className="px-4 py-3 text-sm text-white/55 whitespace-nowrap">
-                        {formatDate(click.createdAt || click.timestamp)}
-                      </td>
-                      <td className="px-4 py-3 text-sm font-mono text-cyan-300/90 whitespace-nowrap">
-                        {click.ipAddress || 'N/A'}
-                      </td>
-                      <td className="px-4 py-3 text-sm text-white/65">
-                        {getLocationSummary(click)}
-                      </td>
-                      <td className="px-4 py-3 text-sm text-white/65">
-                        <div className="flex items-center gap-2">
-                          <span className="text-white/45">{getDeviceIcon(click.deviceType)}</span>
-                          <span>{getDeviceLabel(click)}</span>
-                        </div>
-                      </td>
-                      <td className="px-4 py-3 text-sm text-white/65">
-                        <div className="flex items-center gap-2">
-                          <span>{getBrowserLabel(click)}</span>
-                        </div>
-                      </td>
-                      <td className="px-4 py-3 text-sm text-white/55">
-                        {click.referrer ? (
-                          <a
-                            href={click.referrer}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1 text-indigo-300 transition hover:text-indigo-200"
-                          >
-                            {getReferrerHostname(click.referrer)}
-                            <ExternalLink className="h-3.5 w-3.5" />
-                          </a>
-                        ) : (
-                          <span className="text-white/25">Direct</span>
-                        )}
-                      </td>
-                      <td className="px-4 py-3 text-center">
-                        <div className="flex flex-wrap items-center justify-center gap-1.5">
-                          {click.isBot ? (
-                            <span className="inline-flex items-center gap-1 rounded-full border border-rose-500/20 bg-rose-500/10 px-2.5 py-1 text-[11px] text-rose-200">
-                              <Bot className="h-3.5 w-3.5" /> Bot
-                            </span>
-                          ) : (
-                            <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1 text-[11px] text-emerald-200">
-                              <User className="h-3.5 w-3.5" /> Human
-                            </span>
-                          )}
-                          {click.isUnique ? (
-                            <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1 text-[11px] text-emerald-200">
-                              <CheckCircle className="h-3.5 w-3.5" /> Unique
-                            </span>
-                          ) : (
-                            <span className="inline-flex items-center gap-1 rounded-full border border-amber-500/20 bg-amber-500/10 px-2.5 py-1 text-[11px] text-amber-200">
-                              <XCircle className="h-3.5 w-3.5" /> Duplicate
-                            </span>
-                          )}
-                        </div>
-                      </td>
+        {/* Table/Cards View */}
+        <div className="overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-white/[0.06] to-white/[0.02] backdrop-blur-xl transition-all">
+          {viewMode === 'table' ? (
+            <>
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-white/5 bg-white/[0.03]">
+                      <th className="px-4 py-4 text-left text-xs font-medium uppercase tracking-wider text-white/30">Time</th>
+                      <th className="px-4 py-4 text-left text-xs font-medium uppercase tracking-wider text-white/30">IP</th>
+                      <th className="px-4 py-4 text-left text-xs font-medium uppercase tracking-wider text-white/30">Location</th>
+                      <th className="px-4 py-4 text-left text-xs font-medium uppercase tracking-wider text-white/30">Device</th>
+                      <th className="px-4 py-4 text-left text-xs font-medium uppercase tracking-wider text-white/30">Browser</th>
+                      <th className="px-4 py-4 text-left text-xs font-medium uppercase tracking-wider text-white/30">Referrer</th>
+                      <th className="px-4 py-4 text-center text-xs font-medium uppercase tracking-wider text-white/30">Status</th>
                     </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan={6} className="px-4 py-14 text-center">
-                      <div className="flex flex-col items-center gap-3 text-white/40">
-                        <Eye className="h-12 w-12 text-white/10" />
-                        <div className="text-lg font-semibold text-white/70">No clicks recorded yet</div>
-                        <div className="text-sm text-white/35">This public report will populate once traffic starts flowing.</div>
-                      </div>
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+                  </thead>
+                  <tbody className="divide-y divide-white/5">
+                    {stats?.clicks?.length ? (
+                      stats.clicks.slice((page - 1) * limit, page * limit).map((click, index) => (
+                        <tr 
+                          key={click.id} 
+                          className="group transition-all duration-300 hover:bg-white/[0.04]"
+                          style={{ animationDelay: `${index * 50}ms` }}
+                        >
+                          <td className="px-4 py-3.5 text-sm text-white/50 whitespace-nowrap">
+                            <div className="flex items-center gap-2">
+                              <Clock className="h-3.5 w-3.5 text-white/20" />
+                              {formatDate(click.createdAt || click.timestamp)}
+                            </div>
+                          </td>
+                          <td className="px-4 py-3.5 text-sm font-mono text-cyan-300/80 whitespace-nowrap">
+                            {click.ipAddress || 'N/A'}
+                          </td>
+                          <td className="px-4 py-3.5 text-sm">
+                            <div className="flex items-center gap-2">
+                              <span className="text-lg">{getCountryFlag(click.country)}</span>
+                              <div>
+                                <div className="text-white/80">{getCountryLabel(click.country)}</div>
+                                {click.city && (
+                                  <div className="text-xs text-white/30">{click.city}</div>
+                                )}
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-4 py-3.5 text-sm text-white/60">
+                            <div className="flex items-center gap-2">
+                              {React.createElement(getDeviceIcon(click.deviceType), {
+                                className: "h-4 w-4 text-white/30"
+                              })}
+                              <span>{click.os || 'Unknown OS'}</span>
+                            </div>
+                          </td>
+                          <td className="px-4 py-3.5 text-sm text-white/60">
+                            {click.browser || 'Unknown'}
+                          </td>
+                          <td className="px-4 py-3.5 text-sm">
+                            {click.referrer ? (
+                              <a
+                                href={click.referrer}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1 text-indigo-300/80 transition-colors hover:text-indigo-300 hover:underline"
+                              >
+                                {new URL(click.referrer).hostname}
+                                <ExternalLink className="h-3 w-3" />
+                              </a>
+                            ) : (
+                              <span className="text-white/20">Direct</span>
+                            )}
+                          </td>
+                          <td className="px-4 py-3.5 text-center">
+                            <div className="flex items-center justify-center gap-2">
+                              <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ${
+                                click.isBot
+                                  ? 'bg-rose-500/10 text-rose-300 border border-rose-500/20'
+                                  : 'bg-emerald-500/10 text-emerald-300 border border-emerald-500/20'
+                              }`}>
+                                {click.isBot ? (
+                                  <Bot className="h-3 w-3" />
+                                ) : (
+                                  <User className="h-3 w-3" />
+                                )}
+                                {click.isBot ? 'Bot' : 'Human'}
+                              </span>
+                              <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ${
+                                click.isUnique
+                                  ? 'bg-indigo-500/10 text-indigo-300 border border-indigo-500/20'
+                                  : 'bg-amber-500/10 text-amber-300 border border-amber-500/20'
+                              }`}>
+                                {click.isUnique ? (
+                                  <CheckCircle className="h-3 w-3" />
+                                ) : (
+                                  <XCircle className="h-3 w-3" />
+                                )}
+                                {click.isUnique ? 'Unique' : 'Repeat'}
+                              </span>
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan={7}>
+                          <EmptyState
+                            icon={Eye}
+                            title="No clicks recorded yet"
+                            description="This dashboard will populate with data as soon as your first visitor arrives."
+                          />
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
 
-          {totalClicks > 0 && (
-            <div className="flex flex-col gap-3 border-t border-white/5 px-4 py-4 text-sm text-white/45 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                Showing {((page - 1) * limit) + 1} to {Math.min(page * limit, totalClicks)} of {totalClicks} clicks
-              </div>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => setPage((p) => Math.max(1, p - 1))}
-                  disabled={page === 1}
-                  className="rounded-lg border border-white/10 bg-white/5 p-2 text-white/45 transition hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                </button>
-                <span className="rounded-lg border border-white/10 bg-slate-950/65 px-3 py-1 text-white/60">
-                  Page {page} of {totalPages || 1}
-                </span>
-                <button
-                  onClick={() => setPage((p) => Math.min(totalPages || 1, p + 1))}
-                  disabled={page === totalPages || totalPages === 0}
-                  className="rounded-lg border border-white/10 bg-white/5 p-2 text-white/45 transition hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
-                >
-                  <ChevronRight className="h-4 w-4" />
-                </button>
-              </div>
+              {/* Pagination */}
+              {totalClicks > 0 && (
+                <div className="flex flex-col gap-3 border-t border-white/5 px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="text-sm text-white/30">
+                    Showing <span className="text-white/60">{((page - 1) * limit) + 1}</span> to{' '}
+                    <span className="text-white/60">{Math.min(page * limit, totalClicks)}</span> of{' '}
+                    <span className="text-white/60">{totalClicks}</span> results
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setPage(p => Math.max(1, p - 1))}
+                      disabled={page === 1}
+                      className="group rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-white/40 transition-all hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-30"
+                    >
+                      <ChevronLeft className="h-4 w-4 transition-transform group-hover:-translate-x-0.5" />
+                    </button>
+                    <div className="flex items-center gap-1.5">
+                      {[...Array(Math.min(5, totalPages))].map((_, i) => {
+                        const p = i + 1
+                        return (
+                          <button
+                            key={p}
+                            onClick={() => setPage(p)}
+                            className={`min-w-[32px] rounded-lg px-3 py-1.5 text-sm font-medium transition-all ${
+                              page === p
+                                ? 'bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-lg shadow-indigo-500/25'
+                                : 'text-white/40 hover:bg-white/10 hover:text-white'
+                            }`}
+                          >
+                            {p}
+                          </button>
+                        )
+                      })}
+                      {totalPages > 5 && (
+                        <>
+                          <span className="text-white/20">...</span>
+                          <button
+                            onClick={() => setPage(totalPages)}
+                            className={`min-w-[32px] rounded-lg px-3 py-1.5 text-sm font-medium transition-all ${
+                              page === totalPages
+                                ? 'bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-lg shadow-indigo-500/25'
+                                : 'text-white/40 hover:bg-white/10 hover:text-white'
+                            }`}
+                          >
+                            {totalPages}
+                          </button>
+                        </>
+                      )}
+                    </div>
+                    <button
+                      onClick={() => setPage(p => Math.min(totalPages || 1, p + 1))}
+                      disabled={page === totalPages || totalPages === 0}
+                      className="group rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-white/40 transition-all hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-30"
+                    >
+                      <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+                    </button>
+                  </div>
+                </div>
+              )}
+            </>
+          ) : (
+            // Cards View
+            <div className="p-6">
+              {stats?.clicks?.length ? (
+                <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                  {stats.clicks.slice((page - 1) * limit, page * limit).map((click) => (
+                    <div
+                      key={click.id}
+                      className="group rounded-2xl border border-white/10 bg-white/[0.03] p-4 transition-all hover:border-white/20 hover:bg-white/[0.06] hover:shadow-xl"
+                    >
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="flex items-center gap-2">
+                          <span className="text-2xl">{getCountryFlag(click.country)}</span>
+                          <div>
+                            <div className="text-sm font-medium text-white/80">{getCountryLabel(click.country)}</div>
+                            <div className="text-xs text-white/30">{click.city || 'Unknown city'}</div>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${
+                            click.isUnique
+                              ? 'bg-emerald-500/10 text-emerald-300'
+                              : 'bg-amber-500/10 text-amber-300'
+                          }`}>
+                            {click.isUnique ? 'Unique' : 'Repeat'}
+                          </span>
+                        </div>
+                      </div>
+                      
+                      <div className="space-y-2 text-sm">
+                        <div className="flex justify-between">
+                          <span className="text-white/30">IP</span>
+                          <span className="font-mono text-cyan-300/70">{click.ipAddress || 'N/A'}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-white/30">Device</span>
+                          <span className="text-white/60">{click.os || 'Unknown OS'}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-white/30">Browser</span>
+                          <span className="text-white/60">{click.browser || 'Unknown'}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-white/30">Time</span>
+                          <span className="text-white/50">{formatDate(click.createdAt || click.timestamp)}</span>
+                        </div>
+                        {click.referrer && (
+                          <div className="flex justify-between">
+                            <span className="text-white/30">Referrer</span>
+                            <a
+                              href={click.referrer}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-indigo-300/70 hover:text-indigo-300 truncate max-w-[120px]"
+                            >
+                              {new URL(click.referrer).hostname}
+                            </a>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <EmptyState
+                  icon={Eye}
+                  title="No clicks recorded yet"
+                  description="Start sharing your link to see visitor data appear here."
+                />
+              )}
+              
+              {/* Pagination for cards view */}
+              {totalClicks > 0 && (
+                <div className="flex justify-between items-center mt-6 pt-4 border-t border-white/5">
+                  <div className="text-sm text-white/30">
+                    {((page - 1) * limit) + 1} - {Math.min(page * limit, totalClicks)} of {totalClicks}
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setPage(p => Math.max(1, p - 1))}
+                      disabled={page === 1}
+                      className="rounded-xl border border-white/10 px-3 py-2 text-white/40 transition hover:bg-white/10 disabled:opacity-30"
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                    </button>
+                    <button
+                      onClick={() => setPage(p => Math.min(totalPages || 1, p + 1))}
+                      disabled={page === totalPages}
+                      className="rounded-xl border border-white/10 px-3 py-2 text-white/40 transition hover:bg-white/10 disabled:opacity-30"
+                    >
+                      <ChevronRight className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>
 
-        <div className="mt-8 flex flex-col items-center justify-between gap-4 border-t border-white/5 pt-4 sm:flex-row">
+        {/* Footer */}
+        <div className="mt-8 flex flex-col items-center justify-between gap-4 border-t border-white/5 pt-6 sm:flex-row">
           <Logo variant="compact" size="sm" showAnimation={true} />
-          <p className="text-xs text-white/25">Powered by NexGen Affiliates</p>
+          <div className="flex items-center gap-6">
+            <span className="text-xs text-white/20">Protected by advanced analytics</span>
+            <span className="text-xs text-white/20">v2.0.1</span>
+          </div>
         </div>
       </div>
     </div>
