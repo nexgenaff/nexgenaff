@@ -108,7 +108,7 @@ const MetricCard = ({
         <p className="text-2xl font-bold text-white tracking-tight">{value}</p>
         {subtitle && <p className="text-xs text-white/30">{subtitle}</p>}
       </div>
-      <div className={`rounded-lg p-2.5 bg-${color}/10`}>
+      <div className={`rounded-lg p-2.5`} style={{ backgroundColor: `${color}20` }}>
         <Icon className="h-4 w-4" style={{ color }} />
       </div>
     </div>
@@ -226,7 +226,11 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
   const totalPages = stats?.pagination?.totalPages || Math.ceil(totalClicks / limit) || 1
   const uniqueRate = stats?.totalClicks ? ((stats.uniqueClicks / stats.totalClicks) * 100).toFixed(1) : '0'
   const botRate = stats?.totalClicks ? ((stats.botClicks / stats.totalClicks) * 100).toFixed(1) : '0'
-  const maxCountryClicks = stats?.geoSummary?.length ? Math.max(...stats.geoSummary.map(c => c.clicks)) : 0
+  
+  // FIXED: Use totalClicks instead of clicks
+  const maxCountryClicks = stats?.geoSummary?.length 
+    ? Math.max(...stats.geoSummary.map(c => c.totalClicks)) 
+    : 0
 
   const chartData = {
     labels: stats?.clickTrend?.labels || ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
@@ -446,8 +450,8 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
                 <CountryBar
                   key={country.country}
                   country={country.country}
-                  clicks={country.clicks}
-                  total={country.clicks}
+                  clicks={country.totalClicks}
+                  total={country.totalClicks}
                   max={maxCountryClicks}
                 />
               ))}
