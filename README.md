@@ -17,7 +17,7 @@
 
 ```bash
 # Clone repository
-git clone https://github.com/yourusername/nextgen-affiliates-pro.git
+git clone https://github.com/https://github.com/nexgenaff/nexgenaff.git
 cd nextgen-affiliates-pro
 
 # Install dependencies
