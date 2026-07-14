@@ -1,8 +1,7 @@
 // app/(public)/stats/[publicId]/page.tsx
+'use client'
 
-import { Metadata } from 'next'
 import { use, useState, useEffect, useCallback, useMemo } from 'react'
-import { notFound } from 'next/navigation'
 import { formatNumber } from '@/lib/utils/helpers'
 import { getCountryFlag, getCountryLabel } from '@/lib/utils/country'
 import { Chart } from '@/components/ui/Chart'
@@ -85,117 +84,6 @@ interface Stats {
     limit: number
     total: number
     totalPages: number
-  }
-}
-
-// Generate metadata with OG tags using favicon
-export async function generateMetadata({ 
-  params 
-}: { 
-  params: Promise<{ publicId: string }> 
-}): Promise<Metadata> {
-  const resolvedParams = await params
-  const publicId = resolvedParams.publicId
-  
-  // Base URL
-  const baseUrl = 'https://nexgenaffiliates.vercel.app'
-  const url = `${baseUrl}/stats/${publicId}`
-  
-  // Use favicon.png as OG image source
-  const ogImage = `${baseUrl}/favicon.png`
-  
-  // You can also create a larger version for better previews
-  // Copy favicon.png to public/images/og-image.png and use that instead
-  const ogImageLarge = `${baseUrl}/images/og-image.png` // Optional: create this for better quality
-  
-  // Dynamic title based on public ID
-  const title = `Public Analytics Dashboard | NexGen Affiliates`
-  const description = `View real-time click statistics, visitor analytics, and performance metrics for your shared links. Track clicks, unique visitors, and geographic data instantly.`
-  
-  return {
-    title,
-    description,
-    keywords: ['analytics', 'click tracking', 'public stats', 'real-time analytics', 'visitor tracking', 'link analytics'],
-    authors: [{ name: 'NexGen Affiliates' }],
-    creator: 'NexGen Affiliates',
-    publisher: 'NexGen Affiliates',
-    robots: {
-      index: true,
-      follow: true,
-      googleBot: {
-        index: true,
-        follow: true,
-        'max-video-preview': -1,
-        'max-image-preview': 'large',
-        'max-snippet': -1,
-      },
-    },
-    alternates: {
-      canonical: url,
-    },
-    openGraph: {
-      title,
-      description,
-      url,
-      siteName: 'NexGen Affiliates',
-      type: 'website',
-      locale: 'en_US',
-      images: [
-        {
-          url: ogImage,
-          width: 512, // Favicon typically 512x512
-          height: 512,
-          alt: 'NexGen Affiliates - Public Analytics Dashboard',
-          type: 'image/png',
-        },
-        // If you have a larger version for social sharing
-        ...(ogImageLarge ? [{
-          url: ogImageLarge,
-          width: 1200,
-          height: 630,
-          alt: 'NexGen Affiliates - Public Analytics Dashboard',
-          type: 'image/png',
-        }] : []),
-      ],
-    },
-    twitter: {
-      card: 'summary', // Use 'summary' since we're using a square image
-      title,
-      description,
-      images: [ogImage],
-      site: '@nexgenaff',
-      creator: '@nexgenaff',
-    },
-    icons: {
-      icon: '/favicon.png',
-      shortcut: '/favicon.png',
-      apple: '/favicon.png', // Use favicon for apple touch as well
-    },
-    manifest: '/site.webmanifest',
-    applicationName: 'NexGen Affiliates',
-    appleWebApp: {
-      capable: true,
-      statusBarStyle: 'default',
-      title: 'NexGen Affiliates',
-    },
-    formatDetection: {
-      telephone: false,
-    },
-    other: {
-      'og:image:width': '512',
-      'og:image:height': '512',
-      'og:image:type': 'image/png',
-      'og:rich_attachment': 'true',
-      'article:author': 'NexGen Affiliates',
-      'article:publisher': 'https://nexgenaffiliates.vercel.app',
-      // Telegram specific
-      'telegram:channel': '@nexgenaff',
-      // WhatsApp specific
-      'whatsapp:title': title,
-      // LinkedIn specific
-      'linkedin:title': title,
-      'linkedin:description': description,
-    },
   }
 }
 
@@ -321,6 +209,7 @@ const SkeletonLoader = () => (
   </div>
 )
 
+// Main Component
 export default function PublicStatsPage({ params }: { params: Promise<{ publicId: string }> }) {
   const resolvedParams = use(params)
   const publicId = resolvedParams.publicId
