@@ -2,7 +2,7 @@
 
 import { StatsCard } from '@/components/ui/StatsCard'
 import { Chart } from '@/components/ui/Chart'
-import { MousePointerClick, Users, Link2 } from 'lucide-react'
+import { MousePointerClick, Users, Link2, Bug } from 'lucide-react'
 
 interface StatsCardsProps {
   stats: {
@@ -68,14 +68,13 @@ export default function StatsCards({
     .slice(0, 3)
 
   return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+    <div className="space-y-5">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-3 md:gap-4">
         <StatsCard
           title="Total Clicks"
           value={stats.totalClicks}
           icon={MousePointerClick}
           color="indigo"
-          subtitle={`${stats.totalLinks} active links`}
           delay={0}
         />
         <StatsCard
@@ -83,7 +82,6 @@ export default function StatsCards({
           value={stats.uniqueClicks}
           icon={Users}
           color="green"
-          subtitle="Distinct visitors tracked"
           delay={100}
         />
         <StatsCard
@@ -91,8 +89,14 @@ export default function StatsCards({
           value={stats.totalLinks}
           icon={Link2}
           color="purple"
-          subtitle="Active campaigns"
           delay={200}
+        />
+        <StatsCard
+          title="Bot Clicks"
+          value={stats.botClicks}
+          icon={Bug}
+          color="red"
+          delay={300}
         />
       </div>
 
