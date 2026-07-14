@@ -86,14 +86,13 @@ interface Stats {
 // UI Components
 const StatCard = ({ icon: Icon, label, value, color, trend, subtitle }: any) => (
   <div className="group relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-white/[0.08] to-white/[0.02] p-6 backdrop-blur-xl transition-all duration-300 hover:border-white/20 hover:shadow-2xl hover:shadow-indigo-500/10">
-    {/* Animated gradient background */}
     <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" 
          style={{ background: `radial-gradient(circle at 30% 30%, ${color}15, transparent 70%)` }} />
     
     <div className="relative flex items-start justify-between">
       <div className="space-y-3">
         <div className="flex items-center gap-2">
-          <div className={`rounded-xl bg-${color}/10 p-2.5 transition-all duration-300 group-hover:scale-110 group-hover:shadow-lg`}
+          <div className={`rounded-xl p-2.5 transition-all duration-300 group-hover:scale-110 group-hover:shadow-lg`}
                style={{ backgroundColor: `${color}20` }}>
             <Icon className={`h-5 w-5`} style={{ color }} strokeWidth={2} />
           </div>
@@ -113,12 +112,10 @@ const StatCard = ({ icon: Icon, label, value, color, trend, subtitle }: any) => 
         </div>
       </div>
       
-      {/* Decorative element */}
       <div className="absolute right-4 top-4 h-20 w-20 rounded-full blur-3xl opacity-0 transition-opacity duration-500 group-hover:opacity-30"
            style={{ background: color }} />
     </div>
     
-    {/* Animated border glow */}
     <div className="absolute bottom-0 left-0 h-[2px] w-0 bg-gradient-to-r from-transparent via-white/20 to-transparent transition-all duration-700 group-hover:w-full" />
   </div>
 )
@@ -170,7 +167,6 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
   const [viewMode, setViewMode] = useState<'table' | 'cards'>('table')
   const limit = 10
 
-  // Data fetching with loading states
   useEffect(() => {
     const fetchStats = async () => {
       try {
@@ -191,7 +187,6 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
     fetchStats()
   }, [publicId, page, search, filterCountry, filterUnique])
 
-  // Memoized helpers
   const getDeviceIcon = useCallback((deviceType: string | null) => {
     if (!deviceType) return Monitor
     const device = deviceType.toLowerCase()
@@ -209,7 +204,6 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
     })
   }, [])
 
-  // Computed values
   const countries = useMemo(() => 
     stats?.geoSummary?.map(e => e.country).filter(Boolean) || []
   , [stats?.geoSummary])
@@ -219,12 +213,35 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
   const uniqueRate = stats?.totalClicks ? ((stats.uniqueClicks / stats.totalClicks) * 100).toFixed(1) : '0'
   const botRate = stats?.totalClicks ? ((stats.botClicks / stats.totalClicks) * 100).toFixed(1) : '0'
 
-  // Loading state with skeleton
+  // Fixed: Removed pointHoverRadius and using standard chart options
+  const chartData = {
+    labels: stats?.clickTrend?.labels || ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+    datasets: [
+      {
+        label: 'Total Clicks',
+        data: stats?.clickTrend?.datasets?.[0]?.data || [0, 0, 0, 0, 0, 0, 0],
+        borderColor: '#22D3EE',
+        backgroundColor: 'rgba(34, 211, 238, 0.14)',
+        fill: true,
+        tension: 0.4,
+        pointRadius: 4,
+      },
+      {
+        label: 'Unique Clicks',
+        data: stats?.clickTrend?.datasets?.[1]?.data || [0, 0, 0, 0, 0, 0, 0],
+        borderColor: '#34D399',
+        backgroundColor: 'rgba(52, 211, 153, 0.14)',
+        fill: true,
+        tension: 0.4,
+        pointRadius: 4,
+      },
+    ],
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-950 via-black to-slate-950">
         <div className="container mx-auto max-w-7xl px-4 py-8">
-          {/* Header skeleton */}
           <div className="mb-8 flex items-center justify-between">
             <div className="flex items-center gap-4">
               <div className="h-10 w-10 rounded-xl bg-white/5 animate-pulse" />
@@ -236,7 +253,6 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
             <div className="h-10 w-32 bg-white/5 rounded-xl animate-pulse" />
           </div>
 
-          {/* Stats skeleton */}
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4 mb-8">
             {[...Array(4)].map((_, i) => (
               <div key={i} className="rounded-2xl border border-white/10 bg-white/5 p-6 animate-pulse">
@@ -249,12 +265,10 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
             ))}
           </div>
 
-          {/* Chart skeleton */}
           <div className="rounded-3xl border border-white/10 bg-white/5 p-6 mb-8">
             <div className="h-[240px] w-full bg-white/5 rounded-xl animate-pulse" />
           </div>
 
-          {/* Table skeleton */}
           <div className="rounded-3xl border border-white/10 bg-white/5 overflow-hidden">
             <div className="p-6 border-b border-white/5">
               <div className="h-6 w-32 bg-white/10 rounded animate-pulse" />
@@ -450,31 +464,7 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
           </div>
           <div className="h-[240px] w-full">
             <Chart 
-              data={stats?.clickTrend || {
-                labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-                datasets: [
-                  {
-                    label: 'Total Clicks',
-                    data: [0, 0, 0, 0, 0, 0, 0],
-                    borderColor: '#22D3EE',
-                    backgroundColor: 'rgba(34, 211, 238, 0.14)',
-                    fill: true,
-                    tension: 0.4,
-                    pointRadius: 4,
-                    pointHoverRadius: 6,
-                  },
-                  {
-                    label: 'Unique Clicks',
-                    data: [0, 0, 0, 0, 0, 0, 0],
-                    borderColor: '#34D399',
-                    backgroundColor: 'rgba(52, 211, 153, 0.14)',
-                    fill: true,
-                    tension: 0.4,
-                    pointRadius: 4,
-                    pointHoverRadius: 6,
-                  },
-                ],
-              }} 
+              data={chartData}
               height={240}
               options={{
                 animation: { duration: 900, easing: 'easeOutQuart' },
@@ -567,88 +557,89 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
                   </thead>
                   <tbody className="divide-y divide-white/5">
                     {stats?.clicks?.length ? (
-                      stats.clicks.slice((page - 1) * limit, page * limit).map((click, index) => (
-                        <tr 
-                          key={click.id} 
-                          className="group transition-all duration-300 hover:bg-white/[0.04]"
-                          style={{ animationDelay: `${index * 50}ms` }}
-                        >
-                          <td className="px-4 py-3.5 text-sm text-white/50 whitespace-nowrap">
-                            <div className="flex items-center gap-2">
-                              <Clock className="h-3.5 w-3.5 text-white/20" />
-                              {formatDate(click.createdAt || click.timestamp)}
-                            </div>
-                          </td>
-                          <td className="px-4 py-3.5 text-sm font-mono text-cyan-300/80 whitespace-nowrap">
-                            {click.ipAddress || 'N/A'}
-                          </td>
-                          <td className="px-4 py-3.5 text-sm">
-                            <div className="flex items-center gap-2">
-                              <span className="text-lg">{getCountryFlag(click.country)}</span>
-                              <div>
-                                <div className="text-white/80">{getCountryLabel(click.country)}</div>
-                                {click.city && (
-                                  <div className="text-xs text-white/30">{click.city}</div>
-                                )}
+                      stats.clicks.slice((page - 1) * limit, page * limit).map((click, index) => {
+                        const DeviceIcon = getDeviceIcon(click.deviceType)
+                        return (
+                          <tr 
+                            key={click.id} 
+                            className="group transition-all duration-300 hover:bg-white/[0.04]"
+                            style={{ animationDelay: `${index * 50}ms` }}
+                          >
+                            <td className="px-4 py-3.5 text-sm text-white/50 whitespace-nowrap">
+                              <div className="flex items-center gap-2">
+                                <Clock className="h-3.5 w-3.5 text-white/20" />
+                                {formatDate(click.createdAt || click.timestamp)}
                               </div>
-                            </div>
-                          </td>
-                          <td className="px-4 py-3.5 text-sm text-white/60">
-                            <div className="flex items-center gap-2">
-                              {React.createElement(getDeviceIcon(click.deviceType), {
-                                className: "h-4 w-4 text-white/30"
-                              })}
-                              <span>{click.os || 'Unknown OS'}</span>
-                            </div>
-                          </td>
-                          <td className="px-4 py-3.5 text-sm text-white/60">
-                            {click.browser || 'Unknown'}
-                          </td>
-                          <td className="px-4 py-3.5 text-sm">
-                            {click.referrer ? (
-                              <a
-                                href={click.referrer}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="inline-flex items-center gap-1 text-indigo-300/80 transition-colors hover:text-indigo-300 hover:underline"
-                              >
-                                {new URL(click.referrer).hostname}
-                                <ExternalLink className="h-3 w-3" />
-                              </a>
-                            ) : (
-                              <span className="text-white/20">Direct</span>
-                            )}
-                          </td>
-                          <td className="px-4 py-3.5 text-center">
-                            <div className="flex items-center justify-center gap-2">
-                              <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ${
-                                click.isBot
-                                  ? 'bg-rose-500/10 text-rose-300 border border-rose-500/20'
-                                  : 'bg-emerald-500/10 text-emerald-300 border border-emerald-500/20'
-                              }`}>
-                                {click.isBot ? (
-                                  <Bot className="h-3 w-3" />
-                                ) : (
-                                  <User className="h-3 w-3" />
-                                )}
-                                {click.isBot ? 'Bot' : 'Human'}
-                              </span>
-                              <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ${
-                                click.isUnique
-                                  ? 'bg-indigo-500/10 text-indigo-300 border border-indigo-500/20'
-                                  : 'bg-amber-500/10 text-amber-300 border border-amber-500/20'
-                              }`}>
-                                {click.isUnique ? (
-                                  <CheckCircle className="h-3 w-3" />
-                                ) : (
-                                  <XCircle className="h-3 w-3" />
-                                )}
-                                {click.isUnique ? 'Unique' : 'Repeat'}
-                              </span>
-                            </div>
-                          </td>
-                        </tr>
-                      ))
+                            </td>
+                            <td className="px-4 py-3.5 text-sm font-mono text-cyan-300/80 whitespace-nowrap">
+                              {click.ipAddress || 'N/A'}
+                            </td>
+                            <td className="px-4 py-3.5 text-sm">
+                              <div className="flex items-center gap-2">
+                                <span className="text-lg">{getCountryFlag(click.country)}</span>
+                                <div>
+                                  <div className="text-white/80">{getCountryLabel(click.country)}</div>
+                                  {click.city && (
+                                    <div className="text-xs text-white/30">{click.city}</div>
+                                  )}
+                                </div>
+                              </div>
+                            </td>
+                            <td className="px-4 py-3.5 text-sm text-white/60">
+                              <div className="flex items-center gap-2">
+                                <DeviceIcon className="h-4 w-4 text-white/30" />
+                                <span>{click.os || 'Unknown OS'}</span>
+                              </div>
+                            </td>
+                            <td className="px-4 py-3.5 text-sm text-white/60">
+                              {click.browser || 'Unknown'}
+                            </td>
+                            <td className="px-4 py-3.5 text-sm">
+                              {click.referrer ? (
+                                <a
+                                  href={click.referrer}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="inline-flex items-center gap-1 text-indigo-300/80 transition-colors hover:text-indigo-300 hover:underline"
+                                >
+                                  {new URL(click.referrer).hostname}
+                                  <ExternalLink className="h-3 w-3" />
+                                </a>
+                              ) : (
+                                <span className="text-white/20">Direct</span>
+                              )}
+                            </td>
+                            <td className="px-4 py-3.5 text-center">
+                              <div className="flex items-center justify-center gap-2">
+                                <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ${
+                                  click.isBot
+                                    ? 'bg-rose-500/10 text-rose-300 border border-rose-500/20'
+                                    : 'bg-emerald-500/10 text-emerald-300 border border-emerald-500/20'
+                                }`}>
+                                  {click.isBot ? (
+                                    <Bot className="h-3 w-3" />
+                                  ) : (
+                                    <User className="h-3 w-3" />
+                                  )}
+                                  {click.isBot ? 'Bot' : 'Human'}
+                                </span>
+                                <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ${
+                                  click.isUnique
+                                    ? 'bg-indigo-500/10 text-indigo-300 border border-indigo-500/20'
+                                    : 'bg-amber-500/10 text-amber-300 border border-amber-500/20'
+                                }`}>
+                                  {click.isUnique ? (
+                                    <CheckCircle className="h-3 w-3" />
+                                  ) : (
+                                    <XCircle className="h-3 w-3" />
+                                  )}
+                                  {click.isUnique ? 'Unique' : 'Repeat'}
+                                </span>
+                              </div>
+                            </td>
+                          </tr>
+                        )
+                      })
                     ) : (
                       <tr>
                         <td colSpan={7}>
