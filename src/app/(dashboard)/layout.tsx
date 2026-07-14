@@ -35,10 +35,11 @@ export default function DashboardLayout({
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-black via-gray-900 to-black">
-        <div className="text-center">
-          <div className="w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto"></div>
-          <p className="text-white/40 mt-4 animate-pulse">Loading...</p>
+      <div className="min-h-screen flex items-center justify-center bg-[radial-gradient(circle_at_top,_rgba(34,211,238,0.16),_transparent_28%),linear-gradient(135deg,_#02030a_0%,_#040816_55%,_#02030a_100%)]">
+        <div className="soft-glow rounded-3xl border border-white/10 bg-white/5 px-8 py-8 text-center backdrop-blur-xl">
+          <div className="mx-auto mb-4 h-12 w-12 rounded-full border-4 border-cyan-400/40 border-t-cyan-300 animate-spin"></div>
+          <p className="text-sm font-medium tracking-[0.24em] text-cyan-100/80 uppercase">Preparing dashboard</p>
+          <p className="mt-2 text-sm text-white/45">Just a moment while we load your workspace.</p>
         </div>
       </div>
     )
@@ -54,7 +55,7 @@ export default function DashboardLayout({
       <div className="flex-1 flex flex-col min-w-0">
         <Header />
         <main className="flex-1 p-3 sm:p-6 overflow-x-hidden overflow-y-auto">
-          <div className="animate-fadeInUp">{children}</div>
+          {children}
         </main>
       </div>
     </div>

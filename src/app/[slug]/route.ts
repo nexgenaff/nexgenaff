@@ -234,28 +234,27 @@ export async function GET(
 
     const finalUrl = buildRedirectTargetUrl(offer.offerUrl, slug)
 
-    if (isUnique) {
-      await prisma.click.create({
-        data: {
-          linkAccountId: link.id,
-          clickSignature: clickFingerprint,
-          ipAddress: ip,
-          userAgent: userAgent,
-          country: country || null,
-          region: geo?.region || null,
-          city: geo?.city || null,
-          isp: geo?.isp || null,
-          browser: visitorProfile.browser,
-          browserVersion: visitorProfile.browserVersion,
-          os: visitorProfile.os,
-          deviceType: visitorProfile.deviceType,
-          deviceBrand: visitorProfile.deviceBrand,
-          referrer: referrer || null,
-          isUnique,
-          isBot: false,
-        },
-      })
-    }
+    // Always save click records - both unique and duplicate clicks
+    await prisma.click.create({
+      data: {
+        linkAccountId: link.id,
+        clickSignature: clickFingerprint,
+        ipAddress: ip,
+        userAgent: userAgent,
+        country: country || null,
+        region: geo?.region || null,
+        city: geo?.city || null,
+        isp: geo?.isp || null,
+        browser: visitorProfile.browser,
+        browserVersion: visitorProfile.browserVersion,
+        os: visitorProfile.os,
+        deviceType: visitorProfile.deviceType,
+        deviceBrand: visitorProfile.deviceBrand,
+        referrer: referrer || null,
+        isUnique,
+        isBot: false,
+      },
+    })
 
     await prisma.linkAccount.update({
       where: { id: link.id },
