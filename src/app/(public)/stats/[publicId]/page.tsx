@@ -31,7 +31,9 @@ import {
   Minus,
   MapPin,
   Hash,
-  Wifi,
+  Apple,
+  Laptop,
+  Computer,
 } from 'lucide-react'
 import { Logo } from '@/components/ui/Logo'
 
@@ -250,12 +252,49 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
     return () => abortController.abort()
   }, [publicId, page, search, filterCountry, filterUnique, timeRange])
 
-  const getDeviceIcon = useCallback((deviceType: string | null) => {
+  const getDeviceIcon = useCallback((deviceType: string | null, deviceBrand: string | null) => {
     if (!deviceType) return Monitor
-    const device = deviceType.toLowerCase()
-    if (device.includes('mobile') || device.includes('phone')) return Smartphone
-    if (device.includes('tablet')) return Tablet
+    
+    const type = deviceType.toLowerCase()
+    const brand = deviceBrand?.toLowerCase() || ''
+    
+    // Apple devices
+    if (brand.includes('apple') || brand.includes('iphone') || brand.includes('ipad') || brand.includes('mac')) {
+      if (type.includes('phone') || type.includes('mobile')) return Smartphone
+      if (type.includes('tablet')) return Tablet
+      return Apple
+    }
+    
+    // Desktop
+    if (type.includes('desktop') || type.includes('computer')) return Computer
+    
+    // Mobile
+    if (type.includes('mobile') || type.includes('phone')) return Smartphone
+    
+    // Tablet
+    if (type.includes('tablet')) return Tablet
+    
+    // Default
     return Monitor
+  }, [])
+
+  const getDeviceLabel = useCallback((click: Stats['clicks'][number]) => {
+    const brand = click.deviceBrand || ''
+    const os = click.os || ''
+    const type = click.deviceType || ''
+    
+    // Build detailed device name
+    let parts = []
+    
+    if (brand) parts.push(brand)
+    if (type && !brand.toLowerCase().includes(type.toLowerCase())) {
+      parts.push(type)
+    }
+    if (os && !parts.some(p => p.toLowerCase().includes(os.toLowerCase()))) {
+      parts.push(os)
+    }
+    
+    return parts.length > 0 ? parts.join(' • ') : 'Unknown Device'
   }, [])
 
   const formatDate = useCallback((date: string) => {
@@ -539,7 +578,7 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
           </div>
         </div>
 
-        {/* Data Table - With IP and ISP columns */}
+        {/* Data Table - With detailed device info */}
         <div className="bg-white/5 backdrop-blur-sm rounded-xl border border-white/10 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
@@ -559,26 +598,26 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
                   </th>
                   <th className="px-3 py-2.5 text-left text-[10px] font-medium uppercase tracking-wider text-white/30">
                     <div className="flex items-center gap-1">
-                      <Wifi className="h-3 w-3" strokeWidth={1.5} />
-                      ISP
-                    </div>
-                  </th>
-                  <th className="px-3 py-2.5 text-left text-[10px] font-medium uppercase tracking-wider text-white/30">
-                    <div className="flex items-center gap-1">
                       <MapPin className="h-3 w-3" strokeWidth={1.5} />
                       Location
                     </div>
                   </th>
-                  <th className="px-3 py-2.5 text-left text-[10px] font-medium uppercase tracking-wider text-white/30">Device</th>
+                  <th className="px-3 py-2.5 text-left text-[10px] font-medium uppercase tracking-wider text-white/30">
+                    <div className="flex items-center gap-1">
+                      <Smartphone className="h-3 w-3" strokeWidth={1.5} />
+                      Device
+                    </div>
+                  </th>
                   <th className="px-3 py-2.5 text-left text-[10px] font-medium uppercase tracking-wider text-white/30">Browser</th>
-                  <th className="px-3 py-2.5 text-left text-[10px] font-medium uppercase tracking-wider text-white/30 hidden md:table-cell">Referrer</th>
+                  <th className="px-3 py-2.5 text-left text-[10px] font-medium uppercase tracking-wider text-white/30 hidden lg:table-cell">Referrer</th>
                   <th className="px-3 py-2.5 text-center text-[10px] font-medium uppercase tracking-wider text-white/30">Status</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/5">
                 {stats?.clicks?.length ? (
                   stats.clicks.slice((page - 1) * limit, page * limit).map((click) => {
-                    const DeviceIcon = getDeviceIcon(click.deviceType)
+                    const DeviceIcon = getDeviceIcon(click.deviceType, click.deviceBrand)
+                    const deviceLabel = getDeviceLabel(click)
                     return (
                       <tr key={click.id} className="hover:bg-white/[0.02] transition-colors">
                         <td className="px-3 py-2.5 text-xs text-white/40 whitespace-nowrap">
@@ -590,26 +629,29 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
                           </span>
                         </td>
                         <td className="px-3 py-2.5">
-                          <span className="text-xs text-white/50 whitespace-nowrap max-w-[120px] block truncate" title={click.isp || 'Unknown'}>
-                            {click.isp || 'Unknown'}
-                          </span>
-                        </td>
-                        <td className="px-3 py-2.5">
                           <div className="flex items-center gap-1.5">
                             <span className="text-sm">{getCountryFlag(click.country)}</span>
                             <span className="text-xs text-white/60 truncate max-w-[80px]">{getCountryLabel(click.country)}</span>
+                            {click.city && (
+                              <span className="text-[10px] text-white/30 hidden md:inline">• {click.city}</span>
+                            )}
                           </div>
                         </td>
                         <td className="px-3 py-2.5">
-                          <div className="flex items-center gap-1.5 text-xs text-white/50">
-                            <DeviceIcon className="h-3 w-3 text-white/30" strokeWidth={1.5} />
-                            <span className="hidden sm:inline truncate max-w-[60px]">{click.os || 'Unknown'}</span>
+                          <div className="flex items-center gap-1.5 text-xs text-white/60">
+                            <DeviceIcon className="h-3.5 w-3.5 text-white/40" strokeWidth={1.5} />
+                            <span className="truncate max-w-[120px]" title={deviceLabel}>
+                              {deviceLabel}
+                            </span>
                           </div>
                         </td>
                         <td className="px-3 py-2.5 text-xs text-white/50 truncate max-w-[80px]">
                           {click.browser || 'Unknown'}
+                          {click.browserVersion && (
+                            <span className="text-[10px] text-white/30 ml-1">v{click.browserVersion}</span>
+                          )}
                         </td>
-                        <td className="px-3 py-2.5 text-xs hidden md:table-cell">
+                        <td className="px-3 py-2.5 text-xs hidden lg:table-cell">
                           {click.referrer ? (
                             <a
                               href={click.referrer}
@@ -642,7 +684,7 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
                   })
                 ) : (
                   <tr>
-                    <td colSpan={8} className="px-4 py-10 text-center">
+                    <td colSpan={7} className="px-4 py-10 text-center">
                       <div className="flex flex-col items-center gap-1.5">
                         <Eye className="h-7 w-7 text-white/10" strokeWidth={1.5} />
                         <p className="text-sm text-white/30">No clicks recorded yet</p>
