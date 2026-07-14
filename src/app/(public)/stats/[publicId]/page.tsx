@@ -41,10 +41,13 @@ import {
   Layers,
   Compass,
   Radar,
-  Pulse,
   Cpu,
   Database,
   Network,
+  Radio,
+  Gauge as GaugeIcon,
+  Timer,
+  Heart,
 } from 'lucide-react'
 import { Logo } from '@/components/ui/Logo'
 import { motion, useScroll, useTransform, useInView, AnimatePresence } from 'framer-motion'
