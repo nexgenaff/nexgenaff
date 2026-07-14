@@ -69,7 +69,7 @@ export default function StatsCards({
 
   return (
     <div className="space-y-5">
-      <div className="flex gap-3 overflow-x-auto pb-1 md:grid md:grid-cols-4 md:gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-3 md:gap-4">
         <StatsCard
           title="Total Clicks"
           value={stats.totalClicks}

@@ -39,7 +39,7 @@ export function StatsCard({
       initial={{ opacity: 0, y: 20, scale: 0.95 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ duration: 0.5, delay: delay / 1000 }}
-      className="stat-card min-w-[220px] min-w-0 rounded-[28px] border border-white/10 bg-slate-950/75 backdrop-blur-xl p-2.5 sm:p-3 shadow-[0_18px_45px_rgba(0,0,0,0.28)]"
+      className="stat-card min-w-0 rounded-[28px] border border-white/10 bg-slate-950/75 backdrop-blur-xl p-2.5 sm:p-3 shadow-[0_18px_45px_rgba(0,0,0,0.28)]"
     >
       <div className="mb-2 h-1 w-12 rounded-full bg-gradient-to-r from-indigo-500 via-fuchsia-500 to-cyan-400"></div>
       <div className="flex items-start justify-between gap-2">
