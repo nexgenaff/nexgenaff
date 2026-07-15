@@ -35,6 +35,7 @@ import {
   Apple,
   Laptop,
   Computer,
+  Link2,
 } from 'lucide-react'
 import { Logo } from '@/components/ui/Logo'
 
@@ -608,7 +609,7 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
             </div>
           </div>
 
-          {/* Data Table */}
+          {/* Data Table - Full Referrer Display */}
           <div className="bg-white/5 backdrop-blur-sm rounded-xl border border-white/10 overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
@@ -639,7 +640,12 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
                       </div>
                     </th>
                     <th className="px-3 py-2.5 text-left text-[10px] font-medium uppercase tracking-wider text-white/30">Browser</th>
-                    <th className="px-3 py-2.5 text-left text-[10px] font-medium uppercase tracking-wider text-white/30 hidden lg:table-cell">Referrer</th>
+                    <th className="px-3 py-2.5 text-left text-[10px] font-medium uppercase tracking-wider text-white/30 min-w-[200px]">
+                      <div className="flex items-center gap-1">
+                        <Link2 className="h-3 w-3" strokeWidth={1.5} />
+                        Referrer
+                      </div>
+                    </th>
                     <th className="px-3 py-2.5 text-center text-[10px] font-medium uppercase tracking-wider text-white/30">Status</th>
                   </tr>
                 </thead>
@@ -648,6 +654,7 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
                     stats.clicks.slice((page - 1) * limit, page * limit).map((click) => {
                       const DeviceIcon = getDeviceIcon(click.deviceType, click.deviceBrand)
                       const deviceLabel = getDeviceLabel(click)
+                      
                       return (
                         <tr key={click.id} className="hover:bg-white/[0.02] transition-colors">
                           <td className="px-3 py-2.5 text-xs text-white/40 whitespace-nowrap">
@@ -681,18 +688,25 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
                               <span className="text-[10px] text-white/30 ml-1">v{click.browserVersion}</span>
                             )}
                           </td>
-                          <td className="px-3 py-2.5 text-xs hidden lg:table-cell">
+                          <td className="px-3 py-2.5 text-xs">
                             {click.referrer ? (
-                              <a
-                                href={click.referrer}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-indigo-300/60 hover:text-indigo-300 transition-colors truncate block max-w-[120px]"
-                              >
-                                {new URL(click.referrer).hostname}
-                              </a>
+                              <div className="flex items-center gap-1.5 group/referrer">
+                                <ExternalLink className="h-3 w-3 text-white/20 group-hover/referrer:text-indigo-400 transition-colors flex-shrink-0" strokeWidth={1.5} />
+                                <a
+                                  href={click.referrer}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-indigo-300/70 hover:text-indigo-300 transition-colors break-all text-[11px]"
+                                  title={click.referrer}
+                                >
+                                  {click.referrer}
+                                </a>
+                              </div>
                             ) : (
-                              <span className="text-white/20">Direct</span>
+                              <span className="text-white/20 flex items-center gap-1.5">
+                                <span className="h-1.5 w-1.5 rounded-full bg-white/10"></span>
+                                Direct
+                              </span>
                             )}
                           </td>
                           <td className="px-3 py-2.5">
