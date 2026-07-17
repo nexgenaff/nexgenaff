@@ -21,6 +21,21 @@ export const metadata: Metadata = {
     title: 'NexGen Affiliates',
     description: 'Affiliate tracking, geo redirect, and public analytics for modern marketing teams.',
     type: 'website',
+    url: 'https://nexgenaffiliates.vercel.app',
+    images: [
+      {
+        url: '/favicon.png',
+        width: 1200,
+        height: 630,
+        alt: 'NexGen Affiliates social preview',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'NexGen Affiliates',
+    description: 'Affiliate tracking, geo redirect, and public analytics for modern marketing teams.',
+    images: ['/favicon.png'],
   },
 }
 
