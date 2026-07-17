@@ -18,6 +18,7 @@ import {
   Flag,
   RotateCcw,
 } from 'lucide-react'
+import { coerceArray } from '@/lib/utils/array-response'
 
 interface Offer {
   id: string
@@ -274,6 +275,7 @@ export default function OffersPage() {
   const [formError, setFormError] = useState('')
   const [formLoading, setFormLoading] = useState(false)
   const [isCountryMenuOpen, setIsCountryMenuOpen] = useState(false)
+  const [countrySearch, setCountrySearch] = useState('')
   const [isGroupCreatorOpen, setIsGroupCreatorOpen] = useState(false)
   const [newGroupName, setNewGroupName] = useState('')
   const [isQuickGroupOpen, setIsQuickGroupOpen] = useState(false)
@@ -283,13 +285,13 @@ export default function OffersPage() {
 
   const fetchOffers = useCallback(async () => {
     try {
-      const response = await fetch('/api/offers')
+      const response = await fetch('/api/offers', { credentials: 'include' })
       if (response.status === 401) {
         router.push('/login')
         return
       }
       const data = await response.json()
-      setOffers(data)
+      setOffers(coerceArray<Offer>(data))
     } catch (error) {
       console.error('Failed to fetch offers:', error)
     } finally {
@@ -388,13 +390,21 @@ export default function OffersPage() {
   )
 
   const selectedCountry = countryOptions.find((country) => country.code === formData.country)
+  const normalizedCountrySearch = countrySearch.trim().toLowerCase()
+  const filteredCountryOptions = countryOptions.filter((country) => {
+    if (!normalizedCountrySearch) return true
+
+    const haystack = `${country.code} ${country.name}`.toLowerCase()
+    return haystack.includes(normalizedCountrySearch)
+  })
 
   const handleCountrySelect = (countryCode: string) => {
-    setFormData({
-      ...formData,
+    setFormData((current) => ({
+      ...current,
       country: countryCode,
       isGlobal: countryCode === 'GLOBAL',
-    })
+    }))
+    setCountrySearch('')
     setIsCountryMenuOpen(false)
   }
 
@@ -453,6 +463,7 @@ export default function OffersPage() {
       affectedOffers.map(async (offer) => {
         const response = await fetch(`/api/offers/${offer.id}`, {
           method: 'PUT',
+          credentials: 'include',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             country: offer.country,
@@ -523,13 +534,15 @@ export default function OffersPage() {
 
       const response = await fetch(url, {
         method,
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       })
 
+      const data = await response.json().catch(() => null)
+
       if (!response.ok) {
-        const data = await response.json()
-        throw new Error(data.error || 'Failed to save offer')
+        throw new Error(data?.error || 'Failed to save offer')
       }
 
       setShowForm(false)
@@ -551,6 +564,7 @@ export default function OffersPage() {
     try {
       const response = await fetch(`/api/offers/${id}`, {
         method: 'DELETE',
+        credentials: 'include',
       })
 
       if (!response.ok) {
@@ -567,6 +581,7 @@ export default function OffersPage() {
     try {
       const response = await fetch(`/api/offers/${id}`, {
         method: 'PUT',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ isActive: !isActive }),
       })
@@ -764,7 +779,10 @@ export default function OffersPage() {
                 <div ref={countryPickerRef} className="relative">
                   <button
                     type="button"
-                    onClick={() => setIsCountryMenuOpen((current) => !current)}
+                    onClick={() => {
+                      setCountrySearch('')
+                      setIsCountryMenuOpen((current) => !current)
+                    }}
                     className="form-select flex items-center justify-between gap-3 text-left"
                     disabled={formLoading}
                   >
@@ -790,26 +808,42 @@ export default function OffersPage() {
 
                   {isCountryMenuOpen && (
                     <div className="absolute left-0 right-0 top-[calc(100%+8px)] z-20 max-h-80 overflow-y-auto rounded-2xl border border-white/10 bg-slate-950/95 p-2 shadow-2xl shadow-slate-950/60 backdrop-blur-xl">
-                      {countryOptions.map((country) => (
-                        <button
-                          key={country.code}
-                          type="button"
-                          onClick={() => handleCountrySelect(country.code)}
-                          className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left transition hover:bg-white/5"
-                        >
-                          <Image
-                            src={country.code === 'GLOBAL' ? 'https://flagcdn.com/w40/gb.png' : getFlagImageUrl(country.code)}
-                            alt={`${country.code} flag`}
-                            width={28}
-                            height={20}
-                            className="rounded-sm object-cover"
-                          />
-                          <div className="min-w-0">
-                            <div className="text-sm font-semibold text-white">{country.code === 'GLOBAL' ? 'GLOBAL' : country.code}</div>
-                            <div className="truncate text-xs text-white/45">{country.name}</div>
-                          </div>
-                        </button>
-                      ))}
+                      <div className="sticky top-0 z-10 mb-2 rounded-xl border border-white/10 bg-slate-900/90 p-2 backdrop-blur">
+                        <input
+                          type="text"
+                          value={countrySearch}
+                          onChange={(event) => setCountrySearch(event.target.value)}
+                          placeholder="Search countries"
+                          className="w-full rounded-lg border border-white/10 bg-slate-950/70 px-3 py-2 text-sm text-white outline-none ring-0 placeholder:text-white/35"
+                          autoFocus
+                        />
+                      </div>
+                      {filteredCountryOptions.length > 0 ? (
+                        filteredCountryOptions.map((country) => (
+                          <button
+                            key={country.code}
+                            type="button"
+                            onClick={() => handleCountrySelect(country.code)}
+                            className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left transition hover:bg-white/5"
+                          >
+                            <Image
+                              src={country.code === 'GLOBAL' ? 'https://flagcdn.com/w40/gb.png' : getFlagImageUrl(country.code)}
+                              alt={`${country.code} flag`}
+                              width={28}
+                              height={20}
+                              className="rounded-sm object-cover"
+                            />
+                            <div className="min-w-0">
+                              <div className="text-sm font-semibold text-white">{country.code === 'GLOBAL' ? 'GLOBAL' : country.code}</div>
+                              <div className="truncate text-xs text-white/45">{country.name}</div>
+                            </div>
+                          </button>
+                        ))
+                      ) : (
+                        <div className="rounded-xl border border-white/10 bg-white/5 px-3 py-3 text-sm text-white/60">
+                          No countries match your search.
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>

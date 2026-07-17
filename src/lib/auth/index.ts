@@ -63,10 +63,22 @@ export async function getUserFromToken(token: string) {
 export function getTokenFromCookie(cookieHeader: string): string | null {
   if (!cookieHeader) return null
 
-  const token = cookieHeader
+  const cookiePairs = cookieHeader
     .split(';')
-    .find(c => c.trim().startsWith('auth-token='))
-    ?.split('=')[1]
+    .map((cookie) => cookie.trim())
+    .filter(Boolean)
 
-  return token || null
+  for (const cookie of cookiePairs) {
+    const separatorIndex = cookie.indexOf('=')
+    if (separatorIndex === -1) continue
+
+    const name = cookie.slice(0, separatorIndex).trim()
+    const value = cookie.slice(separatorIndex + 1).trim()
+
+    if (name === 'auth-token') {
+      return decodeURIComponent(value)
+    }
+  }
+
+  return null
 }

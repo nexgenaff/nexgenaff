@@ -6,6 +6,8 @@ import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { Search, Plus, MousePointerClick, Users, Bot, Globe2, Link2, Sparkles, ShieldCheck, Copy, Check, Pencil, RotateCcw, Trash2, X } from 'lucide-react'
 import { formatNumber } from '@/lib/utils/helpers'
+import { buildOfferGroupList } from '@/lib/utils/offer-groups'
+import { coerceArray } from '@/lib/utils/array-response'
 
 interface LinkAccount {
   id: string
@@ -63,13 +65,13 @@ export default function LinksPage() {
 
   const fetchLinks = useCallback(async () => {
     try {
-      const response = await fetch('/api/links')
+      const response = await fetch('/api/links', { credentials: 'include' })
       if (response.status === 401) {
         router.push('/login')
         return
       }
       const data = await response.json()
-      setLinks(data)
+      setLinks(coerceArray<LinkAccount>(data))
     } catch (error) {
       console.error('Failed to fetch links:', error)
     }
@@ -77,13 +79,13 @@ export default function LinksPage() {
 
   const fetchDomains = useCallback(async () => {
     try {
-      const response = await fetch('/api/domains')
+      const response = await fetch('/api/domains', { credentials: 'include' })
       if (response.status === 401) {
         router.push('/login')
         return
       }
       const data = await response.json()
-      setDomains(data)
+      setDomains(coerceArray<DomainOption>(data))
     } catch (error) {
       console.error('Failed to fetch domains:', error)
     }
@@ -91,20 +93,14 @@ export default function LinksPage() {
 
   const fetchOfferGroups = useCallback(async () => {
     try {
-      const response = await fetch('/api/offers')
+      const response = await fetch('/api/offers', { credentials: 'include' })
       if (response.status === 401) {
         router.push('/login')
         return
       }
 
       const data = await response.json()
-      const groups = Array.from(
-        new Set(
-          (data as Array<{ groupName: string | null }>).map((offer) => offer.groupName?.trim()).filter((value): value is string => Boolean(value))
-        )
-      ).sort((a, b) => a.localeCompare(b))
-
-      setOfferGroups(groups)
+      setOfferGroups(buildOfferGroupList(data))
     } catch (error) {
       console.error('Failed to fetch offer groups:', error)
     }
@@ -187,6 +183,7 @@ export default function LinksPage() {
     try {
       const response = await fetch(`/api/links/${editingLinkId}`, {
         method: 'PUT',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           accountName: editingAccountName.trim(),
@@ -224,6 +221,7 @@ export default function LinksPage() {
     try {
       const response = await fetch(`/api/links/${id}`, {
         method: 'DELETE',
+        credentials: 'include',
       })
 
       const data = await response.json().catch(() => null)
@@ -252,6 +250,7 @@ export default function LinksPage() {
     try {
       const response = await fetch(`/api/links/${id}`, {
         method: 'POST',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'reset' }),
       })
@@ -283,6 +282,7 @@ export default function LinksPage() {
     try {
       const response = await fetch('/api/links/bulk', {
         method: 'POST',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'reset', ids: selectedIds }),
       })
@@ -315,6 +315,7 @@ export default function LinksPage() {
     try {
       const response = await fetch('/api/links/bulk', {
         method: 'POST',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'delete', ids: selectedIds }),
       })
@@ -346,6 +347,7 @@ export default function LinksPage() {
     try {
       const response = await fetch('/api/links/bulk', {
         method: 'POST',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           action: 'update',

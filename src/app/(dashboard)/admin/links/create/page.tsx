@@ -15,6 +15,8 @@ import {
   Copy,
   Check,
 } from 'lucide-react'
+import { buildOfferGroupList } from '@/lib/utils/offer-groups'
+import { coerceArray } from '@/lib/utils/array-response'
 
 interface Domain {
   id: string
@@ -51,13 +53,13 @@ export default function CreateLinkPage() {
 
   const fetchDomains = useCallback(async () => {
     try {
-      const response = await fetch('/api/domains')
+      const response = await fetch('/api/domains', { credentials: 'include' })
       if (response.status === 401) {
         router.push('/login')
         return
       }
       const data = await response.json()
-      setDomains(data)
+      setDomains(coerceArray<Domain>(data))
     } catch (error) {
       console.error('Failed to fetch domains:', error)
     }
@@ -65,21 +67,14 @@ export default function CreateLinkPage() {
 
   const fetchOfferGroups = useCallback(async () => {
     try {
-      const response = await fetch('/api/offers')
+      const response = await fetch('/api/offers', { credentials: 'include' })
       if (response.status === 401) {
         router.push('/login')
         return
       }
 
       const data = await response.json()
-      const groups = Array.from(
-        new Set(
-          (data as OfferSummary[])
-            .map((offer) => offer.groupName?.trim())
-            .filter((value): value is string => Boolean(value))
-        )
-      ).sort((a, b) => a.localeCompare(b))
-
+      const groups = buildOfferGroupList(data)
       setOfferGroups(groups)
     } catch (error) {
       console.error('Failed to fetch offer groups:', error)
@@ -124,6 +119,7 @@ export default function CreateLinkPage() {
     try {
       const response = await fetch('/api/links', {
         method: 'POST',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           accountName,

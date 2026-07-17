@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { Plus, Trash2, CheckCircle, RefreshCw, XCircle, Copy } from 'lucide-react'
+import { coerceArray } from '@/lib/utils/array-response'
 
 interface DomainRecord {
   host: string
@@ -41,13 +42,13 @@ export default function DomainsPage() {
 
   const fetchDomains = useCallback(async () => {
     try {
-      const response = await fetch('/api/domains', { cache: 'no-store' })
+      const response = await fetch('/api/domains', { cache: 'no-store', credentials: 'include' })
       if (response.status === 401) {
         router.push('/login')
         return
       }
       const data = await response.json()
-      setDomains(data)
+      setDomains(coerceArray<Domain>(data))
     } catch (error) {
       console.error('Failed to fetch domains:', error)
     } finally {
@@ -68,6 +69,7 @@ export default function DomainsPage() {
       const response = await fetch('/api/domains', {
         method: 'POST',
         cache: 'no-store',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ domain: newDomain }),
       })
@@ -99,6 +101,7 @@ export default function DomainsPage() {
     try {
       const response = await fetch(`/api/domains/${id}`, {
         method: 'DELETE',
+        credentials: 'include',
       })
 
       if (!response.ok) {
@@ -121,6 +124,7 @@ export default function DomainsPage() {
       const response = await fetch(`/api/domains/verify`, {
         method: 'POST',
         cache: 'no-store',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ domainId: id }),
       })

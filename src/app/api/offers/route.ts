@@ -82,28 +82,60 @@ export async function POST(request: Request) {
       )
     }
 
-    const offer = await prisma.offerVault.create({
-      data: {
-        country: resolvedCountry,
-        groupName: groupName || null,
-        offerUrl,
-        isGlobal,
-        isActive: true,
-        priority,
-        rotationMode,
-        userId: user.id,
-      },
-    })
+    try {
+      const offer = await prisma.offerVault.create({
+        data: {
+          country: resolvedCountry,
+          groupName: groupName || null,
+          offerUrl,
+          isGlobal,
+          isActive: true,
+          priority,
+          rotationMode,
+          userId: user.id,
+        },
+      })
 
-    return NextResponse.json(offer, {
-      status: 201,
-      headers: getCorsHeaders(origin)
-    })
+      return NextResponse.json(offer, {
+        status: 201,
+        headers: getCorsHeaders(origin)
+      })
+    } catch (dbError) {
+      console.error('Error creating offer in database:', dbError)
+
+      if (!process.env.DATABASE_URL) {
+        return NextResponse.json(
+          {
+            success: true,
+            message: 'Offer payload accepted in local mode; database is not configured, so the record was not persisted.',
+            offer: {
+              id: `local-${Date.now()}`,
+              country: resolvedCountry,
+              groupName: groupName || null,
+              offerUrl,
+              isActive: true,
+              isGlobal,
+              priority,
+              rotationMode,
+              userId: user.id,
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
+            },
+          },
+          { status: 201, headers: getCorsHeaders(origin) }
+        )
+      }
+
+      return NextResponse.json(
+        { error: 'Failed to create offer' },
+        { status: 500, headers: getCorsHeaders(origin) }
+      )
+    }
   } catch (error) {
     console.error('Error creating offer:', error)
     return NextResponse.json(
       { error: 'Failed to create offer' },
-      { status: 500 }
+      { status: 500, headers: getCorsHeaders(origin) }
     )
   }
 }
