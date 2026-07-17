@@ -125,6 +125,10 @@ export default function AnalyticsPage() {
     )
   }
 
+  const report = stats.accountGeoReport
+  const reportLabels = report?.labels ?? []
+  const reportRows = report?.accountBreakdown ?? []
+
   return (
     <div className="space-y-6">
       <motion.div
@@ -170,7 +174,7 @@ export default function AnalyticsPage() {
       />
 
       <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.16),transparent_28%),linear-gradient(135deg,rgba(255,255,255,0.12),rgba(255,255,255,0.05)_55%,rgba(15,23,42,0.35))] p-5 sm:p-6 backdrop-blur-xl shadow-[0_35px_80px_rgba(15,23,42,0.45)] before:absolute before:inset-0 before:bg-[linear-gradient(110deg,transparent_0%,rgba(255,255,255,0.08)_45%,transparent_100%)] before:opacity-50 before:mix-blend-screen">
-        {stats.accountGeoReport?.datasets?.length ? (
+        {report?.datasets?.length ? (
           <motion.div
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
@@ -183,13 +187,13 @@ export default function AnalyticsPage() {
                 <thead className="bg-black/25 text-[11px] uppercase tracking-[0.24em] text-white/45">
                   <tr>
                     <th className="px-4 py-3 font-semibold text-cyan-200">Account Name</th>
-                    {stats.accountGeoReport.labels.slice(0, 6).map((country) => (
+                    {reportLabels.slice(0, 6).map((country) => (
                       <th key={country} className="px-4 py-3 font-semibold text-fuchsia-200/90">{country}</th>
                     ))}
                   </tr>
                 </thead>
                 <tbody>
-                  {stats.accountGeoReport.accountBreakdown.slice(0, 8).map((account, index) => (
+                  {reportRows.slice(0, 8).map((account, index) => (
                     <motion.tr
                       key={account.accountName}
                       initial={{ opacity: 0, y: 8 }}
@@ -198,7 +202,7 @@ export default function AnalyticsPage() {
                       className={`border-t border-white/10 ${index % 2 === 0 ? 'bg-white/[0.025]' : 'bg-black/10'}`}
                     >
                       <td className="px-4 py-3 font-semibold text-emerald-300">{account.accountName}</td>
-                      {stats.accountGeoReport.labels.slice(0, 6).map((country) => {
+                      {reportLabels.slice(0, 6).map((country) => {
                         const countryValue = account.countries.find((item) => item.country === country)
                         return (
                           <td key={`${account.accountName}-${country}`} className="px-4 py-3">
