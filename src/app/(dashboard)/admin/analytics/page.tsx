@@ -4,16 +4,32 @@ import { useCallback, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { Activity, ArrowUpRight, BarChart3, RefreshCw, ShieldCheck, Sparkles } from 'lucide-react'
+import { FileDown, RefreshCw, Sparkles } from 'lucide-react'
 import { formatNumber } from '@/lib/utils/helpers'
 import StatsCards from '@/components/dashboard/StatsCards'
-import RecentClicks from '@/components/dashboard/RecentClicks'
 
 interface DashboardStats {
   totalClicks: number
   uniqueClicks: number
   totalLinks: number
   botClicks: number
+  accountGeoReport?: {
+    labels: string[]
+    datasets: {
+      label: string
+      data: number[]
+      borderColor: string
+      backgroundColor: string
+      fill?: boolean
+      tension?: number
+      pointRadius?: number
+    }[]
+    accountBreakdown: Array<{
+      accountName: string
+      totalUniqueClicks: number
+      countries: Array<{ country: string; uniqueClicks: number }>
+    }>
+  }
   chartData?: {
     labels: string[]
     datasets: {
@@ -153,78 +169,69 @@ export default function AnalyticsPage() {
         hourlyChartData={stats.hourlyChartData}
       />
 
-      <div className="grid grid-cols-1 gap-6 xl:grid-cols-[1.2fr_0.8fr]">
-        <div className="rounded-2xl border border-white/10 bg-white/5 p-4 sm:p-6 backdrop-blur-xl">
-          <div className="mb-4 flex items-center gap-2">
-            <BarChart3 className="h-5 w-5 text-indigo-400" />
-            <h2 className="text-lg font-semibold text-white">Performance pulse</h2>
-          </div>
-
-          <div className="grid gap-3 sm:grid-cols-3">
-            {healthCards.map((item) => (
-              <div key={item.label} className="rounded-2xl border border-white/10 bg-black/20 p-4">
-                <p className="text-xs uppercase tracking-[0.24em] text-white/35">{item.label}</p>
-                <p className={`mt-3 text-xl font-bold ${item.tone}`}>{item.value}</p>
-                <p className="mt-1 text-sm text-white/40">{item.detail}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="rounded-2xl border border-white/10 bg-white/5 p-4 sm:p-6 backdrop-blur-xl">
-          <div className="mb-4 flex items-center gap-2">
-            <ShieldCheck className="h-5 w-5 text-emerald-400" />
-            <h2 className="text-lg font-semibold text-white">Live system health</h2>
-          </div>
-
-          <div className="space-y-4">
-            <div className="flex items-center justify-between rounded-xl bg-black/20 px-3 py-3">
-              <span className="text-sm text-white/55">Proxy status</span>
-              <span className="inline-flex items-center gap-2 text-sm text-emerald-400">
-                <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-                Online
-              </span>
+      <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.16),transparent_28%),linear-gradient(135deg,rgba(255,255,255,0.12),rgba(255,255,255,0.05)_55%,rgba(15,23,42,0.35))] p-5 sm:p-6 backdrop-blur-xl shadow-[0_35px_80px_rgba(15,23,42,0.45)] before:absolute before:inset-0 before:bg-[linear-gradient(110deg,transparent_0%,rgba(255,255,255,0.08)_45%,transparent_100%)] before:opacity-50 before:mix-blend-screen">
+        {stats.accountGeoReport?.datasets?.length ? (
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.35, ease: 'easeOut' }}
+            className="overflow-hidden rounded-[24px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.12),rgba(10,15,30,0.5)_60%,rgba(8,12,25,0.8))] shadow-[0_20px_50px_rgba(2,8,23,0.45)] ring-1 ring-cyan-400/10"
+          >
+            <div className="border-b border-white/10 bg-[linear-gradient(90deg,rgba(34,211,238,0.13),rgba(192,132,252,0.12))] px-4 py-3 sm:px-5" />
+            <div className="overflow-x-auto">
+              <table className="min-w-full border-collapse text-sm text-left text-white/80">
+                <thead className="bg-black/25 text-[11px] uppercase tracking-[0.24em] text-white/45">
+                  <tr>
+                    <th className="px-4 py-3 font-semibold text-cyan-200">Account Name</th>
+                    {stats.accountGeoReport.labels.slice(0, 6).map((country) => (
+                      <th key={country} className="px-4 py-3 font-semibold text-fuchsia-200/90">{country}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {stats.accountGeoReport.accountBreakdown.slice(0, 8).map((account, index) => (
+                    <motion.tr
+                      key={account.accountName}
+                      initial={{ opacity: 0, y: 8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.05, duration: 0.2 }}
+                      className={`border-t border-white/10 ${index % 2 === 0 ? 'bg-white/[0.025]' : 'bg-black/10'}`}
+                    >
+                      <td className="px-4 py-3 font-semibold text-emerald-300">{account.accountName}</td>
+                      {stats.accountGeoReport.labels.slice(0, 6).map((country) => {
+                        const countryValue = account.countries.find((item) => item.country === country)
+                        return (
+                          <td key={`${account.accountName}-${country}`} className="px-4 py-3">
+                            {countryValue ? (
+                              <motion.div
+                                initial={{ scale: 0.95, opacity: 0.8 }}
+                                animate={{ scale: 1, opacity: 1 }}
+                                transition={{ duration: 0.2 }}
+                                className="inline-flex min-w-[56px] items-center justify-center rounded-full border border-cyan-400/30 bg-cyan-500/20 px-2.5 py-1 text-sm font-semibold text-cyan-100 shadow-[0_0_0_1px_rgba(255,255,255,0.04)]"
+                              >
+                                {countryValue.uniqueClicks}
+                              </motion.div>
+                            ) : (
+                              <span className="inline-flex min-w-[56px] items-center justify-center rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-sm text-white/30">
+                                —
+                              </span>
+                            )}
+                          </td>
+                        )
+                      })}
+                    </motion.tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
-            <div className="flex items-center justify-between rounded-xl bg-black/20 px-3 py-3">
-              <span className="text-sm text-white/55">Auth session</span>
-              <span className="inline-flex items-center gap-2 text-sm text-cyan-400">
-                <span className="h-2 w-2 rounded-full bg-cyan-400 animate-pulse" />
-                Verified
-              </span>
-            </div>
-            <div className="flex items-center justify-between rounded-xl bg-black/20 px-3 py-3">
-              <span className="text-sm text-white/55">Campaign health</span>
-              <span className="inline-flex items-center gap-2 text-sm text-fuchsia-400">
-                <ArrowUpRight className="h-4 w-4" />
-                {stats.totalLinks > 0 ? 'Strong' : 'Needs campaigns'}
-              </span>
-            </div>
+          </motion.div>
+        ) : (
+          <div className="rounded-2xl border border-dashed border-white/10 bg-black/20 p-8 text-center text-sm text-white/40">
+            No account-to-geo report data is available yet.
           </div>
-        </div>
+        )}
       </div>
 
-      <div className="grid grid-cols-1 gap-6 xl:grid-cols-[1.1fr_0.9fr]">
-        <div className="xl:col-span-2">
-          <RecentClicks />
-        </div>
-        <div className="rounded-2xl border border-white/10 bg-white/5 p-4 sm:p-6 backdrop-blur-xl">
-          <div className="mb-4 flex items-center gap-2">
-            <Activity className="h-5 w-5 text-indigo-400" />
-            <h2 className="text-lg font-semibold text-white">Best next actions</h2>
-          </div>
-          <div className="space-y-3">
-            <Link href="/admin/links/create" className="block rounded-xl border border-indigo-500/20 bg-indigo-500/10 px-4 py-3 text-sm text-indigo-200 transition hover:bg-indigo-500/15">
-              Create a new tracking link and push it live.
-            </Link>
-            <Link href="/admin/offers" className="block rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white/70 transition hover:bg-white/5">
-              Review offer inventory and promote the strongest campaign.
-            </Link>
-            <Link href="/admin/domains" className="block rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white/70 transition hover:bg-white/5">
-              Connect or verify a custom domain for trust and branding.
-            </Link>
-          </div>
-        </div>
-      </div>
     </div>
   )
 }

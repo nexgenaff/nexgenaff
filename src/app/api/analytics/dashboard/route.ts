@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db/prisma'
 import { getUserFromToken, getTokenFromCookie } from '@/lib/auth'
 import { getCorsHeaders } from '@/config/cors'
+import { buildAccountGeoReport } from '@/lib/utils/report-data'
 
 export async function GET(request: Request) {
   try {
@@ -72,15 +73,21 @@ export async function GET(request: Request) {
             },
           ],
         },
+        accountGeoReport: {
+          labels: [],
+          datasets: [],
+          accountBreakdown: [],
+        },
       }, { headers: getCorsHeaders(origin) })
     }
 
     const links = await prisma.linkAccount.findMany({
       where: { userId: user.id },
-      select: { id: true },
+      select: { id: true, accountName: true },
     })
 
     const linkIds = links.map(link => link.id)
+    const linkAccounts = links.map((link) => ({ id: link.id, accountName: link.accountName }))
 
     const requestedPeriod = url.searchParams.get('period') || 'week'
     const now = new Date()
@@ -129,6 +136,7 @@ export async function GET(request: Request) {
             },
           },
           select: {
+            linkAccountId: true,
             country: true,
             browser: true,
             deviceType: true,
@@ -235,6 +243,8 @@ export async function GET(request: Request) {
       pointRadius: 2,
     }))
 
+    const reportData = buildAccountGeoReport(clicks, linkAccounts)
+
     const hourlyLabels = Array.from({ length: 24 }, (_, hour) => `${String(hour).padStart(2, '0')}:00`)
     const hourlyTrendValues = Array.from({ length: 24 }, () => 0)
     const hourlyUniqueValues = Array.from({ length: 24 }, () => 0)
@@ -321,6 +331,7 @@ export async function GET(request: Request) {
           },
         ],
       },
+      accountGeoReport: reportData,
     }, { headers: getCorsHeaders(origin) })
   } catch (error) {
     console.error('Dashboard stats error:', error)

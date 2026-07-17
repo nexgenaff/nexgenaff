@@ -613,9 +613,9 @@ export default function LinksPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.04, duration: 0.28, ease: 'easeOut' }}
               whileHover={{ y: -2 }}
-              className="rounded-3xl border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.03))] p-4 backdrop-blur-xl sm:p-5"
+              className="rounded-3xl border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.03))] p-3.5 backdrop-blur-xl sm:p-4"
             >
-              <div className="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
+              <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
                     <label className="flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[11px] font-semibold text-white/75">
@@ -631,15 +631,15 @@ export default function LinksPage() {
                     </span>
                   </div>
 
-                  <div className="mt-3 flex flex-wrap items-center gap-2">
-                    <h3 className="text-lg font-semibold text-white">{link.accountName}</h3>
-                    <span className="rounded-full border border-white/10 bg-slate-950/70 px-3 py-1 text-[11px] text-white/55">
+                  <div className="mt-2 flex flex-wrap items-center gap-2">
+                    <h3 className="text-base font-semibold text-white">{link.accountName}</h3>
+                    <span className="rounded-full border border-white/10 bg-slate-950/70 px-2.5 py-1 text-[10px] text-white/55">
                       {link.offerGroupName ? `Pool: ${link.offerGroupName}` : 'Default smart routing'}
                     </span>
                   </div>
 
-                  <div className="mt-3 grid gap-3 md:grid-cols-2">
-                    <div className="rounded-2xl border border-white/10 bg-slate-950/70 p-3">
+                  <div className="mt-2.5 grid gap-2 md:grid-cols-2">
+                    <div className="rounded-2xl border border-white/10 bg-slate-950/70 p-2.5">
                       <div className="flex items-center justify-between gap-2">
                         <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.24em] text-white/45">
                           <Link2 className="h-3.5 w-3.5" />
@@ -653,10 +653,10 @@ export default function LinksPage() {
                           {copiedKey === `tracking-${link.id}` ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
                         </button>
                       </div>
-                      <div className="mt-2 break-all font-mono text-sm text-indigo-300">{getPreviewUrl(link)}</div>
+                      <div className="mt-1.5 break-all font-mono text-xs text-indigo-300">{getPreviewUrl(link)}</div>
                     </div>
 
-                    <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-3">
+                    <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-2.5">
                       <div className="flex items-center justify-between gap-2">
                         <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.24em] text-emerald-300">
                           <Globe2 className="h-3.5 w-3.5" />
@@ -670,11 +670,11 @@ export default function LinksPage() {
                           {copiedKey === `stats-${link.id}` ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
                         </button>
                       </div>
-                      <div className="mt-2 break-all font-mono text-sm text-emerald-300">{getPublicStatsUrl(link)}</div>
+                      <div className="mt-1.5 break-all font-mono text-xs text-emerald-300">{getPublicStatsUrl(link)}</div>
                     </div>
                   </div>
 
-                  <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-white/40">
+                  <div className="mt-2 flex flex-wrap items-center gap-2 text-[11px] text-white/40">
                     <span className="inline-flex items-center gap-1 rounded-full border border-white/10 bg-white/5 px-2.5 py-1">
                       <Globe2 className="h-3.5 w-3.5" />
                       /{link.slug}
@@ -686,41 +686,41 @@ export default function LinksPage() {
                   </div>
                 </div>
 
-                <div className="grid gap-3 sm:grid-cols-3 xl:w-[360px]">
-                  <div className="rounded-2xl border border-white/10 bg-slate-950/55 p-3 text-center">
-                    <div className="flex items-center justify-center gap-1 text-[11px] uppercase tracking-[0.24em] text-white/35">
-                      <MousePointerClick className="h-3.5 w-3.5" />
+                <div className="grid gap-2 sm:grid-cols-3 xl:w-[320px]">
+                  <div className="rounded-2xl border border-white/10 bg-slate-950/55 p-2.5 text-center">
+                    <div className="flex items-center justify-center gap-1 text-[10px] uppercase tracking-[0.24em] text-white/35">
+                      <MousePointerClick className="h-3 w-3" />
                       Total
                     </div>
-                    <div className="mt-2 text-xl font-bold text-indigo-400">{formatNumber(link.totalClicks)}</div>
+                    <div className="mt-1 text-lg font-bold text-indigo-400">{formatNumber(link.totalClicks)}</div>
                   </div>
-                  <div className="rounded-2xl border border-white/10 bg-slate-950/55 p-3 text-center">
-                    <div className="flex items-center justify-center gap-1 text-[11px] uppercase tracking-[0.24em] text-white/35">
-                      <Users className="h-3.5 w-3.5" />
+                  <div className="rounded-2xl border border-white/10 bg-slate-950/55 p-2.5 text-center">
+                    <div className="flex items-center justify-center gap-1 text-[10px] uppercase tracking-[0.24em] text-white/35">
+                      <Users className="h-3 w-3" />
                       Unique
                     </div>
-                    <div className="mt-2 text-xl font-bold text-emerald-400">{formatNumber(link.uniqueClicks)}</div>
+                    <div className="mt-1 text-lg font-bold text-emerald-400">{formatNumber(link.uniqueClicks)}</div>
                   </div>
-                  <div className="rounded-2xl border border-white/10 bg-slate-950/55 p-3 text-center">
-                    <div className="flex items-center justify-center gap-1 text-[11px] uppercase tracking-[0.24em] text-white/35">
-                      <Bot className="h-3.5 w-3.5" />
+                  <div className="rounded-2xl border border-white/10 bg-slate-950/55 p-2.5 text-center">
+                    <div className="flex items-center justify-center gap-1 text-[10px] uppercase tracking-[0.24em] text-white/35">
+                      <Bot className="h-3 w-3" />
                       Bots
                     </div>
-                    <div className="mt-2 text-xl font-bold text-rose-400">{formatNumber(link.botClicks)}</div>
+                    <div className="mt-1 text-lg font-bold text-rose-400">{formatNumber(link.botClicks)}</div>
                   </div>
                 </div>
 
-                <div className="mt-4 flex flex-wrap gap-2 xl:justify-end">
-                  <button type="button" onClick={() => openEdit(link)} className="inline-flex items-center gap-1 rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-medium text-white/75 transition hover:bg-white/10 hover:text-white">
-                    <Pencil className="h-3.5 w-3.5" />
+                <div className="mt-2 flex flex-wrap gap-2 xl:justify-end">
+                  <button type="button" onClick={() => openEdit(link)} className="inline-flex items-center gap-1 rounded-lg border border-white/10 bg-white/5 px-2.5 py-1.25 text-[11px] font-medium text-white/75 transition hover:bg-white/10 hover:text-white">
+                    <Pencil className="h-3 w-3" />
                     Edit
                   </button>
-                  <button type="button" onClick={() => handleReset(link.id)} disabled={busyLinkId === link.id} className="inline-flex items-center gap-1 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-1.5 text-xs font-medium text-amber-300 transition hover:bg-amber-500/15 disabled:opacity-60">
-                    <RotateCcw className="h-3.5 w-3.5" />
+                  <button type="button" onClick={() => handleReset(link.id)} disabled={busyLinkId === link.id} className="inline-flex items-center gap-1 rounded-lg border border-amber-500/30 bg-amber-500/10 px-2.5 py-1.25 text-[11px] font-medium text-amber-300 transition hover:bg-amber-500/15 disabled:opacity-60">
+                    <RotateCcw className="h-3 w-3" />
                     {busyLinkId === link.id ? 'Resetting...' : 'Reset'}
                   </button>
-                  <button type="button" onClick={() => handleDelete(link.id)} disabled={busyLinkId === link.id} className="inline-flex items-center gap-1 rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-1.5 text-xs font-medium text-red-300 transition hover:bg-red-500/15 disabled:opacity-60">
-                    <Trash2 className="h-3.5 w-3.5" />
+                  <button type="button" onClick={() => handleDelete(link.id)} disabled={busyLinkId === link.id} className="inline-flex items-center gap-1 rounded-lg border border-red-500/30 bg-red-500/10 px-2.5 py-1.25 text-[11px] font-medium text-red-300 transition hover:bg-red-500/15 disabled:opacity-60">
+                    <Trash2 className="h-3 w-3" />
                     {busyLinkId === link.id ? 'Deleting...' : 'Delete'}
                   </button>
                 </div>
