@@ -10,12 +10,14 @@ const inter = Inter({
 })
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://nexgenaffiliates.vercel.app'),
   title: 'NexGen Affiliates',
   description: 'Affiliate tracking, geo redirect, and public analytics for modern marketing teams.',
   keywords: 'affiliate tracking, geo redirect, link management, public analytics, SEO optimize',
   authors: [{ name: 'NexGen Affiliates' }],
   icons: {
-    icon: '/favicon.ico',
+    icon: '/favicon.png',
+    apple: '/favicon.png',
   },
   openGraph: {
     title: 'NexGen Affiliates',
