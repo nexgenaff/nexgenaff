@@ -37,6 +37,10 @@ import {
   Computer,
   Link2,
   FileText,
+  Filter,
+  Globe,
+  MousePointer,
+  ArrowRight,
 } from 'lucide-react'
 import { Logo } from '@/components/ui/Logo'
 
@@ -215,10 +219,10 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
   const [error, setError] = useState('')
   const [search, setSearch] = useState('')
   const [filterCountry, setFilterCountry] = useState('')
-  const [filterUnique, setFilterUnique] = useState('')
+  const [filterUnique, setFilterUnique] = useState<'all' | 'unique' | 'repeat'>('all')
+  const [filterReferrer, setFilterReferrer] = useState<'all' | 'direct' | 'referrer'>('all')
   const [timeRange, setTimeRange] = useState<'7d' | '30d' | '90d'>('7d')
   const [isRefreshing, setIsRefreshing] = useState(false)
-  const [showAllLogs, setShowAllLogs] = useState(true)
 
   // Optimized fetch with abort controller
   useEffect(() => {
@@ -227,9 +231,8 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
     const fetchStats = async () => {
       try {
         setIsRefreshing(true)
-        // Fetch all logs at once (no pagination)
         const response = await fetch(
-          `/api/analytics/public/${publicId}?search=${encodeURIComponent(search)}&country=${encodeURIComponent(filterCountry)}&unique=${filterUnique}&range=${timeRange}&limit=10000`,
+          `/api/analytics/public/${publicId}?search=${encodeURIComponent(search)}&country=${encodeURIComponent(filterCountry)}&range=${timeRange}&limit=10000`,
           { signal: abortController.signal }
         )
         if (!response.ok) throw new Error('Dashboard not found')
@@ -248,7 +251,7 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
 
     fetchStats()
     return () => abortController.abort()
-  }, [publicId, search, filterCountry, filterUnique, timeRange])
+  }, [publicId, search, filterCountry, timeRange])
 
   const getDeviceIcon = useCallback((deviceType: string | null, deviceBrand: string | null) => {
     if (!deviceType) return Monitor
@@ -305,6 +308,51 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
     })
   }, [])
 
+  // Smart filtering logic
+  const filteredClicks = useMemo(() => {
+    if (!stats?.clicks) return []
+    
+    let result = stats.clicks
+    
+    // Search filter
+    if (search) {
+      const searchLower = search.toLowerCase()
+      result = result.filter(click => 
+        click.ipAddress?.toLowerCase().includes(searchLower) ||
+        click.country?.toLowerCase().includes(searchLower) ||
+        click.city?.toLowerCase().includes(searchLower) ||
+        click.browser?.toLowerCase().includes(searchLower) ||
+        click.os?.toLowerCase().includes(searchLower) ||
+        click.deviceType?.toLowerCase().includes(searchLower) ||
+        click.referrer?.toLowerCase().includes(searchLower)
+      )
+    }
+    
+    // Country filter
+    if (filterCountry) {
+      result = result.filter(click => click.country === filterCountry)
+    }
+    
+    // Unique filter with smart direct click removal
+    if (filterUnique === 'unique') {
+      result = result.filter(click => click.isUnique === true)
+      // Smart: When filtering unique, also automatically remove direct clicks
+      // because direct clicks are often from bots or self-visits
+      result = result.filter(click => click.referrer !== null && click.referrer !== '')
+    } else if (filterUnique === 'repeat') {
+      result = result.filter(click => click.isUnique === false)
+    }
+    
+    // Referrer filter
+    if (filterReferrer === 'direct') {
+      result = result.filter(click => !click.referrer || click.referrer === '')
+    } else if (filterReferrer === 'referrer') {
+      result = result.filter(click => click.referrer && click.referrer !== '')
+    }
+    
+    return result
+  }, [stats?.clicks, search, filterCountry, filterUnique, filterReferrer])
+
   // Memoized computed values
   const countries = useMemo(() => 
     stats?.geoSummary?.map(e => e.country).filter(Boolean) || []
@@ -316,6 +364,12 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
   const maxCountryClicks = stats?.geoSummary?.length 
     ? Math.max(...stats.geoSummary.map(c => c.totalClicks)) 
     : 0
+
+  // Get unique visitors count (excluding direct clicks smartly)
+  const uniqueVisitors = useMemo(() => {
+    if (!stats?.clicks) return 0
+    return stats.clicks.filter(c => c.isUnique && c.referrer && c.referrer !== '').length
+  }, [stats?.clicks])
 
   const chartData = useMemo(() => ({
     labels: stats?.clickTrend?.labels || ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
@@ -333,26 +387,6 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
       },
     ],
   }), [stats?.clickTrend])
-
-  // Filter clicks based on search
-  const filteredClicks = useMemo(() => {
-    if (!stats?.clicks) return []
-    
-    return stats.clicks.filter(click => {
-      const searchLower = search.toLowerCase()
-      if (!searchLower) return true
-      
-      return (
-        click.ipAddress?.toLowerCase().includes(searchLower) ||
-        click.country?.toLowerCase().includes(searchLower) ||
-        click.city?.toLowerCase().includes(searchLower) ||
-        click.browser?.toLowerCase().includes(searchLower) ||
-        click.os?.toLowerCase().includes(searchLower) ||
-        click.deviceType?.toLowerCase().includes(searchLower) ||
-        click.referrer?.toLowerCase().includes(searchLower)
-      )
-    })
-  }, [stats?.clicks, search])
 
   if (loading) return <SkeletonLoader />
 
@@ -440,7 +474,6 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
               <button 
                 onClick={() => {
                   setTimeRange(timeRange)
-                  // Force refresh
                   setIsRefreshing(true)
                   setTimeout(() => setIsRefreshing(false), 500)
                 }}
@@ -467,10 +500,11 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
             <MetricCard
               icon={Users}
               label="Unique Visitors"
-              value={formatNumber(stats?.uniqueClicks || 0)}
+              value={formatNumber(uniqueVisitors || 0)}
               change="+8.3%"
               changeType="up"
               color="#34D399"
+              subtitle="Filtered (no direct)"
             />
             <MetricCard
               icon={Globe2}
@@ -562,7 +596,7 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
             </div>
           </div>
 
-          {/* Filters */}
+          {/* Smart Filters */}
           <div className="flex flex-wrap items-center gap-2 mb-3">
             <div className="flex items-center gap-2 bg-white/5 rounded-lg px-3 py-1.5 border border-white/10 flex-1 min-w-[160px]">
               <Search className="h-3.5 w-3.5 text-white/20" strokeWidth={1.5} />
@@ -571,31 +605,90 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="bg-transparent border-none outline-none text-sm text-white placeholder:text-white/20 w-full"
-                placeholder="Search clicks by IP, country, browser..."
+                placeholder="Search by IP, country, browser..."
               />
             </div>
             
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1 flex-wrap">
+              {/* All filter */}
               <button
-                onClick={() => { setFilterCountry(''); setFilterUnique('') }}
+                onClick={() => { 
+                  setFilterCountry(''); 
+                  setFilterUnique('all');
+                  setFilterReferrer('all');
+                }}
                 className={`px-2.5 py-1 text-xs font-medium rounded transition-colors ${
-                  filterCountry === '' && filterUnique === ''
+                  filterCountry === '' && filterUnique === 'all' && filterReferrer === 'all'
                     ? 'bg-indigo-500/20 text-indigo-300'
                     : 'text-white/40 hover:text-white/70'
                 }`}
               >
                 All
               </button>
+
+              {/* Unique filter - smartly removes direct clicks */}
               <button
-                onClick={() => setFilterUnique(filterUnique === 'true' ? '' : 'true')}
-                className={`px-2.5 py-1 text-xs font-medium rounded transition-colors ${
-                  filterUnique === 'true'
+                onClick={() => {
+                  setFilterUnique(filterUnique === 'unique' ? 'all' : 'unique')
+                  // Auto-set referrer filter when unique is selected
+                  if (filterUnique !== 'unique') {
+                    setFilterReferrer('referrer')
+                  } else {
+                    setFilterReferrer('all')
+                  }
+                }}
+                className={`px-2.5 py-1 text-xs font-medium rounded transition-colors flex items-center gap-1 ${
+                  filterUnique === 'unique'
                     ? 'bg-emerald-500/20 text-emerald-300'
                     : 'text-white/40 hover:text-white/70'
                 }`}
               >
+                <Users className="h-3 w-3" />
                 Unique
+                {filterUnique === 'unique' && (
+                  <span className="text-[8px] bg-emerald-500/30 px-1 rounded">no direct</span>
+                )}
               </button>
+
+              {/* Repeat filter */}
+              <button
+                onClick={() => setFilterUnique(filterUnique === 'repeat' ? 'all' : 'repeat')}
+                className={`px-2.5 py-1 text-xs font-medium rounded transition-colors ${
+                  filterUnique === 'repeat'
+                    ? 'bg-amber-500/20 text-amber-300'
+                    : 'text-white/40 hover:text-white/70'
+                }`}
+              >
+                Repeat
+              </button>
+
+              {/* Direct clicks filter */}
+              <button
+                onClick={() => setFilterReferrer(filterReferrer === 'direct' ? 'all' : 'direct')}
+                className={`px-2.5 py-1 text-xs font-medium rounded transition-colors flex items-center gap-1 ${
+                  filterReferrer === 'direct'
+                    ? 'bg-rose-500/20 text-rose-300'
+                    : 'text-white/40 hover:text-white/70'
+                }`}
+              >
+                <MousePointer className="h-3 w-3" />
+                Direct
+              </button>
+
+              {/* Referrer filter */}
+              <button
+                onClick={() => setFilterReferrer(filterReferrer === 'referrer' ? 'all' : 'referrer')}
+                className={`px-2.5 py-1 text-xs font-medium rounded transition-colors flex items-center gap-1 ${
+                  filterReferrer === 'referrer'
+                    ? 'bg-indigo-500/20 text-indigo-300'
+                    : 'text-white/40 hover:text-white/70'
+                }`}
+              >
+                <Link2 className="h-3 w-3" />
+                Referrer
+              </button>
+
+              {/* Country filters */}
               {countries.slice(0, 2).map((country) => (
                 <button
                   key={country}
@@ -629,9 +722,15 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
             </div>
             
             <div className="flex items-center gap-1 ml-auto">
-              <span className="text-[10px] text-white/30">
+              <span className="text-[10px] text-white/30 bg-white/5 px-2 py-1 rounded border border-white/5">
                 {filteredClicks.length} / {stats?.clicks?.length || 0} logs
               </span>
+              {filterUnique === 'unique' && (
+                <span className="text-[10px] text-emerald-400/60 bg-emerald-500/10 px-2 py-1 rounded border border-emerald-500/20 flex items-center gap-1">
+                  <ArrowRight className="h-2.5 w-2.5" />
+                  Direct clicks excluded
+                </span>
+              )}
             </div>
           </div>
 
@@ -757,8 +856,8 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
                       <td colSpan={7} className="px-4 py-10 text-center">
                         <div className="flex flex-col items-center gap-1.5">
                           <Eye className="h-7 w-7 text-white/10" strokeWidth={1.5} />
-                          <p className="text-sm text-white/30">No clicks recorded yet</p>
-                          <p className="text-xs text-white/20">Share your link to start collecting analytics</p>
+                          <p className="text-sm text-white/30">No clicks match your filters</p>
+                          <p className="text-xs text-white/20">Try adjusting your search or filter criteria</p>
                         </div>
                       </td>
                     </tr>
@@ -770,12 +869,15 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
             {/* Stats Footer */}
             {filteredClicks.length > 0 && (
               <div className="flex flex-col sm:flex-row items-center justify-between gap-2 border-t border-white/5 px-3 py-2.5">
-                <div className="text-xs text-white/30 flex items-center gap-4">
+                <div className="text-xs text-white/30 flex items-center gap-4 flex-wrap">
                   <span>Total: {filteredClicks.length} clicks</span>
                   <span>•</span>
                   <span>Unique: {filteredClicks.filter(c => c.isUnique).length}</span>
                   <span>•</span>
                   <span>Bots: {filteredClicks.filter(c => c.isBot).length}</span>
+                  {filterUnique === 'unique' && (
+                    <span className="text-emerald-400/60">✨ Direct clicks excluded</span>
+                  )}
                 </div>
                 <div className="text-xs text-white/20 flex items-center gap-2">
                   <FileText className="h-3 w-3" strokeWidth={1.5} />
@@ -791,12 +893,18 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
               <Logo variant="compact" size="sm" showAnimation={true} />
               <span className="text-[10px] text-white/20">NexGen Affiliates</span>
             </div>
-            <div className="flex items-center gap-3 text-[10px] text-white/20">
+            <div className="flex items-center gap-3 text-[10px] text-white/20 flex-wrap">
               <span>Privacy protected</span>
               <span>•</span>
               <span>Real-time analytics</span>
               <span>•</span>
               <span>{filteredClicks.length} total logs</span>
+              {filterUnique === 'unique' && (
+                <>
+                  <span>•</span>
+                  <span className="text-emerald-400/60">Smart filter: no direct clicks</span>
+                </>
+              )}
             </div>
           </div>
 
