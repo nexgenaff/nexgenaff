@@ -110,6 +110,15 @@ export default function CreateLinkPage() {
     }
   }
 
+  const handleBack = () => {
+    if (typeof window !== 'undefined' && window.history.length > 1) {
+      router.back()
+      return
+    }
+
+    router.push('/admin/links')
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
@@ -169,11 +178,16 @@ export default function CreateLinkPage() {
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.35, ease: 'easeOut' }}
-        className="flex items-center gap-4"
+        className="flex flex-wrap items-center gap-3"
       >
-        <Link href="/admin/links" className="rounded-xl border border-white/10 bg-white/5 p-2 transition hover:bg-white/10">
-          <ArrowLeft className="h-5 w-5 text-white/60" />
-        </Link>
+        <button
+          type="button"
+          onClick={handleBack}
+          className="group inline-flex items-center gap-2 rounded-2xl border border-cyan-400/20 bg-white/5 px-3.5 py-2.5 text-sm font-medium text-slate-200 shadow-[0_8px_22px_rgba(2,6,23,0.22)] backdrop-blur-xl transition-all duration-200 hover:-translate-y-0.5 hover:border-cyan-300/35 hover:bg-cyan-500/10 hover:text-cyan-100"
+        >
+          <ArrowLeft className="h-4 w-4 transition-transform duration-200 group-hover:-translate-x-0.5" />
+          <span>Back</span>
+        </button>
         <div>
           <h1 className="text-2xl font-bold text-white sm:text-3xl">Create New Link Account</h1>
           <p className="mt-1 text-sm text-white/30">Launch a new branded tracking link and attach it to a smart routing pool in one flow.</p>

@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { Search, Plus, MousePointerClick, Users, Bot, Globe2, Link2, Sparkles, ShieldCheck, Copy, Check, Pencil, RotateCcw, Trash2, X } from 'lucide-react'
+import { Search, Plus, MousePointerClick, Users, Bot, Globe2, Link2, Sparkles, ShieldCheck, Copy, Check, Pencil, RotateCcw, Trash2, X, AlertTriangle } from 'lucide-react'
 import { formatNumber } from '@/lib/utils/helpers'
 import { buildOfferGroupList } from '@/lib/utils/offer-groups'
 import { coerceArray } from '@/lib/utils/array-response'
@@ -29,6 +29,14 @@ interface DomainOption {
   domain: string
   verified: boolean
   isActive: boolean
+}
+
+interface ConfirmDialogState {
+  title: string
+  message: string
+  confirmLabel: string
+  tone: 'danger' | 'warning'
+  onConfirm: () => Promise<void> | void
 }
 
 const getBaseUrl = () => {
@@ -62,6 +70,7 @@ export default function LinksPage() {
   const [editingIsActive, setEditingIsActive] = useState(true)
   const [savingLinkId, setSavingLinkId] = useState<string | null>(null)
   const [busyLinkId, setBusyLinkId] = useState<string | null>(null)
+  const [confirmDialog, setConfirmDialog] = useState<ConfirmDialogState | null>(null)
 
   const fetchLinks = useCallback(async () => {
     try {
@@ -212,129 +221,153 @@ export default function LinksPage() {
   }
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this link account?')) return
+    setConfirmDialog({
+      title: 'Delete this link account?',
+      message: 'This will remove the link account and its tracked history from the workspace. This action cannot be undone.',
+      confirmLabel: 'Delete link',
+      tone: 'danger',
+      onConfirm: async () => {
+        setActionError('')
+        setActionMessage('')
+        setBusyLinkId(id)
 
-    setActionError('')
-    setActionMessage('')
-    setBusyLinkId(id)
+        try {
+          const response = await fetch(`/api/links/${id}`, {
+            method: 'DELETE',
+            credentials: 'include',
+          })
 
-    try {
-      const response = await fetch(`/api/links/${id}`, {
-        method: 'DELETE',
-        credentials: 'include',
-      })
+          const data = await response.json().catch(() => null)
 
-      const data = await response.json().catch(() => null)
+          if (!response.ok) {
+            throw new Error(data?.error || 'Failed to delete link')
+          }
 
-      if (!response.ok) {
-        throw new Error(data?.error || 'Failed to delete link')
-      }
-
-      setActionMessage('Link account deleted successfully.')
-      await fetchLinks()
-    } catch (error) {
-      console.error('Error deleting link:', error)
-      setActionError(error instanceof Error ? error.message : 'Failed to delete link')
-    } finally {
-      setBusyLinkId(null)
-    }
+          setActionMessage('Link account deleted successfully.')
+          await fetchLinks()
+        } catch (error) {
+          console.error('Error deleting link:', error)
+          setActionError(error instanceof Error ? error.message : 'Failed to delete link')
+        } finally {
+          setBusyLinkId(null)
+        }
+      },
+    })
   }
 
   const handleReset = async (id: string) => {
-    if (!confirm('Reset this link’s stats and click history? This will clear the recorded totals for this account.')) return
+    setConfirmDialog({
+      title: 'Reset link stats?',
+      message: 'This will clear the recorded totals and history for this account. The link itself will remain active.',
+      confirmLabel: 'Reset stats',
+      tone: 'warning',
+      onConfirm: async () => {
+        setActionError('')
+        setActionMessage('')
+        setBusyLinkId(id)
 
-    setActionError('')
-    setActionMessage('')
-    setBusyLinkId(id)
+        try {
+          const response = await fetch(`/api/links/${id}`, {
+            method: 'POST',
+            credentials: 'include',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'reset' }),
+          })
 
-    try {
-      const response = await fetch(`/api/links/${id}`, {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'reset' }),
-      })
+          const data = await response.json().catch(() => null)
 
-      const data = await response.json().catch(() => null)
+          if (!response.ok) {
+            throw new Error(data?.error || 'Failed to reset link')
+          }
 
-      if (!response.ok) {
-        throw new Error(data?.error || 'Failed to reset link')
-      }
-
-      setActionMessage('Link statistics have been reset successfully.')
-      await fetchLinks()
-    } catch (error) {
-      console.error('Error resetting link:', error)
-      setActionError(error instanceof Error ? error.message : 'Failed to reset link')
-    } finally {
-      setBusyLinkId(null)
-    }
+          setActionMessage('Link statistics have been reset successfully.')
+          await fetchLinks()
+        } catch (error) {
+          console.error('Error resetting link:', error)
+          setActionError(error instanceof Error ? error.message : 'Failed to reset link')
+        } finally {
+          setBusyLinkId(null)
+        }
+      },
+    })
   }
 
   const handleBulkReset = async () => {
     if (selectedIds.length === 0) return
-    if (!confirm(`Reset stats for ${selectedIds.length} selected link account(s)?`)) return
+    setConfirmDialog({
+      title: `Reset ${selectedIds.length} selected link account(s)?`,
+      message: 'This will clear stats and historical totals for all selected links while keeping the accounts themselves intact.',
+      confirmLabel: 'Reset selected',
+      tone: 'warning',
+      onConfirm: async () => {
+        setActionError('')
+        setActionMessage('')
+        setBusyLinkId('bulk-reset')
 
-    setActionError('')
-    setActionMessage('')
-    setBusyLinkId('bulk-reset')
+        try {
+          const response = await fetch('/api/links/bulk', {
+            method: 'POST',
+            credentials: 'include',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'reset', ids: selectedIds }),
+          })
 
-    try {
-      const response = await fetch('/api/links/bulk', {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'reset', ids: selectedIds }),
-      })
+          const data = await response.json().catch(() => null)
 
-      const data = await response.json().catch(() => null)
+          if (!response.ok) {
+            throw new Error(data?.error || 'Failed to reset selected links')
+          }
 
-      if (!response.ok) {
-        throw new Error(data?.error || 'Failed to reset selected links')
-      }
-
-      setSelectedIds([])
-      setActionMessage(`Reset ${data?.resetCount ?? selectedIds.length} link account(s) successfully.`)
-      await fetchLinks()
-    } catch (error) {
-      console.error('Error resetting selected links:', error)
-      setActionError(error instanceof Error ? error.message : 'Failed to reset selected links')
-    } finally {
-      setBusyLinkId(null)
-    }
+          setSelectedIds([])
+          setActionMessage(`Reset ${data?.resetCount ?? selectedIds.length} link account(s) successfully.`)
+          await fetchLinks()
+        } catch (error) {
+          console.error('Error resetting selected links:', error)
+          setActionError(error instanceof Error ? error.message : 'Failed to reset selected links')
+        } finally {
+          setBusyLinkId(null)
+        }
+      },
+    })
   }
 
   const handleBulkDelete = async () => {
     if (selectedIds.length === 0) return
-    if (!confirm(`Delete ${selectedIds.length} selected link account(s)?`)) return
+    setConfirmDialog({
+      title: `Delete ${selectedIds.length} selected link account(s)?`,
+      message: 'These accounts and their related analytics will be removed permanently. This action cannot be undone.',
+      confirmLabel: 'Delete selected',
+      tone: 'danger',
+      onConfirm: async () => {
+        setActionError('')
+        setActionMessage('')
+        setBusyLinkId('bulk-delete')
 
-    setActionError('')
-    setActionMessage('')
-    setBusyLinkId('bulk-delete')
+        try {
+          const response = await fetch('/api/links/bulk', {
+            method: 'POST',
+            credentials: 'include',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'delete', ids: selectedIds }),
+          })
 
-    try {
-      const response = await fetch('/api/links/bulk', {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'delete', ids: selectedIds }),
-      })
+          const data = await response.json().catch(() => null)
 
-      const data = await response.json().catch(() => null)
+          if (!response.ok) {
+            throw new Error(data?.error || 'Failed to delete selected links')
+          }
 
-      if (!response.ok) {
-        throw new Error(data?.error || 'Failed to delete selected links')
-      }
-
-      setSelectedIds([])
-      setActionMessage(`Deleted ${data?.deletedCount ?? selectedIds.length} link account(s) successfully.`)
-      await fetchLinks()
-    } catch (error) {
-      console.error('Error deleting selected links:', error)
-      setActionError(error instanceof Error ? error.message : 'Failed to delete selected links')
-    } finally {
-      setBusyLinkId(null)
-    }
+          setSelectedIds([])
+          setActionMessage(`Deleted ${data?.deletedCount ?? selectedIds.length} link account(s) successfully.`)
+          await fetchLinks()
+        } catch (error) {
+          console.error('Error deleting selected links:', error)
+          setActionError(error instanceof Error ? error.message : 'Failed to delete selected links')
+        } finally {
+          setBusyLinkId(null)
+        }
+      },
+    })
   }
 
   const handleBulkUpdate = async () => {
@@ -402,6 +435,62 @@ export default function LinksPage() {
 
   return (
     <div className="space-y-6">
+      {confirmDialog && (
+        <div
+          className="fixed inset-0 z-[120] flex items-center justify-center bg-[radial-gradient(circle_at_top,rgba(34,211,238,0.16),transparent_35%),rgba(2,6,23,0.9)] px-4 py-6 backdrop-blur-xl"
+          onClick={() => setConfirmDialog(null)}
+        >
+          <motion.div
+            initial={{ opacity: 0, y: 18, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 10, scale: 0.985 }}
+            transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
+            onClick={(event) => event.stopPropagation()}
+            className="relative w-full max-w-md overflow-hidden rounded-[30px] border border-white/10 bg-[linear-gradient(140deg,rgba(15,23,42,0.96),rgba(2,6,23,0.96))] shadow-[0_35px_95px_rgba(0,0,0,0.55)]"
+          >
+            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.18),transparent_28%),radial-gradient(circle_at_bottom_right,rgba(168,85,247,0.2),transparent_36%)]" />
+            <div className="relative border-b border-white/10 bg-white/5 px-5 py-4">
+              <div className="flex items-start gap-3">
+                <div className={`mt-0.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border ${confirmDialog.tone === 'danger' ? 'border-rose-400/30 bg-rose-500/15 text-rose-300 shadow-[0_0_24px_rgba(244,63,94,0.18)]' : 'border-amber-400/30 bg-amber-500/15 text-amber-300 shadow-[0_0_24px_rgba(245,158,11,0.16)]'}`}>
+                  <AlertTriangle className="h-5 w-5" />
+                </div>
+                <div className="min-w-0">
+                  <div className="mb-1 flex items-center gap-2">
+                    <span className={`inline-flex items-center rounded-full border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.32em] ${confirmDialog.tone === 'danger' ? 'border-rose-400/25 bg-rose-500/10 text-rose-200' : 'border-amber-400/25 bg-amber-500/10 text-amber-200'}`}>
+                      Secure action
+                    </span>
+                  </div>
+                  <h3 className="text-lg font-semibold text-white">{confirmDialog.title}</h3>
+                  <p className="mt-1 text-sm leading-6 text-slate-400">Please confirm before this change is applied.</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="relative p-5">
+              <div className={`rounded-[22px] border p-4 text-sm leading-7 ${confirmDialog.tone === 'danger' ? 'border-rose-400/20 bg-rose-500/10 text-rose-100/90' : 'border-amber-400/20 bg-amber-500/10 text-amber-100/90'}`}>
+                <div className="mb-2 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.24em] text-white/70">
+                  <ShieldCheck className="h-3.5 w-3.5" />
+                  Confirmation
+                </div>
+                <p>{confirmDialog.message}</p>
+              </div>
+
+              <div className="mt-5 flex flex-wrap justify-end gap-2">
+                <button type="button" onClick={() => setConfirmDialog(null)} className="rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium text-white/75 transition hover:bg-white/10 hover:text-white">
+                  Cancel
+                </button>
+                <button type="button" onClick={() => {
+                  setConfirmDialog(null)
+                  void confirmDialog.onConfirm()
+                }} className={`rounded-xl px-4 py-2 text-sm font-semibold text-white shadow-[0_12px_35px_rgba(0,0,0,0.25)] transition hover:brightness-110 ${confirmDialog.tone === 'danger' ? 'bg-gradient-to-r from-rose-500 via-red-500 to-rose-600' : 'bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600'}`}>
+                  {confirmDialog.confirmLabel}
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      )}
+
       {(actionError || actionMessage) && (
         <div className={`rounded-2xl border p-3 text-sm backdrop-blur ${actionError ? 'border-red-500/30 bg-red-500/10 text-red-300' : 'border-emerald-500/30 bg-emerald-500/10 text-emerald-200'}`}>
           {actionError || actionMessage}

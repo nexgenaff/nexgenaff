@@ -3,7 +3,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { motion } from 'framer-motion'
 import StatsCards from '@/components/dashboard/StatsCards'
 import ClickLogs from '@/components/dashboard/ClickLogs'
 import { TrafficBreakdown } from '@/components/dashboard/TrafficBreakdown'
@@ -159,11 +158,7 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      <motion.div 
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="flex flex-col gap-3 rounded-[20px] border border-white/10 bg-slate-950/70 backdrop-blur-xl p-3 shadow-[0_14px_40px_rgba(0,0,0,0.22)]"
-      >
+      <div className="flex flex-col gap-3 rounded-2xl border border-white/10 bg-slate-950/70 backdrop-blur-sm p-3 shadow-[0_8px_24px_rgba(0,0,0,0.16)]">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div className="min-w-0">
             <p className="text-xs uppercase tracking-[0.24em] text-slate-400">Welcome back</p>
@@ -179,21 +174,21 @@ export default function DashboardPage() {
           <div className="flex flex-wrap items-center justify-end gap-2">
             <button 
               onClick={handleRefresh} 
-              className="inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-2.5 py-1.5 text-xs font-semibold text-slate-100 transition hover:bg-white/10 hover:text-white"
+              className="inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-white/[0.06] px-2.5 py-1.5 text-xs font-semibold text-slate-100 transition hover:bg-white/10 hover:text-white"
             >
               <RefreshCw className="w-4 h-4" />
               Refresh
             </button>
             <Link 
               href="/admin/links/create" 
-              className="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-indigo-500 via-fuchsia-500 to-cyan-500 px-2.5 py-1.5 text-xs font-semibold text-white shadow-[0_12px_32px_rgba(99,102,241,0.18)]"
+              className="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-indigo-500/90 via-indigo-600/90 to-slate-700/90 px-2.5 py-1.5 text-xs font-semibold text-white shadow-[0_6px_16px_rgba(99,102,241,0.15)]"
             >
               <Plus className="w-4 h-4" />
               Create Link
             </Link>
           </div>
         </div>
-      </motion.div>
+      </div>
 
       <StatsCards
         stats={stats}

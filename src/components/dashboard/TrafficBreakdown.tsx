@@ -31,20 +31,20 @@ function BreakdownSection({
   const maxValue = Math.max(...items.map(item => item.clicks), 1)
 
   return (
-    <div className="rounded-2xl border border-white/10 bg-black/20 p-3 sm:p-4">
+    <div className="rounded-2xl border border-white/10 bg-slate-900/50 p-3 sm:p-4">
       <div className="mb-3 flex items-center gap-2">
         <Icon className="h-4 w-4 text-cyan-300" />
         <h4 className="text-sm font-semibold text-white">{title}</h4>
       </div>
 
       {items.length === 0 ? (
-        <p className="text-xs text-white/35">No breakdown data yet.</p>
+        <p className="text-xs text-slate-400">No breakdown data yet.</p>
       ) : (
         <div className="space-y-3">
           {items.slice(0, 4).map((item, index) => (
             <div key={`${title}-${item.name}-${index}`}>
               <div className="mb-1 flex items-center justify-between gap-2 text-xs">
-                <span className="truncate text-white/70">{item.name || 'Unknown'}</span>
+                <span className="truncate text-slate-300">{item.name || 'Unknown'}</span>
                 <span className="text-cyan-300">{formatNumber(item.clicks)}</span>
               </div>
               <div className="h-2 overflow-hidden rounded-full bg-white/5">
@@ -53,7 +53,7 @@ function BreakdownSection({
                   style={{ width: `${Math.max(8, (item.clicks / maxValue) * 100)}%` }}
                 />
               </div>
-              <div className="mt-1 text-[11px] text-white/35">{formatNumber(item.uniqueClicks)} unique</div>
+              <div className="mt-1 text-[11px] text-slate-400">{formatNumber(item.uniqueClicks)} unique</div>
             </div>
           ))}
         </div>
@@ -68,12 +68,12 @@ export function TrafficBreakdown({
   deviceBreakdown = [],
 }: TrafficBreakdownProps) {
   return (
-    <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-4 sm:p-6">
+    <div className="rounded-2xl border border-white/10 bg-slate-950/70 p-4 shadow-[0_10px_24px_rgba(0,0,0,0.16)] backdrop-blur-sm sm:p-6">
       <div className="mb-4 flex items-center gap-2">
         <MousePointerClick className="w-5 h-5 text-indigo-400" />
         <div>
           <h3 className="text-lg font-semibold text-white">Traffic Intelligence</h3>
-          <p className="text-sm text-white/30">Referrers, browsers, and device mix</p>
+          <p className="text-sm text-slate-400">Referrers, browsers, and device mix</p>
         </div>
       </div>
 

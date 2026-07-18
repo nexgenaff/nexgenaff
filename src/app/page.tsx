@@ -68,15 +68,16 @@ export default function HomePage() {
   ]
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black">
-      {/* Animated Background */}
+    <div className="relative min-h-screen overflow-hidden bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.1),transparent_24%),radial-gradient(circle_at_80%_0%,rgba(168,85,247,0.12),transparent_32%),linear-gradient(135deg,#020617_0%,#030712_45%,#02050f_100%)] text-slate-100">
+      <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] [background-size:54px_54px] opacity-18" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_24%,rgba(34,211,238,0.08),transparent_26%),radial-gradient(circle_at_80%_30%,rgba(168,85,247,0.1),transparent_24%),radial-gradient(circle_at_50%_100%,rgba(14,165,233,0.08),transparent_24%)]" />
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-0 left-1/2 h-[440px] w-[440px] -translate-x-1/2 rounded-full bg-cyan-400/10 blur-3xl"></div>
-        <div className="absolute -top-32 -right-20 w-80 h-80 bg-violet-600 rounded-full mix-blend-screen filter blur-3xl opacity-20 animate-float"></div>
-        <div className="absolute -bottom-28 -left-20 w-96 h-96 bg-emerald-500 rounded-full mix-blend-screen filter blur-3xl opacity-12 animate-float" style={{ animationDelay: '1.7s' }}></div>
+        <div className="absolute top-0 left-1/2 h-[320px] w-[320px] -translate-x-1/2 rounded-full bg-cyan-400/8 blur-[90px]" />
+        <div className="absolute -top-20 -right-16 h-64 w-64 rounded-full bg-violet-600/12 blur-[90px]" />
+        <div className="absolute -bottom-24 -left-20 h-72 w-72 rounded-full bg-emerald-400/8 blur-[100px]" style={{ animationDelay: '1.7s' }} />
       </div>
 
-      <div className="container-responsive relative">
+      <div className="container-responsive relative z-10">
         {/* Navigation */}
         <motion.nav 
           initial={{ opacity: 0, y: -20 }}
@@ -86,7 +87,7 @@ export default function HomePage() {
         >
           <Logo variant="full" size="lg" showAnimation={true} />
           <div className="flex flex-wrap items-center gap-2 sm:gap-4">
-            <Link href="/login" className="px-4 sm:px-6 py-2 text-white/60 hover:text-white font-medium transition text-sm sm:text-base">
+            <Link href="/login" className="px-4 sm:px-6 py-2 text-slate-300/90 hover:text-white font-medium transition text-sm sm:text-base">
               Login
             </Link>
             <a href="https://t.me/affiliate_king_rafsan" target="_blank" rel="noopener noreferrer" className="px-4 sm:px-6 py-2 btn-premium rounded-xl text-sm sm:text-base flex items-center gap-2">
@@ -109,26 +110,26 @@ export default function HomePage() {
             <Sparkles className="w-3 h-3 text-yellow-400" />
           </div>
           
-          <h1 className="text-4xl sm:text-6xl lg:text-7xl font-bold text-white mb-4 sm:mb-6 leading-tight">
+          <h1 className="mb-4 text-4xl font-semibold leading-[0.95] tracking-[-0.03em] text-slate-50 sm:mb-6 sm:text-6xl lg:text-7xl">
             Smart Link Tracking &{' '}
             <span className="gradient-text">Geo Redirect</span>
           </h1>
 
-          <p className="text-xs sm:text-sm uppercase tracking-[0.38em] text-cyan-300/80 mb-3">
+          <p className="mb-3 text-xs uppercase tracking-[0.38em] text-cyan-200/95 sm:text-sm">
             Luxury Web3 Startup • Verified Routing • Onchain Ready
           </p>
           
-          <p className="text-base sm:text-lg lg:text-xl text-white/60 mb-6 sm:mb-8 max-w-2xl mx-auto">
+          <p className="mx-auto mb-6 max-w-2xl text-base leading-8 text-slate-300/95 sm:mb-8 sm:text-lg lg:text-xl">
             The most advanced affiliate tracking platform with REAL DNS verification,
             AI bot detection, and enterprise-grade analytics built for high-trust growth teams.
           </p>
           
           <div className="flex flex-wrap justify-center gap-3 sm:gap-4">
-            <a href="https://t.me/affiliate_king_rafsan" target="_blank" rel="noopener noreferrer" className="px-6 sm:px-8 py-3 sm:py-4 btn-premium rounded-xl text-base sm:text-lg shadow-2xl shadow-purple-500/20 flex items-center gap-2">
+            <a href="https://t.me/affiliate_king_rafsan" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 rounded-xl px-6 py-3 text-base font-medium shadow-[0_10px_24px_rgba(99,102,241,0.18)] sm:px-8 sm:py-4 sm:text-lg btn-premium">
               <Rocket className="w-5 h-5" />
               Start Today
             </a>
-            <a href="#features" className="px-6 sm:px-8 py-3 sm:py-4 bg-white/5 backdrop-blur-xl border border-white/10 text-white rounded-xl hover:bg-white/10 transition text-base sm:text-lg flex items-center gap-2">
+            <a href="#features" className="flex items-center gap-2 rounded-xl border border-white/10 bg-slate-950/45 px-6 py-3 text-base text-white/90 transition hover:bg-white/10 backdrop-blur-sm sm:px-8 sm:py-4 sm:text-lg">
               See Features
               <ChevronRight className="w-5 h-5" />
             </a>
@@ -143,10 +144,10 @@ export default function HomePage() {
           className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6 py-8 sm:py-12"
         >
           {stats.map((stat, index) => (
-            <div key={index} className="stat-card text-center bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-4 sm:p-6">
-              <stat.icon className="w-6 h-6 sm:w-8 sm:h-8 mx-auto text-purple-400 mb-2" />
-              <p className="text-2xl sm:text-3xl font-bold gradient-text">{stat.value}</p>
-              <p className="text-xs sm:text-sm text-white/40 mt-1">{stat.label}</p>
+            <div key={index} className="stat-card rounded-2xl border border-white/10 bg-slate-950/45 p-4 text-center shadow-[0_6px_18px_rgba(0,0,0,0.14)] backdrop-blur-sm sm:p-6">
+              <stat.icon className="mx-auto mb-2 h-6 w-6 text-cyan-300 sm:h-8 sm:w-8" />
+              <p className="text-2xl font-semibold tracking-tight text-white sm:text-3xl">{stat.value}</p>
+              <p className="mt-1 text-xs text-slate-400 sm:text-sm">{stat.label}</p>
             </div>
           ))}
         </motion.div>
@@ -160,8 +161,8 @@ export default function HomePage() {
           className="py-12 sm:py-20"
         >
           <div className="text-center mb-12 sm:mb-16">
-            <h2 className="text-3xl sm:text-4xl font-bold text-white">Platform Features</h2>
-            <p className="text-base sm:text-lg text-white/40 mt-3 sm:mt-4 max-w-2xl mx-auto">
+            <h2 className="text-3xl sm:text-4xl font-bold tracking-[-0.02em] text-slate-50">Platform Features</h2>
+            <p className="text-base sm:text-lg text-slate-400 mt-3 sm:mt-4 max-w-2xl mx-auto">
               Everything you need for modern affiliate marketing operations
             </p>
           </div>
@@ -178,10 +179,10 @@ export default function HomePage() {
                 <div className={`w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-gradient-to-r ${feature.color} flex items-center justify-center mb-4 shadow-lg`}>
                   <feature.icon className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
                 </div>
-                <h3 className="text-lg sm:text-xl font-semibold text-white mb-2">
+                <h3 className="mb-2 text-lg font-semibold tracking-[-0.01em] text-slate-100 sm:text-xl">
                   {feature.title}
                 </h3>
-                <p className="text-sm sm:text-base text-white/40">
+                <p className="text-sm leading-7 text-slate-400/95 sm:text-base">
                   {feature.description}
                 </p>
                 <div className="absolute top-4 right-4">
@@ -202,13 +203,13 @@ export default function HomePage() {
           <div className="web3-cta text-center relative overflow-hidden rounded-2xl sm:rounded-3xl p-8 sm:p-12 md:p-16 gradient-bg">
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.18),transparent_32%),radial-gradient(circle_at_bottom_right,rgba(168,85,247,0.2),transparent_36%)]"></div>
             <div className="relative z-10">
-              <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-3 sm:mb-4">
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-[-0.02em] text-slate-50 mb-3 sm:mb-4">
                 Ready to Get Started?
               </h2>
-              <p className="text-indigo-100 text-base sm:text-lg mb-6 sm:mb-8 max-w-2xl mx-auto">
+              <p className="mx-auto mb-6 max-w-2xl text-base text-slate-300/95 sm:mb-8 sm:text-lg">
                 Join teams using NexGen Affiliates to track, redirect, and grow faster.
               </p>
-              <a href="https://t.me/affiliate_king_rafsan" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 px-6 sm:px-8 py-3 sm:py-4 bg-white text-indigo-600 rounded-xl hover:bg-indigo-50 transition text-base sm:text-lg font-semibold shadow-2xl">
+              <a href="https://t.me/affiliate_king_rafsan" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 rounded-xl bg-white px-6 py-3 text-base font-semibold text-slate-900 shadow-[0_12px_32px_rgba(255,255,255,0.15)] transition hover:bg-slate-100 sm:px-8 sm:py-4 sm:text-lg">
                 <Rocket className="w-5 h-5" />
                 Start Now
               </a>
@@ -223,15 +224,15 @@ export default function HomePage() {
           transition={{ duration: 0.6, delay: 1 }}
           className="py-6 sm:py-8"
         >
-          <div className="relative overflow-hidden rounded-[28px] border border-cyan-400/25 bg-[linear-gradient(135deg,rgba(10,16,34,0.98),rgba(18,24,51,0.96),rgba(7,11,24,0.98))] px-4 py-5 sm:px-6 sm:py-6 shadow-[0_0_0_1px_rgba(34,211,238,0.08),0_20px_60px_rgba(0,0,0,0.5),0_0_38px_rgba(34,211,238,0.13)] backdrop-blur-xl">
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.34),transparent_26%),radial-gradient(circle_at_bottom_right,rgba(244,114,182,0.24),transparent_30%),radial-gradient(circle_at_center,rgba(99,102,241,0.26),transparent_44%)]"></div>
-            <div className="absolute -top-10 right-6 h-24 w-24 rounded-full bg-cyan-400/20 blur-2xl"></div>
-            <div className="absolute -bottom-12 left-8 h-28 w-28 rounded-full bg-fuchsia-500/20 blur-2xl"></div>
+<div className="relative overflow-hidden rounded-[28px] border border-white/10 bg-slate-950/60 px-4 py-5 shadow-[0_6px_18px_rgba(0,0,0,0.14)] backdrop-blur-sm sm:px-6 sm:py-6">
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.12),transparent_26%),radial-gradient(circle_at_bottom_right,rgba(244,114,182,0.1),transparent_30%),radial-gradient(circle_at_center,rgba(99,102,241,0.08),transparent_44%)]" />
+              <div className="absolute -top-10 right-6 h-24 w-24 rounded-full bg-cyan-400/8 blur-2xl" />
+              <div className="absolute -bottom-12 left-8 h-28 w-28 rounded-full bg-fuchsia-500/8 blur-2xl" />
 
             <div className="relative z-10 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
               <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
                 <Logo variant="compact" size="sm" />
-                <div className="text-[11px] font-semibold uppercase tracking-[0.38em] text-cyan-100/90">
+                <div className="text-[11px] font-semibold uppercase tracking-[0.38em] text-cyan-200/95">
                   Premium Affiliate Infrastructure
                 </div>
               </div>
@@ -244,10 +245,10 @@ export default function HomePage() {
             </div>
 
             <div className="relative z-10 mt-4 flex flex-col gap-2 border-t border-white/10 pt-4 sm:flex-row sm:items-center sm:justify-between">
-              <p className="text-xs sm:text-sm text-white/55">
+              <p className="text-xs text-slate-400/90 sm:text-sm">
                 © 2024 NexGen Affiliates. All rights reserved.
               </p>
-              <p className="text-[11px] uppercase tracking-[0.32em] text-cyan-100/75">
+              <p className="text-[11px] uppercase tracking-[0.32em] text-cyan-200/90">
                 Built for high-trust growth systems
               </p>
             </div>

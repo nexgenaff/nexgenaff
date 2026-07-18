@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
+import { motion } from 'framer-motion'
 import { getCountryFlag, getCountryLabel } from '@/lib/utils/country'
 import {
   Search,
@@ -23,6 +24,8 @@ import {
   Clock,
   RefreshCw,
   Loader2,
+  AlertTriangle,
+  ShieldCheck,
 } from 'lucide-react'
 
 interface Click {
@@ -67,6 +70,14 @@ interface FilterOptions {
   deviceTypes: string[]
 }
 
+interface ConfirmDialogState {
+  title: string
+  message: string
+  confirmLabel: string
+  tone: 'danger' | 'warning'
+  onConfirm: () => Promise<void> | void
+}
+
 export default function ClickLogs() {
   const router = useRouter()
   const [clicks, setClicks] = useState<Click[]>([])
@@ -81,6 +92,7 @@ export default function ClickLogs() {
     deviceTypes: [],
   })
   const [showFilters, setShowFilters] = useState(false)
+  const [confirmDialog, setConfirmDialog] = useState<ConfirmDialogState | null>(null)
 
   const [filters, setFilters] = useState<Filters>({
     country: '',
@@ -269,19 +281,25 @@ export default function ClickLogs() {
   }
 
   const handleDeleteClick = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this click record?')) return
+    setConfirmDialog({
+      title: 'Delete this click record?',
+      message: 'This will permanently remove the selected click event from your analytics history.',
+      confirmLabel: 'Delete click',
+      tone: 'danger',
+      onConfirm: async () => {
+        try {
+          const response = await fetch(`/api/analytics/clicks?id=${id}`, {
+            method: 'DELETE',
+          })
 
-    try {
-      const response = await fetch(`/api/analytics/clicks?id=${id}`, {
-        method: 'DELETE',
-      })
+          if (!response.ok) throw new Error('Failed to delete click')
 
-      if (!response.ok) throw new Error('Failed to delete click')
-
-      await fetchClicks(false)
-    } catch (error) {
-      console.error('Failed to delete click:', error)
-    }
+          await fetchClicks(false)
+        } catch (error) {
+          console.error('Failed to delete click:', error)
+        }
+      },
+    })
   }
 
   const activeFilterCount = useMemo(() => {
@@ -323,6 +341,59 @@ export default function ClickLogs() {
 
   return (
     <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden">
+      {confirmDialog && (
+        <div
+          className="fixed inset-0 z-[120] flex items-center justify-center bg-[radial-gradient(circle_at_top,rgba(34,211,238,0.16),transparent_35%),rgba(2,6,23,0.9)] px-4 py-6 backdrop-blur-xl"
+          onClick={() => setConfirmDialog(null)}
+        >
+          <motion.div
+            initial={{ opacity: 0, y: 18, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 10, scale: 0.985 }}
+            transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
+            onClick={(event) => event.stopPropagation()}
+            className="relative w-full max-w-md overflow-hidden rounded-[30px] border border-white/10 bg-[linear-gradient(140deg,rgba(15,23,42,0.96),rgba(2,6,23,0.96))] shadow-[0_35px_95px_rgba(0,0,0,0.55)]"
+          >
+            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.18),transparent_28%),radial-gradient(circle_at_bottom_right,rgba(168,85,247,0.2),transparent_36%)]" />
+            <div className="relative border-b border-white/10 bg-white/5 px-5 py-4">
+              <div className="flex items-start gap-3">
+                <div className={`mt-0.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border ${confirmDialog.tone === 'danger' ? 'border-rose-400/30 bg-rose-500/15 text-rose-300 shadow-[0_0_24px_rgba(244,63,94,0.18)]' : 'border-amber-400/30 bg-amber-500/15 text-amber-300 shadow-[0_0_24px_rgba(245,158,11,0.16)]'}`}>
+                  <AlertTriangle className="h-5 w-5" />
+                </div>
+                <div className="min-w-0">
+                  <div className="mb-1 flex items-center gap-2">
+                    <span className={`inline-flex items-center rounded-full border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.32em] ${confirmDialog.tone === 'danger' ? 'border-rose-400/25 bg-rose-500/10 text-rose-200' : 'border-amber-400/25 bg-amber-500/10 text-amber-200'}`}>
+                      Secure action
+                    </span>
+                  </div>
+                  <h3 className="text-lg font-semibold text-white">{confirmDialog.title}</h3>
+                  <p className="mt-1 text-sm leading-6 text-slate-400">Please confirm before this change is applied.</p>
+                </div>
+              </div>
+            </div>
+            <div className="relative p-5">
+              <div className={`rounded-[22px] border p-4 text-sm leading-7 ${confirmDialog.tone === 'danger' ? 'border-rose-400/20 bg-rose-500/10 text-rose-100/90' : 'border-amber-400/20 bg-amber-500/10 text-amber-100/90'}`}>
+                <div className="mb-2 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.24em] text-white/70">
+                  <ShieldCheck className="h-3.5 w-3.5" />
+                  Confirmation
+                </div>
+                <p>{confirmDialog.message}</p>
+              </div>
+              <div className="mt-5 flex flex-wrap justify-end gap-2">
+                <button type="button" onClick={() => setConfirmDialog(null)} className="rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium text-white/75 transition hover:bg-white/10 hover:text-white">
+                  Cancel
+                </button>
+                <button type="button" onClick={() => {
+                  setConfirmDialog(null)
+                  void confirmDialog.onConfirm()
+                }} className={`rounded-xl px-4 py-2 text-sm font-semibold text-white shadow-[0_12px_35px_rgba(0,0,0,0.25)] transition hover:brightness-110 ${confirmDialog.tone === 'danger' ? 'bg-gradient-to-r from-rose-500 via-red-500 to-rose-600' : 'bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600'}`}>
+                  {confirmDialog.confirmLabel}
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      )}
       <div className="p-4 sm:p-6 border-b border-white/5">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="flex items-center gap-2">

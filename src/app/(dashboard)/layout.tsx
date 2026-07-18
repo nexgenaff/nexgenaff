@@ -35,11 +35,17 @@ export default function DashboardLayout({
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[radial-gradient(circle_at_top,_rgba(34,211,238,0.16),_transparent_28%),linear-gradient(135deg,_#02030a_0%,_#040816_55%,_#02030a_100%)]">
-        <div className="soft-glow rounded-3xl border border-white/10 bg-white/5 px-8 py-8 text-center backdrop-blur-xl">
-          <div className="mx-auto mb-4 h-12 w-12 rounded-full border-4 border-cyan-400/40 border-t-cyan-300 animate-spin"></div>
-          <p className="text-sm font-medium tracking-[0.24em] text-cyan-100/80 uppercase">Preparing dashboard</p>
-          <p className="mt-2 text-sm text-white/45">Just a moment while we load your workspace.</p>
+      <div className="flex min-h-screen items-center justify-center overflow-hidden bg-[radial-gradient(circle_at_top,_rgba(34,211,238,0.1),_transparent_28%),linear-gradient(135deg,_#02030a_0%,_#040816_55%,_#02030a_100%)]">
+        <div className="relative overflow-hidden rounded-[28px] border border-white/10 bg-slate-950/60 px-8 py-8 text-center shadow-[0_10px_30px_rgba(2,6,23,0.18)] backdrop-blur-sm">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.1),transparent_28%),radial-gradient(circle_at_bottom_right,rgba(129,140,248,0.1),transparent_30%)]" />
+          <div className="relative z-10 flex flex-col items-center">
+            <div className="relative mb-4 flex h-14 w-14 items-center justify-center rounded-full border border-cyan-400/20 bg-cyan-500/10">
+              <div className="h-9 w-9 animate-spin rounded-full border-2 border-cyan-300/40 border-t-cyan-200" />
+              <div className="absolute inset-0 animate-ping rounded-full border border-cyan-400/20" />
+            </div>
+            <p className="text-sm font-semibold uppercase tracking-[0.32em] text-cyan-100/90">Preparing dashboard</p>
+            <p className="mt-2 text-sm text-slate-400">Just a moment while we load your workspace.</p>
+          </div>
         </div>
       </div>
     )
