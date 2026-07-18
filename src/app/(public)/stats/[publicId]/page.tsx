@@ -36,6 +36,7 @@ import {
   Laptop,
   Computer,
   Link2,
+  FileText,
 } from 'lucide-react'
 import { Logo } from '@/components/ui/Logo'
 
@@ -80,12 +81,6 @@ interface Stats {
     isBot: boolean
     createdAt: string
   }>
-  pagination?: {
-    page: number
-    limit: number
-    total: number
-    totalPages: number
-  }
 }
 
 // Optimized Metric Card
@@ -218,13 +213,12 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
   const [stats, setStats] = useState<Stats | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
-  const [page, setPage] = useState(1)
   const [search, setSearch] = useState('')
   const [filterCountry, setFilterCountry] = useState('')
   const [filterUnique, setFilterUnique] = useState('')
   const [timeRange, setTimeRange] = useState<'7d' | '30d' | '90d'>('7d')
   const [isRefreshing, setIsRefreshing] = useState(false)
-  const limit = 10
+  const [showAllLogs, setShowAllLogs] = useState(true)
 
   // Optimized fetch with abort controller
   useEffect(() => {
@@ -233,8 +227,9 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
     const fetchStats = async () => {
       try {
         setIsRefreshing(true)
+        // Fetch all logs at once (no pagination)
         const response = await fetch(
-          `/api/analytics/public/${publicId}?page=${page}&limit=${limit}&search=${encodeURIComponent(search)}&country=${encodeURIComponent(filterCountry)}&unique=${filterUnique}&range=${timeRange}`,
+          `/api/analytics/public/${publicId}?search=${encodeURIComponent(search)}&country=${encodeURIComponent(filterCountry)}&unique=${filterUnique}&range=${timeRange}&limit=10000`,
           { signal: abortController.signal }
         )
         if (!response.ok) throw new Error('Dashboard not found')
@@ -253,7 +248,7 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
 
     fetchStats()
     return () => abortController.abort()
-  }, [publicId, page, search, filterCountry, filterUnique, timeRange])
+  }, [publicId, search, filterCountry, filterUnique, timeRange])
 
   const getDeviceIcon = useCallback((deviceType: string | null, deviceBrand: string | null) => {
     if (!deviceType) return Monitor
@@ -306,6 +301,7 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
       day: 'numeric',
       hour: '2-digit',
       minute: '2-digit',
+      second: '2-digit',
     })
   }, [])
 
@@ -314,8 +310,7 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
     stats?.geoSummary?.map(e => e.country).filter(Boolean) || []
   , [stats?.geoSummary])
 
-  const totalClicks = stats?.pagination?.total || stats?.clicks?.length || 0
-  const totalPages = stats?.pagination?.totalPages || Math.ceil(totalClicks / limit) || 1
+  const totalClicks = stats?.clicks?.length || 0
   const uniqueRate = stats?.totalClicks ? ((stats.uniqueClicks / stats.totalClicks) * 100).toFixed(1) : '0'
   const botRate = stats?.totalClicks ? ((stats.botClicks / stats.totalClicks) * 100).toFixed(1) : '0'
   const maxCountryClicks = stats?.geoSummary?.length 
@@ -338,6 +333,26 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
       },
     ],
   }), [stats?.clickTrend])
+
+  // Filter clicks based on search
+  const filteredClicks = useMemo(() => {
+    if (!stats?.clicks) return []
+    
+    return stats.clicks.filter(click => {
+      const searchLower = search.toLowerCase()
+      if (!searchLower) return true
+      
+      return (
+        click.ipAddress?.toLowerCase().includes(searchLower) ||
+        click.country?.toLowerCase().includes(searchLower) ||
+        click.city?.toLowerCase().includes(searchLower) ||
+        click.browser?.toLowerCase().includes(searchLower) ||
+        click.os?.toLowerCase().includes(searchLower) ||
+        click.deviceType?.toLowerCase().includes(searchLower) ||
+        click.referrer?.toLowerCase().includes(searchLower)
+      )
+    })
+  }, [stats?.clicks, search])
 
   if (loading) return <SkeletonLoader />
 
@@ -423,7 +438,12 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
                 ))}
               </div>
               <button 
-                onClick={() => setTimeRange(timeRange)}
+                onClick={() => {
+                  setTimeRange(timeRange)
+                  // Force refresh
+                  setIsRefreshing(true)
+                  setTimeout(() => setIsRefreshing(false), 500)
+                }}
                 className="p-1.5 bg-white/5 rounded-lg border border-white/10 text-white/40 hover:text-white/70 transition-colors"
               >
                 <RefreshCw className={`h-3.5 w-3.5 ${isRefreshing ? 'animate-spin' : ''}`} strokeWidth={1.5} />
@@ -551,7 +571,7 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="bg-transparent border-none outline-none text-sm text-white placeholder:text-white/20 w-full"
-                placeholder="Search clicks..."
+                placeholder="Search clicks by IP, country, browser..."
               />
             </div>
             
@@ -607,51 +627,57 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
                 </div>
               )}
             </div>
+            
+            <div className="flex items-center gap-1 ml-auto">
+              <span className="text-[10px] text-white/30">
+                {filteredClicks.length} / {stats?.clicks?.length || 0} logs
+              </span>
+            </div>
           </div>
 
-          {/* Data Table - Full Referrer Display */}
+          {/* Data Table - All Logs on One Page */}
           <div className="bg-white/5 backdrop-blur-sm rounded-xl border border-white/10 overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
-                <thead className="bg-white/[0.03] border-b border-white/5">
+                <thead className="bg-white/[0.03] border-b border-white/5 sticky top-0 z-10">
                   <tr>
-                    <th className="px-3 py-2.5 text-left text-[10px] font-medium uppercase tracking-wider text-white/30">
+                    <th className="px-3 py-2.5 text-left text-[10px] font-medium uppercase tracking-wider text-white/30 whitespace-nowrap">
                       <div className="flex items-center gap-1">
                         <Clock className="h-3 w-3" strokeWidth={1.5} />
                         Time
                       </div>
                     </th>
-                    <th className="px-3 py-2.5 text-left text-[10px] font-medium uppercase tracking-wider text-white/30">
+                    <th className="px-3 py-2.5 text-left text-[10px] font-medium uppercase tracking-wider text-white/30 whitespace-nowrap">
                       <div className="flex items-center gap-1">
                         <Hash className="h-3 w-3" strokeWidth={1.5} />
                         IP
                       </div>
                     </th>
-                    <th className="px-3 py-2.5 text-left text-[10px] font-medium uppercase tracking-wider text-white/30">
+                    <th className="px-3 py-2.5 text-left text-[10px] font-medium uppercase tracking-wider text-white/30 whitespace-nowrap">
                       <div className="flex items-center gap-1">
                         <MapPin className="h-3 w-3" strokeWidth={1.5} />
                         Location
                       </div>
                     </th>
-                    <th className="px-3 py-2.5 text-left text-[10px] font-medium uppercase tracking-wider text-white/30">
+                    <th className="px-3 py-2.5 text-left text-[10px] font-medium uppercase tracking-wider text-white/30 whitespace-nowrap">
                       <div className="flex items-center gap-1">
                         <Smartphone className="h-3 w-3" strokeWidth={1.5} />
                         Device
                       </div>
                     </th>
-                    <th className="px-3 py-2.5 text-left text-[10px] font-medium uppercase tracking-wider text-white/30">Browser</th>
-                    <th className="px-3 py-2.5 text-left text-[10px] font-medium uppercase tracking-wider text-white/30 min-w-[200px]">
+                    <th className="px-3 py-2.5 text-left text-[10px] font-medium uppercase tracking-wider text-white/30 whitespace-nowrap">Browser</th>
+                    <th className="px-3 py-2.5 text-left text-[10px] font-medium uppercase tracking-wider text-white/30 min-w-[200px] whitespace-nowrap">
                       <div className="flex items-center gap-1">
                         <Link2 className="h-3 w-3" strokeWidth={1.5} />
                         Referrer
                       </div>
                     </th>
-                    <th className="px-3 py-2.5 text-center text-[10px] font-medium uppercase tracking-wider text-white/30">Status</th>
+                    <th className="px-3 py-2.5 text-center text-[10px] font-medium uppercase tracking-wider text-white/30 whitespace-nowrap">Status</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/5">
-                  {stats?.clicks?.length ? (
-                    stats.clicks.slice((page - 1) * limit, page * limit).map((click) => {
+                  {filteredClicks.length > 0 ? (
+                    filteredClicks.map((click) => {
                       const DeviceIcon = getDeviceIcon(click.deviceType, click.deviceBrand)
                       const deviceLabel = getDeviceLabel(click)
                       
@@ -741,30 +767,19 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
               </table>
             </div>
 
-            {/* Pagination */}
-            {totalClicks > 0 && (
+            {/* Stats Footer */}
+            {filteredClicks.length > 0 && (
               <div className="flex flex-col sm:flex-row items-center justify-between gap-2 border-t border-white/5 px-3 py-2.5">
-                <div className="text-xs text-white/30">
-                  {((page - 1) * limit) + 1}–{Math.min(page * limit, totalClicks)} of {totalClicks}
+                <div className="text-xs text-white/30 flex items-center gap-4">
+                  <span>Total: {filteredClicks.length} clicks</span>
+                  <span>•</span>
+                  <span>Unique: {filteredClicks.filter(c => c.isUnique).length}</span>
+                  <span>•</span>
+                  <span>Bots: {filteredClicks.filter(c => c.isBot).length}</span>
                 </div>
-                <div className="flex items-center gap-1">
-                  <button
-                    onClick={() => setPage(p => Math.max(1, p - 1))}
-                    disabled={page === 1}
-                    className="p-1 rounded bg-white/5 border border-white/10 text-white/30 hover:text-white/60 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                  >
-                    <ChevronLeft className="h-3.5 w-3.5" strokeWidth={1.5} />
-                  </button>
-                  <span className="text-xs text-white/40 px-2">
-                    {page} / {totalPages}
-                  </span>
-                  <button
-                    onClick={() => setPage(p => Math.min(totalPages || 1, p + 1))}
-                    disabled={page === totalPages || totalPages === 0}
-                    className="p-1 rounded bg-white/5 border border-white/10 text-white/30 hover:text-white/60 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                  >
-                    <ChevronRight className="h-3.5 w-3.5" strokeWidth={1.5} />
-                  </button>
+                <div className="text-xs text-white/20 flex items-center gap-2">
+                  <FileText className="h-3 w-3" strokeWidth={1.5} />
+                  <span>All logs displayed</span>
                 </div>
               </div>
             )}
@@ -780,6 +795,8 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
               <span>Privacy protected</span>
               <span>•</span>
               <span>Real-time analytics</span>
+              <span>•</span>
+              <span>{filteredClicks.length} total logs</span>
             </div>
           </div>
 
