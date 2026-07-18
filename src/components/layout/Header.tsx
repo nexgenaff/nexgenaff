@@ -34,8 +34,9 @@ export default function Header() {
   }
 
   return (
-    <header className="sticky top-0 z-20 bg-slate-950/75 backdrop-blur-sm border-b border-white/10 px-4 sm:px-6 py-3 sm:py-4">
-      <div className="flex flex-wrap items-center justify-between gap-3 pl-12 md:pl-0">
+    <header className="sticky top-0 z-20 overflow-hidden border-b border-white/10 bg-[linear-gradient(135deg,rgba(2,6,23,0.96),rgba(8,15,35,0.9))] px-4 py-3 shadow-[0_12px_40px_rgba(2,6,23,0.28)] backdrop-blur-xl sm:px-6 sm:py-4">
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.16),transparent_24%),radial-gradient(circle_at_bottom_right,rgba(244,114,182,0.12),transparent_26%)]" />
+      <div className="relative flex flex-wrap items-center justify-between gap-3 pl-12 md:pl-0">
         <div className="flex items-center gap-3 min-w-0">
           <Logo variant="compact" size="sm" showAnimation={true} />
           <span className="text-white/10 hidden sm:inline">|</span>
@@ -57,22 +58,22 @@ export default function Header() {
             <input
               type="text"
               placeholder="Search..."
-              className="pl-9 pr-4 py-1.5 text-sm bg-white/5 border border-white/10 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition text-white placeholder:text-white/20 w-40 lg:w-56"
+              className="w-40 rounded-xl border border-white/10 bg-white/8 py-1.5 pl-9 pr-4 text-sm text-white placeholder:text-white/20 transition focus:border-cyan-400/35 focus:ring-2 focus:ring-cyan-400/20 lg:w-56"
             />
           </div>
           <button
             onClick={toggleTheme}
-            className="p-2 rounded-xl hover:bg-white/5 transition text-white/30 hover:text-white/60"
+            className="rounded-2xl border border-white/10 bg-white/[0.04] p-2 text-white/35 transition-all duration-200 hover:-translate-y-0.5 hover:border-cyan-400/25 hover:bg-cyan-400/10 hover:text-cyan-200"
             aria-label="Toggle theme"
           >
             {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
           </button>
-          <button className="p-2 rounded-xl hover:bg-white/5 transition text-white/30 hover:text-white/60 relative" aria-label="Notifications">
+          <button className="relative rounded-2xl border border-white/10 bg-white/[0.04] p-2 text-white/35 transition-all duration-200 hover:-translate-y-0.5 hover:border-cyan-400/25 hover:bg-cyan-400/10 hover:text-cyan-200" aria-label="Notifications">
             <Bell className="w-5 h-5" />
             <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
           </button>
           <div className="relative">
-            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full overflow-hidden bg-gradient-to-r from-indigo-600 to-purple-600 shadow-lg flex-shrink-0">
+            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full overflow-hidden bg-gradient-to-r from-cyan-500 via-indigo-500 to-fuchsia-500 shadow-[0_10px_24px_rgba(99,102,241,0.28)] flex-shrink-0 ring-1 ring-white/10">
               <Image
                 src="/favicon.png"
                 alt="Admin profile image"

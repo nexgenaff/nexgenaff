@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
@@ -31,11 +31,12 @@ interface DomainOption {
   isActive: boolean
 }
 
-interface ConfirmDialogState {
+interface ConfirmInlineState {
+  id: string
+  tone: 'danger' | 'warning'
   title: string
   message: string
   confirmLabel: string
-  tone: 'danger' | 'warning'
   onConfirm: () => Promise<void> | void
 }
 
@@ -70,7 +71,7 @@ export default function LinksPage() {
   const [editingIsActive, setEditingIsActive] = useState(true)
   const [savingLinkId, setSavingLinkId] = useState<string | null>(null)
   const [busyLinkId, setBusyLinkId] = useState<string | null>(null)
-  const [confirmDialog, setConfirmDialog] = useState<ConfirmDialogState | null>(null)
+  const [confirmInline, setConfirmInline] = useState<ConfirmInlineState | null>(null)
 
   const fetchLinks = useCallback(async () => {
     try {
@@ -221,7 +222,8 @@ export default function LinksPage() {
   }
 
   const handleDelete = async (id: string) => {
-    setConfirmDialog({
+    setConfirmInline({
+      id,
       title: 'Delete this link account?',
       message: 'This will remove the link account and its tracked history from the workspace. This action cannot be undone.',
       confirmLabel: 'Delete link',
@@ -256,7 +258,8 @@ export default function LinksPage() {
   }
 
   const handleReset = async (id: string) => {
-    setConfirmDialog({
+    setConfirmInline({
+      id,
       title: 'Reset link stats?',
       message: 'This will clear the recorded totals and history for this account. The link itself will remain active.',
       confirmLabel: 'Reset stats',
@@ -294,7 +297,8 @@ export default function LinksPage() {
 
   const handleBulkReset = async () => {
     if (selectedIds.length === 0) return
-    setConfirmDialog({
+    setConfirmInline({
+      id: 'bulk-reset',
       title: `Reset ${selectedIds.length} selected link account(s)?`,
       message: 'This will clear stats and historical totals for all selected links while keeping the accounts themselves intact.',
       confirmLabel: 'Reset selected',
@@ -333,7 +337,8 @@ export default function LinksPage() {
 
   const handleBulkDelete = async () => {
     if (selectedIds.length === 0) return
-    setConfirmDialog({
+    setConfirmInline({
+      id: 'bulk-delete',
       title: `Delete ${selectedIds.length} selected link account(s)?`,
       message: 'These accounts and their related analytics will be removed permanently. This action cannot be undone.',
       confirmLabel: 'Delete selected',
@@ -434,124 +439,10 @@ export default function LinksPage() {
   }
 
   return (
-    <div className="space-y-6">
-      {confirmDialog && (
-        <div
-          className="fixed inset-0 z-[120] flex items-center justify-center bg-[radial-gradient(circle_at_top,rgba(34,211,238,0.2),transparent_35%),rgba(2,6,23,0.94)] px-4 py-6 backdrop-blur-2xl"
-          onClick={() => setConfirmDialog(null)}
-        >
-          <motion.div
-            initial={{ opacity: 0, y: 18, scale: 0.98 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 10, scale: 0.985 }}
-            transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
-            onClick={(event) => event.stopPropagation()}
-            className="relative w-full max-w-md overflow-hidden rounded-[32px] border border-white/10 bg-[linear-gradient(140deg,rgba(15,23,42,0.98),rgba(2,6,23,0.98))] shadow-[0_40px_110px_rgba(0,0,0,0.7)] ring-1 ring-white/5"
-          >
-            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.18),transparent_28%),radial-gradient(circle_at_bottom_right,rgba(168,85,247,0.2),transparent_36%)]" />
-            <div className="relative border-b border-white/10 bg-white/[0.06] px-5 py-4">
-              <div className="flex items-start gap-3">
-                <div className={`mt-0.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border ${confirmDialog.tone === 'danger' ? 'border-rose-400/30 bg-rose-500/15 text-rose-300 shadow-[0_0_24px_rgba(244,63,94,0.18)]' : 'border-amber-400/30 bg-amber-500/15 text-amber-300 shadow-[0_0_24px_rgba(245,158,11,0.16)]'}`}>
-                  <AlertTriangle className="h-5 w-5" />
-                </div>
-                <div className="min-w-0">
-                  <div className="mb-1 flex items-center gap-2">
-                    <span className={`inline-flex items-center rounded-full border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.32em] ${confirmDialog.tone === 'danger' ? 'border-rose-400/25 bg-rose-500/10 text-rose-200' : 'border-amber-400/25 bg-amber-500/10 text-amber-200'}`}>
-                      Secure action
-                    </span>
-                  </div>
-                  <h3 className="text-lg font-semibold text-white">{confirmDialog.title}</h3>
-                  <p className="mt-1 text-sm leading-6 text-slate-400">Please confirm before this change is applied.</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="relative p-5">
-              <div className={`rounded-[24px] border p-4 text-sm leading-7 shadow-[0_10px_30px_rgba(0,0,0,0.16)] ${confirmDialog.tone === 'danger' ? 'border-rose-400/20 bg-rose-500/10 text-rose-100/90' : 'border-amber-400/20 bg-amber-500/10 text-amber-100/90'}`}>
-                <div className="mb-2 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.24em] text-white/70">
-                  <ShieldCheck className="h-3.5 w-3.5" />
-                  Confirmation
-                </div>
-                <p>{confirmDialog.message}</p>
-              </div>
-
-              <div className="mt-5 flex flex-wrap justify-end gap-2">
-                <button type="button" onClick={() => setConfirmDialog(null)} className="rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium text-white/75 transition hover:bg-white/10 hover:text-white shadow-[0_6px_18px_rgba(0,0,0,0.16)]">
-                  Cancel
-                </button>
-                <button type="button" onClick={() => {
-                  setConfirmDialog(null)
-                  void confirmDialog.onConfirm()
-                }} className={`rounded-xl px-4 py-2 text-sm font-semibold text-white shadow-[0_14px_40px_rgba(0,0,0,0.3)] transition hover:brightness-110 ${confirmDialog.tone === 'danger' ? 'bg-gradient-to-r from-rose-500 via-red-500 to-rose-600' : 'bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600'}`}>
-                  {confirmDialog.confirmLabel}
-                </button>
-              </div>
-            </div>
-          </motion.div>
-        </div>
-      )}
-
+    <div className="space-y-0">
       {(actionError || actionMessage) && (
         <div className={`rounded-2xl border p-3 text-sm backdrop-blur ${actionError ? 'border-red-500/30 bg-red-500/10 text-red-300' : 'border-emerald-500/30 bg-emerald-500/10 text-emerald-200'}`}>
           {actionError || actionMessage}
-        </div>
-      )}
-
-      {selectedIds.length > 0 && (
-        <div className="rounded-3xl border border-cyan-400/20 bg-[linear-gradient(180deg,rgba(34,211,238,0.12),rgba(15,23,42,0.8))] p-4 backdrop-blur-xl">
-          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-            <div>
-              <div className="text-[11px] font-semibold uppercase tracking-[0.24em] text-cyan-300">Bulk actions</div>
-              <div className="mt-1 text-sm text-white/75">{selectedIds.length} link account(s) selected</div>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              <button type="button" onClick={() => setShowBulkEditor((current) => !current)} className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm font-medium text-white/75 transition hover:bg-white/10 hover:text-white">
-                {showBulkEditor ? 'Hide editor' : 'Bulk edit'}
-              </button>
-              <button type="button" onClick={handleBulkReset} disabled={busyLinkId === 'bulk-reset'} className="rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-sm font-medium text-amber-300 transition hover:bg-amber-500/15 disabled:opacity-60">
-                {busyLinkId === 'bulk-reset' ? 'Resetting...' : 'Bulk reset'}
-              </button>
-              <button type="button" onClick={handleBulkDelete} disabled={busyLinkId === 'bulk-delete'} className="rounded-xl border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm font-medium text-red-300 transition hover:bg-red-500/15 disabled:opacity-60">
-                {busyLinkId === 'bulk-delete' ? 'Deleting...' : 'Bulk delete'}
-              </button>
-            </div>
-          </div>
-
-          {showBulkEditor && (
-            <div className="mt-4 grid gap-4 md:grid-cols-3">
-              <div>
-                <label className="form-label">Custom Domain</label>
-                <select value={bulkCustomDomainId} onChange={(e) => setBulkCustomDomainId(e.target.value)} className="form-select">
-                  <option value="">Keep current domain</option>
-                  {selectableDomains.map((domain) => (
-                    <option key={domain.id} value={domain.id}>{domain.domain}</option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="form-label">Offer Group</label>
-                <select value={bulkOfferGroupName} onChange={(e) => setBulkOfferGroupName(e.target.value)} className="form-select">
-                  <option value="">Keep current offer pool</option>
-                  {offerGroups.map((group) => (
-                    <option key={group} value={group}>{group}</option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="form-label">Status</label>
-                <select value={bulkIsActive ? 'active' : 'paused'} onChange={(e) => setBulkIsActive(e.target.value === 'active')} className="form-select">
-                  <option value="active">Active</option>
-                  <option value="paused">Paused</option>
-                </select>
-              </div>
-
-              <div className="md:col-span-3">
-                <button type="button" onClick={handleBulkUpdate} disabled={busyLinkId === 'bulk-update'} className="rounded-xl bg-gradient-to-r from-cyan-500 via-indigo-500 to-violet-500 px-4 py-2 text-sm font-semibold text-white disabled:opacity-60">
-                  {busyLinkId === 'bulk-update' ? 'Applying...' : 'Apply bulk update'}
-                </button>
-              </div>
-            </div>
-          )}
         </div>
       )}
 
@@ -662,7 +553,84 @@ export default function LinksPage() {
       </div>
 
       <div className="rounded-3xl border border-white/10 bg-white/5 p-4 backdrop-blur-xl sm:p-5">
-        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+        {selectedIds.length > 0 && (
+          <div className="mb-4 rounded-2xl border border-cyan-400/20 bg-[linear-gradient(180deg,rgba(34,211,238,0.12),rgba(15,23,42,0.8))] p-4 backdrop-blur-xl">
+            <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+              <div>
+                <div className="text-[11px] font-semibold uppercase tracking-[0.24em] text-cyan-300">Bulk actions</div>
+                <div className="mt-1 text-sm text-white/75">{selectedIds.length} link account(s) selected</div>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <button type="button" onClick={() => setShowBulkEditor((current) => !current)} className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm font-medium text-white/75 transition hover:bg-white/10 hover:text-white">
+                  {showBulkEditor ? 'Hide editor' : 'Bulk edit'}
+                </button>
+                <button type="button" onClick={() => handleBulkReset()} disabled={busyLinkId === 'bulk-reset'} className="rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-sm font-medium text-amber-300 transition hover:bg-amber-500/15 disabled:opacity-60">
+                  {busyLinkId === 'bulk-reset' ? 'Resetting...' : 'Bulk reset'}
+                </button>
+                <button type="button" onClick={() => handleBulkDelete()} disabled={busyLinkId === 'bulk-delete'} className="rounded-xl border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm font-medium text-red-300 transition hover:bg-red-500/15 disabled:opacity-60">
+                  {busyLinkId === 'bulk-delete' ? 'Deleting...' : 'Bulk delete'}
+                </button>
+              </div>
+            </div>
+
+            {showBulkEditor && (
+              <div className="mt-4 grid gap-4 md:grid-cols-3">
+                <div>
+                  <label className="form-label">Custom Domain</label>
+                  <select value={bulkCustomDomainId} onChange={(e) => setBulkCustomDomainId(e.target.value)} className="form-select">
+                    <option value="">Keep current domain</option>
+                    {selectableDomains.map((domain) => (
+                      <option key={domain.id} value={domain.id}>{domain.domain}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="form-label">Offer Group</label>
+                  <select value={bulkOfferGroupName} onChange={(e) => setBulkOfferGroupName(e.target.value)} className="form-select">
+                    <option value="">Keep current offer pool</option>
+                    {offerGroups.map((group) => (
+                      <option key={group} value={group}>{group}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="form-label">Status</label>
+                  <select value={bulkIsActive ? 'active' : 'paused'} onChange={(e) => setBulkIsActive(e.target.value === 'active')} className="form-select">
+                    <option value="active">Active</option>
+                    <option value="paused">Paused</option>
+                  </select>
+                </div>
+
+                <div className="md:col-span-3">
+                  <button type="button" onClick={handleBulkUpdate} disabled={busyLinkId === 'bulk-update'} className="rounded-xl bg-gradient-to-r from-cyan-500 via-indigo-500 to-violet-500 px-4 py-2 text-sm font-semibold text-white disabled:opacity-60">
+                    {busyLinkId === 'bulk-update' ? 'Applying...' : 'Apply bulk update'}
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {confirmInline && (confirmInline.id === 'bulk-reset' || confirmInline.id === 'bulk-delete') && (
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            className={`mb-4 flex flex-wrap items-center gap-2 rounded-2xl border p-3 text-sm ${confirmInline.id === 'bulk-reset' ? 'border-amber-400/20 bg-amber-500/10 text-amber-100/90' : 'border-rose-400/20 bg-rose-500/10 text-rose-100/90'}`}
+          >
+            <span className={confirmInline.id === 'bulk-reset' ? 'text-amber-200' : 'text-rose-200'}>{confirmInline.message}</span>
+            <button type="button" onClick={() => setConfirmInline(null)} className="rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-medium text-white/80 transition hover:bg-white/10">
+              Cancel
+            </button>
+            <button type="button" onClick={() => {
+              setConfirmInline(null)
+              void confirmInline.onConfirm()
+            }} className={`rounded-lg px-3 py-1.5 text-xs font-semibold text-white shadow-[0_10px_24px_rgba(0,0,0,0.25)] transition hover:brightness-110 ${confirmInline.id === 'bulk-reset' ? 'bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600' : 'bg-gradient-to-r from-rose-500 via-red-500 to-rose-600'}`}>
+              {confirmInline.confirmLabel}
+            </button>
+          </motion.div>
+        )}
+
+        <div className={`flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between ${selectedIds.length > 0 ? 'pt-0' : ''}`}>
           <div className="relative flex-1">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-white/20" />
             <input
@@ -804,7 +772,7 @@ export default function LinksPage() {
                     <Pencil className="h-3 w-3" />
                     Edit
                   </button>
-                  <button type="button" onClick={() => handleReset(link.id)} disabled={busyLinkId === link.id} className="inline-flex items-center gap-1 rounded-lg border border-amber-500/30 bg-amber-500/10 px-2.5 py-1.25 text-[11px] font-medium text-amber-300 transition hover:bg-amber-500/15 disabled:opacity-60">
+                  <button type="button" onClick={() => handleReset(link.id)} disabled={busyLinkId === link.id} className="inline-flex items-center gap-1 rounded-lg border border-amber-500/30 bg-amber-500/10 px-2.5 py-1.25 text-[11px] font-medium text-amber-300 transition hover:bg-red-500/15 disabled:opacity-60">
                     <RotateCcw className="h-3 w-3" />
                     {busyLinkId === link.id ? 'Resetting...' : 'Reset'}
                   </button>
@@ -813,6 +781,24 @@ export default function LinksPage() {
                     {busyLinkId === link.id ? 'Deleting...' : 'Delete'}
                   </button>
                 </div>
+                {confirmInline && confirmInline.id === link.id && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="mt-2 flex flex-wrap items-center gap-2 rounded-2xl border border-red-400/20 bg-red-500/10 p-3 text-sm text-red-100/90"
+                  >
+                    <span className="text-red-200">{confirmInline.message}</span>
+                    <button type="button" onClick={() => setConfirmInline(null)} className="rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-medium text-white/80 transition hover:bg-white/10">
+                      Cancel
+                    </button>
+                    <button type="button" onClick={() => {
+                      setConfirmInline(null)
+                      void confirmInline.onConfirm()
+                    }} className="rounded-lg bg-gradient-to-r from-red-500 via-rose-500 to-red-600 px-3 py-1.5 text-xs font-semibold text-white shadow-[0_10px_24px_rgba(0,0,0,0.25)] transition hover:brightness-110">
+                      {confirmInline.confirmLabel}
+                    </button>
+                  </motion.div>
+                )}
               </div>
             </motion.article>
           ))}

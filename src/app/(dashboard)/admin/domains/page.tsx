@@ -204,7 +204,7 @@ export default function DomainsPage() {
     <div className="space-y-6">
       {confirmDialog && (
         <div
-          className="fixed inset-0 z-[120] flex items-center justify-center bg-[radial-gradient(circle_at_top,rgba(34,211,238,0.2),transparent_35%),rgba(2,6,23,0.94)] px-4 py-6 backdrop-blur-2xl"
+          className="fixed inset-0 z-[120] bg-[radial-gradient(circle_at_top,rgba(34,211,238,0.2),transparent_35%),rgba(2,6,23,0.94)] backdrop-blur-2xl"
           onClick={() => setConfirmDialog(null)}
         >
           <motion.div
@@ -213,7 +213,7 @@ export default function DomainsPage() {
             exit={{ opacity: 0, y: 10, scale: 0.985 }}
             transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
             onClick={(event) => event.stopPropagation()}
-            className="relative w-full max-w-md overflow-hidden rounded-[32px] border border-white/10 bg-[linear-gradient(140deg,rgba(15,23,42,0.98),rgba(2,6,23,0.98))] shadow-[0_40px_110px_rgba(0,0,0,0.7)] ring-1 ring-white/5"
+            className="fixed left-1/2 top-1/2 z-[121] w-[calc(100%-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-[32px] border border-white/10 bg-[linear-gradient(140deg,rgba(15,23,42,0.98),rgba(2,6,23,0.98))] shadow-[0_40px_110px_rgba(0,0,0,0.7)] ring-1 ring-white/5"
           >
             <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.18),transparent_28%),radial-gradient(circle_at_bottom_right,rgba(168,85,247,0.2),transparent_36%)]" />
             <div className="relative border-b border-white/10 bg-white/[0.06] px-5 py-4">
