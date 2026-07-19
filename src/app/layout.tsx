@@ -12,8 +12,8 @@ const inter = Inter({
 export const metadata: Metadata = {
   metadataBase: new URL('https://nexgenaffiliates.vercel.app'),
   title: 'NexGen Affiliates',
-  description: 'Affiliate tracking, geo redirect, and public analytics for modern marketing teams.',
-  keywords: 'affiliate tracking, geo redirect, link management, public analytics, SEO optimize',
+  description: 'Click tracking, bot filtering, and smarter campaign routing for affiliate and growth teams.',
+  keywords: 'affiliate tracking, click fraud detection, link management, traffic quality, campaign routing',
   authors: [{ name: 'NexGen Affiliates' }],
   icons: {
     icon: '/favicon.png',
@@ -21,7 +21,7 @@ export const metadata: Metadata = {
   },
   openGraph: {
     title: 'NexGen Affiliates',
-    description: 'Affiliate tracking, geo redirect, and public analytics for modern marketing teams.',
+    description: 'Click tracking, bot filtering, and smarter campaign routing for affiliate and growth teams.',
     type: 'website',
     url: 'https://nexgenaffiliates.vercel.app',
     images: [
@@ -36,7 +36,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'NexGen Affiliates',
-    description: 'Affiliate tracking, geo redirect, and public analytics for modern marketing teams.',
+    description: 'Click tracking, bot filtering, and smarter campaign routing for affiliate and growth teams.',
     images: ['/favicon.png'],
   },
 }

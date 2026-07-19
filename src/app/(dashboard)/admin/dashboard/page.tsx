@@ -157,14 +157,16 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col gap-3 rounded-2xl border border-white/10 bg-slate-950/70 backdrop-blur-sm p-3 shadow-[0_8px_24px_rgba(0,0,0,0.16)]">
+    <div className="space-y-6 text-slate-100">
+      <div className="flex flex-col gap-3 rounded-[24px] border border-slate-800/80 bg-slate-900/75 p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] backdrop-blur-sm">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div className="min-w-0">
-            <p className="text-xs uppercase tracking-[0.24em] text-slate-400">Welcome back</p>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.32em] text-sky-400/80">Welcome back</p>
             <div className="flex flex-wrap items-center gap-2 text-sm text-slate-100">
-              <span className="truncate text-sm font-semibold text-white">Good to see you, Admin</span>
-              <span className="rounded-full bg-white/5 px-2.5 py-1 text-xs font-medium text-slate-200 ring-1 ring-white/10">
+              <span className="truncate text-sm font-semibold text-slate-100">
+                Good to see you, Admin
+              </span>
+              <span className="rounded-full bg-slate-950/80 px-2.5 py-1 text-[11px] font-medium text-slate-300 ring-1 ring-slate-700/70">
                 {currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
               </span>
             </div>
@@ -174,14 +176,14 @@ export default function DashboardPage() {
           <div className="flex flex-wrap items-center justify-end gap-2">
             <button 
               onClick={handleRefresh} 
-              className="inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-white/[0.06] px-2.5 py-1.5 text-xs font-semibold text-slate-100 transition hover:bg-white/10 hover:text-white"
+              className="inline-flex items-center gap-2 rounded-2xl border border-slate-800 bg-slate-950/70 px-2.5 py-1.5 text-xs font-semibold text-slate-200 transition hover:border-slate-700 hover:bg-slate-900"
             >
               <RefreshCw className="w-4 h-4" />
               Refresh
             </button>
             <Link 
               href="/admin/links/create" 
-              className="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-indigo-500/90 via-indigo-600/90 to-slate-700/90 px-2.5 py-1.5 text-xs font-semibold text-white shadow-[0_6px_16px_rgba(99,102,241,0.15)]"
+              className="inline-flex items-center gap-2 rounded-2xl bg-slate-100 px-2.5 py-1.5 text-xs font-semibold text-slate-900 transition hover:bg-white"
             >
               <Plus className="w-4 h-4" />
               Create Link
@@ -190,22 +192,28 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      <StatsCards
-        stats={stats}
-        chartData={chartData}
-        hourlyChartData={hourlyChartData}
-        countryBreakdown={countryBreakdown}
-        period={period}
-        onPeriodChange={setPeriod}
-      />
+      <section className="rounded-[24px] border border-slate-800/70 bg-slate-950/30 p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] sm:p-4">
+        <StatsCards
+          stats={stats}
+          chartData={chartData}
+          hourlyChartData={hourlyChartData}
+          countryBreakdown={countryBreakdown}
+          period={period}
+          onPeriodChange={setPeriod}
+        />
+      </section>
 
-      <TrafficBreakdown
-        referrerBreakdown={referrerBreakdown}
-        browserBreakdown={browserBreakdown}
-        deviceBreakdown={deviceBreakdown}
-      />
+      <section className="rounded-[24px] border border-slate-800/70 bg-slate-950/30 p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] sm:p-4">
+        <TrafficBreakdown
+          referrerBreakdown={referrerBreakdown}
+          browserBreakdown={browserBreakdown}
+          deviceBreakdown={deviceBreakdown}
+        />
+      </section>
 
-      <ClickLogs />
+      <section className="rounded-[24px] border border-slate-800/70 bg-slate-950/30 p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] sm:p-4">
+        <ClickLogs />
+      </section>
     </div>
   )
 }

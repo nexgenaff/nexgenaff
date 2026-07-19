@@ -60,26 +60,16 @@ export function Chart({ data, height = 220, type = 'line', options = {} }: Chart
     maintainAspectRatio: false,
     plugins: {
       legend: {
-        position: 'top' as const,
-        align: 'start' as const,
-        labels: {
-          color: 'rgba(255,255,255,0.72)',
-          font: { size: 10, weight: '700', family: 'Inter' },
-          boxWidth: 10,
-          boxHeight: 10,
-          borderRadius: 3,
-          useBorderRadius: true,
-          padding: 12,
-        },
+        display: false,
       },
       tooltip: {
-        backgroundColor: 'rgba(18,18,31,0.95)',
-        titleColor: '#FFFFFF',
-        bodyColor: '#A78BFA',
-        borderColor: 'rgba(124,58,237,0.2)',
+        backgroundColor: 'rgba(7, 12, 22, 0.95)',
+        titleColor: '#F8FAFC',
+        bodyColor: '#CBD5E1',
+        borderColor: 'rgba(148, 163, 184, 0.2)',
         borderWidth: 1,
-        padding: 12,
-        cornerRadius: 8,
+        padding: 10,
+        cornerRadius: 10,
         callbacks: {
           label: function (context: any) {
             return context.dataset.label + ': ' + context.parsed.y + ' clicks'
@@ -89,17 +79,19 @@ export function Chart({ data, height = 220, type = 'line', options = {} }: Chart
     },
     scales: {
       x: {
-        grid: { color: 'rgba(255,255,255,0.03)', drawBorder: false },
+        border: { display: false },
+        grid: { color: 'rgba(255,255,255,0.04)', drawBorder: false },
         ticks: {
-          color: 'rgba(255,255,255,0.4)',
+          color: 'rgba(255,255,255,0.44)',
           font: { size: 10, weight: '600', family: 'Inter' },
           padding: 8,
         },
       },
       y: {
-        grid: { color: 'rgba(255,255,255,0.03)', drawBorder: false },
+        border: { display: false },
+        grid: { color: 'rgba(255,255,255,0.04)', drawBorder: false },
         ticks: {
-          color: 'rgba(255,255,255,0.4)',
+          color: 'rgba(255,255,255,0.44)',
           font: { size: 10, weight: '600', family: 'Inter' },
           padding: 8,
         },
@@ -116,12 +108,12 @@ export function Chart({ data, height = 220, type = 'line', options = {} }: Chart
     },
     elements: {
       line: {
-        borderWidth: 3,
-        tension: 0.38,
+        borderWidth: 2,
+        tension: 0.3,
       },
       point: {
-        radius: 3,
-        hoverRadius: 5,
+        radius: 0,
+        hoverRadius: 4,
       },
     },
     ...options,

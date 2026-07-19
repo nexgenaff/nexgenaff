@@ -322,7 +322,7 @@ export default function ClickLogs() {
 
   if (loading) {
     return (
-      <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-4 sm:p-6">
+      <div className="rounded-[24px] border border-slate-800 bg-slate-900/80 p-4 shadow-sm backdrop-blur-sm sm:p-6">
         <div className="space-y-4">
           {[...Array(5)].map((_, i) => (
             <div key={i} className="flex items-center gap-4">
@@ -340,10 +340,10 @@ export default function ClickLogs() {
   }
 
   return (
-    <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden">
+    <div className="overflow-hidden rounded-[24px] border border-slate-800 bg-slate-900/80 shadow-sm backdrop-blur-sm">
       {confirmDialog && (
         <div
-          className="fixed inset-0 z-[120] flex items-center justify-center bg-[radial-gradient(circle_at_top,rgba(34,211,238,0.16),transparent_35%),rgba(2,6,23,0.9)] px-4 py-6 backdrop-blur-xl"
+          className="fixed inset-0 z-[120] flex items-center justify-center bg-slate-950/90 px-4 py-6 backdrop-blur-sm"
           onClick={() => setConfirmDialog(null)}
         >
           <motion.div
@@ -352,17 +352,17 @@ export default function ClickLogs() {
             exit={{ opacity: 0, y: 10, scale: 0.985 }}
             transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
             onClick={(event) => event.stopPropagation()}
-            className="relative w-full max-w-md overflow-hidden rounded-[30px] border border-white/10 bg-[linear-gradient(140deg,rgba(15,23,42,0.96),rgba(2,6,23,0.96))] shadow-[0_35px_95px_rgba(0,0,0,0.55)]"
+            className="relative w-full max-w-md overflow-hidden rounded-[24px] border border-slate-800 bg-slate-900/95 shadow-lg"
           >
-            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.18),transparent_28%),radial-gradient(circle_at_bottom_right,rgba(168,85,247,0.2),transparent_36%)]" />
-            <div className="relative border-b border-white/10 bg-white/5 px-5 py-4">
+            <div className="pointer-events-none absolute inset-0 bg-slate-900/50" />
+            <div className="relative border-b border-slate-800 bg-slate-950/70 px-5 py-4">
               <div className="flex items-start gap-3">
-                <div className={`mt-0.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border ${confirmDialog.tone === 'danger' ? 'border-rose-400/30 bg-rose-500/15 text-rose-300 shadow-[0_0_24px_rgba(244,63,94,0.18)]' : 'border-amber-400/30 bg-amber-500/15 text-amber-300 shadow-[0_0_24px_rgba(245,158,11,0.16)]'}`}>
+                <div className={`mt-0.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border ${confirmDialog.tone === 'danger' ? 'border-rose-400/20 bg-rose-500/10 text-rose-300' : 'border-amber-400/20 bg-amber-500/10 text-amber-300'}`}>
                   <AlertTriangle className="h-5 w-5" />
                 </div>
                 <div className="min-w-0">
                   <div className="mb-1 flex items-center gap-2">
-                    <span className={`inline-flex items-center rounded-full border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.32em] ${confirmDialog.tone === 'danger' ? 'border-rose-400/25 bg-rose-500/10 text-rose-200' : 'border-amber-400/25 bg-amber-500/10 text-amber-200'}`}>
+                    <span className={`inline-flex items-center rounded-full border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.32em] ${confirmDialog.tone === 'danger' ? 'border-rose-400/20 bg-rose-500/10 text-rose-200' : 'border-amber-400/20 bg-amber-500/10 text-amber-200'}`}>
                       Secure action
                     </span>
                   </div>
@@ -380,13 +380,13 @@ export default function ClickLogs() {
                 <p>{confirmDialog.message}</p>
               </div>
               <div className="mt-5 flex flex-wrap justify-end gap-2">
-                <button type="button" onClick={() => setConfirmDialog(null)} className="rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium text-white/75 transition hover:bg-white/10 hover:text-white">
+                <button type="button" onClick={() => setConfirmDialog(null)} className="rounded-xl border border-slate-700 bg-slate-800/80 px-4 py-2 text-sm font-medium text-slate-200 transition hover:bg-slate-700 hover:text-white">
                   Cancel
                 </button>
                 <button type="button" onClick={() => {
                   setConfirmDialog(null)
                   void confirmDialog.onConfirm()
-                }} className={`rounded-xl px-4 py-2 text-sm font-semibold text-white shadow-[0_12px_35px_rgba(0,0,0,0.25)] transition hover:brightness-110 ${confirmDialog.tone === 'danger' ? 'bg-gradient-to-r from-rose-500 via-red-500 to-rose-600' : 'bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600'}`}>
+                }} className={`rounded-xl px-4 py-2 text-sm font-semibold text-white transition ${confirmDialog.tone === 'danger' ? 'bg-rose-600 hover:bg-rose-500' : 'bg-amber-600 hover:bg-amber-500'}`}>
                   {confirmDialog.confirmLabel}
                 </button>
               </div>
@@ -394,15 +394,15 @@ export default function ClickLogs() {
           </motion.div>
         </div>
       )}
-      <div className="p-4 sm:p-6 border-b border-white/5">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="border-b border-slate-800 bg-slate-950/60 p-4 sm:p-6">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-2">
-            <div className="p-2 bg-indigo-500/10 rounded-xl">
-              <Eye className="w-5 h-5 text-indigo-400" />
+            <div className="rounded-xl border border-slate-800 bg-slate-900/80 p-2">
+              <Eye className="h-5 w-5 text-slate-400" />
             </div>
             <div>
-              <h3 className="text-lg font-semibold text-white">Click Logs</h3>
-              <p className="text-sm text-white/30">
+              <h3 className="text-lg font-semibold text-slate-100">Click Logs</h3>
+              <p className="text-sm text-slate-400">
                 {total.toLocaleString()} total clicks
               </p>
             </div>
@@ -411,7 +411,7 @@ export default function ClickLogs() {
             <button
               onClick={() => fetchClicks(false)}
               disabled={refreshing}
-              className="flex items-center gap-1 px-3 py-1.5 text-sm border border-white/10 rounded-lg hover:bg-white/5 transition disabled:opacity-50 text-white/30"
+              className="flex items-center gap-1 rounded-lg border border-slate-800 bg-slate-900/70 px-3 py-1.5 text-sm text-slate-300 transition hover:bg-slate-800 disabled:opacity-50"
             >
               {refreshing ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
@@ -422,19 +422,19 @@ export default function ClickLogs() {
             </button>
             <button
               onClick={() => setShowFilters(!showFilters)}
-              className="flex items-center gap-1 px-3 py-1.5 text-sm border border-white/10 rounded-lg hover:bg-white/5 transition relative text-white/30"
+              className="relative flex items-center gap-1 rounded-lg border border-slate-800 bg-slate-900/70 px-3 py-1.5 text-sm text-slate-300 transition hover:bg-slate-800"
             >
               <Filter className="w-4 h-4" />
               Filters
               {activeFilterCount > 0 && (
-                <span className="absolute -top-1 -right-1 w-4 h-4 bg-indigo-600 text-white text-[10px] rounded-full flex items-center justify-center">
+                <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-slate-100 text-[10px] font-semibold text-slate-900">
                   {activeFilterCount}
                 </span>
               )}
             </button>
             <button
               onClick={handleExport}
-              className="flex items-center gap-1 px-3 py-1.5 text-sm btn-gradient rounded-lg"
+              className="flex items-center gap-1 rounded-lg bg-slate-100 px-3 py-1.5 text-sm font-semibold text-slate-900 transition hover:bg-white"
             >
               <Download className="w-4 h-4" />
               Export
@@ -444,7 +444,7 @@ export default function ClickLogs() {
       </div>
 
       {showFilters && (
-        <div className="p-4 sm:p-6 border-b border-white/5 bg-white/5 animate-fadeInUp">
+        <div className="border-b border-slate-800 bg-slate-950/50 p-4 sm:p-6">
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-3">
             <div className="xl:col-span-2">
               <label className="form-label">Search</label>
@@ -556,14 +556,14 @@ export default function ClickLogs() {
         </div>
       )}
 
-      <div className="px-4 sm:px-6 py-4 border-b border-white/5 bg-white/[0.02]">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-          <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-3 py-2">
-            <div className="text-[11px] uppercase tracking-[0.24em] text-emerald-200/70">Unique</div>
+      <div className="border-b border-slate-800 bg-slate-950/40 px-4 py-4 sm:px-6">
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+          <div className="rounded-xl border border-slate-800 bg-slate-900/70 px-3 py-2">
+            <div className="text-[11px] uppercase tracking-[0.24em] text-slate-400">Unique</div>
             <div className="mt-1 text-sm font-semibold text-white">{summary.unique}</div>
           </div>
-          <div className="rounded-xl border border-amber-500/20 bg-amber-500/10 px-3 py-2">
-            <div className="text-[11px] uppercase tracking-[0.24em] text-amber-200/70">Duplicates</div>
+          <div className="rounded-xl border border-slate-800 bg-slate-900/70 px-3 py-2">
+            <div className="text-[11px] uppercase tracking-[0.24em] text-slate-400">Duplicates</div>
             <div className="mt-1 text-sm font-semibold text-white">{summary.duplicate}</div>
           </div>
         </div>
@@ -571,9 +571,9 @@ export default function ClickLogs() {
 
       <div className="overflow-x-auto">
         <table className="min-w-[1120px] w-full">
-          <thead className="bg-white/5">
+          <thead className="bg-slate-950/70">
             <tr>
-              <th className="px-4 py-3 text-left text-xs font-medium text-white/30 uppercase tracking-wider whitespace-nowrap">
+              <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider whitespace-nowrap text-slate-500">
                 <button
                   onClick={() => handleFilterChange('sortBy', 'createdAt')}
                   className="flex items-center gap-1 hover:text-white/60 transition"
@@ -584,24 +584,33 @@ export default function ClickLogs() {
                   )}
                 </button>
               </th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-white/30 uppercase tracking-wider whitespace-nowrap">IP Address</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-white/30 uppercase tracking-wider whitespace-nowrap">Campaign</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-white/30 uppercase tracking-wider whitespace-nowrap">Location</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-white/30 uppercase tracking-wider whitespace-nowrap">Device</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-white/30 uppercase tracking-wider whitespace-nowrap">Browser</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-white/30 uppercase tracking-wider whitespace-nowrap">Referrer</th>
-              <th className="px-4 py-3 text-center text-xs font-medium text-white/30 uppercase tracking-wider whitespace-nowrap">Status</th>
-              <th className="px-4 py-3 text-center text-xs font-medium text-white/30 uppercase tracking-wider whitespace-nowrap">Actions</th>
+              <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider whitespace-nowrap text-slate-500">IP Address</th>
+              <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider whitespace-nowrap text-slate-500">Campaign</th>
+              <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider whitespace-nowrap text-slate-500">Location</th>
+              <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider whitespace-nowrap text-slate-500">Device</th>
+              <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider whitespace-nowrap text-slate-500">Browser</th>
+              <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider whitespace-nowrap text-slate-500">Referrer</th>
+              <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider whitespace-nowrap text-slate-500">Status</th>
+              <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider whitespace-nowrap text-slate-500">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-white/5">
+          <tbody className="divide-y divide-slate-800/80">
             {clicks.length === 0 ? (
               <tr>
-                <td colSpan={7} className="px-4 py-12 text-center text-white/30">
-                  <div className="flex flex-col items-center gap-2">
-                    <Eye className="w-12 h-12 text-white/10" />
-                    <p className="text-lg font-medium">No clicks recorded yet</p>
-                    <p className="text-sm">Start sharing your links to see activity</p>
+                <td colSpan={9} className="px-4 py-12 text-center">
+                  <div className="mx-auto flex max-w-xl flex-col items-center rounded-[24px] border border-slate-800 bg-slate-950/70 px-8 py-10 text-center shadow-inner">
+                    <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl border border-slate-800 bg-slate-900/80">
+                      <Eye className="h-6 w-6 text-slate-300" />
+                    </div>
+                    <p className="text-lg font-semibold text-slate-100">No traffic yet</p>
+                    <p className="mt-2 max-w-md text-sm leading-6 text-slate-400">
+                      Share a link and the first clicks will appear here with campaign, device, and location insights.
+                    </p>
+                    <div className="mt-5 flex flex-wrap items-center justify-center gap-2 text-xs font-medium uppercase tracking-[0.24em] text-slate-500">
+                      <span className="rounded-full border border-slate-800 bg-slate-900/80 px-3 py-1">Live activity</span>
+                      <span className="rounded-full border border-slate-800 bg-slate-900/80 px-3 py-1">Device mix</span>
+                      <span className="rounded-full border border-slate-800 bg-slate-900/80 px-3 py-1">Geo view</span>
+                    </div>
                   </div>
                 </td>
               </tr>
@@ -609,39 +618,39 @@ export default function ClickLogs() {
               clicks.map((click, index) => (
                 <tr
                   key={click.id}
-                  className={`transition-all duration-200 animate-fadeInUp ${click.isUnique ? 'hover:bg-white/5' : 'bg-amber-500/5 hover:bg-amber-500/10'}`}
+                  className={`transition-all duration-200 ${click.isUnique ? 'hover:bg-slate-800/60' : 'bg-amber-500/5 hover:bg-amber-500/10'}`}
                   style={{ animationDelay: `${index * 50}ms` }}
                 >
-                  <td className="px-4 py-3 text-sm text-white/50 whitespace-nowrap">
+                  <td className="px-4 py-3 text-sm whitespace-nowrap text-slate-300">
                     <div className="flex items-center gap-1">
-                      <Clock className="w-3 h-3 text-white/20" />
+                      <Clock className="h-3 w-3 text-slate-500" />
                       {formatDate(click.createdAt)}
                     </div>
                   </td>
-                  <td className="px-4 py-3 text-sm text-white/30 font-mono">
+                  <td className="px-4 py-3 text-sm font-mono text-slate-400">
                     {click.ipAddress}
                   </td>
-                  <td className="px-4 py-3 text-sm text-white/50">
+                  <td className="px-4 py-3 text-sm text-slate-300">
                     <div className="flex flex-col gap-0.5">
-                      <span className="font-medium text-white/80">{click.linkAccount.accountName}</span>
-                      <span className="text-[11px] text-white/35">/{click.linkAccount.slug}</span>
+                      <span className="font-medium text-cyan-300">{click.linkAccount.accountName}</span>
+                      <span className="text-[11px] text-slate-500">/{click.linkAccount.slug}</span>
                     </div>
                   </td>
-                  <td className="px-4 py-3 text-sm text-white/50">
+                  <td className="px-4 py-3 text-sm text-slate-300">
                     {getLocationSummary(click)}
                   </td>
-                  <td className="px-4 py-3 text-sm text-white/50">
+                  <td className="px-4 py-3 text-sm text-slate-300">
                     <div className="flex items-center gap-1">
                       {getDeviceIcon(click.deviceType)}
                       <span className="truncate max-w-[140px]">{getDeviceLabel(click)}</span>
                     </div>
                   </td>
-                  <td className="px-4 py-3 text-sm text-white/50">
+                  <td className="px-4 py-3 text-sm text-slate-300">
                     <div className="flex items-center gap-1">
-                      <span className="truncate max-w-[140px]">{getBrowserLabel(click)}</span>
+                      <span className="truncate max-w-[140px] text-violet-300">{getBrowserLabel(click)}</span>
                     </div>
                   </td>
-                  <td className="px-4 py-3 text-sm text-white/30 max-w-[150px] truncate">
+                  <td className="px-4 py-3 text-sm max-w-[150px] truncate text-cyan-200">
                     {click.referrer ? (() => {
                       const referrerInfo = getReferrerInfo(click.referrer)
                       return (
@@ -649,7 +658,7 @@ export default function ClickLogs() {
                           href={referrerInfo.href || '#'}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="flex items-center gap-1 text-indigo-400 hover:underline transition"
+                          className="flex items-center gap-1 text-slate-400 hover:text-slate-200 hover:underline transition"
                           onClick={(event) => {
                             if (!referrerInfo.href) {
                               event.preventDefault()
@@ -661,7 +670,7 @@ export default function ClickLogs() {
                         </a>
                       )
                     })() : (
-                      <span className="text-white/20">Direct</span>
+                      <span className="text-slate-500">Direct</span>
                     )}
                   </td>
                   <td className="px-4 py-3 text-center">
@@ -680,7 +689,7 @@ export default function ClickLogs() {
                   <td className="px-4 py-3 text-center">
                     <button
                       onClick={() => handleDeleteClick(click.id)}
-                      className="p-1 text-white/20 hover:text-red-400 transition-all duration-200 hover:scale-110"
+                      className="p-1 text-slate-500 transition-all duration-200 hover:scale-110 hover:text-rose-400"
                       title="Delete click"
                     >
                       <Trash2 className="w-4 h-4" />
@@ -694,8 +703,8 @@ export default function ClickLogs() {
       </div>
 
       {total > 0 && (
-        <div className="px-4 py-3 border-t border-white/5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <p className="text-sm text-white/30">
+        <div className="flex flex-col gap-4 border-t border-slate-800 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-sm text-slate-400">
             Showing {((page - 1) * limit) + 1} to {Math.min(page * limit, total)} of {total.toLocaleString()} clicks
           </p>
           <div className="flex items-center gap-2">
@@ -706,7 +715,7 @@ export default function ClickLogs() {
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
-            <span className="text-sm text-white/50 px-3 py-1 bg-white/5 rounded-lg">
+            <span className="rounded-lg bg-slate-900/80 px-3 py-1 text-sm text-slate-300">
               Page {page} of {totalPages}
             </span>
             <button
