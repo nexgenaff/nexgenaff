@@ -209,7 +209,7 @@ export default function SettingsPage() {
         <motion.div
           initial={{ opacity: 0, y: 6 }}
           animate={{ opacity: 1, y: 0 }}
-          className={`flex items-center gap-2 rounded-2xl border px-4 py-3 text-sm ${feedback.type === 'success' ? 'border-emerald-400/20 bg-emerald-500/10 text-emerald-300' : 'border-red-400/20 bg-red-500/10 text-red-300'}`}
+          className={`flex items-center gap-2 rounded-xl border px-4 py-3 text-sm ${feedback.type === 'success' ? 'border-emerald-800/60 bg-emerald-950/40 text-emerald-300' : 'border-red-800/60 bg-red-950/40 text-red-300'}`}
         >
           {feedback.type === 'success' ? <CheckCircle2 className="h-4 w-4" /> : <XCircle className="h-4 w-4" />}
           {feedback.message}
@@ -222,32 +222,26 @@ export default function SettingsPage() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.08 }}
-            className="relative overflow-hidden rounded-[28px] border border-cyan-400/15 bg-[linear-gradient(135deg,rgba(255,255,255,0.06),rgba(255,255,255,0.03))] p-6 shadow-[0_20px_60px_rgba(2,6,23,0.24)] backdrop-blur-2xl"
+            className="rounded-2xl border border-slate-800/80 bg-slate-900/70 p-5"
           >
-            <div className="pointer-events-none absolute inset-y-0 right-0 w-40 bg-[radial-gradient(circle,rgba(34,211,238,0.19),transparent_65%)]" />
-            <div className="relative">
-              <div className="mb-4 flex items-center justify-between gap-3">
-                <div className="flex items-center gap-2">
-                  {darkMode ? <Moon className="h-5 w-5 text-cyan-200" /> : <Sun className="h-5 w-5 text-cyan-200" />}
-                  <h3 className="text-lg font-semibold text-white">Appearance</h3>
-                </div>
-                <span className="rounded-full border border-cyan-400/20 bg-cyan-500/10 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.32em] text-cyan-200/90">
-                  Personalization
-                </span>
+            <div className="mb-4 flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                {darkMode ? <Moon className="h-4 w-4 text-slate-300" /> : <Sun className="h-4 w-4 text-slate-300" />}
+                <h3 className="text-base font-semibold text-slate-100">Appearance</h3>
               </div>
-              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                  <p className="font-medium text-white">Dark Mode</p>
-                  <p className="text-sm text-slate-400">Toggle between a darker workspace and a brighter one.</p>
-                </div>
-                <button
-                  onClick={toggleTheme}
-                  className={`flex items-center gap-2 rounded-2xl border px-4 py-2.5 font-medium transition ${darkMode ? 'border-white/10 bg-white/10 text-white hover:bg-white/15' : 'border-cyan-400/20 bg-gradient-to-r from-cyan-500/14 via-cyan-500/10 to-violet-500/10 text-slate-100 hover:brightness-110'}`}
-                >
-                  {darkMode ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
-                  {darkMode ? 'Dark Mode' : 'Light Mode'}
-                </button>
+            </div>
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p className="font-medium text-slate-100">Dark mode</p>
+                <p className="text-sm text-slate-400">Switch the workspace between dark and light themes.</p>
               </div>
+              <button
+                onClick={toggleTheme}
+                className={`flex items-center gap-2 rounded-xl border px-3.5 py-2 text-sm font-medium transition ${darkMode ? 'border-slate-700 bg-slate-950/70 text-slate-100 hover:bg-slate-800/80' : 'border-slate-700 bg-slate-950/70 text-slate-100 hover:bg-slate-800/80'}`}
+              >
+                {darkMode ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
+                {darkMode ? 'Dark mode' : 'Light mode'}
+              </button>
             </div>
           </motion.section>
 
@@ -255,102 +249,96 @@ export default function SettingsPage() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.16 }}
-            className="relative overflow-hidden rounded-[28px] border border-white/10 bg-[linear-gradient(135deg,rgba(255,255,255,0.06),rgba(255,255,255,0.03))] p-6 shadow-[0_20px_60px_rgba(2,6,23,0.24)] backdrop-blur-2xl"
+            className="rounded-2xl border border-slate-800/80 bg-slate-900/70 p-5"
           >
-            <div className="pointer-events-none absolute inset-y-0 left-0 w-36 bg-[radial-gradient(circle,rgba(129,140,248,0.18),transparent_70%)]" />
-            <div className="relative">
-              <div className="mb-4 flex items-center justify-between gap-3">
-                <div className="flex items-center gap-2">
-                  <User className="h-5 w-5 text-cyan-200" />
-                  <h3 className="text-lg font-semibold text-white">Account</h3>
-                </div>
-                <span className="rounded-full border border-white/10 bg-white/[0.04] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.32em] text-slate-400">
-                  Profile details
-                </span>
+            <div className="mb-4 flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <User className="h-4 w-4 text-slate-300" />
+                <h3 className="text-base font-semibold text-slate-100">Account</h3>
               </div>
-              <div className="space-y-4">
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <div className="rounded-2xl border border-white/10 bg-slate-950/40 px-3 py-3">
-                    <p className="flex items-center gap-1 text-sm text-slate-400"><User className="h-4 w-4" /> Username</p>
-                    <p className="mt-1 font-medium text-white">{userInfo?.username || 'admin'}</p>
-                  </div>
-                  <div className="rounded-2xl border border-white/10 bg-slate-950/40 px-3 py-3">
-                    <p className="flex items-center gap-1 text-sm text-slate-400"><Mail className="h-4 w-4" /> Email</p>
-                    <p className="mt-1 font-medium text-white">{userInfo?.email || 'admin@nextgen.com'}</p>
-                  </div>
+            </div>
+            <div className="space-y-4">
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div className="rounded-xl border border-slate-800/80 bg-slate-950/70 px-3 py-3">
+                  <p className="flex items-center gap-1 text-sm text-slate-400"><User className="h-4 w-4" /> Username</p>
+                  <p className="mt-1 font-medium text-slate-100">{userInfo?.username || 'admin'}</p>
                 </div>
-
-                <div className="flex flex-wrap gap-3">
-                  <button
-                    onClick={() => setShowPasswordForm((value) => !value)}
-                    className="flex items-center gap-2 rounded-2xl border border-cyan-400/20 bg-cyan-500/10 px-4 py-2.5 font-medium text-cyan-100 transition hover:bg-cyan-500/15"
-                  >
-                    <Key className="h-4 w-4" />
-                    {showPasswordForm ? 'Hide Password Form' : 'Change Password'}
-                  </button>
-                  <button
-                    onClick={() => setShowDangerZone((value) => !value)}
-                    className="flex items-center gap-2 rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-2.5 font-medium text-slate-300 transition hover:bg-white/8"
-                  >
-                    <AlertTriangle className="h-4 w-4" />
-                    {showDangerZone ? 'Hide Danger Zone' : 'Show Danger Zone'}
-                  </button>
-                  <button
-                    onClick={handleLogout}
-                    className="flex items-center gap-2 rounded-2xl border border-red-500/25 bg-red-500/10 px-4 py-2.5 font-medium text-red-300 transition hover:bg-red-500/15"
-                  >
-                    <LogOut className="h-4 w-4" />
-                    Logout
-                  </button>
+                <div className="rounded-xl border border-slate-800/80 bg-slate-950/70 px-3 py-3">
+                  <p className="flex items-center gap-1 text-sm text-slate-400"><Mail className="h-4 w-4" /> Email</p>
+                  <p className="mt-1 font-medium text-slate-100">{userInfo?.email || 'admin@nextgen.com'}</p>
                 </div>
+              </div>
 
-                {showPasswordForm && (
-                  <form onSubmit={handlePasswordSubmit} className="space-y-3 rounded-[24px] border border-white/10 bg-slate-950/50 p-4">
-                    <div className="grid gap-3 md:grid-cols-2">
-                      <label className="space-y-1 text-sm text-slate-400">
-                        <span>Current password</span>
-                        <input
-                          type="password"
-                          value={passwordForm.currentPassword}
-                          onChange={(event) => setPasswordForm((value) => ({ ...value, currentPassword: event.target.value }))}
-                          className="form-input"
-                          required
-                        />
-                      </label>
-                      <label className="space-y-1 text-sm text-slate-400">
-                        <span>New password</span>
-                        <input
-                          type="password"
-                          value={passwordForm.newPassword}
-                          onChange={(event) => setPasswordForm((value) => ({ ...value, newPassword: event.target.value }))}
-                          className="form-input"
-                          required
-                          minLength={8}
-                        />
-                      </label>
-                    </div>
-                    <label className="block space-y-1 text-sm text-slate-400">
-                      <span>Confirm new password</span>
+              <div className="flex flex-wrap gap-3">
+                <button
+                  onClick={() => setShowPasswordForm((value) => !value)}
+                  className="flex items-center gap-2 rounded-xl border border-slate-700 bg-slate-950/70 px-3.5 py-2 text-sm font-medium text-slate-100 transition hover:bg-slate-800/80"
+                >
+                  <Key className="h-4 w-4" />
+                  {showPasswordForm ? 'Hide password form' : 'Change password'}
+                </button>
+                <button
+                  onClick={() => setShowDangerZone((value) => !value)}
+                  className="flex items-center gap-2 rounded-xl border border-slate-700 bg-slate-950/70 px-3.5 py-2 text-sm font-medium text-slate-300 transition hover:bg-slate-800/80"
+                >
+                  <AlertTriangle className="h-4 w-4" />
+                  {showDangerZone ? 'Hide danger zone' : 'Show danger zone'}
+                </button>
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center gap-2 rounded-xl border border-red-900/60 bg-red-950/40 px-3.5 py-2 text-sm font-medium text-red-300 transition hover:bg-red-900/50"
+                >
+                  <LogOut className="h-4 w-4" />
+                  Logout
+                </button>
+              </div>
+
+              {showPasswordForm && (
+                <form onSubmit={handlePasswordSubmit} className="space-y-3 rounded-xl border border-slate-800/80 bg-slate-950/60 p-4">
+                  <div className="grid gap-3 md:grid-cols-2">
+                    <label className="space-y-1 text-sm text-slate-400">
+                      <span>Current password</span>
                       <input
                         type="password"
-                        value={passwordForm.confirmPassword}
-                        onChange={(event) => setPasswordForm((value) => ({ ...value, confirmPassword: event.target.value }))}
-                        className="form-input"
+                        value={passwordForm.currentPassword}
+                        onChange={(event) => setPasswordForm((value) => ({ ...value, currentPassword: event.target.value }))}
+                        className="w-full rounded-lg border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 outline-none transition focus:border-slate-500"
+                        required
+                      />
+                    </label>
+                    <label className="space-y-1 text-sm text-slate-400">
+                      <span>New password</span>
+                      <input
+                        type="password"
+                        value={passwordForm.newPassword}
+                        onChange={(event) => setPasswordForm((value) => ({ ...value, newPassword: event.target.value }))}
+                        className="w-full rounded-lg border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 outline-none transition focus:border-slate-500"
                         required
                         minLength={8}
                       />
                     </label>
-                    <div className="flex flex-wrap gap-3">
-                      <button type="submit" disabled={isSubmitting} className="rounded-2xl bg-gradient-to-r from-cyan-500 to-violet-500 px-4 py-2 font-medium text-white transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60">
-                        {isSubmitting ? 'Updating...' : 'Save password'}
-                      </button>
-                      <button type="button" onClick={() => setShowPasswordForm(false)} className="rounded-2xl border border-white/10 px-4 py-2 font-medium text-slate-300 transition hover:bg-white/5">
-                        Cancel
-                      </button>
-                    </div>
-                  </form>
-                )}
-              </div>
+                  </div>
+                  <label className="block space-y-1 text-sm text-slate-400">
+                    <span>Confirm new password</span>
+                    <input
+                      type="password"
+                      value={passwordForm.confirmPassword}
+                      onChange={(event) => setPasswordForm((value) => ({ ...value, confirmPassword: event.target.value }))}
+                      className="w-full rounded-lg border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 outline-none transition focus:border-slate-500"
+                      required
+                      minLength={8}
+                    />
+                  </label>
+                  <div className="flex flex-wrap gap-3">
+                    <button type="submit" disabled={isSubmitting} className="rounded-lg bg-slate-100 px-4 py-2 text-sm font-medium text-slate-950 transition hover:bg-slate-200 disabled:cursor-not-allowed disabled:opacity-60">
+                      {isSubmitting ? 'Updating...' : 'Save password'}
+                    </button>
+                    <button type="button" onClick={() => setShowPasswordForm(false)} className="rounded-lg border border-slate-700 bg-slate-900/70 px-4 py-2 text-sm font-medium text-slate-300 transition hover:bg-slate-800/80">
+                      Cancel
+                    </button>
+                  </div>
+                </form>
+              )}
             </div>
           </motion.section>
         </div>
@@ -361,25 +349,22 @@ export default function SettingsPage() {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.32 }}
-              className="relative overflow-hidden rounded-[28px] border border-red-500/25 bg-[linear-gradient(135deg,rgba(127,29,29,0.26),rgba(255,255,255,0.04))] p-6 shadow-[0_20px_60px_rgba(127,29,29,0.16)] backdrop-blur-2xl"
+              className="rounded-2xl border border-red-900/40 bg-red-950/20 p-5"
             >
-              <div className="pointer-events-none absolute inset-y-0 right-0 w-44 bg-[radial-gradient(circle,rgba(248,113,113,0.18),transparent_70%)]" />
-              <div className="relative">
-                <div className="mb-4 flex items-center gap-2">
-                  <AlertTriangle className="h-5 w-5 text-red-300" />
-                  <h3 className="text-lg font-semibold text-red-200">Danger Zone</h3>
-                </div>
-                <p className="mb-4 text-sm text-slate-400">These actions are irreversible. Please be careful.</p>
-                <div className="flex flex-wrap gap-3">
-                  <button onClick={() => handleDangerAction('delete-data')} disabled={isSubmitting} className="flex items-center gap-2 rounded-2xl bg-red-600 px-4 py-2.5 font-medium text-white shadow-lg shadow-red-500/20 transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60">
-                    <Trash2 className="h-4 w-4" />
-                    Delete All Data
-                  </button>
-                  <button onClick={() => handleDangerAction('reset-analytics')} disabled={isSubmitting} className="flex items-center gap-2 rounded-2xl bg-red-600/90 px-4 py-2.5 font-medium text-white shadow-lg shadow-red-500/20 transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60">
-                    <RefreshCw className="h-4 w-4" />
-                    Reset All Analytics
-                  </button>
-                </div>
+              <div className="mb-4 flex items-center gap-2">
+                <AlertTriangle className="h-4 w-4 text-red-300" />
+                <h3 className="text-base font-semibold text-red-200">Danger zone</h3>
+              </div>
+              <p className="mb-4 text-sm text-slate-400">These actions are irreversible. Please review them before proceeding.</p>
+              <div className="flex flex-wrap gap-3">
+                <button onClick={() => handleDangerAction('delete-data')} disabled={isSubmitting} className="flex items-center gap-2 rounded-lg bg-red-600 px-3.5 py-2 text-sm font-medium text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60">
+                  <Trash2 className="h-4 w-4" />
+                  Delete all data
+                </button>
+                <button onClick={() => handleDangerAction('reset-analytics')} disabled={isSubmitting} className="flex items-center gap-2 rounded-lg border border-red-800/60 bg-red-950/40 px-3.5 py-2 text-sm font-medium text-red-200 transition hover:bg-red-900/50 disabled:cursor-not-allowed disabled:opacity-60">
+                  <RefreshCw className="h-4 w-4" />
+                  Reset analytics
+                </button>
               </div>
             </motion.section>
           )}

@@ -100,11 +100,11 @@ export default function StatsCards({
         />
       </div>
 
-      <div className="rounded-[24px] border border-slate-800/80 bg-slate-900/70 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] backdrop-blur-sm sm:p-6">
+      <div className="rounded-[24px] border border-slate-800/80 bg-slate-950/70 p-4 shadow-[0_10px_40px_rgba(2,8,23,0.28)] sm:p-6">
         <div className="mb-4 flex flex-col gap-4 sm:mb-5 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <p className="text-[10px] font-semibold uppercase tracking-[0.32em] text-sky-400/80">Performance</p>
-            <h3 className="mt-1 text-base font-semibold text-slate-100 sm:text-lg">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.32em] text-sky-300">Performance</p>
+            <h3 className="mt-1 text-base font-semibold text-slate-50 sm:text-lg">
               {period.charAt(0).toUpperCase() + period.slice(1)} click activity
             </h3>
           </div>
@@ -119,7 +119,7 @@ export default function StatsCards({
                 onClick={() => onPeriodChange?.(item.key as 'week' | 'month' | 'year')}
                 className={`rounded-full px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.2em] transition ${
                   period === item.key
-                    ? 'bg-slate-100/10 text-slate-100 ring-1 ring-slate-700/80'
+                    ? 'bg-sky-500/20 text-sky-200 ring-1 ring-sky-500/30'
                     : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800/70'
                 }`}
               >
@@ -143,8 +143,8 @@ export default function StatsCards({
         <div className="mt-4 grid grid-cols-1 gap-4 lg:mt-5 lg:grid-cols-[1.15fr_0.85fr]">
           <div className="rounded-2xl border border-slate-800/80 bg-slate-950/70 p-4">
             <div className="mb-3 flex items-center justify-between">
-              <h4 className="text-sm font-medium text-sky-300">Hourly distribution</h4>
-              <span className="text-[11px] uppercase tracking-[0.24em] text-slate-500">24h</span>
+              <h4 className="text-sm font-medium text-sky-200">Hourly distribution</h4>
+              <span className="text-[11px] uppercase tracking-[0.24em] text-slate-400">24h</span>
             </div>
             <Chart
               data={hourlyData}
@@ -161,8 +161,8 @@ export default function StatsCards({
 
           <div className="rounded-2xl border border-slate-800/80 bg-slate-950/70 p-4">
             <div className="mb-3 flex items-center justify-between">
-              <h4 className="text-sm font-medium text-indigo-300">Top countries</h4>
-              <span className="text-[11px] uppercase tracking-[0.24em] text-slate-500">Geo</span>
+              <h4 className="text-sm font-medium text-indigo-200">Top countries</h4>
+              <span className="text-[11px] uppercase tracking-[0.24em] text-slate-400">Geo</span>
             </div>
 
             <div className="space-y-2.5">
@@ -173,9 +173,9 @@ export default function StatsCards({
                   <div key={country.country} className="rounded-xl border border-slate-800/80 bg-slate-900/70 p-3">
                     <div className="flex items-center justify-between gap-3">
                       <span className="text-sm font-medium text-slate-100">{country.country}</span>
-                      <span className="text-sm text-slate-300">{country.clicks} clicks</span>
+                      <span className="text-sm font-semibold text-slate-50">{country.clicks} clicks</span>
                     </div>
-                    <div className="mt-1 text-xs text-slate-500">{country.uniqueClicks} unique geo clicks</div>
+                    <div className="mt-1 text-xs text-slate-400">{country.uniqueClicks} unique geo clicks</div>
                   </div>
                 ))
               )}

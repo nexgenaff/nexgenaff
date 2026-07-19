@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { FileDown, RefreshCw, Sparkles } from 'lucide-react'
+import { FileDown, RefreshCw } from 'lucide-react'
 import { formatNumber } from '@/lib/utils/helpers'
 import StatsCards from '@/components/dashboard/StatsCards'
 
@@ -134,34 +134,30 @@ export default function AnalyticsPage() {
       <motion.div
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
-        className="rounded-3xl border border-white/10 bg-gradient-to-br from-white/8 via-white/5 to-white/[0.04] p-5 sm:p-6 backdrop-blur-xl shadow-2xl shadow-indigo-950/20"
+        className="rounded-[16px] border border-slate-800/70 bg-slate-900/50 px-4 py-3"
       >
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-          <div className="space-y-3">
-            <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-emerald-300">
-              <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-              Live analytics
-            </div>
-            <div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-white">Analytics <span className="gradient-text">Command Center</span></h1>
-              <p className="mt-1 text-sm text-white/40">Track throughput, clean bot noise, and monitor your affiliate campaign quality in one premium workspace.</p>
-            </div>
+        <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+          <div>
+            <div className="text-[10px] font-semibold uppercase tracking-[0.28em] text-slate-500">Overview</div>
+            <h1 className="text-base font-semibold text-slate-100">Analytics</h1>
           </div>
 
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="rounded-lg border border-slate-800/80 bg-slate-950/70 px-2.5 py-1.5 text-xs font-medium text-slate-400">
+              {stats.totalLinks > 0 ? `${stats.totalLinks} active` : 'No data yet'}
+            </div>
             <button
               onClick={() => fetchStats(true)}
-              className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium text-white/70 transition hover:bg-white/10 hover:text-white"
+              className="inline-flex items-center gap-2 rounded-lg border border-slate-800/80 bg-slate-950/70 px-2.5 py-1.5 text-sm font-medium text-slate-200 transition hover:border-slate-700 hover:bg-slate-800/80"
             >
               <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
-              {refreshing ? 'Refreshing...' : 'Refresh'}
+              {refreshing ? 'Refreshing' : 'Refresh'}
             </button>
             <Link
               href="/admin/links/create"
-              className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-indigo-500/20 transition hover:scale-[1.01]"
+              className="inline-flex items-center rounded-lg bg-slate-100 px-2.5 py-1.5 text-sm font-semibold text-slate-950 transition hover:bg-slate-200"
             >
-              <Sparkles className="h-4 w-4" />
-              Launch campaign
+              New campaign
             </Link>
           </div>
         </div>
@@ -173,69 +169,76 @@ export default function AnalyticsPage() {
         hourlyChartData={stats.hourlyChartData}
       />
 
-      <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.16),transparent_28%),linear-gradient(135deg,rgba(255,255,255,0.12),rgba(255,255,255,0.05)_55%,rgba(15,23,42,0.35))] p-5 sm:p-6 backdrop-blur-xl shadow-[0_35px_80px_rgba(15,23,42,0.45)] before:absolute before:inset-0 before:bg-[linear-gradient(110deg,transparent_0%,rgba(255,255,255,0.08)_45%,transparent_100%)] before:opacity-50 before:mix-blend-screen">
+      <div className="overflow-hidden rounded-[24px] border border-slate-800/80 bg-slate-950/70 shadow-[0_16px_48px_rgba(2,8,23,0.28)]">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800/80 bg-slate-900/60 px-4 py-3 sm:px-5">
+          <div>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.32em] text-slate-500">Geo breakdown</p>
+            <h2 className="mt-1 text-sm font-semibold text-slate-100">Account to country Performance</h2>
+          </div>
+          <div className="rounded-full border border-slate-800/80 bg-slate-950/70 px-3 py-1 text-[11px] uppercase tracking-[0.24em] text-slate-400">
+            {report?.datasets?.length ? `${reportRows.length} accounts` : 'Waiting'}
+          </div>
+        </div>
+
         {report?.datasets?.length ? (
           <motion.div
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.35, ease: 'easeOut' }}
-            className="overflow-hidden rounded-[24px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.12),rgba(10,15,30,0.5)_60%,rgba(8,12,25,0.8))] shadow-[0_20px_50px_rgba(2,8,23,0.45)] ring-1 ring-cyan-400/10"
+            className="overflow-x-auto"
           >
-            <div className="border-b border-white/10 bg-[linear-gradient(90deg,rgba(34,211,238,0.13),rgba(192,132,252,0.12))] px-4 py-3 sm:px-5" />
-            <div className="overflow-x-auto">
-              <table className="min-w-full border-collapse text-sm text-left text-white/80">
-                <thead className="bg-black/25 text-[11px] uppercase tracking-[0.24em] text-white/45">
-                  <tr>
-                    <th className="px-4 py-3 font-semibold text-cyan-200">Account Name</th>
-                    {reportLabels.slice(0, 6).map((country) => (
-                      <th key={country} className="px-4 py-3 font-semibold text-fuchsia-200/90">{country}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {reportRows.slice(0, 8).map((account, index) => (
-                    <motion.tr
-                      key={account.accountName}
-                      initial={{ opacity: 0, y: 8 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: index * 0.05, duration: 0.2 }}
-                      className={`border-t border-white/10 ${index % 2 === 0 ? 'bg-white/[0.025]' : 'bg-black/10'}`}
-                    >
-                      <td className="px-4 py-3 font-semibold text-emerald-300">{account.accountName}</td>
-                      {reportLabels.slice(0, 6).map((country) => {
-                        const countryValue = account.countries.find((item) => item.country === country)
-                        return (
-                          <td key={`${account.accountName}-${country}`} className="px-4 py-3">
-                            {countryValue ? (
-                              <motion.div
-                                initial={{ scale: 0.95, opacity: 0.8 }}
-                                animate={{ scale: 1, opacity: 1 }}
-                                transition={{ duration: 0.2 }}
-                                className="inline-flex min-w-[56px] items-center justify-center rounded-full border border-cyan-400/30 bg-cyan-500/20 px-2.5 py-1 text-sm font-semibold text-cyan-100 shadow-[0_0_0_1px_rgba(255,255,255,0.04)]"
-                              >
-                                {countryValue.uniqueClicks}
-                              </motion.div>
-                            ) : (
-                              <span className="inline-flex min-w-[56px] items-center justify-center rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-sm text-white/30">
-                                —
-                              </span>
-                            )}
-                          </td>
-                        )
-                      })}
-                    </motion.tr>
+            <table className="min-w-full border-collapse text-left text-sm text-slate-300">
+              <thead className="bg-slate-900/90 text-[11px] uppercase tracking-[0.24em] text-slate-500">
+                <tr>
+                  <th className="border-b border-slate-800/80 px-4 py-3 font-semibold text-slate-300">Account</th>
+                  {reportLabels.slice(0, 8).map((country) => (
+                    <th key={country} className="border-b border-slate-800/80 px-3 py-3 font-semibold text-slate-400">{country}</th>
                   ))}
-                </tbody>
-              </table>
-            </div>
+                </tr>
+              </thead>
+              <tbody>
+                {reportRows.slice(0, 8).map((account, index) => (
+                  <motion.tr
+                    key={account.accountName}
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.04, duration: 0.2 }}
+                    className={`border-b border-slate-800/70 ${index % 2 === 0 ? 'bg-slate-950/40' : 'bg-slate-900/50'}`}
+                  >
+                    <td className="whitespace-nowrap px-4 py-3 font-medium text-slate-100">{account.accountName}</td>
+                    {reportLabels.slice(0, 8).map((country) => {
+                      const countryValue = account.countries.find((item) => item.country === country)
+                      return (
+                        <td key={`${account.accountName}-${country}`} className="px-3 py-3">
+                          {countryValue ? (
+                            <span className="inline-flex min-w-[54px] items-center justify-center rounded-md border border-slate-700 bg-slate-800/85 px-2.5 py-1 text-sm font-semibold text-slate-50">
+                              {countryValue.uniqueClicks}
+                            </span>
+                          ) : (
+                            <span className="inline-flex min-w-[54px] items-center justify-center rounded-md border border-slate-800 bg-slate-900/60 px-2.5 py-1 text-sm text-slate-500">
+                              —
+                            </span>
+                          )}
+                        </td>
+                      )
+                    })}
+                  </motion.tr>
+                ))}
+              </tbody>
+            </table>
           </motion.div>
         ) : (
-          <div className="rounded-2xl border border-dashed border-white/10 bg-black/20 p-8 text-center text-sm text-white/40">
-            No account-to-geo report data is available yet.
+          <div className="p-8 text-center">
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl border border-slate-800 bg-slate-900/70 text-slate-400">
+              <FileDown className="h-5 w-5" />
+            </div>
+            <h3 className="mt-4 text-sm font-semibold text-slate-200">No account to country report available yet</h3>
+            <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-slate-500">
+              Publish links and collect traffic so this board can render account-level country performance.
+            </p>
           </div>
         )}
       </div>
-
     </div>
   )
 }
