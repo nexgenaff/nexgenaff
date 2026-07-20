@@ -225,7 +225,16 @@ body {
 }
 
 body {
-  background-color: #02050f;
+  background:
+    radial-gradient(circle at top left, rgba(34, 211, 238, 0.22), transparent 25%),
+    radial-gradient(circle at 80% 0%, rgba(129, 140, 248, 0.22), transparent 26%),
+    linear-gradient(135deg, #020617 0%, #071224 45%, #0b1d38 100%);
+  color: #f8fafc;
+}
+
+::selection {
+  background: rgba(34, 211, 238, 0.3);
+  color: #f8fafc;
 }
 
 /* ──────────────────────────────────────────────

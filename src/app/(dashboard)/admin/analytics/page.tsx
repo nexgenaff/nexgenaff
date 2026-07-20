@@ -191,13 +191,13 @@ export default function AnalyticsPage() {
               <thead className="bg-slate-900/90 text-[11px] uppercase tracking-[0.24em] text-slate-500">
                 <tr>
                   <th className="border-b border-slate-800/80 px-4 py-3 font-semibold text-slate-300">Account</th>
-                  {reportLabels.slice(0, 8).map((country) => (
+                  {reportLabels.map((country) => (
                     <th key={country} className="border-b border-slate-800/80 px-3 py-3 font-semibold text-slate-400">{country}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
-                {reportRows.slice(0, 8).map((account, index) => (
+                {reportRows.map((account, index) => (
                   <motion.tr
                     key={account.accountName}
                     initial={{ opacity: 0, y: 8 }}
@@ -206,7 +206,7 @@ export default function AnalyticsPage() {
                     className={`border-b border-slate-800/70 ${index % 2 === 0 ? 'bg-slate-950/40' : 'bg-slate-900/50'}`}
                   >
                     <td className="whitespace-nowrap px-4 py-3 font-medium text-slate-100">{account.accountName}</td>
-                    {reportLabels.slice(0, 8).map((country) => {
+                    {reportLabels.map((country) => {
                       const countryValue = account.countries.find((item) => item.country === country)
                       return (
                         <td key={`${account.accountName}-${country}`} className="px-3 py-3">
