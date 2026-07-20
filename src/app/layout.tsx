@@ -11,22 +11,22 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://nexgenaffiliates.vercel.app'),
-  title: 'NexGen Affiliates',
-  description: 'Click tracking, bot filtering, and smarter campaign routing for affiliate and growth teams.',
-  keywords: 'affiliate tracking, click fraud detection, link management, traffic quality, campaign routing',
+  title: 'NexGen Affiliates | Premium CPA Tracking & Routing',
+  description: 'Run cleaner affiliate campaigns with premium CPA tracking, smart bot filtering, real-time analytics, and better traffic routing.',
+  keywords: 'affiliate tracking, click fraud detection, link management, traffic quality, campaign routing, CPA platform',
   authors: [{ name: 'NexGen Affiliates' }],
   icons: {
     icon: '/favicon.png',
     apple: '/favicon.png',
   },
   openGraph: {
-    title: 'NexGen Affiliates',
-    description: 'Click tracking, bot filtering, and smarter campaign routing for affiliate and growth teams.',
+    title: 'NexGen Affiliates | Premium CPA Tracking & Routing',
+    description: 'Run cleaner affiliate campaigns with premium CPA tracking, smart bot filtering, real-time analytics, and better traffic routing.',
     type: 'website',
     url: 'https://nexgenaffiliates.vercel.app',
     images: [
       {
-        url: '/favicon.png',
+        url: '/og-image.svg',
         width: 1200,
         height: 630,
         alt: 'NexGen Affiliates social preview',
@@ -35,9 +35,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'NexGen Affiliates',
-    description: 'Click tracking, bot filtering, and smarter campaign routing for affiliate and growth teams.',
-    images: ['/favicon.png'],
+    title: 'NexGen Affiliates | Premium CPA Tracking & Routing',
+    description: 'Run cleaner affiliate campaigns with premium CPA tracking, smart bot filtering, real-time analytics, and better traffic routing.',
+    images: ['/og-image.svg'],
   },
 }
 
