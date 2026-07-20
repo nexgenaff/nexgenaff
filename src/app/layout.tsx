@@ -26,7 +26,7 @@ export const metadata: Metadata = {
     url: 'https://nexgenaffiliates.vercel.app',
     images: [
       {
-        url: '/og-image.svg',
+        url: 'https://nexgenaffiliates.vercel.app/og-image.png',
         width: 1200,
         height: 630,
         alt: 'NexGen Affiliates social preview',
@@ -37,7 +37,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'NexGen Affiliates | Premium CPA Tracking & Routing',
     description: 'Run cleaner affiliate campaigns with premium CPA tracking, smart bot filtering, real-time analytics, and better traffic routing.',
-    images: ['/og-image.svg'],
+    images: ['https://nexgenaffiliates.vercel.app/og-image.png'],
   },
 }
 
