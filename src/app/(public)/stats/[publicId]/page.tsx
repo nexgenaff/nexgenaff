@@ -46,6 +46,7 @@ import { Logo } from '@/components/ui/Logo'
 
 // Types
 interface Stats {
+  accountName?: string
   totalClicks: number
   uniqueClicks: number
   botClicks: number
@@ -198,6 +199,7 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
   const publicId = resolvedParams.publicId
 
   const [stats, setStats] = useState<Stats | null>(null)
+  const [accountName, setAccountName] = useState('NexGen Affiliates')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [search, setSearch] = useState('')
@@ -221,6 +223,7 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
         if (!response.ok) throw new Error('Dashboard not found')
         const data = await response.json()
         setStats(data)
+        setAccountName(data.accountName || 'NexGen Affiliates')
         setError('')
       } catch (err: any) {
         if (err.name !== 'AbortError') {
@@ -343,6 +346,10 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
   const totalClicks = stats?.totalClicks || 0
   const uniqueClicks = stats?.uniqueClicks || 0
   const botClicks = stats?.botClicks || 0
+  const displayTitle = accountName && accountName !== 'NexGen Affiliates' ? accountName : 'Public Analytics'
+  const displaySubtitle = accountName && accountName !== 'NexGen Affiliates'
+    ? `Live traffic insights for ${accountName}`
+    : 'Public analytics dashboard'
   const uniqueRate = totalClicks ? ((uniqueClicks / totalClicks) * 100).toFixed(1) : '0'
   const botRate = totalClicks ? ((botClicks / totalClicks) * 100).toFixed(1) : '0'
   const maxCountryClicks = stats?.geoSummary?.length 
@@ -404,7 +411,7 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
           __html: JSON.stringify({
             '@context': 'https://schema.org',
             '@type': 'DataDashboard',
-            name: 'Public Analytics Dashboard',
+            name: displayTitle,
             description: `Real-time analytics with ${totalClicks} total clicks and ${uniqueVisitors} unique visitors`,
             url: `https://nexgenaffiliates.vercel.app/stats/${publicId}`,
             provider: {
@@ -433,9 +440,14 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
               <div className="bg-indigo-500/10 rounded-lg p-2 border border-indigo-500/20 shrink-0">
                 <Logo variant="compact" size="sm" showAnimation={true} />
               </div>
-              <div>
-                <h1 className="text-lg font-semibold text-white">Public Analytics</h1>
-                <p className="text-xs text-white/40">Real-time click statistics</p>
+              <div className="min-w-0">
+                <div className="flex items-center gap-2">
+                  <h1 className="text-lg font-semibold text-white truncate">{displayTitle}</h1>
+                  <span className="inline-flex items-center rounded-full border border-indigo-400/20 bg-indigo-500/10 px-2 py-0.5 text-[10px] font-medium uppercase tracking-[0.2em] text-indigo-300">
+                    Public
+                  </span>
+                </div>
+                <p className="text-xs text-white/40">{displaySubtitle}</p>
               </div>
             </div>
             

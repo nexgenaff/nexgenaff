@@ -200,6 +200,7 @@ export async function GET(
       .sort((a, b) => b.uniqueClicks - a.uniqueClicks || b.totalClicks - a.totalClicks)
 
     return NextResponse.json({
+      accountName: dashboard.linkAccount?.accountName || 'NexGen Affiliates',
       totalClicks,
       uniqueClicks,
       botClicks,

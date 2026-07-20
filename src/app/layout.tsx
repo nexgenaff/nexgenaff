@@ -16,8 +16,8 @@ export const metadata: Metadata = {
   keywords: 'affiliate tracking, click fraud detection, link management, traffic quality, campaign routing, CPA platform',
   authors: [{ name: 'NexGen Affiliates' }],
   icons: {
-    icon: '/favicon.png',
-    apple: '/favicon.png',
+    icon: 'https://nexgenaffiliates.vercel.app/favicon.png',
+    apple: 'https://nexgenaffiliates.vercel.app/favicon.png',
   },
   openGraph: {
     title: 'NexGen Affiliates | Premium CPA Tracking & Routing',
@@ -27,9 +27,11 @@ export const metadata: Metadata = {
     images: [
       {
         url: 'https://nexgenaffiliates.vercel.app/og-image.png',
+        secureUrl: 'https://nexgenaffiliates.vercel.app/og-image.png',
         width: 1200,
         height: 630,
         alt: 'NexGen Affiliates social preview',
+        type: 'image/png',
       },
     ],
   },
@@ -38,6 +40,7 @@ export const metadata: Metadata = {
     title: 'NexGen Affiliates | Premium CPA Tracking & Routing',
     description: 'Run cleaner affiliate campaigns with premium CPA tracking, smart bot filtering, real-time analytics, and better traffic routing.',
     images: ['https://nexgenaffiliates.vercel.app/og-image.png'],
+    site: '@nexgenaffiliates',
   },
 }
 
