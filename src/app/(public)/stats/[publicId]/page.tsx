@@ -87,13 +87,11 @@ interface Stats {
   }>
 }
 
-// Optimized Metric Card
+// Metric Card – real data only, no fake percentages
 const MetricCard = ({ 
   icon: Icon, 
   label, 
   value, 
-  change, 
-  changeType = 'neutral',
   subtitle,
   color = '#818CF8' 
 }: any) => (
@@ -108,21 +106,6 @@ const MetricCard = ({
         <Icon className="h-4 w-4" style={{ color }} strokeWidth={1.5} />
       </div>
     </div>
-    {change && (
-      <div className="mt-2.5 flex items-center gap-1.5">
-        <span className={`inline-flex items-center gap-1 text-xs font-medium ${
-          changeType === 'up' ? 'text-emerald-400' :
-          changeType === 'down' ? 'text-rose-400' :
-          'text-white/30'
-        }`}>
-          {changeType === 'up' && <ArrowUpRight className="h-3 w-3" />}
-          {changeType === 'down' && <ArrowDownRight className="h-3 w-3" />}
-          {changeType === 'neutral' && <Minus className="h-3 w-3" />}
-          {change}
-        </span>
-        <span className="text-[11px] text-white/20">vs last period</span>
-      </div>
-    )}
   </div>
 )
 
@@ -337,7 +320,6 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
     if (filterUnique === 'unique') {
       result = result.filter(click => click.isUnique === true)
       // Smart: When filtering unique, also automatically remove direct clicks
-      // because direct clicks are often from bots or self-visits
       result = result.filter(click => click.referrer !== null && click.referrer !== '')
     } else if (filterUnique === 'repeat') {
       result = result.filter(click => click.isUnique === false)
@@ -353,19 +335,21 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
     return result
   }, [stats?.clicks, search, filterCountry, filterUnique, filterReferrer])
 
-  // Memoized computed values
+  // Memoized computed values – all real data
   const countries = useMemo(() => 
     stats?.geoSummary?.map(e => e.country).filter(Boolean) || []
   , [stats?.geoSummary])
 
-  const totalClicks = stats?.clicks?.length || 0
-  const uniqueRate = stats?.totalClicks ? ((stats.uniqueClicks / stats.totalClicks) * 100).toFixed(1) : '0'
-  const botRate = stats?.totalClicks ? ((stats.botClicks / stats.totalClicks) * 100).toFixed(1) : '0'
+  const totalClicks = stats?.totalClicks || 0
+  const uniqueClicks = stats?.uniqueClicks || 0
+  const botClicks = stats?.botClicks || 0
+  const uniqueRate = totalClicks ? ((uniqueClicks / totalClicks) * 100).toFixed(1) : '0'
+  const botRate = totalClicks ? ((botClicks / totalClicks) * 100).toFixed(1) : '0'
   const maxCountryClicks = stats?.geoSummary?.length 
     ? Math.max(...stats.geoSummary.map(c => c.totalClicks)) 
     : 0
 
-  // Get unique visitors count (excluding direct clicks smartly)
+  // Real unique visitors (excluding direct clicks)
   const uniqueVisitors = useMemo(() => {
     if (!stats?.clicks) return 0
     return stats.clicks.filter(c => c.isUnique && c.referrer && c.referrer !== '').length
@@ -421,7 +405,7 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
             '@context': 'https://schema.org',
             '@type': 'DataDashboard',
             name: 'Public Analytics Dashboard',
-            description: `Real-time analytics with ${stats?.totalClicks || 0} total clicks and ${stats?.uniqueClicks || 0} unique visitors`,
+            description: `Real-time analytics with ${totalClicks} total clicks and ${uniqueVisitors} unique visitors`,
             url: `https://nexgenaffiliates.vercel.app/stats/${publicId}`,
             provider: {
               '@type': 'Organization',
@@ -487,22 +471,19 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
             </div>
           </div>
 
-          {/* Quick Stats */}
+          {/* Quick Stats – Real data only */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 mb-5">
             <MetricCard
               icon={MousePointerClick}
               label="Total Clicks"
-              value={formatNumber(stats?.totalClicks || 0)}
-              change="+12.5%"
-              changeType="up"
+              value={formatNumber(totalClicks)}
               color="#818CF8"
+              subtitle={`${uniqueRate}% unique`}
             />
             <MetricCard
               icon={Users}
               label="Unique Visitors"
-              value={formatNumber(uniqueVisitors || 0)}
-              change="+8.3%"
-              changeType="up"
+              value={formatNumber(uniqueVisitors)}
               color="#34D399"
               subtitle="Filtered (no direct)"
             />
@@ -510,17 +491,13 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
               icon={Globe2}
               label="Countries"
               value={countries.length || 0}
-              change="+2"
-              changeType="up"
               color="#F472B6"
-              subtitle={`${uniqueRate}% unique`}
+              subtitle={`${uniqueClicks} unique total`}
             />
             <MetricCard
               icon={Bot}
               label="Bot Traffic"
-              value={formatNumber(stats?.botClicks || 0)}
-              change="-3.1%"
-              changeType="down"
+              value={formatNumber(botClicks)}
               color="#F87171"
               subtitle={`${botRate}% of total`}
             />
@@ -610,7 +587,6 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
             </div>
             
             <div className="flex items-center gap-1 flex-wrap">
-              {/* All filter */}
               <button
                 onClick={() => { 
                   setFilterCountry(''); 
@@ -626,11 +602,9 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
                 All
               </button>
 
-              {/* Unique filter - smartly removes direct clicks */}
               <button
                 onClick={() => {
                   setFilterUnique(filterUnique === 'unique' ? 'all' : 'unique')
-                  // Auto-set referrer filter when unique is selected
                   if (filterUnique !== 'unique') {
                     setFilterReferrer('referrer')
                   } else {
@@ -650,7 +624,6 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
                 )}
               </button>
 
-              {/* Repeat filter */}
               <button
                 onClick={() => setFilterUnique(filterUnique === 'repeat' ? 'all' : 'repeat')}
                 className={`px-2.5 py-1 text-xs font-medium rounded transition-colors ${
@@ -662,7 +635,6 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
                 Repeat
               </button>
 
-              {/* Direct clicks filter */}
               <button
                 onClick={() => setFilterReferrer(filterReferrer === 'direct' ? 'all' : 'direct')}
                 className={`px-2.5 py-1 text-xs font-medium rounded transition-colors flex items-center gap-1 ${
@@ -675,7 +647,6 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
                 Direct
               </button>
 
-              {/* Referrer filter */}
               <button
                 onClick={() => setFilterReferrer(filterReferrer === 'referrer' ? 'all' : 'referrer')}
                 className={`px-2.5 py-1 text-xs font-medium rounded transition-colors flex items-center gap-1 ${
@@ -688,7 +659,6 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
                 Referrer
               </button>
 
-              {/* Country filters */}
               {countries.slice(0, 2).map((country) => (
                 <button
                   key={country}
@@ -734,7 +704,7 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
             </div>
           </div>
 
-          {/* Data Table - All Logs on One Page */}
+          {/* Data Table */}
           <div className="bg-white/5 backdrop-blur-sm rounded-xl border border-white/10 overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
