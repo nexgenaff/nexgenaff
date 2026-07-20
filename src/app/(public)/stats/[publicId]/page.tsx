@@ -42,6 +42,8 @@ import {
   MousePointer,
   ArrowRight,
   X,
+  Sun,
+  Moon,
 } from 'lucide-react'
 import { Logo } from '@/components/ui/Logo'
 
@@ -89,7 +91,7 @@ interface Stats {
   }>
 }
 
-// Metric Card – real data only, no fake percentages
+// Metric Card – adapts to theme
 const MetricCard = ({ 
   icon: Icon, 
   label, 
@@ -97,17 +99,28 @@ const MetricCard = ({
   subtitle,
   color = '#818CF8',
   percentage,
-  percentageColor = '#818CF8'
+  percentageColor = '#818CF8',
+  isDark = true
 }: any) => (
-  <div className="group relative overflow-hidden rounded-xl bg-white/5 backdrop-blur-sm border border-white/10 p-5 transition-all duration-200 hover:border-white/20 hover:bg-white/10 hover:scale-[1.02]">
+  <div className={`group relative overflow-hidden rounded-xl border p-5 transition-all duration-200 hover:scale-[1.02] ${
+    isDark 
+      ? 'bg-white/5 backdrop-blur-sm border-white/10 hover:border-white/20 hover:bg-white/10' 
+      : 'bg-white/80 backdrop-blur-sm border-gray-200 hover:border-indigo-300 hover:bg-white'
+  }`}>
     <div className="flex items-start justify-between">
       <div className="space-y-1.5">
-        <p className="text-[11px] font-medium uppercase tracking-wider text-white/40">{label}</p>
-        <p className="text-2xl font-bold text-white tracking-tight">{value}</p>
-        {subtitle && <p className="text-[11px] text-white/30">{subtitle}</p>}
+        <p className={`text-[11px] font-medium uppercase tracking-wider ${
+          isDark ? 'text-white/40' : 'text-gray-500'
+        }`}>{label}</p>
+        <p className={`text-2xl font-bold tracking-tight ${
+          isDark ? 'text-white' : 'text-gray-800'
+        }`}>{value}</p>
+        {subtitle && <p className={`text-[11px] ${isDark ? 'text-white/30' : 'text-gray-400'}`}>{subtitle}</p>}
         {percentage !== undefined && (
           <div className="mt-1 flex items-center gap-1.5">
-            <div className="h-1 w-16 rounded-full bg-white/10 overflow-hidden">
+            <div className={`h-1 w-16 rounded-full overflow-hidden ${
+              isDark ? 'bg-white/10' : 'bg-gray-200'
+            }`}>
               <div 
                 className="h-full rounded-full transition-all duration-500"
                 style={{ 
@@ -129,8 +142,8 @@ const MetricCard = ({
   </div>
 )
 
-// Country Bar with improved percentage design
-const CountryBar = ({ country, clicks, totalClicks, max }: any) => {
+// Country Bar with theme support
+const CountryBar = ({ country, clicks, totalClicks, max, isDark = true }: any) => {
   const percentage = max > 0 ? (clicks / max) * 100 : 0
   const share = totalClicks > 0 ? ((clicks / totalClicks) * 100).toFixed(1) : '0.0'
   const flag = getCountryFlag(country) || '🌍'
@@ -140,15 +153,25 @@ const CountryBar = ({ country, clicks, totalClicks, max }: any) => {
       <span className="text-lg w-8 flex-shrink-0 text-center">{flag}</span>
       <div className="flex-1 min-w-0">
         <div className="flex items-center justify-between mb-1">
-          <span className="text-sm text-white/70 truncate">{getCountryLabel(country)}</span>
-          <span className="text-xs font-medium text-white/50 tabular-nums flex items-center gap-2">
+          <span className={`text-sm truncate ${isDark ? 'text-white/70' : 'text-gray-700'}`}>
+            {getCountryLabel(country)}
+          </span>
+          <span className={`text-xs font-medium tabular-nums flex items-center gap-2 ${
+            isDark ? 'text-white/50' : 'text-gray-500'
+          }`}>
             <span>{formatNumber(clicks)}</span>
-            <span className="inline-flex items-center rounded-full bg-indigo-500/20 px-1.5 py-0.5 text-[10px] font-medium text-indigo-300">
+            <span className={`inline-flex items-center rounded-full px-1.5 py-0.5 text-[10px] font-medium ${
+              isDark 
+                ? 'bg-indigo-500/20 text-indigo-300' 
+                : 'bg-indigo-100 text-indigo-700'
+            }`}>
               {share}%
             </span>
           </span>
         </div>
-        <div className="h-1.5 w-full rounded-full bg-white/5 overflow-hidden">
+        <div className={`h-1.5 w-full rounded-full overflow-hidden ${
+          isDark ? 'bg-white/5' : 'bg-gray-200'
+        }`}>
           <div 
             className="h-full rounded-full transition-all duration-500 ease-out will-change-transform"
             style={{ 
@@ -164,12 +187,12 @@ const CountryBar = ({ country, clicks, totalClicks, max }: any) => {
 }
 
 // Optimized Status Badge
-const StatusBadge = ({ type, label, icon: Icon }: any) => (
+const StatusBadge = ({ type, label, icon: Icon, isDark = true }: any) => (
   <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium border ${
-    type === 'success' ? 'bg-emerald-500/10 text-emerald-300 border-emerald-500/20' :
-    type === 'warning' ? 'bg-amber-500/10 text-amber-300 border-amber-500/20' :
-    type === 'danger' ? 'bg-rose-500/10 text-rose-300 border-rose-500/20' :
-    'bg-indigo-500/10 text-indigo-300 border-indigo-500/20'
+    type === 'success' ? (isDark ? 'bg-emerald-500/10 text-emerald-300 border-emerald-500/20' : 'bg-emerald-50 text-emerald-700 border-emerald-200') :
+    type === 'warning' ? (isDark ? 'bg-amber-500/10 text-amber-300 border-amber-500/20' : 'bg-amber-50 text-amber-700 border-amber-200') :
+    type === 'danger' ? (isDark ? 'bg-rose-500/10 text-rose-300 border-rose-500/20' : 'bg-rose-50 text-rose-700 border-rose-200') :
+    (isDark ? 'bg-indigo-500/10 text-indigo-300 border-indigo-500/20' : 'bg-indigo-50 text-indigo-700 border-indigo-200')
   }`}>
     {Icon && <Icon className="h-2.5 w-2.5" strokeWidth={2} />}
     {label}
@@ -177,41 +200,41 @@ const StatusBadge = ({ type, label, icon: Icon }: any) => (
 )
 
 // Skeleton Loader
-const SkeletonLoader = () => (
-  <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
+const SkeletonLoader = ({ isDark = true }: { isDark?: boolean }) => (
+  <div className={`min-h-screen ${isDark ? 'bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950' : 'bg-gradient-to-br from-gray-50 via-white to-gray-50'}`}>
     <div className="max-w-7xl mx-auto px-4 py-6">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-lg bg-white/5 animate-pulse" />
+          <div className={`h-10 w-10 rounded-lg ${isDark ? 'bg-white/5' : 'bg-gray-200'} animate-pulse`} />
           <div>
-            <div className="h-5 w-40 bg-white/5 rounded animate-pulse" />
-            <div className="h-3 w-28 bg-white/5 rounded mt-1 animate-pulse" />
+            <div className={`h-5 w-40 ${isDark ? 'bg-white/5' : 'bg-gray-200'} rounded animate-pulse`} />
+            <div className={`h-3 w-28 ${isDark ? 'bg-white/5' : 'bg-gray-200'} rounded mt-1 animate-pulse`} />
           </div>
         </div>
         <div className="flex gap-2">
           {[1, 2, 3].map(i => (
-            <div key={i} className="h-9 w-16 bg-white/5 rounded-lg animate-pulse" />
+            <div key={i} className={`h-9 w-16 ${isDark ? 'bg-white/5' : 'bg-gray-200'} rounded-lg animate-pulse`} />
           ))}
         </div>
       </div>
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
         {[...Array(4)].map((_, i) => (
-          <div key={i} className="bg-white/5 rounded-xl p-5 animate-pulse">
-            <div className="h-3 w-20 bg-white/10 rounded mb-3" />
-            <div className="h-7 w-28 bg-white/10 rounded" />
+          <div key={i} className={`${isDark ? 'bg-white/5' : 'bg-gray-200'} rounded-xl p-5 animate-pulse`}>
+            <div className={`h-3 w-20 ${isDark ? 'bg-white/10' : 'bg-gray-300'} rounded mb-3`} />
+            <div className={`h-7 w-28 ${isDark ? 'bg-white/10' : 'bg-gray-300'} rounded`} />
           </div>
         ))}
       </div>
-      <div className="bg-white/5 rounded-xl p-5 mb-6">
-        <div className="h-[180px] w-full bg-white/10 rounded animate-pulse" />
+      <div className={`${isDark ? 'bg-white/5' : 'bg-gray-200'} rounded-xl p-5 mb-6`}>
+        <div className={`h-[180px] w-full ${isDark ? 'bg-white/10' : 'bg-gray-300'} rounded animate-pulse`} />
       </div>
-      <div className="bg-white/5 rounded-xl overflow-hidden">
+      <div className={`${isDark ? 'bg-white/5' : 'bg-gray-200'} rounded-xl overflow-hidden`}>
         <div className="p-4 border-b border-white/5">
-          <div className="h-4 w-32 bg-white/10 rounded animate-pulse" />
+          <div className={`h-4 w-32 ${isDark ? 'bg-white/10' : 'bg-gray-300'} rounded animate-pulse`} />
         </div>
         <div className="p-4 space-y-3">
           {[...Array(5)].map((_, i) => (
-            <div key={i} className="h-10 w-full bg-white/5 rounded animate-pulse" />
+            <div key={i} className={`h-10 w-full ${isDark ? 'bg-white/5' : 'bg-gray-100'} rounded animate-pulse`} />
           ))}
         </div>
       </div>
@@ -223,6 +246,32 @@ const SkeletonLoader = () => (
 export default function PublicStatsPage({ params }: { params: Promise<{ publicId: string }> }) {
   const resolvedParams = use(params)
   const publicId = resolvedParams.publicId
+
+  // Theme state
+  const [isDark, setIsDark] = useState(true)
+  const [themeLoaded, setThemeLoaded] = useState(false)
+
+  // Load theme from localStorage
+  useEffect(() => {
+    const stored = localStorage.getItem('theme')
+    if (stored === 'light') {
+      setIsDark(false)
+    } else if (stored === 'dark') {
+      setIsDark(true)
+    } else if (window.matchMedia('(prefers-color-scheme: light)').matches) {
+      setIsDark(false)
+    }
+    setThemeLoaded(true)
+  }, [])
+
+  // Persist theme
+  useEffect(() => {
+    if (themeLoaded) {
+      localStorage.setItem('theme', isDark ? 'dark' : 'light')
+    }
+  }, [isDark, themeLoaded])
+
+  const toggleTheme = () => setIsDark(!isDark)
 
   const [stats, setStats] = useState<Stats | null>(null)
   const [accountName, setAccountName] = useState('NexGen Affiliates')
@@ -408,7 +457,7 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
         label: 'Clicks',
         data: stats?.clickTrend?.datasets?.[0]?.data || [0, 0, 0, 0, 0, 0, 0],
         borderColor: '#818CF8',
-        backgroundColor: 'rgba(129, 140, 248, 0.08)',
+        backgroundColor: isDark ? 'rgba(129, 140, 248, 0.08)' : 'rgba(129, 140, 248, 0.15)',
         fill: true,
         tension: 0.4,
         pointRadius: 2,
@@ -416,19 +465,21 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
         borderWidth: 1.5,
       },
     ],
-  }), [stats?.clickTrend])
+  }), [stats?.clickTrend, isDark])
 
-  if (loading) return <SkeletonLoader />
+  if (!themeLoaded) return <div className="min-h-screen bg-slate-950" />
+
+  if (loading) return <SkeletonLoader isDark={isDark} />
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
+      <div className={`min-h-screen flex items-center justify-center ${isDark ? 'bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950' : 'bg-gradient-to-br from-gray-50 via-white to-gray-50'}`}>
         <div className="text-center max-w-md px-4">
-          <div className="bg-white/5 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-            <Shield className="h-8 w-8 text-rose-400" strokeWidth={1.5} />
+          <div className={`rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4 ${isDark ? 'bg-white/5' : 'bg-gray-100'}`}>
+            <Shield className={`h-8 w-8 ${isDark ? 'text-rose-400' : 'text-rose-600'}`} strokeWidth={1.5} />
           </div>
-          <h1 className="text-xl font-bold text-white mb-2">Unable to Load Dashboard</h1>
-          <p className="text-sm text-white/40 mb-6">{error}</p>
+          <h1 className={`text-xl font-bold mb-2 ${isDark ? 'text-white' : 'text-gray-800'}`}>Unable to Load Dashboard</h1>
+          <p className={`text-sm mb-6 ${isDark ? 'text-white/40' : 'text-gray-500'}`}>{error}</p>
           <button
             onClick={() => window.location.reload()}
             className="inline-flex items-center gap-2 px-5 py-2 bg-indigo-500 hover:bg-indigo-600 text-white rounded-lg transition-colors text-sm"
@@ -474,36 +525,52 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
         }}
       />
 
-      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
+      <div className={`min-h-screen transition-colors duration-300 ${
+        isDark 
+          ? 'bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950' 
+          : 'bg-gradient-to-br from-gray-50 via-white to-gray-50'
+      }`}>
         <div className="max-w-7xl mx-auto px-4 py-6">
           
           {/* Header */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
             <div className="flex items-center gap-3">
-              <div className="bg-indigo-500/10 rounded-lg p-2 border border-indigo-500/20 shrink-0">
+              <div className={`rounded-lg p-2 border shrink-0 ${
+                isDark 
+                  ? 'bg-indigo-500/10 border-indigo-500/20' 
+                  : 'bg-indigo-50 border-indigo-200'
+              }`}>
                 <Logo variant="compact" size="sm" showAnimation={true} />
               </div>
               <div className="min-w-0">
                 <div className="flex items-center gap-2">
-                  <h1 className="text-lg font-semibold text-white truncate">{displayTitle}</h1>
-                  <span className="inline-flex items-center rounded-full border border-indigo-400/20 bg-indigo-500/10 px-2 py-0.5 text-[10px] font-medium uppercase tracking-[0.2em] text-indigo-300">
+                  <h1 className={`text-lg font-semibold truncate ${isDark ? 'text-white' : 'text-gray-800'}`}>
+                    {displayTitle}
+                  </h1>
+                  <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-medium uppercase tracking-[0.2em] ${
+                    isDark 
+                      ? 'border-indigo-400/20 bg-indigo-500/10 text-indigo-300' 
+                      : 'border-indigo-300 bg-indigo-50 text-indigo-700'
+                  }`}>
                     Public
                   </span>
                 </div>
-                <p className="text-xs text-white/40">{displaySubtitle}</p>
+                <p className={`text-xs ${isDark ? 'text-white/40' : 'text-gray-500'}`}>{displaySubtitle}</p>
               </div>
             </div>
             
             <div className="flex items-center gap-1.5">
-              <div className="flex bg-white/5 rounded-lg p-0.5 border border-white/10">
+              <div className={`flex rounded-lg p-0.5 border ${
+                isDark ? 'bg-white/5 border-white/10' : 'bg-gray-100 border-gray-200'
+              }`}>
                 {(['7d', '30d', '90d'] as const).map((range) => (
                   <button
                     key={range}
                     onClick={() => setTimeRange(range)}
                     className={`px-3 py-1 text-xs font-medium rounded transition-colors ${
                       timeRange === range 
-                        ? 'bg-indigo-500 text-white' 
-                        : 'text-white/40 hover:text-white/70'
+                        ? (isDark ? 'bg-indigo-500 text-white' : 'bg-indigo-500 text-white')
+                        : (isDark ? 'text-white/40 hover:text-white/70' : 'text-gray-500 hover:text-gray-800')
                     }`}
                   >
                     {range}
@@ -516,12 +583,32 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
                   setIsRefreshing(true)
                   setTimeout(() => setIsRefreshing(false), 500)
                 }}
-                className="p-1.5 bg-white/5 rounded-lg border border-white/10 text-white/40 hover:text-white/70 transition-colors"
+                className={`p-1.5 rounded-lg border transition-colors ${
+                  isDark 
+                    ? 'bg-white/5 border-white/10 text-white/40 hover:text-white/70' 
+                    : 'bg-gray-100 border-gray-200 text-gray-500 hover:text-gray-800'
+                }`}
               >
                 <RefreshCw className={`h-3.5 w-3.5 ${isRefreshing ? 'animate-spin' : ''}`} strokeWidth={1.5} />
               </button>
-              <button className="p-1.5 bg-white/5 rounded-lg border border-white/10 text-white/40 hover:text-white/70 transition-colors">
+              <button className={`p-1.5 rounded-lg border transition-colors ${
+                isDark 
+                  ? 'bg-white/5 border-white/10 text-white/40 hover:text-white/70' 
+                  : 'bg-gray-100 border-gray-200 text-gray-500 hover:text-gray-800'
+              }`}>
                 <Download className="h-3.5 w-3.5" strokeWidth={1.5} />
+              </button>
+              {/* Theme Toggle */}
+              <button
+                onClick={toggleTheme}
+                className={`p-1.5 rounded-lg border transition-colors ${
+                  isDark 
+                    ? 'bg-white/5 border-white/10 text-white/40 hover:text-white/70' 
+                    : 'bg-gray-100 border-gray-200 text-gray-500 hover:text-gray-800'
+                }`}
+                aria-label="Toggle theme"
+              >
+                {isDark ? <Sun className="h-3.5 w-3.5" strokeWidth={1.5} /> : <Moon className="h-3.5 w-3.5" strokeWidth={1.5} />}
               </button>
             </div>
           </div>
@@ -536,6 +623,7 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
               percentage={100}
               percentageColor="#818CF8"
               subtitle="100% of all traffic"
+              isDark={isDark}
             />
             <MetricCard
               icon={Users}
@@ -545,6 +633,7 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
               percentage={uniqueRate}
               percentageColor="#34D399"
               subtitle={`${uniqueRate.toFixed(1)}% of total clicks`}
+              isDark={isDark}
             />
             <MetricCard
               icon={Globe2}
@@ -554,6 +643,7 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
               percentage={countries.length > 0 ? 100 : 0}
               percentageColor="#F472B6"
               subtitle={`${uniqueClicks} unique total`}
+              isDark={isDark}
             />
             <MetricCard
               icon={Bot}
@@ -563,18 +653,23 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
               percentage={botRate}
               percentageColor="#F87171"
               subtitle={`${botRate.toFixed(1)}% of total`}
+              isDark={isDark}
             />
           </div>
 
           {/* Chart & Geography */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 mb-5">
-            <div className="lg:col-span-2 bg-white/5 backdrop-blur-sm rounded-xl border border-white/10 p-4">
+            <div className={`lg:col-span-2 rounded-xl border p-4 ${
+              isDark 
+                ? 'bg-white/5 backdrop-blur-sm border-white/10' 
+                : 'bg-white/80 backdrop-blur-sm border-gray-200'
+            }`}>
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
-                  <Activity className="h-4 w-4 text-indigo-400" strokeWidth={1.5} />
-                  <span className="text-sm font-medium text-white/70">Click Activity</span>
+                  <Activity className={`h-4 w-4 ${isDark ? 'text-indigo-400' : 'text-indigo-600'}`} strokeWidth={1.5} />
+                  <span className={`text-sm font-medium ${isDark ? 'text-white/70' : 'text-gray-700'}`}>Click Activity</span>
                 </div>
-                <div className="flex items-center gap-2 text-[10px] text-white/30">
+                <div className={`flex items-center gap-2 text-[10px] ${isDark ? 'text-white/30' : 'text-gray-400'}`}>
                   <span className="flex items-center gap-1">
                     <span className="h-1.5 w-1.5 rounded-full bg-indigo-400" />
                     Clicks
@@ -594,12 +689,12 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
                     scales: {
                       y: {
                         beginAtZero: true,
-                        grid: { color: 'rgba(255,255,255,0.03)', drawBorder: false },
-                        ticks: { color: 'rgba(255,255,255,0.25)', font: { size: 9 }, maxTicksLimit: 5 },
+                        grid: { color: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.05)', drawBorder: false },
+                        ticks: { color: isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.3)', font: { size: 9 }, maxTicksLimit: 5 },
                       },
                       x: {
                         grid: { display: false },
-                        ticks: { color: 'rgba(255,255,255,0.25)', font: { size: 9 } },
+                        ticks: { color: isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.3)', font: { size: 9 } },
                       },
                     },
                     interaction: {
@@ -611,13 +706,17 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
               </div>
             </div>
 
-            <div className="bg-white/5 backdrop-blur-sm rounded-xl border border-white/10 p-4">
+            <div className={`rounded-xl border p-4 ${
+              isDark 
+                ? 'bg-white/5 backdrop-blur-sm border-white/10' 
+                : 'bg-white/80 backdrop-blur-sm border-gray-200'
+            }`}>
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
-                  <Globe2 className="h-4 w-4 text-indigo-400" strokeWidth={1.5} />
-                  <span className="text-sm font-medium text-white/70">Top Countries</span>
+                  <Globe2 className={`h-4 w-4 ${isDark ? 'text-indigo-400' : 'text-indigo-600'}`} strokeWidth={1.5} />
+                  <span className={`text-sm font-medium ${isDark ? 'text-white/70' : 'text-gray-700'}`}>Top Countries</span>
                 </div>
-                <span className="text-[10px] text-white/30">% of total</span>
+                <span className={`text-[10px] ${isDark ? 'text-white/30' : 'text-gray-400'}`}>% of total</span>
               </div>
               <div className="space-y-2.5 max-h-[200px] overflow-y-auto scrollbar-thin scrollbar-thumb-white/5 scrollbar-track-transparent">
                 {stats?.geoSummary?.slice(0, 5).map((country) => (
@@ -627,12 +726,13 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
                     clicks={country.totalClicks}
                     totalClicks={totalClicks}
                     max={maxCountryClicks}
+                    isDark={isDark}
                   />
                 ))}
                 {(!stats?.geoSummary || stats.geoSummary.length === 0) && (
                   <div className="text-center py-6">
-                    <Globe2 className="h-7 w-7 text-white/10 mx-auto mb-2" strokeWidth={1.5} />
-                    <p className="text-xs text-white/30">No geographic data yet</p>
+                    <Globe2 className={`h-7 w-7 mx-auto mb-2 ${isDark ? 'text-white/10' : 'text-gray-300'}`} strokeWidth={1.5} />
+                    <p className={`text-xs ${isDark ? 'text-white/30' : 'text-gray-400'}`}>No geographic data yet</p>
                   </div>
                 )}
               </div>
@@ -641,13 +741,19 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
 
           {/* Smart Filters */}
           <div className="flex flex-wrap items-center gap-2 mb-3">
-            <div className="flex items-center gap-2 bg-white/5 rounded-lg px-3 py-1.5 border border-white/10 flex-1 min-w-[160px]">
-              <Search className="h-3.5 w-3.5 text-white/20" strokeWidth={1.5} />
+            <div className={`flex items-center gap-2 rounded-lg px-3 py-1.5 border flex-1 min-w-[160px] ${
+              isDark 
+                ? 'bg-white/5 border-white/10' 
+                : 'bg-white/80 border-gray-200'
+            }`}>
+              <Search className={`h-3.5 w-3.5 ${isDark ? 'text-white/20' : 'text-gray-400'}`} strokeWidth={1.5} />
               <input
                 type="text"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="bg-transparent border-none outline-none text-sm text-white placeholder:text-white/20 w-full"
+                className={`bg-transparent border-none outline-none text-sm w-full ${
+                  isDark ? 'text-white placeholder:text-white/20' : 'text-gray-800 placeholder:text-gray-400'
+                }`}
                 placeholder="Search by IP, country, browser..."
               />
             </div>
@@ -661,8 +767,8 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
                 }}
                 className={`px-2.5 py-1 text-xs font-medium rounded transition-colors ${
                   filterCountry === '' && filterUnique === 'all' && filterReferrer === 'all'
-                    ? 'bg-indigo-500/20 text-indigo-300'
-                    : 'text-white/40 hover:text-white/70'
+                    ? (isDark ? 'bg-indigo-500/20 text-indigo-300' : 'bg-indigo-100 text-indigo-700')
+                    : (isDark ? 'text-white/40 hover:text-white/70' : 'text-gray-500 hover:text-gray-800')
                 }`}
               >
                 All
@@ -679,14 +785,16 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
                 }}
                 className={`px-2.5 py-1 text-xs font-medium rounded transition-colors flex items-center gap-1 ${
                   filterUnique === 'unique'
-                    ? 'bg-emerald-500/20 text-emerald-300'
-                    : 'text-white/40 hover:text-white/70'
+                    ? (isDark ? 'bg-emerald-500/20 text-emerald-300' : 'bg-emerald-100 text-emerald-700')
+                    : (isDark ? 'text-white/40 hover:text-white/70' : 'text-gray-500 hover:text-gray-800')
                 }`}
               >
                 <Users className="h-3 w-3" />
                 Unique
                 {filterUnique === 'unique' && (
-                  <span className="text-[8px] bg-emerald-500/30 px-1 rounded">no direct</span>
+                  <span className={`text-[8px] px-1 rounded ${
+                    isDark ? 'bg-emerald-500/30' : 'bg-emerald-200'
+                  }`}>no direct</span>
                 )}
               </button>
 
@@ -694,8 +802,8 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
                 onClick={() => setFilterUnique(filterUnique === 'repeat' ? 'all' : 'repeat')}
                 className={`px-2.5 py-1 text-xs font-medium rounded transition-colors ${
                   filterUnique === 'repeat'
-                    ? 'bg-amber-500/20 text-amber-300'
-                    : 'text-white/40 hover:text-white/70'
+                    ? (isDark ? 'bg-amber-500/20 text-amber-300' : 'bg-amber-100 text-amber-700')
+                    : (isDark ? 'text-white/40 hover:text-white/70' : 'text-gray-500 hover:text-gray-800')
                 }`}
               >
                 Repeat
@@ -705,8 +813,8 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
                 onClick={() => setFilterReferrer(filterReferrer === 'direct' ? 'all' : 'direct')}
                 className={`px-2.5 py-1 text-xs font-medium rounded transition-colors flex items-center gap-1 ${
                   filterReferrer === 'direct'
-                    ? 'bg-rose-500/20 text-rose-300'
-                    : 'text-white/40 hover:text-white/70'
+                    ? (isDark ? 'bg-rose-500/20 text-rose-300' : 'bg-rose-100 text-rose-700')
+                    : (isDark ? 'text-white/40 hover:text-white/70' : 'text-gray-500 hover:text-gray-800')
                 }`}
               >
                 <MousePointer className="h-3 w-3" />
@@ -717,8 +825,8 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
                 onClick={() => setFilterReferrer(filterReferrer === 'referrer' ? 'all' : 'referrer')}
                 className={`px-2.5 py-1 text-xs font-medium rounded transition-colors flex items-center gap-1 ${
                   filterReferrer === 'referrer'
-                    ? 'bg-indigo-500/20 text-indigo-300'
-                    : 'text-white/40 hover:text-white/70'
+                    ? (isDark ? 'bg-indigo-500/20 text-indigo-300' : 'bg-indigo-100 text-indigo-700')
+                    : (isDark ? 'text-white/40 hover:text-white/70' : 'text-gray-500 hover:text-gray-800')
                 }`}
               >
                 <Link2 className="h-3 w-3" />
@@ -734,8 +842,8 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
                     onClick={() => setFilterCountry(filterCountry === country ? '' : country)}
                     className={`px-2.5 py-1 text-xs font-medium rounded transition-colors ${
                       filterCountry === country
-                        ? 'bg-indigo-500/20 text-indigo-300'
-                        : 'text-white/40 hover:text-white/70'
+                        ? (isDark ? 'bg-indigo-500/20 text-indigo-300' : 'bg-indigo-100 text-indigo-700')
+                        : (isDark ? 'text-white/40 hover:text-white/70' : 'text-gray-500 hover:text-gray-800')
                     }`}
                   >
                     <span className="text-base">{flag}</span>
@@ -750,8 +858,8 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
                     onClick={() => setIsCountryDropdownOpen(!isCountryDropdownOpen)}
                     className={`px-2.5 py-1 text-xs font-medium rounded transition-colors flex items-center gap-1 ${
                       filterCountry && !countries.slice(0, 2).includes(filterCountry)
-                        ? 'bg-indigo-500/20 text-indigo-300'
-                        : 'text-white/40 hover:text-white/70'
+                        ? (isDark ? 'bg-indigo-500/20 text-indigo-300' : 'bg-indigo-100 text-indigo-700')
+                        : (isDark ? 'text-white/40 hover:text-white/70' : 'text-gray-500 hover:text-gray-800')
                     }`}
                   >
                     {filterCountry && !countries.slice(0, 2).includes(filterCountry) ? (
@@ -770,8 +878,14 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
 
                   {/* Dropdown menu */}
                   {isCountryDropdownOpen && (
-                    <div className="absolute top-full left-0 mt-1 w-48 max-h-60 overflow-y-auto rounded-lg bg-slate-800 border border-white/10 shadow-xl z-20 py-1">
-                      <div className="px-2 py-1.5 text-[10px] font-medium text-white/30 uppercase tracking-wider border-b border-white/5">
+                    <div className={`absolute top-full left-0 mt-1 w-48 max-h-60 overflow-y-auto rounded-lg border shadow-xl z-20 py-1 ${
+                      isDark 
+                        ? 'bg-slate-800 border-white/10' 
+                        : 'bg-white border-gray-200'
+                    }`}>
+                      <div className={`px-2 py-1.5 text-[10px] font-medium uppercase tracking-wider border-b ${
+                        isDark ? 'text-white/30 border-white/5' : 'text-gray-400 border-gray-100'
+                      }`}>
                         Select Country
                       </div>
                       {countries.slice(2).map((country) => {
@@ -787,26 +901,28 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
                             }}
                             className={`w-full px-3 py-1.5 text-xs text-left flex items-center gap-2 transition-colors ${
                               isSelected
-                                ? 'bg-indigo-500/20 text-indigo-300'
-                                : 'text-white/70 hover:bg-white/5 hover:text-white'
+                                ? (isDark ? 'bg-indigo-500/20 text-indigo-300' : 'bg-indigo-50 text-indigo-700')
+                                : (isDark ? 'text-white/70 hover:bg-white/5 hover:text-white' : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900')
                             }`}
                           >
                             <span className="text-base">{flag}</span>
                             <span className="truncate">{label}</span>
                             {isSelected && (
-                              <CheckCircle className="h-3 w-3 text-indigo-400 ml-auto" strokeWidth={2} />
+                              <CheckCircle className={`h-3 w-3 ml-auto ${isDark ? 'text-indigo-400' : 'text-indigo-600'}`} strokeWidth={2} />
                             )}
                           </button>
                         )
                       })}
                       {filterCountry && !countries.slice(0, 2).includes(filterCountry) && (
-                        <div className="border-t border-white/5 px-2 py-1">
+                        <div className={`border-t px-2 py-1 ${isDark ? 'border-white/5' : 'border-gray-100'}`}>
                           <button
                             onClick={() => {
                               setFilterCountry('')
                               setIsCountryDropdownOpen(false)
                             }}
-                            className="w-full px-2 py-1 text-[10px] text-rose-400 hover:bg-rose-500/10 rounded flex items-center gap-1"
+                            className={`w-full px-2 py-1 text-[10px] rounded flex items-center gap-1 ${
+                              isDark ? 'text-rose-400 hover:bg-rose-500/10' : 'text-rose-600 hover:bg-rose-50'
+                            }`}
                           >
                             <X className="h-3 w-3" />
                             Clear filter
@@ -820,11 +936,19 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
             </div>
             
             <div className="flex items-center gap-1 ml-auto">
-              <span className="text-[10px] text-white/30 bg-white/5 px-2 py-1 rounded border border-white/5">
+              <span className={`text-[10px] px-2 py-1 rounded border ${
+                isDark 
+                  ? 'text-white/30 bg-white/5 border-white/5' 
+                  : 'text-gray-500 bg-gray-50 border-gray-200'
+              }`}>
                 {filteredClicks.length} / {stats?.clicks?.length || 0} logs
               </span>
               {filterUnique === 'unique' && (
-                <span className="text-[10px] text-emerald-400/60 bg-emerald-500/10 px-2 py-1 rounded border border-emerald-500/20 flex items-center gap-1">
+                <span className={`text-[10px] px-2 py-1 rounded border flex items-center gap-1 ${
+                  isDark 
+                    ? 'text-emerald-400/60 bg-emerald-500/10 border-emerald-500/20' 
+                    : 'text-emerald-700 bg-emerald-50 border-emerald-200'
+                }`}>
                   <ArrowRight className="h-2.5 w-2.5" />
                   Direct clicks excluded
                 </span>
@@ -833,46 +957,66 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
           </div>
 
           {/* Data Table */}
-          <div className="bg-white/5 backdrop-blur-sm rounded-xl border border-white/10 overflow-hidden">
+          <div className={`rounded-xl border overflow-hidden ${
+            isDark 
+              ? 'bg-white/5 backdrop-blur-sm border-white/10' 
+              : 'bg-white/80 backdrop-blur-sm border-gray-200'
+          }`}>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
-                <thead className="bg-white/[0.03] border-b border-white/5 sticky top-0 z-10">
+                <thead className={`border-b ${
+                  isDark ? 'bg-white/[0.03] border-white/5' : 'bg-gray-50 border-gray-200'
+                } sticky top-0 z-10`}>
                   <tr>
-                    <th className="px-3 py-2.5 text-left text-[10px] font-medium uppercase tracking-wider text-white/30 whitespace-nowrap">
+                    <th className={`px-3 py-2.5 text-left text-[10px] font-medium uppercase tracking-wider whitespace-nowrap ${
+                      isDark ? 'text-white/30' : 'text-gray-500'
+                    }`}>
                       <div className="flex items-center gap-1">
                         <Clock className="h-3 w-3" strokeWidth={1.5} />
                         Time
                       </div>
                     </th>
-                    <th className="px-3 py-2.5 text-left text-[10px] font-medium uppercase tracking-wider text-white/30 whitespace-nowrap">
+                    <th className={`px-3 py-2.5 text-left text-[10px] font-medium uppercase tracking-wider whitespace-nowrap ${
+                      isDark ? 'text-white/30' : 'text-gray-500'
+                    }`}>
                       <div className="flex items-center gap-1">
                         <Hash className="h-3 w-3" strokeWidth={1.5} />
                         IP
                       </div>
                     </th>
-                    <th className="px-3 py-2.5 text-left text-[10px] font-medium uppercase tracking-wider text-white/30 whitespace-nowrap">
+                    <th className={`px-3 py-2.5 text-left text-[10px] font-medium uppercase tracking-wider whitespace-nowrap ${
+                      isDark ? 'text-white/30' : 'text-gray-500'
+                    }`}>
                       <div className="flex items-center gap-1">
                         <MapPin className="h-3 w-3" strokeWidth={1.5} />
                         Location
                       </div>
                     </th>
-                    <th className="px-3 py-2.5 text-left text-[10px] font-medium uppercase tracking-wider text-white/30 whitespace-nowrap">
+                    <th className={`px-3 py-2.5 text-left text-[10px] font-medium uppercase tracking-wider whitespace-nowrap ${
+                      isDark ? 'text-white/30' : 'text-gray-500'
+                    }`}>
                       <div className="flex items-center gap-1">
                         <Smartphone className="h-3 w-3" strokeWidth={1.5} />
                         Device
                       </div>
                     </th>
-                    <th className="px-3 py-2.5 text-left text-[10px] font-medium uppercase tracking-wider text-white/30 whitespace-nowrap">Browser</th>
-                    <th className="px-3 py-2.5 text-left text-[10px] font-medium uppercase tracking-wider text-white/30 min-w-[200px] whitespace-nowrap">
+                    <th className={`px-3 py-2.5 text-left text-[10px] font-medium uppercase tracking-wider whitespace-nowrap ${
+                      isDark ? 'text-white/30' : 'text-gray-500'
+                    }`}>Browser</th>
+                    <th className={`px-3 py-2.5 text-left text-[10px] font-medium uppercase tracking-wider min-w-[200px] whitespace-nowrap ${
+                      isDark ? 'text-white/30' : 'text-gray-500'
+                    }`}>
                       <div className="flex items-center gap-1">
                         <Link2 className="h-3 w-3" strokeWidth={1.5} />
                         Referrer
                       </div>
                     </th>
-                    <th className="px-3 py-2.5 text-center text-[10px] font-medium uppercase tracking-wider text-white/30 whitespace-nowrap">Status</th>
+                    <th className={`px-3 py-2.5 text-center text-[10px] font-medium uppercase tracking-wider whitespace-nowrap ${
+                      isDark ? 'text-white/30' : 'text-gray-500'
+                    }`}>Status</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-white/5">
+                <tbody className={`divide-y ${isDark ? 'divide-white/5' : 'divide-gray-100'}`}>
                   {filteredClicks.length > 0 ? (
                     filteredClicks.map((click) => {
                       const DeviceIcon = getDeviceIcon(click.deviceType, click.deviceBrand)
@@ -880,55 +1024,57 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
                       const flag = getCountryFlag(click.country) || '🌍'
                       
                       return (
-                        <tr key={click.id} className="hover:bg-white/[0.02] transition-colors">
-                          <td className="px-3 py-2.5 text-xs text-white/40 whitespace-nowrap">
+                        <tr key={click.id} className={`transition-colors ${isDark ? 'hover:bg-white/[0.02]' : 'hover:bg-gray-50'}`}>
+                          <td className={`px-3 py-2.5 text-xs whitespace-nowrap ${isDark ? 'text-white/40' : 'text-gray-500'}`}>
                             {formatDate(click.createdAt || click.timestamp)}
                           </td>
                           <td className="px-3 py-2.5">
-                            <span className="text-xs font-mono text-cyan-300/80 whitespace-nowrap">
+                            <span className={`text-xs font-mono whitespace-nowrap ${isDark ? 'text-cyan-300/80' : 'text-cyan-700'}`}>
                               {click.ipAddress || 'N/A'}
                             </span>
                           </td>
                           <td className="px-3 py-2.5">
                             <div className="flex items-center gap-1.5">
                               <span className="text-lg flex-shrink-0 w-6 text-center">{flag}</span>
-                              <span className="text-xs text-white/60 truncate max-w-[80px]">{getCountryLabel(click.country)}</span>
+                              <span className={`text-xs truncate max-w-[80px] ${isDark ? 'text-white/60' : 'text-gray-600'}`}>
+                                {getCountryLabel(click.country)}
+                              </span>
                               {click.city && (
-                                <span className="text-[10px] text-white/30 hidden md:inline">• {click.city}</span>
+                                <span className={`text-[10px] hidden md:inline ${isDark ? 'text-white/30' : 'text-gray-400'}`}>• {click.city}</span>
                               )}
                             </div>
                           </td>
                           <td className="px-3 py-2.5">
-                            <div className="flex items-center gap-1.5 text-xs text-white/60">
-                              <DeviceIcon className="h-3.5 w-3.5 text-white/40" strokeWidth={1.5} />
+                            <div className={`flex items-center gap-1.5 text-xs ${isDark ? 'text-white/60' : 'text-gray-600'}`}>
+                              <DeviceIcon className={`h-3.5 w-3.5 ${isDark ? 'text-white/40' : 'text-gray-400'}`} strokeWidth={1.5} />
                               <span className="truncate max-w-[120px]" title={deviceLabel}>
                                 {deviceLabel}
                               </span>
                             </div>
                           </td>
-                          <td className="px-3 py-2.5 text-xs text-white/50 truncate max-w-[80px]">
+                          <td className={`px-3 py-2.5 text-xs truncate max-w-[80px] ${isDark ? 'text-white/50' : 'text-gray-500'}`}>
                             {click.browser || 'Unknown'}
                             {click.browserVersion && (
-                              <span className="text-[10px] text-white/30 ml-1">v{click.browserVersion}</span>
+                              <span className={`text-[10px] ml-1 ${isDark ? 'text-white/30' : 'text-gray-400'}`}>v{click.browserVersion}</span>
                             )}
                           </td>
                           <td className="px-3 py-2.5 text-xs">
                             {click.referrer ? (
                               <div className="flex items-center gap-1.5 group/referrer">
-                                <ExternalLink className="h-3 w-3 text-white/20 group-hover/referrer:text-indigo-400 transition-colors flex-shrink-0" strokeWidth={1.5} />
+                                <ExternalLink className={`h-3 w-3 flex-shrink-0 transition-colors ${isDark ? 'text-white/20 group-hover/referrer:text-indigo-400' : 'text-gray-400 group-hover/referrer:text-indigo-600'}`} strokeWidth={1.5} />
                                 <a
                                   href={click.referrer}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  className="text-indigo-300/70 hover:text-indigo-300 transition-colors break-all text-[11px]"
+                                  className={`transition-colors break-all text-[11px] ${isDark ? 'text-indigo-300/70 hover:text-indigo-300' : 'text-indigo-600/70 hover:text-indigo-800'}`}
                                   title={click.referrer}
                                 >
                                   {click.referrer}
                                 </a>
                               </div>
                             ) : (
-                              <span className="text-white/20 flex items-center gap-1.5">
-                                <span className="h-1.5 w-1.5 rounded-full bg-white/10"></span>
+                              <span className={`flex items-center gap-1.5 ${isDark ? 'text-white/20' : 'text-gray-400'}`}>
+                                <span className={`h-1.5 w-1.5 rounded-full ${isDark ? 'bg-white/10' : 'bg-gray-300'}`}></span>
                                 Direct
                               </span>
                             )}
@@ -939,11 +1085,13 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
                                 type={click.isBot ? 'danger' : 'success'}
                                 label={click.isBot ? 'Bot' : 'Human'}
                                 icon={click.isBot ? Bot : User}
+                                isDark={isDark}
                               />
                               <StatusBadge
                                 type={click.isUnique ? 'success' : 'warning'}
                                 label={click.isUnique ? 'Unique' : 'Repeat'}
                                 icon={click.isUnique ? CheckCircle : XCircle}
+                                isDark={isDark}
                               />
                             </div>
                           </td>
@@ -954,9 +1102,9 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
                     <tr>
                       <td colSpan={7} className="px-4 py-10 text-center">
                         <div className="flex flex-col items-center gap-1.5">
-                          <Eye className="h-7 w-7 text-white/10" strokeWidth={1.5} />
-                          <p className="text-sm text-white/30">No clicks match your filters</p>
-                          <p className="text-xs text-white/20">Try adjusting your search or filter criteria</p>
+                          <Eye className={`h-7 w-7 ${isDark ? 'text-white/10' : 'text-gray-300'}`} strokeWidth={1.5} />
+                          <p className={`text-sm ${isDark ? 'text-white/30' : 'text-gray-500'}`}>No clicks match your filters</p>
+                          <p className={`text-xs ${isDark ? 'text-white/20' : 'text-gray-400'}`}>Try adjusting your search or filter criteria</p>
                         </div>
                       </td>
                     </tr>
@@ -967,18 +1115,20 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
 
             {/* Stats Footer */}
             {filteredClicks.length > 0 && (
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-2 border-t border-white/5 px-3 py-2.5">
-                <div className="text-xs text-white/30 flex items-center gap-4 flex-wrap">
+              <div className={`flex flex-col sm:flex-row items-center justify-between gap-2 border-t px-3 py-2.5 ${
+                isDark ? 'border-white/5' : 'border-gray-200'
+              }`}>
+                <div className={`text-xs flex items-center gap-4 flex-wrap ${isDark ? 'text-white/30' : 'text-gray-500'}`}>
                   <span>Total: {filteredClicks.length} clicks</span>
                   <span>•</span>
                   <span>Unique: {filteredClicks.filter(c => c.isUnique).length}</span>
                   <span>•</span>
                   <span>Bots: {filteredClicks.filter(c => c.isBot).length}</span>
                   {filterUnique === 'unique' && (
-                    <span className="text-emerald-400/60">✨ Direct clicks excluded</span>
+                    <span className={isDark ? 'text-emerald-400/60' : 'text-emerald-700'}>✨ Direct clicks excluded</span>
                   )}
                 </div>
-                <div className="text-xs text-white/20 flex items-center gap-2">
+                <div className={`text-xs flex items-center gap-2 ${isDark ? 'text-white/20' : 'text-gray-400'}`}>
                   <FileText className="h-3 w-3" strokeWidth={1.5} />
                   <span>All logs displayed</span>
                 </div>
@@ -987,12 +1137,14 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
           </div>
 
           {/* Footer */}
-          <div className="mt-5 flex flex-col sm:flex-row items-center justify-between gap-2 pt-3 border-t border-white/5">
+          <div className={`mt-5 flex flex-col sm:flex-row items-center justify-between gap-2 pt-3 border-t ${
+            isDark ? 'border-white/5' : 'border-gray-200'
+          }`}>
             <div className="flex items-center gap-2">
               <Logo variant="compact" size="sm" showAnimation={true} />
-              <span className="text-[10px] text-white/20">NexGen Affiliates</span>
+              <span className={`text-[10px] ${isDark ? 'text-white/20' : 'text-gray-400'}`}>NexGen Affiliates</span>
             </div>
-            <div className="flex items-center gap-3 text-[10px] text-white/20 flex-wrap">
+            <div className={`flex items-center gap-3 text-[10px] flex-wrap ${isDark ? 'text-white/20' : 'text-gray-400'}`}>
               <span>Privacy protected</span>
               <span>•</span>
               <span>Real-time analytics</span>
@@ -1001,7 +1153,7 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
               {filterUnique === 'unique' && (
                 <>
                   <span>•</span>
-                  <span className="text-emerald-400/60">Smart filter: no direct clicks</span>
+                  <span className={isDark ? 'text-emerald-400/60' : 'text-emerald-700'}>Smart filter: no direct clicks</span>
                 </>
               )}
             </div>
