@@ -1,7 +1,7 @@
 // app/(public)/stats/[publicId]/page.tsx
 'use client'
 
-import { use, useState, useEffect, useCallback, useMemo } from 'react'
+import { use, useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { formatNumber } from '@/lib/utils/helpers'
 import { getCountryFlag, getCountryLabel } from '@/lib/utils/country'
 import { Chart } from '@/components/ui/Chart'
@@ -41,6 +41,7 @@ import {
   Globe,
   MousePointer,
   ArrowRight,
+  X,
 } from 'lucide-react'
 import { Logo } from '@/components/ui/Logo'
 
@@ -132,7 +133,7 @@ const MetricCard = ({
 const CountryBar = ({ country, clicks, totalClicks, max }: any) => {
   const percentage = max > 0 ? (clicks / max) * 100 : 0
   const share = totalClicks > 0 ? ((clicks / totalClicks) * 100).toFixed(1) : '0.0'
-  const flag = getCountryFlag(country) || '🌍' // fallback flag
+  const flag = getCountryFlag(country) || '🌍'
   
   return (
     <div className="flex items-center gap-3 group">
@@ -233,6 +234,19 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
   const [filterReferrer, setFilterReferrer] = useState<'all' | 'direct' | 'referrer'>('all')
   const [timeRange, setTimeRange] = useState<'7d' | '30d' | '90d'>('7d')
   const [isRefreshing, setIsRefreshing] = useState(false)
+  const [isCountryDropdownOpen, setIsCountryDropdownOpen] = useState(false)
+  const dropdownRef = useRef<HTMLDivElement>(null)
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsCountryDropdownOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
 
   // Optimized fetch with abort controller
   useEffect(() => {
@@ -426,6 +440,10 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
       </div>
     )
   }
+
+  // Get selected country label/flag
+  const selectedCountryLabel = filterCountry ? getCountryLabel(filterCountry) : ''
+  const selectedCountryFlag = filterCountry ? (getCountryFlag(filterCountry) || '🌍') : ''
 
   return (
     <>
@@ -707,6 +725,7 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
                 Referrer
               </button>
 
+              {/* First two country buttons */}
               {countries.slice(0, 2).map((country) => {
                 const flag = getCountryFlag(country) || '🌍'
                 return (
@@ -723,21 +742,79 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
                   </button>
                 )
               })}
+
+              {/* Custom "More" dropdown for remaining countries */}
               {countries.length > 2 && (
-                <div className="relative">
-                  <select
-                    value={filterCountry}
-                    onChange={(e) => setFilterCountry(e.target.value)}
-                    className="appearance-none bg-white/5 border border-white/10 rounded px-2.5 py-1 pr-7 text-xs text-white/60 focus:outline-none focus:border-indigo-500/30"
+                <div className="relative" ref={dropdownRef}>
+                  <button
+                    onClick={() => setIsCountryDropdownOpen(!isCountryDropdownOpen)}
+                    className={`px-2.5 py-1 text-xs font-medium rounded transition-colors flex items-center gap-1 ${
+                      filterCountry && !countries.slice(0, 2).includes(filterCountry)
+                        ? 'bg-indigo-500/20 text-indigo-300'
+                        : 'text-white/40 hover:text-white/70'
+                    }`}
                   >
-                    <option value="">More</option>
-                    {countries.map((country) => (
-                      <option key={country} value={country}>
-                        {getCountryFlag(country) || '🌍'} {getCountryLabel(country)}
-                      </option>
-                    ))}
-                  </select>
-                  <ChevronDown className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 h-3 w-3 text-white/20" strokeWidth={1.5} />
+                    {filterCountry && !countries.slice(0, 2).includes(filterCountry) ? (
+                      <>
+                        <span className="text-base">{selectedCountryFlag}</span>
+                        <span className="truncate max-w-[60px]">{selectedCountryLabel}</span>
+                      </>
+                    ) : (
+                      <>
+                        <Globe className="h-3 w-3" />
+                        More
+                      </>
+                    )}
+                    <ChevronDown className={`h-3 w-3 transition-transform ${isCountryDropdownOpen ? 'rotate-180' : ''}`} strokeWidth={1.5} />
+                  </button>
+
+                  {/* Dropdown menu */}
+                  {isCountryDropdownOpen && (
+                    <div className="absolute top-full left-0 mt-1 w-48 max-h-60 overflow-y-auto rounded-lg bg-slate-800 border border-white/10 shadow-xl z-20 py-1">
+                      <div className="px-2 py-1.5 text-[10px] font-medium text-white/30 uppercase tracking-wider border-b border-white/5">
+                        Select Country
+                      </div>
+                      {countries.slice(2).map((country) => {
+                        const flag = getCountryFlag(country) || '🌍'
+                        const label = getCountryLabel(country)
+                        const isSelected = filterCountry === country
+                        return (
+                          <button
+                            key={country}
+                            onClick={() => {
+                              setFilterCountry(country)
+                              setIsCountryDropdownOpen(false)
+                            }}
+                            className={`w-full px-3 py-1.5 text-xs text-left flex items-center gap-2 transition-colors ${
+                              isSelected
+                                ? 'bg-indigo-500/20 text-indigo-300'
+                                : 'text-white/70 hover:bg-white/5 hover:text-white'
+                            }`}
+                          >
+                            <span className="text-base">{flag}</span>
+                            <span className="truncate">{label}</span>
+                            {isSelected && (
+                              <CheckCircle className="h-3 w-3 text-indigo-400 ml-auto" strokeWidth={2} />
+                            )}
+                          </button>
+                        )
+                      })}
+                      {filterCountry && !countries.slice(0, 2).includes(filterCountry) && (
+                        <div className="border-t border-white/5 px-2 py-1">
+                          <button
+                            onClick={() => {
+                              setFilterCountry('')
+                              setIsCountryDropdownOpen(false)
+                            }}
+                            className="w-full px-2 py-1 text-[10px] text-rose-400 hover:bg-rose-500/10 rounded flex items-center gap-1"
+                          >
+                            <X className="h-3 w-3" />
+                            Clear filter
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               )}
             </div>
