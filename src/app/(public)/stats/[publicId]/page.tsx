@@ -94,7 +94,9 @@ const MetricCard = ({
   label, 
   value, 
   subtitle,
-  color = '#818CF8' 
+  color = '#818CF8',
+  percentage,
+  percentageColor = '#818CF8'
 }: any) => (
   <div className="group relative overflow-hidden rounded-xl bg-white/5 backdrop-blur-sm border border-white/10 p-5 transition-all duration-200 hover:border-white/20 hover:bg-white/10 hover:scale-[1.02]">
     <div className="flex items-start justify-between">
@@ -102,6 +104,22 @@ const MetricCard = ({
         <p className="text-[11px] font-medium uppercase tracking-wider text-white/40">{label}</p>
         <p className="text-2xl font-bold text-white tracking-tight">{value}</p>
         {subtitle && <p className="text-[11px] text-white/30">{subtitle}</p>}
+        {percentage !== undefined && (
+          <div className="mt-1 flex items-center gap-1.5">
+            <div className="h-1 w-16 rounded-full bg-white/10 overflow-hidden">
+              <div 
+                className="h-full rounded-full transition-all duration-500"
+                style={{ 
+                  width: `${Math.min(percentage, 100)}%`,
+                  backgroundColor: percentageColor
+                }}
+              />
+            </div>
+            <span className="text-[10px] font-medium" style={{ color: percentageColor }}>
+              {percentage.toFixed(1)}%
+            </span>
+          </div>
+        )}
       </div>
       <div className="rounded-lg p-2 shrink-0" style={{ backgroundColor: `${color}20` }}>
         <Icon className="h-4 w-4" style={{ color }} strokeWidth={1.5} />
@@ -110,9 +128,10 @@ const MetricCard = ({
   </div>
 )
 
-// Optimized Country Bar
-const CountryBar = ({ country, clicks, total, max }: any) => {
+// Country Bar with improved percentage design
+const CountryBar = ({ country, clicks, totalClicks, max }: any) => {
   const percentage = max > 0 ? (clicks / max) * 100 : 0
+  const share = totalClicks > 0 ? ((clicks / totalClicks) * 100).toFixed(1) : '0.0'
   
   return (
     <div className="flex items-center gap-3 group">
@@ -120,9 +139,14 @@ const CountryBar = ({ country, clicks, total, max }: any) => {
       <div className="flex-1 min-w-0">
         <div className="flex items-center justify-between mb-1">
           <span className="text-sm text-white/70 truncate">{getCountryLabel(country)}</span>
-          <span className="text-xs font-medium text-white/50 tabular-nums">{formatNumber(clicks)}</span>
+          <span className="text-xs font-medium text-white/50 tabular-nums flex items-center gap-2">
+            <span>{formatNumber(clicks)}</span>
+            <span className="inline-flex items-center rounded-full bg-indigo-500/20 px-1.5 py-0.5 text-[10px] font-medium text-indigo-300">
+              {share}%
+            </span>
+          </span>
         </div>
-        <div className="h-1 w-full rounded-full bg-white/5 overflow-hidden">
+        <div className="h-1.5 w-full rounded-full bg-white/5 overflow-hidden">
           <div 
             className="h-full rounded-full transition-all duration-500 ease-out will-change-transform"
             style={{ 
@@ -350,8 +374,8 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
   const displaySubtitle = accountName && accountName !== 'NexGen Affiliates'
     ? `Live traffic insights for ${accountName}`
     : 'Public analytics dashboard'
-  const uniqueRate = totalClicks ? ((uniqueClicks / totalClicks) * 100).toFixed(1) : '0'
-  const botRate = totalClicks ? ((botClicks / totalClicks) * 100).toFixed(1) : '0'
+  const uniqueRate = totalClicks ? ((uniqueClicks / totalClicks) * 100) : 0
+  const botRate = totalClicks ? ((botClicks / totalClicks) * 100) : 0
   const maxCountryClicks = stats?.geoSummary?.length 
     ? Math.max(...stats.geoSummary.map(c => c.totalClicks)) 
     : 0
@@ -483,27 +507,33 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
             </div>
           </div>
 
-          {/* Quick Stats – Real data only */}
+          {/* Quick Stats – with percentage progress bars */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 mb-5">
             <MetricCard
               icon={MousePointerClick}
               label="Total Clicks"
               value={formatNumber(totalClicks)}
               color="#818CF8"
-              subtitle={`${uniqueRate}% unique`}
+              percentage={100}
+              percentageColor="#818CF8"
+              subtitle="100% of all traffic"
             />
             <MetricCard
               icon={Users}
               label="Unique Visitors"
               value={formatNumber(uniqueVisitors)}
               color="#34D399"
-              subtitle="Filtered (no direct)"
+              percentage={uniqueRate}
+              percentageColor="#34D399"
+              subtitle={`${uniqueRate.toFixed(1)}% of total clicks`}
             />
             <MetricCard
               icon={Globe2}
               label="Countries"
               value={countries.length || 0}
               color="#F472B6"
+              percentage={countries.length > 0 ? 100 : 0}
+              percentageColor="#F472B6"
               subtitle={`${uniqueClicks} unique total`}
             />
             <MetricCard
@@ -511,7 +541,9 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
               label="Bot Traffic"
               value={formatNumber(botClicks)}
               color="#F87171"
-              subtitle={`${botRate}% of total`}
+              percentage={botRate}
+              percentageColor="#F87171"
+              subtitle={`${botRate.toFixed(1)}% of total`}
             />
           </div>
 
@@ -561,9 +593,12 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
             </div>
 
             <div className="bg-white/5 backdrop-blur-sm rounded-xl border border-white/10 p-4">
-              <div className="flex items-center gap-2 mb-3">
-                <Globe2 className="h-4 w-4 text-indigo-400" strokeWidth={1.5} />
-                <span className="text-sm font-medium text-white/70">Top Countries</span>
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <Globe2 className="h-4 w-4 text-indigo-400" strokeWidth={1.5} />
+                  <span className="text-sm font-medium text-white/70">Top Countries</span>
+                </div>
+                <span className="text-[10px] text-white/30">% of total</span>
               </div>
               <div className="space-y-2.5 max-h-[200px] overflow-y-auto scrollbar-thin scrollbar-thumb-white/5 scrollbar-track-transparent">
                 {stats?.geoSummary?.slice(0, 5).map((country) => (
@@ -571,7 +606,7 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
                     key={country.country}
                     country={country.country}
                     clicks={country.totalClicks}
-                    total={country.totalClicks}
+                    totalClicks={totalClicks}
                     max={maxCountryClicks}
                   />
                 ))}
