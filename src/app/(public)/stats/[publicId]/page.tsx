@@ -115,7 +115,7 @@ const MetricCard = ({
         <p className={`text-2xl font-bold tracking-tight ${
           isDark ? 'text-white' : 'text-gray-800'
         }`}>{value}</p>
-        {subtitle && <p className={`text-[11px] ${isDark ? 'text-white/30' : 'text-gray-400'}`}>{subtitle}</p>}
+        {subtitle && <p className={`text-[11px] ${isDark ? 'text-white/30' : 'text-gray-500'}`}>{subtitle}</p>}
         {percentage !== undefined && (
           <div className="mt-1 flex items-center gap-1.5">
             <div className={`h-1 w-16 rounded-full overflow-hidden ${
@@ -157,7 +157,7 @@ const CountryBar = ({ country, clicks, totalClicks, max, isDark = true }: any) =
             {getCountryLabel(country)}
           </span>
           <span className={`text-xs font-medium tabular-nums flex items-center gap-2 ${
-            isDark ? 'text-white/50' : 'text-gray-500'
+            isDark ? 'text-white/50' : 'text-gray-600'
           }`}>
             <span>{formatNumber(clicks)}</span>
             <span className={`inline-flex items-center rounded-full px-1.5 py-0.5 text-[10px] font-medium ${
@@ -479,7 +479,7 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
             <Shield className={`h-8 w-8 ${isDark ? 'text-rose-400' : 'text-rose-600'}`} strokeWidth={1.5} />
           </div>
           <h1 className={`text-xl font-bold mb-2 ${isDark ? 'text-white' : 'text-gray-800'}`}>Unable to Load Dashboard</h1>
-          <p className={`text-sm mb-6 ${isDark ? 'text-white/40' : 'text-gray-500'}`}>{error}</p>
+          <p className={`text-sm mb-6 ${isDark ? 'text-white/40' : 'text-gray-600'}`}>{error}</p>
           <button
             onClick={() => window.location.reload()}
             className="inline-flex items-center gap-2 px-5 py-2 bg-indigo-500 hover:bg-indigo-600 text-white rounded-lg transition-colors text-sm"
@@ -555,7 +555,7 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
                     Public
                   </span>
                 </div>
-                <p className={`text-xs ${isDark ? 'text-white/40' : 'text-gray-500'}`}>{displaySubtitle}</p>
+                <p className={`text-xs ${isDark ? 'text-white/40' : 'text-gray-600'}`}>{displaySubtitle}</p>
               </div>
             </div>
             
@@ -569,8 +569,8 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
                     onClick={() => setTimeRange(range)}
                     className={`px-3 py-1 text-xs font-medium rounded transition-colors ${
                       timeRange === range 
-                        ? (isDark ? 'bg-indigo-500 text-white' : 'bg-indigo-500 text-white')
-                        : (isDark ? 'text-white/40 hover:text-white/70' : 'text-gray-500 hover:text-gray-800')
+                        ? 'bg-indigo-500 text-white'
+                        : (isDark ? 'text-white/40 hover:text-white/70' : 'text-gray-600 hover:text-gray-900')
                     }`}
                   >
                     {range}
@@ -768,7 +768,7 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
                 className={`px-2.5 py-1 text-xs font-medium rounded transition-colors ${
                   filterCountry === '' && filterUnique === 'all' && filterReferrer === 'all'
                     ? (isDark ? 'bg-indigo-500/20 text-indigo-300' : 'bg-indigo-100 text-indigo-700')
-                    : (isDark ? 'text-white/40 hover:text-white/70' : 'text-gray-500 hover:text-gray-800')
+                    : (isDark ? 'text-white/40 hover:text-white/70' : 'text-gray-600 hover:text-gray-900')
                 }`}
               >
                 All
@@ -786,7 +786,7 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
                 className={`px-2.5 py-1 text-xs font-medium rounded transition-colors flex items-center gap-1 ${
                   filterUnique === 'unique'
                     ? (isDark ? 'bg-emerald-500/20 text-emerald-300' : 'bg-emerald-100 text-emerald-700')
-                    : (isDark ? 'text-white/40 hover:text-white/70' : 'text-gray-500 hover:text-gray-800')
+                    : (isDark ? 'text-white/40 hover:text-white/70' : 'text-gray-600 hover:text-gray-900')
                 }`}
               >
                 <Users className="h-3 w-3" />
@@ -803,7 +803,7 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
                 className={`px-2.5 py-1 text-xs font-medium rounded transition-colors ${
                   filterUnique === 'repeat'
                     ? (isDark ? 'bg-amber-500/20 text-amber-300' : 'bg-amber-100 text-amber-700')
-                    : (isDark ? 'text-white/40 hover:text-white/70' : 'text-gray-500 hover:text-gray-800')
+                    : (isDark ? 'text-white/40 hover:text-white/70' : 'text-gray-600 hover:text-gray-900')
                 }`}
               >
                 Repeat
@@ -814,7 +814,7 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
                 className={`px-2.5 py-1 text-xs font-medium rounded transition-colors flex items-center gap-1 ${
                   filterReferrer === 'direct'
                     ? (isDark ? 'bg-rose-500/20 text-rose-300' : 'bg-rose-100 text-rose-700')
-                    : (isDark ? 'text-white/40 hover:text-white/70' : 'text-gray-500 hover:text-gray-800')
+                    : (isDark ? 'text-white/40 hover:text-white/70' : 'text-gray-600 hover:text-gray-900')
                 }`}
               >
                 <MousePointer className="h-3 w-3" />
@@ -826,7 +826,7 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
                 className={`px-2.5 py-1 text-xs font-medium rounded transition-colors flex items-center gap-1 ${
                   filterReferrer === 'referrer'
                     ? (isDark ? 'bg-indigo-500/20 text-indigo-300' : 'bg-indigo-100 text-indigo-700')
-                    : (isDark ? 'text-white/40 hover:text-white/70' : 'text-gray-500 hover:text-gray-800')
+                    : (isDark ? 'text-white/40 hover:text-white/70' : 'text-gray-600 hover:text-gray-900')
                 }`}
               >
                 <Link2 className="h-3 w-3" />
@@ -843,7 +843,7 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
                     className={`px-2.5 py-1 text-xs font-medium rounded transition-colors ${
                       filterCountry === country
                         ? (isDark ? 'bg-indigo-500/20 text-indigo-300' : 'bg-indigo-100 text-indigo-700')
-                        : (isDark ? 'text-white/40 hover:text-white/70' : 'text-gray-500 hover:text-gray-800')
+                        : (isDark ? 'text-white/40 hover:text-white/70' : 'text-gray-600 hover:text-gray-900')
                     }`}
                   >
                     <span className="text-base">{flag}</span>
@@ -859,7 +859,7 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
                     className={`px-2.5 py-1 text-xs font-medium rounded transition-colors flex items-center gap-1 ${
                       filterCountry && !countries.slice(0, 2).includes(filterCountry)
                         ? (isDark ? 'bg-indigo-500/20 text-indigo-300' : 'bg-indigo-100 text-indigo-700')
-                        : (isDark ? 'text-white/40 hover:text-white/70' : 'text-gray-500 hover:text-gray-800')
+                        : (isDark ? 'text-white/40 hover:text-white/70' : 'text-gray-600 hover:text-gray-900')
                     }`}
                   >
                     {filterCountry && !countries.slice(0, 2).includes(filterCountry) ? (
@@ -939,7 +939,7 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
               <span className={`text-[10px] px-2 py-1 rounded border ${
                 isDark 
                   ? 'text-white/30 bg-white/5 border-white/5' 
-                  : 'text-gray-500 bg-gray-50 border-gray-200'
+                  : 'text-gray-600 bg-gray-50 border-gray-200'
               }`}>
                 {filteredClicks.length} / {stats?.clicks?.length || 0} logs
               </span>
@@ -1118,7 +1118,7 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
               <div className={`flex flex-col sm:flex-row items-center justify-between gap-2 border-t px-3 py-2.5 ${
                 isDark ? 'border-white/5' : 'border-gray-200'
               }`}>
-                <div className={`text-xs flex items-center gap-4 flex-wrap ${isDark ? 'text-white/30' : 'text-gray-500'}`}>
+                <div className={`text-xs flex items-center gap-4 flex-wrap ${isDark ? 'text-white/30' : 'text-gray-600'}`}>
                   <span>Total: {filteredClicks.length} clicks</span>
                   <span>•</span>
                   <span>Unique: {filteredClicks.filter(c => c.isUnique).length}</span>
@@ -1136,15 +1136,21 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
             )}
           </div>
 
-          {/* Footer */}
+          {/* Footer - Branding text contrast fixed */}
           <div className={`mt-5 flex flex-col sm:flex-row items-center justify-between gap-2 pt-3 border-t ${
             isDark ? 'border-white/5' : 'border-gray-200'
           }`}>
             <div className="flex items-center gap-2">
               <Logo variant="compact" size="sm" showAnimation={true} />
-              <span className={`text-[10px] ${isDark ? 'text-white/20' : 'text-gray-400'}`}>NexGen Affiliates</span>
+              <span className={`text-[10px] font-medium ${
+                isDark ? 'text-white/40' : 'text-gray-700'
+              }`}>
+                NexGen Affiliates
+              </span>
             </div>
-            <div className={`flex items-center gap-3 text-[10px] flex-wrap ${isDark ? 'text-white/20' : 'text-gray-400'}`}>
+            <div className={`flex items-center gap-3 text-[10px] flex-wrap ${
+              isDark ? 'text-white/30' : 'text-gray-500'
+            }`}>
               <span>Privacy protected</span>
               <span>•</span>
               <span>Real-time analytics</span>
