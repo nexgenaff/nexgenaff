@@ -132,10 +132,11 @@ const MetricCard = ({
 const CountryBar = ({ country, clicks, totalClicks, max }: any) => {
   const percentage = max > 0 ? (clicks / max) * 100 : 0
   const share = totalClicks > 0 ? ((clicks / totalClicks) * 100).toFixed(1) : '0.0'
+  const flag = getCountryFlag(country) || '🌍' // fallback flag
   
   return (
     <div className="flex items-center gap-3 group">
-      <span className="text-base w-7 flex-shrink-0">{getCountryFlag(country)}</span>
+      <span className="text-lg w-8 flex-shrink-0 text-center">{flag}</span>
       <div className="flex-1 min-w-0">
         <div className="flex items-center justify-between mb-1">
           <span className="text-sm text-white/70 truncate">{getCountryLabel(country)}</span>
@@ -706,19 +707,22 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
                 Referrer
               </button>
 
-              {countries.slice(0, 2).map((country) => (
-                <button
-                  key={country}
-                  onClick={() => setFilterCountry(filterCountry === country ? '' : country)}
-                  className={`px-2.5 py-1 text-xs font-medium rounded transition-colors ${
-                    filterCountry === country
-                      ? 'bg-indigo-500/20 text-indigo-300'
-                      : 'text-white/40 hover:text-white/70'
-                  }`}
-                >
-                  {getCountryFlag(country)}
-                </button>
-              ))}
+              {countries.slice(0, 2).map((country) => {
+                const flag = getCountryFlag(country) || '🌍'
+                return (
+                  <button
+                    key={country}
+                    onClick={() => setFilterCountry(filterCountry === country ? '' : country)}
+                    className={`px-2.5 py-1 text-xs font-medium rounded transition-colors ${
+                      filterCountry === country
+                        ? 'bg-indigo-500/20 text-indigo-300'
+                        : 'text-white/40 hover:text-white/70'
+                    }`}
+                  >
+                    <span className="text-base">{flag}</span>
+                  </button>
+                )
+              })}
               {countries.length > 2 && (
                 <div className="relative">
                   <select
@@ -729,7 +733,7 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
                     <option value="">More</option>
                     {countries.map((country) => (
                       <option key={country} value={country}>
-                        {getCountryFlag(country)} {getCountryLabel(country)}
+                        {getCountryFlag(country) || '🌍'} {getCountryLabel(country)}
                       </option>
                     ))}
                   </select>
@@ -796,6 +800,7 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
                     filteredClicks.map((click) => {
                       const DeviceIcon = getDeviceIcon(click.deviceType, click.deviceBrand)
                       const deviceLabel = getDeviceLabel(click)
+                      const flag = getCountryFlag(click.country) || '🌍'
                       
                       return (
                         <tr key={click.id} className="hover:bg-white/[0.02] transition-colors">
@@ -809,7 +814,7 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
                           </td>
                           <td className="px-3 py-2.5">
                             <div className="flex items-center gap-1.5">
-                              <span className="text-sm">{getCountryFlag(click.country)}</span>
+                              <span className="text-lg flex-shrink-0 w-6 text-center">{flag}</span>
                               <span className="text-xs text-white/60 truncate max-w-[80px]">{getCountryLabel(click.country)}</span>
                               {click.city && (
                                 <span className="text-[10px] text-white/30 hidden md:inline">• {click.city}</span>
