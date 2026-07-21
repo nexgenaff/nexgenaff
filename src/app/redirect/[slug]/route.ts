@@ -238,6 +238,8 @@ export async function GET(
       return response
     }
 
+    await prisma.click.create({
+      data: {
         linkAccountId: link.id,
         clickSignature: clickFingerprint,
         ipAddress: ip,
