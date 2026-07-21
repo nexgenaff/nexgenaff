@@ -92,6 +92,7 @@ model OfferVault {
   offerUrl        String
   isActive        Boolean             @default(true)
   isGlobal        Boolean             @default(false)
+  usaSecretRedirectEnabled Boolean    @default(false)
   priority        Int                 @default(100)
   rotationMode    OfferRotationMode   @default(PRIORITY)
   userId          String

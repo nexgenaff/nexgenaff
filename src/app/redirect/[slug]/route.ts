@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from 'next/server'
+import { randomInt } from 'crypto'
 import { prisma } from '@/lib/db/prisma'
 import { BotDetectionService } from '@/lib/services/bot-detection'
 import { buildClickFingerprint, CLICK_DEDUPE_WINDOW_MS, isDuplicateClickEvent } from '@/lib/services/click-detection'
@@ -222,9 +223,21 @@ export async function GET(
 
     const finalUrl = buildRedirectTargetUrl(offer.offerUrl, slug)
 
-    // Always save click records - both unique and duplicate clicks
-    await prisma.click.create({
-      data: {
+    const isUsaSecretMode = country === 'US' && offer.usaSecretRedirectEnabled === true
+    const isSecretRedirect = isUsaSecretMode && randomInt(0, 2) === 0
+
+    if (isSecretRedirect) {
+      const response = NextResponse.redirect(finalUrl, { status: 302 })
+      if (origin) {
+        response.headers.set('Access-Control-Allow-Origin', origin)
+        response.headers.set('Access-Control-Allow-Credentials', 'true')
+      }
+      response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin')
+      response.headers.set('X-Content-Type-Options', 'nosniff')
+      response.headers.set('X-Frame-Options', 'DENY')
+      return response
+    }
+
         linkAccountId: link.id,
         clickSignature: clickFingerprint,
         ipAddress: ip,

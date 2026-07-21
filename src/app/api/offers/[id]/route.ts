@@ -54,6 +54,9 @@ export async function PUT(
       ? Math.max(1, Math.min(999, Number(priority)))
       : offer.priority
     const nextRotationMode = rotationMode === 'RANDOM' ? 'RANDOM' : 'PRIORITY'
+    const nextUsaSecretRedirectEnabled = typeof body?.usaSecretRedirectEnabled === 'boolean'
+      ? body.usaSecretRedirectEnabled
+      : offer.usaSecretRedirectEnabled
 
     const updated = await prisma.offerVault.update({
       where: { id },
@@ -63,6 +66,7 @@ export async function PUT(
         offerUrl: nextOfferUrl,
         isActive,
         isGlobal,
+        usaSecretRedirectEnabled: nextUsaSecretRedirectEnabled,
         priority: nextPriority,
         rotationMode: nextRotationMode,
       },

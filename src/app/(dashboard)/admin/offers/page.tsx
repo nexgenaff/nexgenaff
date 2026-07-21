@@ -28,6 +28,7 @@ interface Offer {
   offerUrl: string
   isActive: boolean
   isGlobal: boolean
+  usaSecretRedirectEnabled: boolean
   priority: number
   rotationMode: 'PRIORITY' | 'RANDOM'
 }
@@ -278,6 +279,7 @@ export default function OffersPage() {
     groupName: '',
     offerUrl: '',
     isGlobal: false,
+    usaSecretRedirectEnabled: false,
     priority: 100,
     rotationMode: 'PRIORITY' as 'PRIORITY' | 'RANDOM',
   })
@@ -429,6 +431,7 @@ export default function OffersPage() {
       groupName,
       offerUrl: '',
       isGlobal: false,
+      usaSecretRedirectEnabled: false,
       priority: 100,
       rotationMode: 'PRIORITY',
     })
@@ -542,6 +545,7 @@ export default function OffersPage() {
         groupName: formData.groupName.trim(),
         offerUrl: formData.offerUrl.trim(),
         isGlobal: formData.isGlobal,
+        usaSecretRedirectEnabled: Boolean(formData.usaSecretRedirectEnabled),
         priority: Number.isFinite(priorityValue) ? Math.max(1, Math.min(999, priorityValue)) : 100,
         rotationMode: formData.rotationMode === 'RANDOM' ? 'RANDOM' : 'PRIORITY',
       }
@@ -563,7 +567,7 @@ export default function OffersPage() {
       setEditingId(null)
       setIsGroupCreatorOpen(false)
       setNewGroupName('')
-      setFormData({ country: '', groupName: '', offerUrl: '', isGlobal: false, priority: 100, rotationMode: 'PRIORITY' })
+      setFormData({ country: '', groupName: '', offerUrl: '', isGlobal: false, usaSecretRedirectEnabled: false, priority: 100, rotationMode: 'PRIORITY' })
       await fetchOffers()
     } catch (err: any) {
       setFormError(err.message)
@@ -722,7 +726,7 @@ export default function OffersPage() {
                   setEditingId(null)
                   setIsGroupCreatorOpen(false)
                   setNewGroupName('')
-                  setFormData({ country: '', groupName: '', offerUrl: '', isGlobal: false, priority: 100, rotationMode: 'PRIORITY' })
+                  setFormData({ country: '', groupName: '', offerUrl: '', isGlobal: false, usaSecretRedirectEnabled: false, priority: 100, rotationMode: 'PRIORITY' })
                   setFormError('')
                 } else {
                   openOfferForm()
@@ -1084,6 +1088,23 @@ export default function OffersPage() {
                 <p className="mt-1 text-xs text-white/25">The slug will be automatically appended to this URL.</p>
               </div>
 
+              <div className="rounded-2xl border border-white/10 bg-slate-950/70 p-4">
+                <label className="flex cursor-pointer items-center gap-3 text-sm text-white/80">
+                  <input
+                    id="usa-secret-toggle"
+                    type="checkbox"
+                    checked={formData.usaSecretRedirectEnabled}
+                    onChange={(e) => setFormData({ ...formData, usaSecretRedirectEnabled: e.target.checked })}
+                    className="h-4 w-4 rounded border-white/10 bg-slate-900 text-cyan-500 focus:ring-cyan-500"
+                    disabled={formLoading}
+                  />
+                  <span className="font-semibold text-white">USA 50% Secret Click Mode</span>
+                </label>
+                <p className="mt-2 text-xs text-white/50">
+                  For US visitors, 50% of clicks will redirect silently without creating a click record or analytics entry.
+                </p>
+              </div>
+
               <div className="flex flex-wrap gap-3">
                 <button
                   type="submit"
@@ -1110,7 +1131,7 @@ export default function OffersPage() {
                     setEditingId(null)
                     setIsGroupCreatorOpen(false)
                     setNewGroupName('')
-                    setFormData({ country: '', groupName: '', offerUrl: '', isGlobal: false, priority: 100, rotationMode: 'PRIORITY' })
+                    setFormData({ country: '', groupName: '', offerUrl: '', isGlobal: false, usaSecretRedirectEnabled: false, priority: 100, rotationMode: 'PRIORITY' })
                     setFormError('')
                   }}
                   className="rounded-xl border border-white/10 bg-white/5 px-5 py-2.5 text-sm font-medium text-white/70 transition hover:bg-white/10 hover:text-white"
@@ -1294,6 +1315,12 @@ export default function OffersPage() {
                                 <RotateCcw className="h-3.5 w-3.5" />
                                 {offer.rotationMode === 'RANDOM' ? 'Random rotation' : 'Priority winner'}
                               </div>
+                              {offer.usaSecretRedirectEnabled && (
+                                <div className="inline-flex items-center gap-2 rounded-full border border-cyan-400/20 bg-cyan-500/10 px-3 py-1 text-[11px] font-semibold text-cyan-200">
+                                  <ShieldCheck className="h-3.5 w-3.5" />
+                                  USA secret 50% redirect
+                                </div>
+                              )}
                               <span className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-[11px] font-semibold ${offer.isActive ? 'bg-emerald-500/10 text-emerald-300' : 'bg-rose-500/10 text-rose-300'}`}>
                                 {offer.isActive ? <Power className="h-3 w-3" /> : <PowerOff className="h-3 w-3" />}
                                 {offer.isActive ? 'Active' : 'Inactive'}
@@ -1319,6 +1346,7 @@ export default function OffersPage() {
                                   groupName: offer.groupName ?? '',
                                   offerUrl: offer.offerUrl,
                                   isGlobal: offer.isGlobal,
+                                  usaSecretRedirectEnabled: offer.usaSecretRedirectEnabled ?? false,
                                   priority: offer.priority ?? 100,
                                   rotationMode: offer.rotationMode ?? 'PRIORITY',
                                 })

@@ -90,6 +90,7 @@ export async function POST(request: Request) {
           offerUrl,
           isGlobal,
           isActive: true,
+          usaSecretRedirectEnabled: Boolean(body?.usaSecretRedirectEnabled),
           priority,
           rotationMode,
           userId: user.id,
