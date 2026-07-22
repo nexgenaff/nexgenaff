@@ -18,6 +18,7 @@ const selectRotatingOffer = (
     country: string
     isGlobal: boolean
     isActive: boolean
+    usaSecretRedirectEnabled: boolean
     createdAt: Date
     groupName: string | null
   }>
