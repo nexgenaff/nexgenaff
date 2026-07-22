@@ -251,34 +251,76 @@ export async function GET(
       return response
     }
 
-    await prisma.click.create({
-      data: {
+    // Acquire an advisory lock per link to avoid race conditions that create duplicate
+    // click rows when multiple near-simultaneous requests happen. Then re-check for
+    // duplicates inside the same transaction/window and only create when appropriate.
+    await prisma.$executeRawUnsafe(`SELECT pg_advisory_xact_lock(hashtext('${link.id}'))`)
+
+    const mostRecentClickAfterLock = await prisma.click.findFirst({
+      where: {
         linkAccountId: link.id,
-        clickSignature: clickFingerprint,
-        ipAddress: ip,
-        userAgent: userAgent,
-        country: country || null,
-        region: geo?.region || null,
-        city: geo?.city || null,
-        isp: geo?.isp || null,
-        browser: visitorProfile.browser,
-        browserVersion: visitorProfile.browserVersion,
-        os: visitorProfile.os,
-        deviceType: visitorProfile.deviceType,
-        deviceBrand: visitorProfile.deviceBrand,
-        referrer: referrer || null,
-        isUnique,
-        isBot: false,
+        OR: [
+          { clickSignature: clickFingerprint },
+          { ipAddress: ip },
+          { userAgent },
+        ],
+        createdAt: {
+          gte: new Date(Date.now() - CLICK_DEDUPE_WINDOW_MS),
+        },
       },
+      orderBy: { createdAt: 'desc' },
+      select: { createdAt: true, clickSignature: true, ipAddress: true, userAgent: true },
     })
 
-    await prisma.linkAccount.update({
-      where: { id: link.id },
-      data: {
-        totalClicks: { increment: 1 },
-        ...(isUnique ? { uniqueClicks: { increment: 1 } } : {}),
-      },
-    })
+    const isDuplicateAfterLock = mostRecentClickAfterLock
+      ? isDuplicateClickEvent(
+          new Date(mostRecentClickAfterLock.createdAt),
+          new Date(),
+          {
+            clickSignature: clickFingerprint,
+            ipAddress: ip,
+            userAgent,
+            lastClickSignature: mostRecentClickAfterLock.clickSignature,
+            lastIpAddress: mostRecentClickAfterLock.ipAddress,
+            lastUserAgent: mostRecentClickAfterLock.userAgent,
+          },
+          CLICK_DEDUPE_WINDOW_MS,
+        )
+      : false
+
+    if (!isDuplicateAfterLock) {
+      await prisma.click.create({
+        data: {
+          linkAccountId: link.id,
+          clickSignature: clickFingerprint,
+          ipAddress: ip,
+          userAgent: userAgent,
+          country: country || null,
+          region: geo?.region || null,
+          city: geo?.city || null,
+          isp: geo?.isp || null,
+          browser: visitorProfile.browser,
+          browserVersion: visitorProfile.browserVersion,
+          os: visitorProfile.os,
+          deviceType: visitorProfile.deviceType,
+          deviceBrand: visitorProfile.deviceBrand,
+          referrer: referrer || null,
+          isUnique,
+          isBot: false,
+        },
+      })
+
+      await prisma.linkAccount.update({
+        where: { id: link.id },
+        data: {
+          totalClicks: { increment: 1 },
+          ...(isUnique ? { uniqueClicks: { increment: 1 } } : {}),
+        },
+      })
+    } else {
+      // Duplicate detected after acquiring lock; skip inserting a second click record.
+      console.debug('Duplicate click suppressed for link', link.id)
+    }
 
     const response = NextResponse.redirect(finalUrl, { status: 302 })
 
