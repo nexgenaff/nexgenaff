@@ -85,7 +85,7 @@ interface Stats {
   }>
 }
 
-// Metric Card – adapts to theme
+// Metric Card
 const MetricCard = ({ 
   icon: Icon, 
   label, 
@@ -136,7 +136,7 @@ const MetricCard = ({
   </div>
 )
 
-// Country Bar with theme support
+// Country Bar
 const CountryBar = ({ country, clicks, totalClicks, max, isDark = true }: any) => {
   const percentage = max > 0 ? (clicks / max) * 100 : 0
   const share = totalClicks > 0 ? ((clicks / totalClicks) * 100).toFixed(1) : '0.0'
@@ -180,7 +180,7 @@ const CountryBar = ({ country, clicks, totalClicks, max, isDark = true }: any) =
   )
 }
 
-// Optimized Status Badge
+// Status Badge
 const StatusBadge = ({ type, label, icon: Icon, isDark = true }: any) => (
   <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium border ${
     type === 'success' ? (isDark ? 'bg-emerald-500/10 text-emerald-300 border-emerald-500/20' : 'bg-emerald-50 text-emerald-700 border-emerald-200') :
@@ -241,29 +241,20 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
   const resolvedParams = use(params)
   const publicId = resolvedParams.publicId
 
-  // Default theme is DARK
+  // Theme state – default dark
   const [isDark, setIsDark] = useState(true)
   const [themeLoaded, setThemeLoaded] = useState(false)
 
-  // Load theme from localStorage, but default to dark
   useEffect(() => {
     const stored = localStorage.getItem('theme')
-    if (stored === 'light') {
-      setIsDark(false)
-    } else if (stored === 'dark') {
-      setIsDark(true)
-    } else {
-      // If no stored preference, default to dark
-      setIsDark(true)
-    }
+    if (stored === 'light') setIsDark(false)
+    else if (stored === 'dark') setIsDark(true)
+    else setIsDark(true) // default dark
     setThemeLoaded(true)
   }, [])
 
-  // Persist theme
   useEffect(() => {
-    if (themeLoaded) {
-      localStorage.setItem('theme', isDark ? 'dark' : 'light')
-    }
+    if (themeLoaded) localStorage.setItem('theme', isDark ? 'dark' : 'light')
   }, [isDark, themeLoaded])
 
   const toggleTheme = () => setIsDark(!isDark)
@@ -281,7 +272,6 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
   const [isCountryDropdownOpen, setIsCountryDropdownOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -292,7 +282,7 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
-  // Optimized fetch with abort controller
+  // Fetch data
   useEffect(() => {
     const abortController = new AbortController()
     
@@ -324,27 +314,16 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
 
   const getDeviceIcon = useCallback((deviceType: string | null, deviceBrand: string | null) => {
     if (!deviceType) return Monitor
-    
     const type = deviceType.toLowerCase()
     const brand = deviceBrand?.toLowerCase() || ''
-    
-    // Apple devices
     if (brand.includes('apple') || brand.includes('iphone') || brand.includes('ipad') || brand.includes('mac')) {
       if (type.includes('phone') || type.includes('mobile')) return Smartphone
       if (type.includes('tablet')) return Tablet
       return Apple
     }
-    
-    // Desktop
     if (type.includes('desktop') || type.includes('computer')) return Computer
-    
-    // Mobile
     if (type.includes('mobile') || type.includes('phone')) return Smartphone
-    
-    // Tablet
     if (type.includes('tablet')) return Tablet
-    
-    // Default
     return Monitor
   }, [])
 
@@ -352,15 +331,10 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
     const brand = click.deviceBrand || ''
     const os = click.os || ''
     const type = click.deviceType || ''
-    
     let parts = []
     if (brand) parts.push(brand)
-    if (type && !brand.toLowerCase().includes(type.toLowerCase())) {
-      parts.push(type)
-    }
-    if (os && !parts.some(p => p.toLowerCase().includes(os.toLowerCase()))) {
-      parts.push(os)
-    }
+    if (type && !brand.toLowerCase().includes(type.toLowerCase())) parts.push(type)
+    if (os && !parts.some(p => p.toLowerCase().includes(os.toLowerCase()))) parts.push(os)
     return parts.length > 0 ? parts.join(' • ') : 'Unknown Device'
   }, [])
 
@@ -374,11 +348,21 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
     })
   }, [])
 
-  // Smart filtering logic
-  const filteredClicks = useMemo(() => {
+  // ---- FIX: Deduplicate clicks by ID to prevent double counting ----
+  const dedupedClicks = useMemo(() => {
     if (!stats?.clicks) return []
+    const map = new Map()
+    stats.clicks.forEach(click => {
+      if (!map.has(click.id)) map.set(click.id, click)
+    })
+    return Array.from(map.values())
+  }, [stats?.clicks])
+
+  // Smart filtering using deduplicated clicks
+  const filteredClicks = useMemo(() => {
+    if (!dedupedClicks.length) return []
     
-    let result = stats.clicks
+    let result = dedupedClicks
     
     if (search) {
       const searchLower = search.toLowerCase()
@@ -411,9 +395,9 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
     }
     
     return result
-  }, [stats?.clicks, search, filterCountry, filterUnique, filterReferrer])
+  }, [dedupedClicks, search, filterCountry, filterUnique, filterReferrer])
 
-  // Computed values – all real
+  // Computed values – use API summary for top-level, deduped for filtered counts
   const countries = useMemo(() => 
     stats?.geoSummary?.map(e => e.country).filter(Boolean) || []
   , [stats?.geoSummary])
@@ -422,13 +406,12 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
   const uniqueClicks = stats?.uniqueClicks ?? 0
   const botClicks = stats?.botClicks ?? 0
 
-  // Real unique visitors (excluding direct clicks) – for display
+  // Unique visitors excluding direct – computed from deduped clicks
   const uniqueVisitorsFiltered = useMemo(() => {
-    if (!stats?.clicks) return 0
-    return stats.clicks.filter(c => c.isUnique && c.referrer && c.referrer !== '').length
-  }, [stats?.clicks])
+    return dedupedClicks.filter(c => c.isUnique && c.referrer && c.referrer !== '').length
+  }, [dedupedClicks])
 
-  const displayUniqueVisitors = uniqueVisitorsFiltered || uniqueClicks // fallback
+  const displayUniqueVisitors = uniqueVisitorsFiltered || uniqueClicks
 
   const displayTitle = accountName && accountName !== 'NexGen Affiliates' ? accountName : 'Public Analytics'
   const displaySubtitle = accountName && accountName !== 'NexGen Affiliates'
@@ -459,7 +442,6 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
   }), [stats?.clickTrend, isDark])
 
   if (!themeLoaded) return <div className="min-h-screen bg-slate-950" />
-
   if (loading) return <SkeletonLoader isDark={isDark} />
 
   if (error) {
@@ -515,9 +497,7 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
       />
 
       <div className={`min-h-screen transition-colors duration-300 ${
-        isDark 
-          ? 'bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950' 
-          : 'bg-gradient-to-br from-gray-50 via-white to-gray-50'
+        isDark ? 'bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950' : 'bg-gradient-to-br from-gray-50 via-white to-gray-50'
       }`}>
         <div className="max-w-7xl mx-auto px-4 py-6">
           
@@ -525,9 +505,7 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
             <div className="flex items-center gap-3">
               <div className={`rounded-lg p-2 border shrink-0 ${
-                isDark 
-                  ? 'bg-indigo-500/10 border-indigo-500/20' 
-                  : 'bg-indigo-50 border-indigo-200'
+                isDark ? 'bg-indigo-500/10 border-indigo-500/20' : 'bg-indigo-50 border-indigo-200'
               }`}>
                 <Logo variant="compact" size="sm" showAnimation={true} />
               </div>
@@ -537,9 +515,7 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
                     {displayTitle}
                   </h1>
                   <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-medium uppercase tracking-[0.2em] ${
-                    isDark 
-                      ? 'border-indigo-400/20 bg-indigo-500/10 text-indigo-300' 
-                      : 'border-indigo-300 bg-indigo-50 text-indigo-700'
+                    isDark ? 'border-indigo-400/20 bg-indigo-500/10 text-indigo-300' : 'border-indigo-300 bg-indigo-50 text-indigo-700'
                   }`}>
                     Public
                   </span>
@@ -573,26 +549,20 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
                   setTimeout(() => setIsRefreshing(false), 500)
                 }}
                 className={`p-1.5 rounded-lg border transition-colors ${
-                  isDark 
-                    ? 'bg-white/5 border-white/10 text-white/40 hover:text-white/70' 
-                    : 'bg-gray-100 border-gray-200 text-gray-500 hover:text-gray-800'
+                  isDark ? 'bg-white/5 border-white/10 text-white/40 hover:text-white/70' : 'bg-gray-100 border-gray-200 text-gray-500 hover:text-gray-800'
                 }`}
               >
                 <RefreshCw className={`h-3.5 w-3.5 ${isRefreshing ? 'animate-spin' : ''}`} strokeWidth={1.5} />
               </button>
               <button className={`p-1.5 rounded-lg border transition-colors ${
-                isDark 
-                  ? 'bg-white/5 border-white/10 text-white/40 hover:text-white/70' 
-                  : 'bg-gray-100 border-gray-200 text-gray-500 hover:text-gray-800'
+                isDark ? 'bg-white/5 border-white/10 text-white/40 hover:text-white/70' : 'bg-gray-100 border-gray-200 text-gray-500 hover:text-gray-800'
               }`}>
                 <Download className="h-3.5 w-3.5" strokeWidth={1.5} />
               </button>
               <button
                 onClick={toggleTheme}
                 className={`p-1.5 rounded-lg border transition-colors ${
-                  isDark 
-                    ? 'bg-white/5 border-white/10 text-white/40 hover:text-white/70' 
-                    : 'bg-gray-100 border-gray-200 text-gray-500 hover:text-gray-800'
+                  isDark ? 'bg-white/5 border-white/10 text-white/40 hover:text-white/70' : 'bg-gray-100 border-gray-200 text-gray-500 hover:text-gray-800'
                 }`}
                 aria-label="Toggle theme"
               >
@@ -648,9 +618,7 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
           {/* Chart & Geography */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 mb-5">
             <div className={`lg:col-span-2 rounded-xl border p-4 ${
-              isDark 
-                ? 'bg-white/5 backdrop-blur-sm border-white/10' 
-                : 'bg-white/80 backdrop-blur-sm border-gray-200'
+              isDark ? 'bg-white/5 backdrop-blur-sm border-white/10' : 'bg-white/80 backdrop-blur-sm border-gray-200'
             }`}>
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
@@ -690,9 +658,7 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
             </div>
 
             <div className={`rounded-xl border p-4 ${
-              isDark 
-                ? 'bg-white/5 backdrop-blur-sm border-white/10' 
-                : 'bg-white/80 backdrop-blur-sm border-gray-200'
+              isDark ? 'bg-white/5 backdrop-blur-sm border-white/10' : 'bg-white/80 backdrop-blur-sm border-gray-200'
             }`}>
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
@@ -725,9 +691,7 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
           {/* Filters */}
           <div className="flex flex-wrap items-center gap-2 mb-3">
             <div className={`flex items-center gap-2 rounded-lg px-3 py-1.5 border flex-1 min-w-[160px] ${
-              isDark 
-                ? 'bg-white/5 border-white/10' 
-                : 'bg-white/80 border-gray-200'
+              isDark ? 'bg-white/5 border-white/10' : 'bg-white/80 border-gray-200'
             }`}>
               <Search className={`h-3.5 w-3.5 ${isDark ? 'text-white/20' : 'text-gray-400'}`} strokeWidth={1.5} />
               <input
@@ -807,7 +771,6 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
                 Referrer
               </button>
 
-              {/* Country buttons */}
               {countries.slice(0, 2).map((country) => {
                 const flag = getCountryFlag(country) || '🌍'
                 return (
@@ -901,7 +864,7 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
               <span className={`text-[10px] px-2 py-1 rounded border ${
                 isDark ? 'text-white/30 bg-white/5 border-white/5' : 'text-gray-600 bg-gray-50 border-gray-200'
               }`}>
-                {filteredClicks.length} / {stats?.clicks?.length || 0} logs
+                {filteredClicks.length} / {dedupedClicks.length} logs
               </span>
               {filterUnique === 'unique' && (
                 <span className={`text-[10px] px-2 py-1 rounded border flex items-center gap-1 ${
