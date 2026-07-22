@@ -73,7 +73,8 @@ export async function GET(
     const { slug } = await params
     const headers = request.headers
     const userAgent = headers.get('user-agent') || ''
-    const ip = headers.get('cf-connecting-ip') || headers.get('true-client-ip') || headers.get('x-real-ip') || headers.get('x-forwarded-for') || 'unknown'
+    const rawIp = headers.get('cf-connecting-ip') || headers.get('true-client-ip') || headers.get('x-real-ip') || headers.get('x-forwarded-for') || 'unknown'
+    const ip = (rawIp || 'unknown').split(',')[0].trim()
     const referrer = headers.get('referer') || headers.get('referrer') || ''
     const origin = headers.get('origin') || ''
     const visitorProfile = parseVisitorProfile(userAgent)
@@ -276,7 +277,8 @@ export async function GET(
       : false
 
     if (!isDuplicateAfterLock) {
-      await prisma.click.create({
+      if (!isDuplicateAfterLock) {
+        await prisma.click.create({
         data: {
           linkAccountId: link.id,
           clickSignature: clickFingerprint,
@@ -295,7 +297,7 @@ export async function GET(
           isUnique,
           isBot: false,
         },
-      })
+        })
 
       await prisma.linkAccount.update({
         where: { id: link.id },
