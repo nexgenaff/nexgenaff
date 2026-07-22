@@ -102,7 +102,8 @@ export async function POST(request: Request) {
         headers: getCorsHeaders(origin)
       })
     } catch (dbError) {
-      console.error('Error creating offer in database:', dbError)
+      const dbErrorMessage = dbError instanceof Error ? dbError.message : String(dbError)
+      console.error('Error creating offer in database:', dbErrorMessage, dbError)
 
       if (!process.env.DATABASE_URL) {
         return NextResponse.json(
@@ -127,8 +128,13 @@ export async function POST(request: Request) {
         )
       }
 
+      const responseBody: Record<string, unknown> = { error: 'Failed to create offer' }
+      if (process.env.NODE_ENV !== 'production') {
+        responseBody.detail = dbErrorMessage
+      }
+
       return NextResponse.json(
-        { error: 'Failed to create offer' },
+        responseBody,
         { status: 500, headers: getCorsHeaders(origin) }
       )
     }
