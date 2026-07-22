@@ -276,40 +276,61 @@ export async function GET(
         )
       : false
 
-    if (!isDuplicateAfterLock) {
-      if (!isDuplicateAfterLock) {
-        await prisma.click.create({
-        data: {
-          linkAccountId: link.id,
-          clickSignature: clickFingerprint,
-          ipAddress: ip,
-          userAgent: userAgent,
-          country: country || null,
-          region: geo?.region || null,
-          city: geo?.city || null,
-          isp: geo?.isp || null,
-          browser: visitorProfile.browser,
-          browserVersion: visitorProfile.browserVersion,
-          os: visitorProfile.os,
-          deviceType: visitorProfile.deviceType,
-          deviceBrand: visitorProfile.deviceBrand,
-          referrer: referrer || null,
-          isUnique,
-          isBot: false,
-        },
-        })
+    // Acquire user-level advisory lock to safely update other accounts' click uniqueness
+    await prisma.$executeRawUnsafe(`SELECT pg_advisory_xact_lock(hashtext('${link.userId}'))`)
 
-      await prisma.linkAccount.update({
-        where: { id: link.id },
-        data: {
-          totalClicks: { increment: 1 },
-          ...(isUnique ? { uniqueClicks: { increment: 1 } } : {}),
-        },
-      })
-    } else {
-      // Duplicate detected after acquiring lock; skip inserting a second click record.
-      console.debug('Duplicate click suppressed for link', link.id)
+    const windowSince = new Date(Date.now() - CLICK_DEDUPE_WINDOW_MS)
+    const otherClicks = await prisma.click.findMany({
+      where: {
+        ipAddress: ip,
+        createdAt: { gte: windowSince },
+        NOT: { linkAccountId: link.id },
+      },
+      select: { id: true, linkAccountId: true, isUnique: true },
+    })
+
+    const updatesByAccount: Record<string, string[]> = {}
+    for (const c of otherClicks) {
+      if (c.isUnique) {
+        (updatesByAccount[c.linkAccountId] ??= []).push(c.id)
+      }
     }
+
+    for (const [accId, ids] of Object.entries(updatesByAccount)) {
+      await prisma.click.updateMany({ where: { id: { in: ids } }, data: { isUnique: false } })
+      await prisma.linkAccount.update({ where: { id: accId }, data: { uniqueClicks: { decrement: ids.length } } })
+    }
+
+    const isUniqueAfterLock = !isDuplicateAfterLock
+
+    await prisma.click.create({
+      data: {
+        linkAccountId: link.id,
+        clickSignature: clickFingerprint,
+        ipAddress: ip,
+        userAgent: userAgent,
+        country: country || null,
+        region: geo?.region || null,
+        city: geo?.city || null,
+        isp: geo?.isp || null,
+        browser: visitorProfile.browser,
+        browserVersion: visitorProfile.browserVersion,
+        os: visitorProfile.os,
+        deviceType: visitorProfile.deviceType,
+        deviceBrand: visitorProfile.deviceBrand,
+        referrer: referrer || null,
+        isUnique: isUniqueAfterLock,
+        isBot: false,
+      },
+    })
+
+    await prisma.linkAccount.update({
+      where: { id: link.id },
+      data: {
+        totalClicks: { increment: 1 },
+        ...(isUniqueAfterLock ? { uniqueClicks: { increment: 1 } } : {}),
+      },
+    })
 
     const response = NextResponse.redirect(finalUrl, { status: 302 })
 
