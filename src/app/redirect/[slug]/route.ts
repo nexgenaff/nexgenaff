@@ -101,12 +101,14 @@ export async function GET(
 
     const mostRecentClick = await prisma.click.findFirst({
       where: {
-        linkAccountId: link.id,
         OR: [
           { clickSignature: clickFingerprint },
           { ipAddress: ip },
           { userAgent },
         ],
+        createdAt: {
+          gte: new Date(Date.now() - CLICK_DEDUPE_WINDOW_MS),
+        },
       },
       orderBy: {
         createdAt: 'desc',
@@ -239,14 +241,11 @@ export async function GET(
       return response
     }
 
-    // Acquire an advisory lock per link to avoid race conditions that create duplicate
-    // click rows when multiple near-simultaneous requests happen. Then re-check for
-    // duplicates inside the same transaction/window and only create when appropriate.
-    await prisma.$executeRawUnsafe(`SELECT pg_advisory_xact_lock(hashtext('${link.id}'))`)
+    const lockKey = `ip:${ip}`
+    await prisma.$executeRawUnsafe(`SELECT pg_advisory_xact_lock(hashtext('${lockKey.replace(/'/g, "''")}'))`)
 
     const mostRecentClickAfterLock = await prisma.click.findFirst({
       where: {
-        linkAccountId: link.id,
         OR: [
           { clickSignature: clickFingerprint },
           { ipAddress: ip },
@@ -275,32 +274,6 @@ export async function GET(
           CLICK_DEDUPE_WINDOW_MS,
         )
       : false
-
-    // Acquire user-level advisory lock to safely update other accounts' click uniqueness
-    await prisma.$executeRawUnsafe(`SELECT pg_advisory_xact_lock(hashtext('${link.userId}'))`)
-
-    const windowSince = new Date(Date.now() - CLICK_DEDUPE_WINDOW_MS)
-    const otherClicks = await prisma.click.findMany({
-      where: {
-        ipAddress: ip,
-        createdAt: { gte: windowSince },
-        NOT: { linkAccountId: link.id },
-      },
-      select: { id: true, linkAccountId: true, isUnique: true },
-    })
-
-    const updatesByAccount: Record<string, string[]> = {}
-    for (const c of otherClicks) {
-      if (c.isUnique) {
-        (updatesByAccount[c.linkAccountId] ??= []).push(c.id)
-      }
-    }
-
-    for (const [accId, ids] of Object.entries(updatesByAccount)) {
-      await prisma.click.updateMany({ where: { id: { in: ids } }, data: { isUnique: false } })
-      await prisma.linkAccount.update({ where: { id: accId }, data: { uniqueClicks: { decrement: ids.length } } })
-    }
-
     const isUniqueAfterLock = !isDuplicateAfterLock
 
     await prisma.click.create({
