@@ -56,12 +56,16 @@ const buildGroupKey = (offer: Offer) => {
   const groupName = normalizeGroupName(offer.groupName)
   if (groupName) return groupName
   if (offer.isGlobal) return 'GLOBAL'
-  return normalizeCountryCode(offer.country)
+  const countryCode = normalizeCountryCode(offer.country)
+  if (countryCode) return countryCode
+  return 'UNASSIGNED'
 }
 const getPoolLabel = (groupKey: string, groupOffers: Offer[]) => {
   const namedPool = normalizeGroupName(groupOffers[0]?.groupName)
   if (namedPool) return namedPool
-  return groupKey === 'GLOBAL' ? 'Global Smart Link' : groupKey
+  if (groupKey === 'GLOBAL') return 'Global Smart Link'
+  if (groupKey === 'UNASSIGNED') return 'Unassigned'
+  return groupKey
 }
 const getPoolCountries = (groupOffers: Offer[]) =>
   Array.from(
