@@ -1,375 +1,542 @@
-'use client'
+"use client";
 
-import { useEffect, useState, type FormEvent } from 'react'
-import { useRouter } from 'next/navigation'
-import { motion } from 'framer-motion'
-import { Sun, Moon, User, Mail, Key, LogOut, AlertTriangle, Trash2, RefreshCw, Shield, CheckCircle2, XCircle, Lock } from 'lucide-react'
+import { useEffect, useState, type FormEvent } from "react";
+import { useRouter } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  Sun,
+  Moon,
+  User,
+  Mail,
+  Key,
+  LogOut,
+  AlertTriangle,
+  Trash2,
+  RefreshCw,
+  CheckCircle2,
+  XCircle,
+  Settings,
+  Shield,
+  Sparkles,
+  ChevronRight,
+} from "lucide-react";
 
 interface FeedbackState {
-  type: 'success' | 'error'
-  message: string
+  type: "success" | "error";
+  message: string;
 }
 
+// Animation variants
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.06,
+      delayChildren: 0.08,
+    },
+  },
+};
+
+const cardVariants = {
+  hidden: { opacity: 0, y: 15 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { type: "spring", damping: 26, stiffness: 340, mass: 0.8 },
+  },
+};
+
+const slideDown = {
+  hidden: { opacity: 0, height: 0 },
+  visible: { opacity: 1, height: "auto", transition: { duration: 0.25 } },
+  exit: { opacity: 0, height: 0, transition: { duration: 0.2 } },
+};
+
 export default function SettingsPage() {
-  const router = useRouter()
-  const [darkMode, setDarkMode] = useState(false)
-  const [loading, setLoading] = useState(true)
-  const [userInfo, setUserInfo] = useState<{ username?: string; email?: string } | null>(null)
-  const [showPasswordForm, setShowPasswordForm] = useState(false)
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [isTwoFactorEnabled, setIsTwoFactorEnabled] = useState(false)
-  const [sessionCount, setSessionCount] = useState(1)
-  const [feedback, setFeedback] = useState<FeedbackState | null>(null)
-  const [showDangerZone, setShowDangerZone] = useState(false)
+  const router = useRouter();
+  const [darkMode, setDarkMode] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [userInfo, setUserInfo] = useState<{ username?: string; email?: string } | null>(null);
+  const [showPasswordForm, setShowPasswordForm] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [feedback, setFeedback] = useState<FeedbackState | null>(null);
+  const [showDangerZone, setShowDangerZone] = useState(false);
   const [passwordForm, setPasswordForm] = useState({
-    currentPassword: '',
-    newPassword: '',
-    confirmPassword: '',
-  })
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: "",
+  });
 
   useEffect(() => {
     const readTheme = () => {
-      const storedTheme = window.localStorage.getItem('theme')
+      const storedTheme = window.localStorage.getItem("theme");
       const shouldUseDark = storedTheme
-        ? storedTheme === 'dark'
-        : window.matchMedia('(prefers-color-scheme: dark)').matches
+        ? storedTheme === "dark"
+        : window.matchMedia("(prefers-color-scheme: dark)").matches;
 
-      setDarkMode(shouldUseDark)
-      document.documentElement.classList.toggle('dark', shouldUseDark)
-    }
+      setDarkMode(shouldUseDark);
+      document.documentElement.classList.toggle("dark", shouldUseDark);
+    };
 
     const fetchAccount = async () => {
       try {
-        const response = await fetch('/api/auth/me', { credentials: 'include' })
+        const response = await fetch("/api/auth/me", { credentials: "include" });
         if (response.ok) {
-          const data = await response.json()
-          setUserInfo({ username: data.username || 'admin', email: data.email || 'admin@nextgen.com' })
+          const data = await response.json();
+          setUserInfo({ username: data.username || "admin", email: data.email || "admin@nextgen.com" });
         } else {
-          setUserInfo({ username: 'admin', email: 'admin@nextgen.com' })
+          setUserInfo({ username: "admin", email: "admin@nextgen.com" });
         }
       } catch {
-        setUserInfo({ username: 'admin', email: 'admin@nextgen.com' })
+        setUserInfo({ username: "admin", email: "admin@nextgen.com" });
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
+    };
 
-    readTheme()
-    fetchAccount()
+    readTheme();
+    fetchAccount();
 
-    const handleThemeChange = () => readTheme()
-    window.addEventListener('storage', handleThemeChange)
-    window.addEventListener('themechange', handleThemeChange)
+    const handleThemeChange = () => readTheme();
+    window.addEventListener("storage", handleThemeChange);
+    window.addEventListener("themechange", handleThemeChange);
 
     return () => {
-      window.removeEventListener('storage', handleThemeChange)
-      window.removeEventListener('themechange', handleThemeChange)
-    }
-  }, [])
+      window.removeEventListener("storage", handleThemeChange);
+      window.removeEventListener("themechange", handleThemeChange);
+    };
+  }, []);
 
   const toggleTheme = () => {
-    const newDark = !darkMode
-    setDarkMode(newDark)
-    document.documentElement.classList.toggle('dark', newDark)
-    window.localStorage.setItem('theme', newDark ? 'dark' : 'light')
-    window.dispatchEvent(new Event('themechange'))
-  }
+    const newDark = !darkMode;
+    setDarkMode(newDark);
+    document.documentElement.classList.toggle("dark", newDark);
+    window.localStorage.setItem("theme", newDark ? "dark" : "light");
+    window.dispatchEvent(new Event("themechange"));
+  };
 
   const handleLogout = async () => {
     try {
-      await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' })
-      router.push('/login')
+      await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
+      router.push("/login");
     } catch {
-      router.push('/login')
+      router.push("/login");
     }
-  }
+  };
 
   const handlePasswordSubmit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
-    setIsSubmitting(true)
-    setFeedback(null)
+    event.preventDefault();
+    setIsSubmitting(true);
+    setFeedback(null);
 
     try {
-      const response = await fetch('/api/settings', {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/settings", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          action: 'change-password',
+          action: "change-password",
           currentPassword: passwordForm.currentPassword,
           newPassword: passwordForm.newPassword,
           confirmPassword: passwordForm.confirmPassword,
         }),
-      })
+      });
 
-      const data = await response.json().catch(() => ({ message: 'Password updated' }))
+      const data = await response.json().catch(() => ({ message: "Password updated" }));
       if (!response.ok) {
-        throw new Error(data.error || 'Unable to update password')
+        throw new Error(data.error || "Unable to update password");
       }
 
-      setFeedback({ type: 'success', message: data.message || 'Password updated successfully.' })
-      setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' })
-      setShowPasswordForm(false)
+      setFeedback({ type: "success", message: data.message || "Password updated successfully." });
+      setPasswordForm({ currentPassword: "", newPassword: "", confirmPassword: "" });
+      setShowPasswordForm(false);
     } catch (error) {
-      setFeedback({ type: 'error', message: error instanceof Error ? error.message : 'Unable to update password' })
+      setFeedback({
+        type: "error",
+        message: error instanceof Error ? error.message : "Unable to update password",
+      });
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-  }
+  };
 
-  const handleToggleTwoFactor = async () => {
-    setIsSubmitting(true)
-    setFeedback(null)
+  const handleDangerAction = async (action: "delete-data" | "reset-analytics") => {
+    const confirmMessage =
+      action === "delete-data"
+        ? "This will permanently remove all workspace data for this account. Continue?"
+        : "This will reset all analytics for your workspace. Continue?";
+
+    if (!window.confirm(confirmMessage)) return;
+
+    setIsSubmitting(true);
+    setFeedback(null);
 
     try {
-      const response = await fetch('/api/settings', {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'toggle-2fa', enabled: !isTwoFactorEnabled }),
-      })
-
-      const data = await response.json().catch(() => ({}))
-      if (!response.ok) {
-        throw new Error(data.error || 'Unable to update two-factor authentication')
-      }
-
-      setIsTwoFactorEnabled(Boolean(data.enabled ?? !isTwoFactorEnabled))
-      setFeedback({ type: 'success', message: data.message || 'Two-factor authentication updated.' })
-    } catch (error) {
-      setFeedback({ type: 'error', message: error instanceof Error ? error.message : 'Unable to update two-factor authentication' })
-    } finally {
-      setIsSubmitting(false)
-    }
-  }
-
-  const handleSessionManagement = async () => {
-    setIsSubmitting(true)
-    setFeedback(null)
-
-    try {
-      const response = await fetch('/api/auth/me', { credentials: 'include' })
-      if (!response.ok) {
-        throw new Error('Your session is no longer active.')
-      }
-      setSessionCount((previous) => Math.max(previous, 1))
-      setFeedback({ type: 'success', message: 'Session check completed. Your current browser session is active.' })
-    } catch (error) {
-      setFeedback({ type: 'error', message: error instanceof Error ? error.message : 'Unable to verify the active session' })
-    } finally {
-      setIsSubmitting(false)
-    }
-  }
-
-  const handleDangerAction = async (action: 'delete-data' | 'reset-analytics') => {
-    const confirmMessage = action === 'delete-data'
-      ? 'This will permanently remove all workspace data for this account. Continue?'
-      : 'This will reset all analytics for your workspace. Continue?'
-
-    if (!window.confirm(confirmMessage)) return
-
-    setIsSubmitting(true)
-    setFeedback(null)
-
-    try {
-      const response = await fetch('/api/settings', {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/settings", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action }),
-      })
+      });
 
-      const data = await response.json().catch(() => ({}))
+      const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        throw new Error(data.error || 'Unable to complete that action')
+        throw new Error(data.error || "Unable to complete that action");
       }
 
-      setFeedback({ type: 'success', message: data.message || 'Action completed.' })
+      setFeedback({ type: "success", message: data.message || "Action completed." });
     } catch (error) {
-      setFeedback({ type: 'error', message: error instanceof Error ? error.message : 'Unable to complete that action' })
+      setFeedback({
+        type: "error",
+        message: error instanceof Error ? error.message : "Unable to complete that action",
+      });
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-  }
+  };
 
   if (loading) {
     return (
       <div className="flex h-64 items-center justify-center">
         <div className="text-center">
-          <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-4 border-cyan-400/60 border-t-transparent" />
-          <p className="mt-4 animate-pulse text-white/40">Loading settings...</p>
+          <motion.div
+            animate={{ rotate: 360 }}
+            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+            className="mx-auto h-12 w-12 rounded-full border-4 border-indigo-400/30 border-t-indigo-400"
+          />
+          <p className="mt-4 text-sm text-slate-400 animate-pulse">Loading settings…</p>
         </div>
       </div>
-    )
+    );
   }
 
-  return (
-    <div className="space-y-6">
-      {feedback && (
-        <motion.div
-          initial={{ opacity: 0, y: 6 }}
-          animate={{ opacity: 1, y: 0 }}
-          className={`flex items-center gap-2 rounded-xl border px-4 py-3 text-sm ${feedback.type === 'success' ? 'border-emerald-800/60 bg-emerald-950/40 text-emerald-300' : 'border-red-800/60 bg-red-950/40 text-red-300'}`}
-        >
-          {feedback.type === 'success' ? <CheckCircle2 className="h-4 w-4" /> : <XCircle className="h-4 w-4" />}
-          {feedback.message}
-        </motion.div>
-      )}
+  // Get initials for avatar
+  const initials = userInfo?.username
+    ? userInfo.username.slice(0, 2).toUpperCase()
+    : "AD";
 
-      <div className="grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
-        <div className="space-y-6">
-          <motion.section
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.08 }}
-            className="rounded-2xl border border-slate-800/80 bg-slate-900/70 p-5"
-          >
-            <div className="mb-4 flex items-center justify-between gap-3">
-              <div className="flex items-center gap-2">
-                {darkMode ? <Moon className="h-4 w-4 text-slate-300" /> : <Sun className="h-4 w-4 text-slate-300" />}
-                <h3 className="text-base font-semibold text-slate-100">Appearance</h3>
-              </div>
+  return (
+    <div className="space-y-6 pb-8 md:space-y-8">
+      {/* ===== HEADER ===== */}
+      <motion.div
+        variants={cardVariants}
+        initial="hidden"
+        animate="visible"
+        className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl p-6 shadow-xl shadow-indigo-500/5"
+      >
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <div className="flex items-center gap-2.5 text-indigo-300">
+              <Settings className="w-4 h-4" />
+              <span className="text-[10px] font-semibold uppercase tracking-[0.25em]">Preferences</span>
             </div>
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <h1 className="text-2xl font-bold text-white tracking-tight mt-0.5">Workspace Settings</h1>
+            <p className="text-sm text-slate-400 mt-0.5">Manage your account, appearance, and workspace preferences.</p>
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 text-sm font-bold text-white">
+              {initials}
+            </div>
+            <div className="hidden sm:block">
+              <p className="text-sm font-medium text-white">{userInfo?.username || "admin"}</p>
+              <p className="text-xs text-slate-400">{userInfo?.email || "admin@nextgen.com"}</p>
+            </div>
+          </div>
+        </div>
+      </motion.div>
+
+      {/* ===== FEEDBACK ===== */}
+      <AnimatePresence>
+        {feedback && (
+          <motion.div
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            className={`rounded-xl border p-4 text-sm ${
+              feedback.type === "success"
+                ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-200"
+                : "border-rose-500/30 bg-rose-500/10 text-rose-200"
+            }`}
+          >
+            <div className="flex items-center gap-2.5">
+              {feedback.type === "success" ? (
+                <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
+              ) : (
+                <XCircle className="w-4 h-4 flex-shrink-0" />
+              )}
+              <span>{feedback.message}</span>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ===== MAIN CONTENT ===== */}
+      <div className="grid gap-6 lg:grid-cols-[1.3fr_0.7fr]">
+        {/* Left Column */}
+        <div className="space-y-6">
+          {/* Appearance */}
+          <motion.div
+            variants={cardVariants}
+            initial="hidden"
+            animate="visible"
+            className="rounded-xl border border-white/10 bg-white/5 backdrop-blur-xl p-5 shadow-xl shadow-indigo-500/5"
+          >
+            <div className="flex items-center gap-2.5 mb-4">
+              <div className="p-1.5 rounded-lg bg-indigo-500/10">
+                {darkMode ? (
+                  <Moon className="w-4 h-4 text-indigo-300" />
+                ) : (
+                  <Sun className="w-4 h-4 text-indigo-300" />
+                )}
+              </div>
+              <h3 className="text-sm font-semibold text-white">Appearance</h3>
+            </div>
+
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
-                <p className="font-medium text-slate-100">Dark mode</p>
-                <p className="text-sm text-slate-400">Switch the workspace between dark and light themes.</p>
+                <p className="text-sm font-medium text-white">Dark mode</p>
+                <p className="text-xs text-slate-400">Switch between dark and light themes.</p>
               </div>
               <button
                 onClick={toggleTheme}
-                className={`flex items-center gap-2 rounded-xl border px-3.5 py-2 text-sm font-medium transition ${darkMode ? 'border-slate-700 bg-slate-950/70 text-slate-100 hover:bg-slate-800/80' : 'border-slate-700 bg-slate-950/70 text-slate-100 hover:bg-slate-800/80'}`}
+                className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500/50 ${
+                  darkMode ? "bg-indigo-500" : "bg-white/10"
+                }`}
               >
-                {darkMode ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
-                {darkMode ? 'Dark mode' : 'Light mode'}
+                <span
+                  className={`inline-block h-5 w-5 transform rounded-full bg-white shadow-lg transition-transform ${
+                    darkMode ? "translate-x-6" : "translate-x-1"
+                  }`}
+                />
               </button>
             </div>
-          </motion.section>
+          </motion.div>
 
-          <motion.section
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.16 }}
-            className="rounded-2xl border border-slate-800/80 bg-slate-900/70 p-5"
+          {/* Account */}
+          <motion.div
+            variants={cardVariants}
+            initial="hidden"
+            animate="visible"
+            className="rounded-xl border border-white/10 bg-white/5 backdrop-blur-xl p-5 shadow-xl shadow-indigo-500/5"
           >
-            <div className="mb-4 flex items-center justify-between gap-3">
-              <div className="flex items-center gap-2">
-                <User className="h-4 w-4 text-slate-300" />
-                <h3 className="text-base font-semibold text-slate-100">Account</h3>
+            <div className="flex items-center gap-2.5 mb-4">
+              <div className="p-1.5 rounded-lg bg-indigo-500/10">
+                <User className="w-4 h-4 text-indigo-300" />
               </div>
+              <h3 className="text-sm font-semibold text-white">Account</h3>
             </div>
+
             <div className="space-y-4">
               <div className="grid gap-3 sm:grid-cols-2">
-                <div className="rounded-xl border border-slate-800/80 bg-slate-950/70 px-3 py-3">
-                  <p className="flex items-center gap-1 text-sm text-slate-400"><User className="h-4 w-4" /> Username</p>
-                  <p className="mt-1 font-medium text-slate-100">{userInfo?.username || 'admin'}</p>
+                <div className="rounded-lg border border-white/10 bg-white/5 px-4 py-3">
+                  <p className="flex items-center gap-1.5 text-xs text-slate-400">
+                    <User className="w-3.5 h-3.5" />
+                    Username
+                  </p>
+                  <p className="mt-1 text-sm font-medium text-white">{userInfo?.username || "admin"}</p>
                 </div>
-                <div className="rounded-xl border border-slate-800/80 bg-slate-950/70 px-3 py-3">
-                  <p className="flex items-center gap-1 text-sm text-slate-400"><Mail className="h-4 w-4" /> Email</p>
-                  <p className="mt-1 font-medium text-slate-100">{userInfo?.email || 'admin@nextgen.com'}</p>
+                <div className="rounded-lg border border-white/10 bg-white/5 px-4 py-3">
+                  <p className="flex items-center gap-1.5 text-xs text-slate-400">
+                    <Mail className="w-3.5 h-3.5" />
+                    Email
+                  </p>
+                  <p className="mt-1 text-sm font-medium text-white">{userInfo?.email || "admin@nextgen.com"}</p>
                 </div>
               </div>
 
-              <div className="flex flex-wrap gap-3">
+              <div className="flex flex-wrap gap-2.5">
                 <button
-                  onClick={() => setShowPasswordForm((value) => !value)}
-                  className="flex items-center gap-2 rounded-xl border border-slate-700 bg-slate-950/70 px-3.5 py-2 text-sm font-medium text-slate-100 transition hover:bg-slate-800/80"
+                  onClick={() => setShowPasswordForm((prev) => !prev)}
+                  className="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg border border-white/10 bg-white/5 text-sm font-medium text-slate-300 hover:text-white hover:bg-white/10 transition"
                 >
-                  <Key className="h-4 w-4" />
-                  {showPasswordForm ? 'Hide password form' : 'Change password'}
+                  <Key className="w-4 h-4" />
+                  {showPasswordForm ? "Hide" : "Change password"}
                 </button>
                 <button
-                  onClick={() => setShowDangerZone((value) => !value)}
-                  className="flex items-center gap-2 rounded-xl border border-slate-700 bg-slate-950/70 px-3.5 py-2 text-sm font-medium text-slate-300 transition hover:bg-slate-800/80"
+                  onClick={() => setShowDangerZone((prev) => !prev)}
+                  className="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg border border-white/10 bg-white/5 text-sm font-medium text-slate-300 hover:text-white hover:bg-white/10 transition"
                 >
-                  <AlertTriangle className="h-4 w-4" />
-                  {showDangerZone ? 'Hide danger zone' : 'Show danger zone'}
+                  <AlertTriangle className="w-4 h-4" />
+                  {showDangerZone ? "Hide danger zone" : "Danger zone"}
                 </button>
                 <button
                   onClick={handleLogout}
-                  className="flex items-center gap-2 rounded-xl border border-red-900/60 bg-red-950/40 px-3.5 py-2 text-sm font-medium text-red-300 transition hover:bg-red-900/50"
+                  className="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg border border-rose-400/30 bg-rose-500/10 text-sm font-medium text-rose-300 hover:bg-rose-500/20 transition"
                 >
-                  <LogOut className="h-4 w-4" />
+                  <LogOut className="w-4 h-4" />
                   Logout
                 </button>
               </div>
 
-              {showPasswordForm && (
-                <form onSubmit={handlePasswordSubmit} className="space-y-3 rounded-xl border border-slate-800/80 bg-slate-950/60 p-4">
-                  <div className="grid gap-3 md:grid-cols-2">
-                    <label className="space-y-1 text-sm text-slate-400">
-                      <span>Current password</span>
-                      <input
-                        type="password"
-                        value={passwordForm.currentPassword}
-                        onChange={(event) => setPasswordForm((value) => ({ ...value, currentPassword: event.target.value }))}
-                        className="w-full rounded-lg border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 outline-none transition focus:border-slate-500"
-                        required
-                      />
-                    </label>
-                    <label className="space-y-1 text-sm text-slate-400">
-                      <span>New password</span>
-                      <input
-                        type="password"
-                        value={passwordForm.newPassword}
-                        onChange={(event) => setPasswordForm((value) => ({ ...value, newPassword: event.target.value }))}
-                        className="w-full rounded-lg border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 outline-none transition focus:border-slate-500"
-                        required
-                        minLength={8}
-                      />
-                    </label>
-                  </div>
-                  <label className="block space-y-1 text-sm text-slate-400">
-                    <span>Confirm new password</span>
-                    <input
-                      type="password"
-                      value={passwordForm.confirmPassword}
-                      onChange={(event) => setPasswordForm((value) => ({ ...value, confirmPassword: event.target.value }))}
-                      className="w-full rounded-lg border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 outline-none transition focus:border-slate-500"
-                      required
-                      minLength={8}
-                    />
-                  </label>
-                  <div className="flex flex-wrap gap-3">
-                    <button type="submit" disabled={isSubmitting} className="rounded-lg bg-slate-100 px-4 py-2 text-sm font-medium text-slate-950 transition hover:bg-slate-200 disabled:cursor-not-allowed disabled:opacity-60">
-                      {isSubmitting ? 'Updating...' : 'Save password'}
-                    </button>
-                    <button type="button" onClick={() => setShowPasswordForm(false)} className="rounded-lg border border-slate-700 bg-slate-900/70 px-4 py-2 text-sm font-medium text-slate-300 transition hover:bg-slate-800/80">
-                      Cancel
-                    </button>
-                  </div>
-                </form>
-              )}
+              {/* Password Form */}
+              <AnimatePresence>
+                {showPasswordForm && (
+                  <motion.div
+                    variants={slideDown}
+                    initial="hidden"
+                    animate="visible"
+                    exit="exit"
+                    className="overflow-hidden"
+                  >
+                    <form
+                      onSubmit={handlePasswordSubmit}
+                      className="mt-3 rounded-lg border border-white/10 bg-white/5 p-4 space-y-3"
+                    >
+                      <div className="grid gap-3 md:grid-cols-2">
+                        <div>
+                          <label className="block text-xs font-medium text-slate-400 mb-1">
+                            Current password
+                          </label>
+                          <input
+                            type="password"
+                            value={passwordForm.currentPassword}
+                            onChange={(e) =>
+                              setPasswordForm((prev) => ({ ...prev, currentPassword: e.target.value }))
+                            }
+                            className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder-slate-500 focus:border-indigo-400/50 focus:outline-none focus:ring-1 focus:ring-indigo-400/30 transition"
+                            required
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-slate-400 mb-1">
+                            New password
+                          </label>
+                          <input
+                            type="password"
+                            value={passwordForm.newPassword}
+                            onChange={(e) =>
+                              setPasswordForm((prev) => ({ ...prev, newPassword: e.target.value }))
+                            }
+                            className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder-slate-500 focus:border-indigo-400/50 focus:outline-none focus:ring-1 focus:ring-indigo-400/30 transition"
+                            required
+                            minLength={8}
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-slate-400 mb-1">
+                          Confirm new password
+                        </label>
+                        <input
+                          type="password"
+                          value={passwordForm.confirmPassword}
+                          onChange={(e) =>
+                            setPasswordForm((prev) => ({ ...prev, confirmPassword: e.target.value }))
+                          }
+                          className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder-slate-500 focus:border-indigo-400/50 focus:outline-none focus:ring-1 focus:ring-indigo-400/30 transition"
+                          required
+                          minLength={8}
+                        />
+                      </div>
+                      <div className="flex flex-wrap gap-2.5 pt-1">
+                        <button
+                          type="submit"
+                          disabled={isSubmitting}
+                          className="px-4 py-2 rounded-lg bg-indigo-500 text-sm font-medium text-white hover:bg-indigo-600 transition disabled:opacity-60"
+                        >
+                          {isSubmitting ? "Updating…" : "Save password"}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setShowPasswordForm(false)}
+                          className="px-4 py-2 rounded-lg border border-white/10 text-sm font-medium text-slate-300 hover:bg-white/5 transition"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </form>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
-          </motion.section>
+          </motion.div>
         </div>
 
+        {/* Right Column */}
         <div className="space-y-6">
-          {showDangerZone && (
-            <motion.section
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.32 }}
-              className="rounded-2xl border border-red-900/40 bg-red-950/20 p-5"
-            >
-              <div className="mb-4 flex items-center gap-2">
-                <AlertTriangle className="h-4 w-4 text-red-300" />
-                <h3 className="text-base font-semibold text-red-200">Danger zone</h3>
+          {/* Danger Zone */}
+          <AnimatePresence>
+            {showDangerZone && (
+              <motion.div
+                variants={cardVariants}
+                initial="hidden"
+                animate="visible"
+                exit={{ opacity: 0, y: 10 }}
+                className="rounded-xl border border-rose-400/30 bg-gradient-to-br from-rose-500/10 to-rose-600/5 backdrop-blur-xl p-5 shadow-xl shadow-rose-500/10"
+              >
+                <div className="flex items-center gap-2.5 mb-4">
+                  <div className="p-1.5 rounded-lg bg-rose-500/20">
+                    <AlertTriangle className="w-4 h-4 text-rose-300" />
+                  </div>
+                  <h3 className="text-sm font-semibold text-rose-200">Danger zone</h3>
+                </div>
+
+                <p className="text-sm text-slate-400 mb-4">
+                  These actions are irreversible. Please review them before proceeding.
+                </p>
+
+                <div className="flex flex-wrap gap-3">
+                  <button
+                    onClick={() => handleDangerAction("delete-data")}
+                    disabled={isSubmitting}
+                    className="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg bg-rose-600 text-sm font-medium text-white hover:bg-rose-700 transition disabled:opacity-60 shadow-lg shadow-rose-500/20"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    Delete all data
+                  </button>
+                  <button
+                    onClick={() => handleDangerAction("reset-analytics")}
+                    disabled={isSubmitting}
+                    className="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg border border-rose-400/30 bg-rose-500/10 text-sm font-medium text-rose-300 hover:bg-rose-500/20 transition disabled:opacity-60"
+                  >
+                    <RefreshCw className="w-4 h-4" />
+                    Reset analytics
+                  </button>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Help / Quick Actions */}
+          <motion.div
+            variants={cardVariants}
+            initial="hidden"
+            animate="visible"
+            className="rounded-xl border border-white/10 bg-white/5 backdrop-blur-xl p-5 shadow-xl shadow-indigo-500/5"
+          >
+            <div className="flex items-center gap-2.5 mb-4">
+              <div className="p-1.5 rounded-lg bg-indigo-500/10">
+                <Sparkles className="w-4 h-4 text-indigo-300" />
               </div>
-              <p className="mb-4 text-sm text-slate-400">These actions are irreversible. Please review them before proceeding.</p>
-              <div className="flex flex-wrap gap-3">
-                <button onClick={() => handleDangerAction('delete-data')} disabled={isSubmitting} className="flex items-center gap-2 rounded-lg bg-red-600 px-3.5 py-2 text-sm font-medium text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60">
-                  <Trash2 className="h-4 w-4" />
-                  Delete all data
-                </button>
-                <button onClick={() => handleDangerAction('reset-analytics')} disabled={isSubmitting} className="flex items-center gap-2 rounded-lg border border-red-800/60 bg-red-950/40 px-3.5 py-2 text-sm font-medium text-red-200 transition hover:bg-red-900/50 disabled:cursor-not-allowed disabled:opacity-60">
-                  <RefreshCw className="h-4 w-4" />
-                  Reset analytics
-                </button>
-              </div>
-            </motion.section>
-          )}
+              <h3 className="text-sm font-semibold text-white">Quick Actions</h3>
+            </div>
+
+            <div className="space-y-3">
+              <button
+                onClick={() => setShowDangerZone((prev) => !prev)}
+                className="flex w-full items-center justify-between rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-sm text-slate-300 hover:bg-white/10 transition"
+              >
+                <span className="flex items-center gap-2.5">
+                  <AlertTriangle className="w-4 h-4 text-rose-400" />
+                  {showDangerZone ? "Hide" : "Show"} danger zone
+                </span>
+                <ChevronRight className="w-4 h-4 text-slate-500" />
+              </button>
+              <button
+                onClick={() => router.push("/admin/analytics")}
+                className="flex w-full items-center justify-between rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-sm text-slate-300 hover:bg-white/10 transition"
+              >
+                <span className="flex items-center gap-2.5">
+                  <Sparkles className="w-4 h-4 text-indigo-300" />
+                  View analytics
+                </span>
+                <ChevronRight className="w-4 h-4 text-slate-500" />
+              </button>
+            </div>
+          </motion.div>
         </div>
       </div>
     </div>
-  )
+  );
 }

@@ -137,7 +137,18 @@ export async function GET(
     const isUnique = !isDuplicate
 
     const botService = new BotDetectionService()
-    const botResult = await botService.detect(userAgent, ip)
+    
+    // Convert headers to object for bot detection analysis
+    const headersObj: Record<string, string | null> = {
+      'user-agent': userAgent,
+      'accept': headers.get('accept'),
+      'accept-language': headers.get('accept-language'),
+      'accept-encoding': headers.get('accept-encoding'),
+      'cache-control': headers.get('cache-control'),
+      'referer': referrer,
+    }
+    
+    const botResult = await botService.detect(userAgent, ip, headersObj)
 
     if (botResult.isBot) {
       await prisma.click.create({
@@ -163,8 +174,16 @@ export async function GET(
         data: { botClicks: { increment: 1 } },
       })
 
-      const response = NextResponse.redirect('https://facebook.com', { status: 302 })
+      // Use environment variable for safe redirect URL, fallback to homepage
+      const safeRedirectUrl = process.env.BOT_SAFE_REDIRECT_URL || 'https://www.google.com'
+      
+      console.log(`[BOT BLOCKED] Slug: ${slug}, IP: ${ip}, Reason: ${botResult.reasons.join(' | ')}, Score: ${botResult.score}, Confidence: ${botResult.confidence}`)
+      
+      const response = NextResponse.redirect(safeRedirectUrl, { status: 307 })
       response.headers.set('Referrer-Policy', 'no-referrer')
+      response.headers.set('X-Bot-Detection-Score', botResult.score.toString())
+      response.headers.set('X-Bot-Detection-Reason', botResult.reasons.join('; '))
+      response.headers.set('X-Bot-Confidence', botResult.confidence)
       if (origin) {
         response.headers.set('Access-Control-Allow-Origin', origin)
         response.headers.set('Access-Control-Allow-Credentials', 'true')

@@ -1,74 +1,124 @@
-import { NextResponse, type NextRequest } from 'next/server'
-import { prisma } from '@/lib/db/prisma'
-import { getCorsHeaders } from '@/config/cors'
+import { NextResponse, type NextRequest } from 'next/server';
+import { prisma } from '@/lib/db/prisma';
+import { getCorsHeaders } from '@/config/cors';
+
+// ========== HELPERS ==========
+
+const getTrendDays = (days: number = 7): Array<{ key: string; label: string }> => {
+  const result: Array<{ key: string; label: string }> = [];
+  const today = new Date();
+
+  for (let i = days - 1; i >= 0; i--) {
+    const date = new Date(today);
+    date.setDate(today.getDate() - i);
+    date.setHours(0, 0, 0, 0);
+    result.push({
+      key: date.toISOString().slice(0, 10),
+      label: date.toLocaleDateString('en-US', { weekday: 'short' }),
+    });
+  }
+
+  return result;
+};
+
+const aggregateGeoData = (
+  rows: Array<{ country: string | null; isUnique: boolean }>
+): Array<{ country: string; totalClicks: number; uniqueClicks: number }> => {
+  const geoMap = new Map<string, { totalClicks: number; uniqueClicks: number }>();
+
+  rows.forEach((row) => {
+    const country = row.country?.trim();
+    if (!country) return;
+
+    const current = geoMap.get(country) || { totalClicks: 0, uniqueClicks: 0 };
+    current.totalClicks += 1;
+    if (row.isUnique) current.uniqueClicks += 1;
+    geoMap.set(country, current);
+  });
+
+  return Array.from(geoMap.entries())
+    .map(([country, stats]) => ({ country, ...stats }))
+    .sort((a, b) => b.uniqueClicks - a.uniqueClicks || b.totalClicks - a.totalClicks);
+};
+
+const buildWhereClause = (
+  linkAccountId: string,
+  search?: string,
+  country?: string,
+  unique?: string
+) => {
+  const baseWhere: any = { linkAccountId };
+
+  if (search) {
+    baseWhere.OR = [
+      { ipAddress: { contains: search, mode: 'insensitive' } },
+      { country: { contains: search, mode: 'insensitive' } },
+      { browser: { contains: search, mode: 'insensitive' } },
+      { browserVersion: { contains: search, mode: 'insensitive' } },
+      { os: { contains: search, mode: 'insensitive' } },
+      { deviceType: { contains: search, mode: 'insensitive' } },
+      { deviceBrand: { contains: search, mode: 'insensitive' } },
+      { referrer: { contains: search, mode: 'insensitive' } },
+      { userAgent: { contains: search, mode: 'insensitive' } },
+    ];
+  }
+
+  if (country) {
+    baseWhere.country = country;
+  }
+
+  if (unique === 'true') {
+    baseWhere.isUnique = true;
+  } else if (unique === 'false') {
+    baseWhere.isUnique = false;
+  }
+
+  return baseWhere;
+};
+
+// ========== MAIN HANDLER ==========
 
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ publicId: string }> }
 ) {
+  const origin = request.headers.get('origin') || null;
+
   try {
-    const origin = request.headers.get('origin') || null
-    const { publicId } = await params
-    
+    const { publicId } = await params;
+
     const dashboard = await prisma.publicDashboard.findUnique({
       where: { publicId },
-      include: {
-        linkAccount: true,
-      },
-    })
+      include: { linkAccount: true },
+    });
 
     if (!dashboard || dashboard.isPrivate) {
       return NextResponse.json(
         { error: 'Dashboard not found' },
         { status: 404, headers: getCorsHeaders(origin) }
-      )
+      );
     }
 
-    const url = new URL(request.url)
-    const page = parseInt(url.searchParams.get('page') || '1')
-    const limit = parseInt(url.searchParams.get('limit') || '10')
-    const search = url.searchParams.get('search') || ''
-    const country = url.searchParams.get('country') || ''
-    const unique = url.searchParams.get('unique') || ''
+    const url = new URL(request.url);
+    const page = parseInt(url.searchParams.get('page') || '1', 10);
+    const limit = parseInt(url.searchParams.get('limit') || '10', 10);
+    const search = url.searchParams.get('search') || '';
+    const country = url.searchParams.get('country') || '';
+    const unique = url.searchParams.get('unique') || '';
 
-    const baseWhere: any = {
-      linkAccountId: dashboard.linkAccountId,
-    }
+    const baseWhere = buildWhereClause(dashboard.linkAccountId, search, country, unique);
 
-    if (search) {
-      baseWhere.OR = [
-        { ipAddress: { contains: search, mode: 'insensitive' } },
-        { country: { contains: search, mode: 'insensitive' } },
-        { browser: { contains: search, mode: 'insensitive' } },
-        { browserVersion: { contains: search, mode: 'insensitive' } },
-        { os: { contains: search, mode: 'insensitive' } },
-        { deviceType: { contains: search, mode: 'insensitive' } },
-        { deviceBrand: { contains: search, mode: 'insensitive' } },
-        { referrer: { contains: search, mode: 'insensitive' } },
-        { userAgent: { contains: search, mode: 'insensitive' } },
-      ]
-    }
+    const visibleWhere = { ...baseWhere, isBot: false };
+    const botWhere = { ...baseWhere, isBot: true };
 
-    if (country) {
-      baseWhere.country = country
-    }
+    // Get total counts
+    const [totalClicks, uniqueClicks, botClicks] = await Promise.all([
+      prisma.click.count({ where: visibleWhere }),
+      prisma.click.count({ where: { ...visibleWhere, isUnique: true } }),
+      prisma.click.count({ where: botWhere }),
+    ]);
 
-    if (unique === 'true') {
-      baseWhere.isUnique = true
-    } else if (unique === 'false') {
-      baseWhere.isUnique = false
-    }
-
-    const visibleWhere: any = {
-      ...baseWhere,
-      isBot: false,
-    }
-
-    const botWhere: any = {
-      ...baseWhere,
-      isBot: true,
-    }
-
+    // Get paginated clicks
     const clicks = await prisma.click.findMany({
       where: visibleWhere,
       orderBy: { createdAt: 'desc' },
@@ -93,64 +143,35 @@ export async function GET(
         createdAt: true,
         timestamp: true,
       },
-    })
+    });
 
-    const totalClicks = await prisma.click.count({ where: visibleWhere })
-    const uniqueClicks = await prisma.click.count({
-      where: {
-        ...visibleWhere,
-        isUnique: true,
-      },
-    })
-    const botClicks = await prisma.click.count({ where: botWhere })
-
+    // Build trend data
+    const trendDays = getTrendDays(7);
     const trendRows = await prisma.click.findMany({
       where: visibleWhere,
       orderBy: { createdAt: 'asc' },
-      select: {
-        createdAt: true,
-        isUnique: true,
-      },
-    })
+      select: { createdAt: true, isUnique: true },
+    });
 
-    const trendMap = {
-      total: new Map<string, number>(),
-      unique: new Map<string, number>(),
-    }
-    const trendDays: Array<{ key: string; label: string }> = []
-    const today = new Date()
-
-    for (let index = 6; index >= 0; index -= 1) {
-      const date = new Date(today)
-      date.setDate(today.getDate() - index)
-      date.setHours(0, 0, 0, 0)
-
-      const key = date.toISOString().slice(0, 10)
-      trendDays.push({
-        key,
-        label: date.toLocaleDateString('en-US', { weekday: 'short' }),
-      })
-      trendMap.total.set(key, 0)
-      trendMap.unique.set(key, 0)
-    }
+    const trendMap: Record<string, { total: number; unique: number }> = {};
+    trendDays.forEach((day) => {
+      trendMap[day.key] = { total: 0, unique: 0 };
+    });
 
     trendRows.forEach((row) => {
-      const createdAt = new Date(row.createdAt)
-      const key = createdAt.toISOString().slice(0, 10)
-      if (trendMap.total.has(key)) {
-        trendMap.total.set(key, (trendMap.total.get(key) || 0) + 1)
+      const key = row.createdAt.toISOString().slice(0, 10);
+      if (trendMap[key]) {
+        trendMap[key].total += 1;
+        if (row.isUnique) trendMap[key].unique += 1;
       }
-      if (row.isUnique && trendMap.unique.has(key)) {
-        trendMap.unique.set(key, (trendMap.unique.get(key) || 0) + 1)
-      }
-    })
+    });
 
     const clickTrend = {
-      labels: trendDays.map((day) => day.label),
+      labels: trendDays.map((d) => d.label),
       datasets: [
         {
           label: 'Total Clicks',
-          data: trendDays.map((day) => trendMap.total.get(day.key) || 0),
+          data: trendDays.map((d) => trendMap[d.key].total),
           borderColor: '#22D3EE',
           backgroundColor: 'rgba(34, 211, 238, 0.14)',
           fill: true,
@@ -159,7 +180,7 @@ export async function GET(
         },
         {
           label: 'Unique Clicks',
-          data: trendDays.map((day) => trendMap.unique.get(day.key) || 0),
+          data: trendDays.map((d) => trendMap[d.key].unique),
           borderColor: '#34D399',
           backgroundColor: 'rgba(52, 211, 153, 0.14)',
           fill: true,
@@ -167,84 +188,64 @@ export async function GET(
           pointRadius: 3,
         },
       ],
-    }
+    };
 
+    // Build geo summary
     const geoRows = await prisma.click.findMany({
       where: visibleWhere,
-      select: {
-        country: true,
-        isUnique: true,
+      select: { country: true, isUnique: true },
+    });
+    const geoSummary = aggregateGeoData(geoRows);
+
+    return NextResponse.json(
+      {
+        accountName: dashboard.linkAccount?.accountName || 'NexGen Affiliates',
+        totalClicks,
+        uniqueClicks,
+        botClicks,
+        geoSummary,
+        clickTrend,
+        clicks: clicks.map((c) => ({
+          id: c.id,
+          ipAddress: c.ipAddress,
+          country: c.country || null,
+          region: c.region || null,
+          city: c.city || null,
+          isp: c.isp || null,
+          browser: c.browser || 'Unknown',
+          browserVersion: c.browserVersion,
+          os: c.os,
+          deviceType: c.deviceType,
+          deviceBrand: c.deviceBrand,
+          referrer: c.referrer,
+          userAgent: c.userAgent,
+          isUnique: c.isUnique,
+          isBot: c.isBot,
+          createdAt: c.createdAt.toISOString(),
+          timestamp: c.timestamp?.toISOString() || c.createdAt.toISOString(),
+        })),
+        pagination: {
+          page,
+          limit,
+          total: totalClicks,
+          totalPages: Math.ceil(totalClicks / limit),
+        },
       },
-    })
-
-    const geoBreakdown = new Map<string, { totalClicks: number; uniqueClicks: number }>()
-
-    geoRows.forEach((row) => {
-      const country = row.country?.trim()
-      if (!country) return
-
-      const current = geoBreakdown.get(country) || { totalClicks: 0, uniqueClicks: 0 }
-      current.totalClicks += 1
-      if (row.isUnique) {
-        current.uniqueClicks += 1
-      }
-      geoBreakdown.set(country, current)
-    })
-
-    const geoSummary = Array.from(geoBreakdown.entries())
-      .map(([country, stats]) => ({
-        country,
-        totalClicks: stats.totalClicks,
-        uniqueClicks: stats.uniqueClicks,
-      }))
-      .sort((a, b) => b.uniqueClicks - a.uniqueClicks || b.totalClicks - a.totalClicks)
-
-    return NextResponse.json({
-      accountName: dashboard.linkAccount?.accountName || 'NexGen Affiliates',
-      totalClicks,
-      uniqueClicks,
-      botClicks,
-      geoSummary,
-      clickTrend,
-      clicks: clicks.map(c => ({
-        id: c.id,
-        ipAddress: c.ipAddress,
-        country: c.country || null,
-        region: c.region || null,
-        city: c.city || null,
-        isp: c.isp || null,
-        browser: c.browser || 'Unknown',
-        browserVersion: c.browserVersion,
-        os: c.os,
-        deviceType: c.deviceType,
-        deviceBrand: c.deviceBrand,
-        referrer: c.referrer,
-        userAgent: c.userAgent,
-        isUnique: c.isUnique,
-        isBot: c.isBot,
-        createdAt: c.createdAt.toISOString(),
-        timestamp: c.timestamp?.toISOString() || c.createdAt.toISOString(),
-      })),
-      pagination: {
-        page,
-        limit,
-        total: totalClicks,
-        totalPages: Math.ceil(totalClicks / limit),
-      },
-    }, { headers: getCorsHeaders(origin) })
+      { headers: getCorsHeaders(origin) }
+    );
   } catch (error) {
-    console.error('Error fetching public stats:', error)
+    console.error('Error fetching public stats:', error);
     return NextResponse.json(
       { error: 'Failed to fetch stats' },
-      { status: 500 }
-    )
+      { status: 500, headers: getCorsHeaders(origin) }
+    );
   }
 }
 
 export async function OPTIONS(request: Request) {
-  const origin = request.headers.get('origin') || '*'
+  const origin = request.headers.get('origin') || '*';
   return new NextResponse(null, {
     status: 204,
     headers: getCorsHeaders(origin),
-  })
+  });
 }
