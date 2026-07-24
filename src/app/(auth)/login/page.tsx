@@ -1,120 +1,222 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import Link from 'next/link'
-import { motion } from 'framer-motion'
-import { User, Lock, ArrowLeft, AlertCircle, Rocket, ArrowRight, ShieldCheck, Sparkles } from 'lucide-react'
-import { Logo } from '@/components/ui/Logo'
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { motion } from "framer-motion";
+import {
+  User,
+  Lock,
+  ArrowLeft,
+  AlertCircle,
+  Rocket,
+  ArrowRight,
+  Zap,
+} from "lucide-react";
 
 export default function LoginPage() {
-  const router = useRouter()
-  const [username, setUsername] = useState('')
-  const [password, setPassword] = useState('')
-  const [error, setError] = useState('')
-  const [loading, setLoading] = useState(false)
+  const router = useRouter();
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError('')
-    setLoading(true)
+    e.preventDefault();
+    setError("");
+    setLoading(true);
 
     try {
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password }),
-      })
+      });
 
-      const data = await response.json()
+      const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Login failed')
+        throw new Error(data.error || "Login failed");
       }
 
-      router.push('/admin/dashboard')
+      router.push("/admin/dashboard");
     } catch (err: any) {
-      setError(err.message)
+      setError(err.message);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
+
+  // Animation variants
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+        delayChildren: 0.2,
+      },
+    },
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] },
+    },
+  };
+
+  const cardVariants = {
+    hidden: { opacity: 0, scale: 0.95, y: 20 },
+    visible: {
+      opacity: 1,
+      scale: 1,
+      y: 0,
+      transition: { duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] },
+    },
+  };
 
   return (
-    <div className="relative min-h-screen overflow-x-hidden bg-[linear-gradient(135deg,#030712_0%,#07111f_45%,#0b1730_100%)] px-3 py-3 text-slate-100 sm:px-6 sm:py-5 lg:px-8">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(14,165,233,0.12),transparent_30%),radial-gradient(circle_at_bottom_right,rgba(96,165,250,0.12),transparent_24%)]" />
-      <div className="absolute inset-0 opacity-[0.03] [background-image:linear-gradient(rgba(255,255,255,0.8)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.8)_1px,transparent_1px)] [background-size:56px_56px]" />
+    <div className="relative min-h-screen w-full bg-[#05070b] text-white overflow-hidden">
+      {/* ===== Animated Background ===== */}
+      <div className="fixed inset-0 z-0">
+        {/* Base gradient */}
+        <div className="absolute inset-0 bg-gradient-to-br from-[#05070b] via-[#0d1724] to-[#101827]" />
 
-      <div className="relative z-10 mx-auto flex min-h-screen max-w-6xl flex-col">
-        <div className="mb-4 flex flex-col items-start gap-3 rounded-[24px] border border-slate-700/70 bg-slate-950/70 px-3 py-3 shadow-[0_0_0_1px_rgba(255,255,255,0.02)] backdrop-blur-sm sm:mb-5 sm:flex-row sm:items-center sm:justify-between sm:rounded-full sm:px-4">
-          <Link href="/" className="inline-flex items-center gap-3 text-sm text-slate-200 transition hover:text-white">
-            <Logo variant="compact" size="sm" />
-          </Link>
-          <Link href="/" className="inline-flex items-center gap-2 text-sm font-medium text-slate-300 transition hover:text-white">
-            <ArrowLeft className="h-4 w-4" />
+        {/* Animated radial glows */}
+        <motion.div
+          className="absolute top-0 left-1/4 w-[800px] h-[800px] bg-gradient-radial from-indigo-900/30 via-transparent to-transparent blur-3xl"
+          animate={{
+            x: [0, 60, -30, 0],
+            y: [0, -40, 20, 0],
+            opacity: [0.6, 1, 0.6, 0.6],
+          }}
+          transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
+        />
+        <motion.div
+          className="absolute top-1/3 right-0 w-[600px] h-[600px] bg-gradient-radial from-purple-700/20 via-transparent to-transparent blur-3xl"
+          animate={{
+            x: [0, -50, 30, 0],
+            y: [0, 30, -20, 0],
+            opacity: [0.4, 0.8, 0.4, 0.4],
+          }}
+          transition={{ duration: 15, repeat: Infinity, ease: "easeInOut", delay: 2 }}
+        />
+        <motion.div
+          className="absolute bottom-0 right-1/3 w-[700px] h-[700px] bg-gradient-radial from-pink-900/15 via-transparent to-transparent blur-3xl"
+          animate={{
+            x: [0, 40, -60, 0],
+            y: [0, -20, 30, 0],
+            opacity: [0.3, 0.7, 0.3, 0.3],
+          }}
+          transition={{ duration: 18, repeat: Infinity, ease: "easeInOut", delay: 4 }}
+        />
+
+        {/* Grid pattern with subtle pulse */}
+        <motion.div
+          className="absolute inset-0 opacity-[0.03] [background-image:linear-gradient(rgba(255,255,255,1)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,1)_1px,transparent_1px)] [background-size:60px_60px]"
+          animate={{ opacity: [0.02, 0.04, 0.02] }}
+          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+        />
+      </div>
+
+      <div className="relative z-10 min-h-screen flex flex-col items-center justify-center px-4 py-8">
+        {/* ===== Back to home (top left) ===== */}
+        <motion.div
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.5 }}
+          className="w-full max-w-md mb-6"
+        >
+          <Link
+            href="/"
+            className="inline-flex items-center gap-2 text-sm text-slate-400 hover:text-white transition-all hover:gap-3 group"
+          >
+            <ArrowLeft className="h-4 w-4 group-hover:-translate-x-1 transition-transform" />
             Back to home
           </Link>
-        </div>
+        </motion.div>
 
-        <div className="grid flex-1 gap-4 rounded-[24px] border border-slate-700/70 bg-[rgba(6,12,24,0.74)] p-2 shadow-[0_18px_48px_rgba(2,8,23,0.36)] backdrop-blur-xl sm:gap-5 sm:rounded-[30px] sm:p-3 lg:grid-cols-[0.95fr_1.05fr] lg:p-4">
-          <div className="flex flex-col justify-center rounded-[20px] border border-slate-700/70 bg-[linear-gradient(135deg,#071223_0%,#030712_100%)] p-5 sm:rounded-[24px] sm:p-7 lg:p-10">
-            <div className="inline-flex w-fit items-center gap-2 rounded-full border border-sky-400/20 bg-sky-400/10 px-3 py-1.5 text-[11px] font-medium uppercase tracking-[0.3em] text-sky-200">
-              <ShieldCheck className="h-3.5 w-3.5" />
-              Secure access
-            </div>
-
-            <h1 className="mt-5 text-2xl font-semibold tracking-[-0.03em] text-white sm:mt-6 sm:text-3xl lg:text-4xl">
-              A clearer way to manage campaign performance.
-            </h1>
-            <p className="mt-3 max-w-xl text-sm leading-7 text-slate-400 sm:text-base sm:leading-8">
-              Keep your team aligned around one focused workspace for traffic quality, reporting, and next-step decisions.
-            </p>
-
-            <div className="mt-5 space-y-3 sm:mt-6">
-              <div className="flex items-start gap-3 rounded-2xl border border-slate-700/70 bg-slate-900/60 p-3.5">
-                <Sparkles className="mt-0.5 h-4 w-4 flex-shrink-0 text-cyan-300" />
-                <span className="text-sm leading-7 text-slate-300">See the signal clearly, without noise or unnecessary clutter.</span>
-              </div>
-              <div className="flex items-start gap-3 rounded-2xl border border-slate-700/70 bg-slate-900/60 p-3.5">
-                <ShieldCheck className="mt-0.5 h-4 w-4 flex-shrink-0 text-cyan-300" />
-                <span className="text-sm leading-7 text-slate-300">Protect budgets by catching weak traffic before it impacts performance.</span>
-              </div>
-            </div>
-          </div>
-
+        {/* ===== Login Card ===== */}
+        <motion.div
+          variants={cardVariants}
+          initial="hidden"
+          animate="visible"
+          className="w-full max-w-md rounded-3xl border border-white/10 bg-white/5 backdrop-blur-xl p-8 shadow-2xl shadow-indigo-500/5 hover:shadow-indigo-500/10 transition-shadow duration-500"
+        >
           <motion.div
-            initial={{ opacity: 0, y: 18 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.45 }}
-            className="rounded-[20px] border border-slate-700/70 bg-[#050a13]/95 p-4 shadow-[0_10px_24px_rgba(0,0,0,0.18)] sm:rounded-[24px] sm:p-6 lg:p-8"
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+            className="space-y-6"
           >
-            <div className="mb-5 flex justify-center sm:mb-6">
-              <Logo variant="icon" size="lg" showAnimation={true} />
-            </div>
+            {/* Logo & Brand */}
+            <motion.div variants={itemVariants} className="flex flex-col items-center">
+              <motion.div
+                className="flex items-center gap-2 font-bold text-2xl text-white"
+                whileHover={{ scale: 1.02 }}
+                transition={{ type: "spring", stiffness: 300 }}
+              >
+                <motion.div
+                  animate={{
+                    rotate: [0, 10, -5, 0],
+                    scale: [1, 1.1, 0.95, 1],
+                  }}
+                  transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+                >
+                  <Zap className="w-8 h-8 text-indigo-400" />
+                </motion.div>
+                <span className="bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+                  Nexgen
+                </span>
+              </motion.div>
+              <motion.h1
+                variants={itemVariants}
+                className="mt-4 text-xl font-semibold text-white"
+              >
+                Sign in to your account
+              </motion.h1>
+              <motion.p
+                variants={itemVariants}
+                className="mt-1 text-sm text-slate-400"
+              >
+                Use your credentials to continue.
+              </motion.p>
+            </motion.div>
 
-            <div className="mb-5 text-center sm:mb-6">
-              <h2 className="text-xl font-semibold text-white sm:text-2xl">Welcome back</h2>
-              <p className="mt-1 text-sm text-slate-400">Use your credentials to continue to the workspace.</p>
-            </div>
-
+            {/* Error message */}
             {error && (
-              <div className="mb-4 flex items-center gap-2 rounded-2xl border border-red-500/20 bg-red-500/10 p-3 text-sm text-red-400 backdrop-blur animate-fadeInUp">
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="flex items-center gap-2 rounded-xl border border-red-500/20 bg-red-500/10 p-3 text-sm text-red-400 backdrop-blur"
+              >
                 <AlertCircle className="h-4 w-4 flex-shrink-0" />
                 <span className="leading-6">{error}</span>
-              </div>
+              </motion.div>
             )}
 
-            <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
+            {/* Form */}
+            <motion.form
+              variants={itemVariants}
+              onSubmit={handleSubmit}
+              className="space-y-4"
+            >
               <div>
-                <label className="form-label">Username</label>
-                <div className="relative">
-                  <User className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                <label className="block text-sm font-medium text-slate-300 mb-1.5">
+                  Username
+                </label>
+                <div className="relative group">
+                  <User className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-400 transition-colors" />
                   <input
                     type="text"
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
-                    className="form-input pl-10"
+                    className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 pl-10 text-white placeholder-slate-500 backdrop-blur-sm focus:border-indigo-400/50 focus:outline-none focus:ring-2 focus:ring-indigo-400/30 transition-all duration-300 hover:border-white/20"
                     placeholder="Enter your username"
                     required
                     disabled={loading}
@@ -123,14 +225,16 @@ export default function LoginPage() {
               </div>
 
               <div>
-                <label className="form-label">Password</label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                <label className="block text-sm font-medium text-slate-300 mb-1.5">
+                  Password
+                </label>
+                <div className="relative group">
+                  <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-400 transition-colors" />
                   <input
                     type="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="form-input pl-10"
+                    className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 pl-10 text-white placeholder-slate-500 backdrop-blur-sm focus:border-indigo-400/50 focus:outline-none focus:ring-2 focus:ring-indigo-400/30 transition-all duration-300 hover:border-white/20"
                     placeholder="Enter your password"
                     required
                     disabled={loading}
@@ -138,35 +242,68 @@ export default function LoginPage() {
                 </div>
               </div>
 
-              <button
+              <motion.button
                 type="submit"
                 disabled={loading}
-                className="flex w-full items-center justify-center gap-2 rounded-2xl border border-sky-400/20 bg-gradient-to-r from-sky-400/15 to-cyan-400/15 px-4 py-3 text-sm font-semibold text-sky-100 transition hover:from-sky-400/25 hover:to-cyan-400/25 disabled:opacity-60"
+                className="group relative w-full overflow-hidden rounded-xl bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 px-6 py-3.5 text-sm font-semibold text-white transition-all duration-300 hover:shadow-2xl hover:shadow-purple-500/40 disabled:opacity-60 disabled:cursor-not-allowed"
+                whileHover={{ scale: loading ? 1 : 1.02 }}
+                whileTap={{ scale: loading ? 1 : 0.98 }}
               >
-                {loading ? (
-                  <>
-                    <span className="h-4 w-4 animate-spin rounded-full border-2 border-slate-900 border-t-transparent" />
-                    Signing in...
-                  </>
-                ) : (
-                  <>
-                    <Rocket className="h-4 w-4" />
-                    Sign in
-                    <ArrowRight className="h-4 w-4" />
-                  </>
-                )}
-              </button>
-            </form>
+                <span className="relative z-10 flex items-center justify-center gap-2">
+                  {loading ? (
+                    <>
+                      <motion.span
+                        className="h-4 w-4 rounded-full border-2 border-white border-t-transparent"
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 0.8, repeat: Infinity, ease: "linear" }}
+                      />
+                      Signing in...
+                    </>
+                  ) : (
+                    <>
+                      <Rocket className="h-4 w-4" />
+                      Sign in
+                      <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform duration-300" />
+                    </>
+                  )}
+                </span>
+                <motion.div
+                  className="absolute inset-0 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600"
+                  initial={{ opacity: 0 }}
+                  whileHover={{ opacity: 1 }}
+                  transition={{ duration: 0.3 }}
+                />
+              </motion.button>
+            </motion.form>
 
-            <div className="mt-5 border-t border-slate-700/70 pt-4 text-center text-sm text-slate-400 sm:mt-6">
-              Need access?{' '}
-              <a href="https://t.me/affiliate_king_rafsan" target="_blank" rel="noopener noreferrer" className="font-medium text-cyan-300 transition hover:text-cyan-200">
+            {/* Support link */}
+            <motion.div
+              variants={itemVariants}
+              className="border-t border-white/10 pt-5 text-center text-sm text-slate-400"
+            >
+              Need access?{" "}
+              <a
+                href="https://t.me/affiliate_king_rafsan"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-medium text-indigo-300 hover:text-indigo-200 transition-colors hover:underline underline-offset-2"
+              >
                 Contact the team
               </a>
-            </div>
+            </motion.div>
           </motion.div>
-        </div>
+        </motion.div>
+
+        {/* ===== Footer ===== */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.6 }}
+          className="w-full max-w-md mt-6 text-center text-xs text-slate-500 border-t border-white/5 pt-4"
+        >
+          <span>© 2026 Nexgen Affiliates. All rights reserved.</span>
+        </motion.div>
       </div>
     </div>
-  )
+  );
 }

@@ -11,17 +11,17 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://nexgenaffiliates.vercel.app'),
-  title: 'NexGen Affiliates | Premium CPA Tracking & Routing',
-  description: 'Run cleaner affiliate campaigns with premium CPA tracking, smart bot filtering, real-time analytics, and better traffic routing.',
+  title: 'NexGen Affiliates | Professional Routing Infrastructure',
+  description: 'Secure, auditable affiliate routing and traffic control for teams that need precision, clarity, and dependable execution.',
   keywords: 'affiliate tracking, click fraud detection, link management, traffic quality, campaign routing, CPA platform',
   authors: [{ name: 'NexGen Affiliates' }],
   icons: {
-    icon: 'https://nexgenaffiliates.vercel.app/favicon.png',
-    apple: 'https://nexgenaffiliates.vercel.app/favicon.png',
+    icon: '/logo.svg',
+    apple: '/logo.svg',
   },
   openGraph: {
-    title: 'NexGen Affiliates | Premium CPA Tracking & Routing',
-    description: 'Run cleaner affiliate campaigns with premium CPA tracking, smart bot filtering, real-time analytics, and better traffic routing.',
+    title: 'NexGen Affiliates | Professional Routing Infrastructure',
+    description: 'Secure, auditable affiliate routing and traffic control for teams that need precision, clarity, and dependable execution.',
     type: 'website',
     url: 'https://nexgenaffiliates.vercel.app',
     images: [
@@ -37,8 +37,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'NexGen Affiliates | Premium CPA Tracking & Routing',
-    description: 'Run cleaner affiliate campaigns with premium CPA tracking, smart bot filtering, real-time analytics, and better traffic routing.',
+    title: 'NexGen Affiliates | Professional Routing Infrastructure',
+    description: 'Secure, auditable affiliate routing and traffic control for teams that need precision, clarity, and dependable execution.',
     images: ['https://nexgenaffiliates.vercel.app/og-image.png'],
     site: '@nexgenaffiliates',
   },
