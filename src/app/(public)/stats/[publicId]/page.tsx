@@ -350,9 +350,9 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
 
   // ---- FIX: Deduplicate clicks by ID to prevent double counting ----
   const dedupedClicks = useMemo(() => {
-    if (!stats?.clicks) return []
-    const map = new Map()
-    stats.clicks.forEach(click => {
+    const clicks = stats?.clicks ?? []
+    const map = new Map<string, typeof clicks[number]>()
+    clicks.forEach(click => {
       if (!map.has(click.id)) map.set(click.id, click)
     })
     return Array.from(map.values())

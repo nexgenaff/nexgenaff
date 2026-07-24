@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server';
 import { randomInt } from 'crypto';
 import { prisma } from '@/lib/db/prisma';
 import { BotDetectionService } from '@/lib/services/bot-detection';
-import { buildClickFingerprint, CLICK_DEDUPE_WINDOW_MS, isDuplicateClickEvent } from '@/lib/services/click-detection';
+import { buildClickFingerprint, getClickDedupeWindowMs, isDuplicateClickEvent } from '@/lib/services/click-detection';
 import { getGeoLocation } from '@/lib/services/geo/ip2location';
 import { buildRedirectTargetUrl } from '@/lib/utils/redirect';
 import { parseVisitorProfile } from '@/lib/utils/visitor-profile';
@@ -133,6 +133,24 @@ const getClientIp = (headers: Headers): string => {
     headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
     'unknown'
   );
+};
+
+const normalizeDedupeValue = (value?: string | null) =>
+  (value || '').trim().replace(/\s+/g, ' ').toLowerCase();
+
+const buildDedupeLockKeys = (clickSignature: string, ipAddress: string, userAgent: string) => {
+  return [clickSignature, ipAddress, userAgent]
+    .map(normalizeDedupeValue)
+    .filter((value) => value !== '' && value !== 'unknown')
+    .reduce<string[]>((acc, value) => (acc.includes(value) ? acc : [...acc, value]), [])
+    .sort();
+};
+
+const acquireDedupeLocks = async (tx: any, clickSignature: string, ipAddress: string, userAgent: string) => {
+  const keys = buildDedupeLockKeys(clickSignature, ipAddress, userAgent);
+  for (const key of keys) {
+    await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${key}))`;
+  }
 };
 
 const logBotClick = async (
@@ -277,39 +295,45 @@ export async function GET(
     const geo = await getGeoLocation(ip, headers);
     const country = (geo?.country_code || '').toUpperCase();
 
-    // ────────────────────────────────────────────────────────────────
-    // 5. Primary duplicate check (quick, outside transaction)
-    // ────────────────────────────────────────────────────────────────
-    const recentClick = await prisma.click.findFirst({
-      where: {
-        linkAccountId: link.id,
-        clickSignature: clickFingerprint,
-        createdAt: {
-          gte: new Date(Date.now() - CLICK_DEDUPE_WINDOW_MS),
-        },
-      },
-      orderBy: { createdAt: 'desc' },
-      select: { createdAt: true },
-    });
+    const dedupeWindowMs = getClickDedupeWindowMs();
 
     // ────────────────────────────────────────────────────────────────
     // 6. Main transaction: offer selection + click logging + dedupe
     // ────────────────────────────────────────────────────────────────
     const result = await prisma.$transaction(async (tx) => {
+      await acquireDedupeLocks(tx, clickFingerprint, ip, userAgent);
+
       // ── 6a. Re-check duplicate under lock ──
       const existing = await tx.click.findFirst({
         where: {
-          linkAccountId: link.id,
-          clickSignature: clickFingerprint,
+          OR: [
+            { clickSignature: clickFingerprint },
+            ...(ip && ip !== 'unknown' ? [{ ipAddress: ip }] : []),
+            ...(userAgent ? [{ userAgent }] : []),
+          ],
           createdAt: {
-            gte: new Date(Date.now() - CLICK_DEDUPE_WINDOW_MS),
+            gte: new Date(Date.now() - dedupeWindowMs),
           },
         },
         orderBy: { createdAt: 'desc' },
-        select: { createdAt: true },
+        select: { createdAt: true, clickSignature: true, ipAddress: true, userAgent: true },
       });
 
-      const isDuplicate = !!existing;
+      const isDuplicate = existing
+        ? isDuplicateClickEvent(
+            new Date(existing.createdAt),
+            new Date(),
+            {
+              clickSignature: clickFingerprint,
+              ipAddress: ip,
+              userAgent,
+              lastClickSignature: existing.clickSignature,
+              lastIpAddress: existing.ipAddress,
+              lastUserAgent: existing.userAgent,
+            },
+            dedupeWindowMs,
+          )
+        : false;
 
       // ── 6b. Select the offer ──
       const offer = await selectOffer(tx, link.userId, country, link.offerGroupName);
@@ -332,40 +356,37 @@ export async function GET(
       }
 
       // ── 6d. Log click if not duplicate ──
-      if (!isDuplicate) {
-        await tx.click.create({
-          data: {
-            linkAccountId: link.id,
-            clickSignature: clickFingerprint,
-            ipAddress: ip,
-            userAgent,
-            country: country || null,
-            region: geo?.region || null,
-            city: geo?.city || null,
-            isp: geo?.isp || null,
-            browser: visitorProfile.browser,
-            browserVersion: visitorProfile.browserVersion,
-            os: visitorProfile.os,
-            deviceType: visitorProfile.deviceType,
-            deviceBrand: visitorProfile.deviceBrand,
-            referrer: referrer || null,
-            isUnique: true,
-            isBot: false,
-          },
-        });
+      await tx.click.create({
+        data: {
+          linkAccountId: link.id,
+          clickSignature: clickFingerprint,
+          ipAddress: ip,
+          userAgent,
+          country: country || null,
+          region: geo?.region || null,
+          city: geo?.city || null,
+          isp: geo?.isp || null,
+          browser: visitorProfile.browser,
+          browserVersion: visitorProfile.browserVersion,
+          os: visitorProfile.os,
+          deviceType: visitorProfile.deviceType,
+          deviceBrand: visitorProfile.deviceBrand,
+          referrer: referrer || null,
+          isUnique: !isDuplicate,
+          isBot: false,
+        },
+      });
 
-        await tx.linkAccount.update({
-          where: { id: link.id },
-          data: {
-            totalClicks: { increment: 1 },
-            uniqueClicks: { increment: 1 },
-          },
-        });
-      } else {
-        // Duplicate: still count as a total click? Usually no – just suppress.
-        // You can optionally increment totalClicks if you want, but most trackers
-        // treat duplicates as not counted.
-        console.debug('Duplicate click suppressed for link', link.id);
+      await tx.linkAccount.update({
+        where: { id: link.id },
+        data: {
+          totalClicks: { increment: 1 },
+          ...(isDuplicate ? {} : { uniqueClicks: { increment: 1 } }),
+        },
+      });
+
+      if (isDuplicate) {
+        console.debug('Duplicate click detected and stored for link', link.id);
       }
 
       return {

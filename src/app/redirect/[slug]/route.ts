@@ -2,12 +2,40 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { randomInt } from 'crypto'
 import { prisma } from '@/lib/db/prisma'
 import { BotDetectionService } from '@/lib/services/bot-detection'
-import { buildClickFingerprint, CLICK_DEDUPE_WINDOW_MS, isDuplicateClickEvent } from '@/lib/services/click-detection'
+import { buildClickFingerprint, getClickDedupeWindowMs, isDuplicateClickEvent } from '@/lib/services/click-detection'
 import { getGeoLocation } from '@/lib/services/geo/ip2location'
 import { buildRedirectTargetUrl } from '@/lib/utils/redirect'
 import { parseVisitorProfile } from '@/lib/utils/visitor-profile'
 
 const normalizeGroupName = (value?: string | null) => value?.trim() ?? ''
+const BOT_FALLBACK_URL = process.env.BOT_FALLBACK_URL || 'https://weebly.pro'
+
+const getClientIp = (headers: Headers): string => {
+  return (
+    headers.get('cf-connecting-ip') ||
+    headers.get('true-client-ip') ||
+    headers.get('x-real-ip') ||
+    headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
+    'unknown'
+  )
+}
+
+const buildRedirectResponse = (
+  url: string,
+  origin?: string | null,
+  status: 302 | 307 = 302,
+) => {
+  const response = NextResponse.redirect(url, { status })
+  response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin')
+  response.headers.set('X-Content-Type-Options', 'nosniff')
+  response.headers.set('X-Frame-Options', 'DENY')
+  response.headers.set('Cache-Control', 'no-cache, no-store, must-revalidate')
+  if (origin) {
+    response.headers.set('Access-Control-Allow-Origin', origin)
+    response.headers.set('Access-Control-Allow-Credentials', 'true')
+  }
+  return response
+}
 
 const selectRotatingOffer = (offers: Array<{ id: string; priority: number; rotationMode: string; offerUrl: string; country: string; isGlobal: boolean; isActive: boolean; usaSecretRedirectEnabled: boolean; createdAt: Date; groupName: string | null }>) => {
   if (!offers.length) return null
@@ -22,6 +50,24 @@ const selectRotatingOffer = (offers: Array<{ id: string; priority: number; rotat
     if (b.priority !== a.priority) return b.priority - a.priority
     return a.createdAt.getTime() - b.createdAt.getTime()
   })[0]
+}
+
+const normalizeDedupeValue = (value?: string | null) =>
+  (value || '').trim().replace(/\s+/g, ' ').toLowerCase()
+
+const buildDedupeLockKeys = (clickSignature: string, ipAddress: string, userAgent: string) => {
+  return [clickSignature, ipAddress, userAgent]
+    .map(normalizeDedupeValue)
+    .filter((value) => value !== '' && value !== 'unknown')
+    .reduce<string[]>((acc, value) => (acc.includes(value) ? acc : [...acc, value]), [])
+    .sort()
+}
+
+const acquireDedupeLocks = async (tx: any, clickSignature: string, ipAddress: string, userAgent: string) => {
+  const keys = buildDedupeLockKeys(clickSignature, ipAddress, userAgent)
+  for (const key of keys) {
+    await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${key}))`
+  }
 }
 
 const selectGroupOffer = async (
@@ -73,7 +119,7 @@ export async function GET(
     const { slug } = await params
     const headers = request.headers
     const userAgent = headers.get('user-agent') || ''
-    const ip = headers.get('cf-connecting-ip') || headers.get('true-client-ip') || headers.get('x-real-ip') || headers.get('x-forwarded-for') || 'unknown'
+    const ip = getClientIp(headers)
     const referrer = headers.get('referer') || headers.get('referrer') || ''
     const origin = headers.get('origin') || ''
     const visitorProfile = parseVisitorProfile(userAgent)
@@ -98,43 +144,7 @@ export async function GET(
       deviceType: visitorProfile.deviceType,
     })
 
-    const mostRecentClick = await prisma.click.findFirst({
-      where: {
-        linkAccountId: link.id,
-        OR: [
-          { clickSignature: clickFingerprint },
-          { ipAddress: ip },
-          { userAgent },
-        ],
-      },
-      orderBy: {
-        createdAt: 'desc',
-      },
-      select: {
-        createdAt: true,
-        clickSignature: true,
-        ipAddress: true,
-        userAgent: true,
-      },
-    })
-
-    const now = new Date()
-    const isDuplicate = mostRecentClick
-      ? isDuplicateClickEvent(
-          new Date(mostRecentClick.createdAt),
-          now,
-          {
-            clickSignature: clickFingerprint,
-            ipAddress: ip,
-            userAgent,
-            lastClickSignature: mostRecentClick.clickSignature,
-            lastIpAddress: mostRecentClick.ipAddress,
-            lastUserAgent: mostRecentClick.userAgent,
-          },
-          CLICK_DEDUPE_WINDOW_MS,
-        )
-      : false
-    const isUnique = !isDuplicate
+    const dedupeWindowMs = getClickDedupeWindowMs()
 
     const botService = new BotDetectionService()
     
@@ -151,43 +161,38 @@ export async function GET(
     const botResult = await botService.detect(userAgent, ip, headersObj)
 
     if (botResult.isBot) {
-      await prisma.click.create({
-        data: {
-          linkAccountId: link.id,
-          clickSignature: clickFingerprint,
-          ipAddress: ip,
-          userAgent: userAgent,
-          referrer: referrer || '',
-          browser: visitorProfile.browser,
-          browserVersion: visitorProfile.browserVersion,
-          os: visitorProfile.os,
-          deviceType: visitorProfile.deviceType,
-          deviceBrand: visitorProfile.deviceBrand,
-          isBot: true,
-          botScore: botResult.score,
-          botReason: botResult.reasons.join(', '),
-        },
+      await prisma.$transaction(async (tx) => {
+        await tx.click.create({
+          data: {
+            linkAccountId: link.id,
+            clickSignature: clickFingerprint,
+            ipAddress: ip,
+            userAgent: userAgent,
+            referrer: referrer || '',
+            browser: visitorProfile.browser,
+            browserVersion: visitorProfile.browserVersion,
+            os: visitorProfile.os,
+            deviceType: visitorProfile.deviceType,
+            deviceBrand: visitorProfile.deviceBrand,
+            isBot: true,
+            botScore: botResult.score,
+            botReason: botResult.reasons.join(', '),
+          },
+        })
+
+        await tx.linkAccount.update({
+          where: { id: link.id },
+          data: { botClicks: { increment: 1 } },
+        })
       })
 
-      await prisma.linkAccount.update({
-        where: { id: link.id },
-        data: { botClicks: { increment: 1 } },
-      })
-
-      // Use environment variable for safe redirect URL, fallback to homepage
-      const safeRedirectUrl = process.env.BOT_SAFE_REDIRECT_URL || 'https://www.google.com'
-      
+      const safeRedirectUrl = process.env.BOT_SAFE_REDIRECT_URL || BOT_FALLBACK_URL
       console.log(`[BOT BLOCKED] Slug: ${slug}, IP: ${ip}, Reason: ${botResult.reasons.join(' | ')}, Score: ${botResult.score}, Confidence: ${botResult.confidence}`)
-      
-      const response = NextResponse.redirect(safeRedirectUrl, { status: 307 })
-      response.headers.set('Referrer-Policy', 'no-referrer')
+
+      const response = buildRedirectResponse(safeRedirectUrl, origin, 307)
       response.headers.set('X-Bot-Detection-Score', botResult.score.toString())
       response.headers.set('X-Bot-Detection-Reason', botResult.reasons.join('; '))
       response.headers.set('X-Bot-Confidence', botResult.confidence)
-      if (origin) {
-        response.headers.set('Access-Control-Allow-Origin', origin)
-        response.headers.set('Access-Control-Allow-Credentials', 'true')
-      }
       return response
     }
 
@@ -257,21 +262,17 @@ export async function GET(
       return response
     }
 
-    // Acquire an advisory lock per link to avoid race conditions that create duplicate
-    // click rows when multiple near-simultaneous requests happen. Then re-check for
-    // duplicates inside the same transaction/window and only create when appropriate.
-    await prisma.$executeRawUnsafe(`SELECT pg_advisory_xact_lock(hashtext('${link.id}'))`)
+    await acquireDedupeLocks(prisma, clickFingerprint, ip, userAgent)
 
     const mostRecentClickAfterLock = await prisma.click.findFirst({
       where: {
-        linkAccountId: link.id,
         OR: [
           { clickSignature: clickFingerprint },
-          { ipAddress: ip },
-          { userAgent },
+          ...(ip && ip !== 'unknown' ? [{ ipAddress: ip }] : []),
+          ...(userAgent ? [{ userAgent }] : []),
         ],
         createdAt: {
-          gte: new Date(Date.now() - CLICK_DEDUPE_WINDOW_MS),
+          gte: new Date(Date.now() - dedupeWindowMs),
         },
       },
       orderBy: { createdAt: 'desc' },
@@ -290,56 +291,44 @@ export async function GET(
             lastIpAddress: mostRecentClickAfterLock.ipAddress,
             lastUserAgent: mostRecentClickAfterLock.userAgent,
           },
-          CLICK_DEDUPE_WINDOW_MS,
+          dedupeWindowMs,
         )
       : false
 
-    if (!isDuplicateAfterLock) {
-      await prisma.click.create({
-        data: {
-          linkAccountId: link.id,
-          clickSignature: clickFingerprint,
-          ipAddress: ip,
-          userAgent: userAgent,
-          country: country || null,
-          region: geo?.region || null,
-          city: geo?.city || null,
-          isp: geo?.isp || null,
-          browser: visitorProfile.browser,
-          browserVersion: visitorProfile.browserVersion,
-          os: visitorProfile.os,
-          deviceType: visitorProfile.deviceType,
-          deviceBrand: visitorProfile.deviceBrand,
-          referrer: referrer || null,
-          isUnique,
-          isBot: false,
-        },
-      })
+    await prisma.click.create({
+      data: {
+        linkAccountId: link.id,
+        clickSignature: clickFingerprint,
+        ipAddress: ip,
+        userAgent: userAgent,
+        country: country || null,
+        region: geo?.region || null,
+        city: geo?.city || null,
+        isp: geo?.isp || null,
+        browser: visitorProfile.browser,
+        browserVersion: visitorProfile.browserVersion,
+        os: visitorProfile.os,
+        deviceType: visitorProfile.deviceType,
+        deviceBrand: visitorProfile.deviceBrand,
+        referrer: referrer || null,
+        isUnique: !isDuplicateAfterLock,
+        isBot: false,
+      },
+    })
 
-      await prisma.linkAccount.update({
-        where: { id: link.id },
-        data: {
-          totalClicks: { increment: 1 },
-          ...(isUnique ? { uniqueClicks: { increment: 1 } } : {}),
-        },
-      })
-    } else {
-      // Duplicate detected after acquiring lock; skip inserting a second click record.
-      console.debug('Duplicate click suppressed for link', link.id)
+    await prisma.linkAccount.update({
+      where: { id: link.id },
+      data: {
+        totalClicks: { increment: 1 },
+        ...(!isDuplicateAfterLock ? { uniqueClicks: { increment: 1 } } : {}),
+      },
+    })
+
+    if (isDuplicateAfterLock) {
+      console.debug('Duplicate click detected and stored for link', link.id)
     }
 
-    const response = NextResponse.redirect(finalUrl, { status: 302 })
-
-    if (origin) {
-      response.headers.set('Access-Control-Allow-Origin', origin)
-      response.headers.set('Access-Control-Allow-Credentials', 'true')
-    }
-
-    response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin')
-    response.headers.set('X-Content-Type-Options', 'nosniff')
-    response.headers.set('X-Frame-Options', 'DENY')
-
-    return response
+    return buildRedirectResponse(finalUrl, origin, 302)
   } catch (error) {
     console.error('Redirect error:', error)
     return new NextResponse('Redirect failed', { status: 500 })

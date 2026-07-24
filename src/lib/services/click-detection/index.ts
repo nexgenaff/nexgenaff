@@ -18,6 +18,26 @@ export interface DuplicateClickContext {
 
 export const CLICK_DEDUPE_WINDOW_MS = 10 * 60 * 1000
 
+export function getClickDedupeWindowMs(): number {
+  const minutesEnv = process.env.CLICK_DEDUPE_WINDOW_MINUTES || process.env.DUPLICATE_DEDUPE_WINDOW_MINUTES
+  if (minutesEnv) {
+    const minutes = Number(minutesEnv)
+    if (Number.isFinite(minutes) && minutes > 0) {
+      return minutes * 60 * 1000
+    }
+  }
+
+  const msEnv = process.env.CLICK_DEDUPE_WINDOW_MS
+  if (msEnv) {
+    const ms = Number(msEnv)
+    if (Number.isFinite(ms) && ms > 0) {
+      return ms
+    }
+  }
+
+  return CLICK_DEDUPE_WINDOW_MS
+}
+
 export function buildClickFingerprint({
   linkId,
   ipAddress,
@@ -49,6 +69,11 @@ export function isDuplicateVisit(lastSeenAt: Date, now: Date, windowMs = CLICK_D
 
 const normalizeMatchValue = (value?: string | null) => (value || '').trim().replace(/\s+/g, ' ').toLowerCase()
 
+const hasMeaningfulMatchValue = (value?: string | null) => {
+  const normalized = normalizeMatchValue(value)
+  return normalized !== '' && normalized !== 'unknown'
+}
+
 export function isDuplicateClickEvent(
   lastSeenAt: Date,
   now: Date,
@@ -66,14 +91,14 @@ export function isDuplicateClickEvent(
   )
 
   const sameIpAddress = Boolean(
-    context.ipAddress &&
-      context.lastIpAddress &&
+    hasMeaningfulMatchValue(context.ipAddress) &&
+      hasMeaningfulMatchValue(context.lastIpAddress) &&
       normalizeMatchValue(context.ipAddress) === normalizeMatchValue(context.lastIpAddress),
   )
 
   const sameUserAgent = Boolean(
-    context.userAgent &&
-      context.lastUserAgent &&
+    hasMeaningfulMatchValue(context.userAgent) &&
+      hasMeaningfulMatchValue(context.lastUserAgent) &&
       normalizeMatchValue(context.userAgent) === normalizeMatchValue(context.lastUserAgent),
   )
 
