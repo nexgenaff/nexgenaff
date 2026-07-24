@@ -68,6 +68,13 @@ interface DashboardStats {
   };
 }
 
+interface FilterParams {
+  startDate?: string;
+  endDate?: string;
+  granularity?: string;
+  clickType?: string;
+}
+
 // Animation variants
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -137,17 +144,17 @@ export default function AnalyticsPage() {
   }, []);
 
   const fetchStats = useCallback(
-    async (showRefreshing = false, filterParams = {}) => {
+    async (showRefreshing = false, filterParams: Partial<FilterParams> = {}) => {
       if (showRefreshing) setRefreshing(true);
       else setLoading(true);
 
       try {
         const params = new URLSearchParams();
-        if (filterParams.startDate) params.append("startDate", filterParams.startDate);
-        if (filterParams.endDate) params.append("endDate", filterParams.endDate);
-        if (filterParams.granularity) params.append("granularity", filterParams.granularity);
+        if (filterParams.startDate) params.append("startDate", filterParams.startDate as string);
+        if (filterParams.endDate) params.append("endDate", filterParams.endDate as string);
+        if (filterParams.granularity) params.append("granularity", filterParams.granularity as string);
         if (filterParams.clickType && filterParams.clickType !== "all") {
-          params.append("clickType", filterParams.clickType);
+          params.append("clickType", filterParams.clickType as string);
         }
 
         const url = `/api/analytics/dashboard${params.toString() ? `?${params.toString()}` : ""}`;
