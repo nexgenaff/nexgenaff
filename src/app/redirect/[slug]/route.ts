@@ -9,6 +9,20 @@ import { parseVisitorProfile } from '@/lib/utils/visitor-profile'
 const normalizeGroupName = (value?: string | null) => value?.trim() ?? ''
 const BOT_FALLBACK_URL = process.env.BOT_FALLBACK_URL || 'https://weebly.pro'
 
+type Offer = {
+  id: string
+  priority: number
+  rotationMode: string
+  offerUrl: string
+  country: string
+  isGlobal: boolean
+  isContentLocker: boolean
+  isActive: boolean
+  usaSecretRedirectEnabled: boolean
+  createdAt: Date
+  groupName: string | null
+}
+
 const getClientIp = (headers: Headers): string => {
   return (
     headers.get('cf-connecting-ip') ||
@@ -36,7 +50,7 @@ const buildRedirectResponse = (
   return response
 }
 
-const selectRotatingOffer = (offers: Array<{ id: string; priority: number; rotationMode: string; offerUrl: string; country: string; isGlobal: boolean; isActive: boolean; usaSecretRedirectEnabled: boolean; createdAt: Date; groupName: string | null }>) => {
+const selectRotatingOffer = (offers: Offer[]) => {
   if (!offers.length) return null
   if (offers.length === 1) return offers[0]
 
@@ -201,7 +215,7 @@ export async function GET(
     const geo = await getGeoLocation(ip, headers)
     const country = (geo?.country_code || '').toUpperCase()
 
-    let offer = null
+    let offer: Offer | null = null
 
     if (link.offerGroupName) {
       offer = await selectGroupOffer(link.userId, country, link.offerGroupName)
