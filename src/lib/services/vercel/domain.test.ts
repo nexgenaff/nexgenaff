@@ -21,13 +21,13 @@ test('prefers Vercel project id when configured', () => {
 test('builds the add-domain API URL with optional team query', () => {
   const url = buildVercelDomainUrl('proj_123', 'fast.prizenest.xyz', 'team_456')
 
-  assert.equal(url, 'https://api.vercel.com/v9/projects/proj_123/domains?teamId=team_456')
+  assert.equal(url, 'https://api.vercel.com/v10/projects/proj_123/domains?teamId=team_456')
 })
 
 test('builds the verify-domain API URL with optional team query', () => {
   const url = buildVercelVerifyDomainUrl('proj_123', 'fast.prizenest.xyz', 'team_456')
 
-  assert.equal(url, 'https://api.vercel.com/v9/projects/proj_123/domains/fast.prizenest.xyz/verify?teamId=team_456')
+  assert.equal(url, 'https://api.vercel.com/v10/projects/proj_123/domains/fast.prizenest.xyz/verify?teamId=team_456')
 })
 
 test('builds bearer auth headers for Vercel API calls', () => {
@@ -75,6 +75,27 @@ test('preserves the real hostname for subdomain ownership checks and surfaces th
 
   if (!instructions) {
     throw new Error('Expected Vercel instructions to be generated for the linked-domain scenario')
+  }
+
+  assert.deepEqual(instructions.cname, [
+    { host: 'go', value: 'cb1bb6704c9efb4a.vercel-dns-017.com.' },
+  ])
+  assert.deepEqual(instructions.txt, [
+    { host: '_vercel', value: 'vc-domain-verify=go.prizenest.xyz,d9d58134cc78338ae99b' },
+  ])
+})
+
+test('uses Vercel response name field when domain field is absent', () => {
+  const instructions = buildVerificationInstructionsFromVercelRecords(
+    [
+      { type: 'CNAME', name: 'go.prizenest.xyz', value: 'cb1bb6704c9efb4a.vercel-dns-017.com.' },
+      { type: 'TXT', name: '_vercel.prizenest.xyz', value: 'vc-domain-verify=go.prizenest.xyz,d9d58134cc78338ae99b' },
+    ] as any,
+    'go.prizenest.xyz'
+  )
+
+  if (!instructions) {
+    throw new Error('Expected Vercel instructions to be generated from name field')
   }
 
   assert.deepEqual(instructions.cname, [

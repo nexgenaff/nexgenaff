@@ -27,13 +27,13 @@ export function getVercelApiToken(options: VercelDomainOptions): string {
 }
 
 export function buildVercelDomainUrl(projectReference: string, domain: string, teamId?: string): string {
-  const url = new URL(`https://api.vercel.com/v9/projects/${projectReference}/domains`)
+  const url = new URL(`https://api.vercel.com/v10/projects/${projectReference}/domains`)
   if (teamId) url.searchParams.set('teamId', teamId)
   return url.toString()
 }
 
 export function buildVercelVerifyDomainUrl(projectReference: string, domain: string, teamId?: string): string {
-  const url = new URL(`https://api.vercel.com/v9/projects/${projectReference}/domains/${encodeURIComponent(domain)}/verify`)
+  const url = new URL(`https://api.vercel.com/v10/projects/${projectReference}/domains/${encodeURIComponent(domain)}/verify`)
   if (teamId) url.searchParams.set('teamId', teamId)
   return url.toString()
 }
@@ -109,7 +109,12 @@ export function buildVerificationInstructionsFromVercelRecords(
   for (const record of verification) {
     const type = String(record.type || '').toUpperCase()
     const value = String(record.value || '').trim()
-    const recordDomain = typeof record.domain === 'string' ? record.domain : ''
+    const recordDomain =
+      typeof record.domain === 'string' && record.domain
+        ? record.domain
+        : typeof (record as any).name === 'string' && (record as any).name
+        ? (record as any).name
+        : ''
 
     if (!value || !recordDomain) {
       continue
