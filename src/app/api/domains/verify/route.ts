@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
 import { getUserFromToken, getTokenFromCookie } from '@/lib/auth';
 import { verifyDomain } from '@/lib/services/dns/verify';
-import { buildVerificationInstructionsFromVercelRecords, verifyDomainOnVercel } from '@/lib/services/vercel/domain';
+import { buildVerificationInstructionsFromVercelRecords, isDomainVerified, verifyDomainOnVercel } from '@/lib/services/vercel/domain';
 import { getCorsHeaders } from '@/config/cors';
 import { z } from 'zod';
 
@@ -72,7 +72,11 @@ export async function POST(request: Request) {
         })
       : null;
 
-    const isVerified = dnsVerification.verified && Boolean(vercelVerification?.verified);
+    const isVerified = isDomainVerified(
+      dnsVerification,
+      vercelVerification,
+      Boolean(domain.verified)
+    );
 
     // ─── Update domain status if verified ───
     if (isVerified) {

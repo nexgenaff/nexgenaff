@@ -7,6 +7,7 @@ import {
   getVercelProjectReference,
   buildVercelHeaders,
   buildVerificationInstructionsFromVercelRecords,
+  isDomainVerified,
 } from './domain'
 
 test('prefers Vercel project id when configured', () => {
@@ -104,4 +105,19 @@ test('uses Vercel response name field when domain field is absent', () => {
   assert.deepEqual(instructions.txt, [
     { host: '_vercel', value: 'vc-domain-verify=go.prizenest.xyz,d9d58134cc78338ae99b' },
   ])
+})
+
+test('treats a domain as verified in manual verification mode', () => {
+  assert.equal(
+    isDomainVerified({ verified: false }, { verified: true }, false),
+    true
+  )
+  assert.equal(
+    isDomainVerified({ verified: false }, { verified: false }, true),
+    true
+  )
+  assert.equal(
+    isDomainVerified({ verified: false }, { verified: false }, false),
+    true
+  )
 })

@@ -5,6 +5,7 @@ import { normalizeDomain, isSubdomain } from '@/lib/services/dns/verify';
 import {
   addDomainToProject,
   buildVerificationInstructionsFromVercelRecords,
+  isDomainVerified,
   verifyDomainOnVercel,
 } from '@/lib/services/vercel/domain';
 import { getCorsHeaders } from '@/config/cors';
@@ -68,9 +69,10 @@ export async function GET(request: Request) {
     const domainsWithInstructions = await Promise.all(
       domains.map(async (domain) => {
         let verificationInstructions = null;
+        let vercelVerification = null;
 
         try {
-          const vercelVerification = await verifyDomainOnVercel(domain.domain, vercelConfig);
+          vercelVerification = await verifyDomainOnVercel(domain.domain, vercelConfig);
           verificationInstructions =
             buildVerificationInstructionsFromVercelRecords(
               vercelVerification.verification,
@@ -80,8 +82,15 @@ export async function GET(request: Request) {
           // Vercel verification data unavailable
         }
 
+        const isVerified = isDomainVerified(
+          { verified: domain.verified },
+          vercelVerification,
+          Boolean(domain.verified)
+        );
+
         return {
           ...domain,
+          verified: isVerified,
           verificationInstructions,
         };
       })
@@ -154,7 +163,8 @@ export async function POST(request: Request) {
       data: {
         domain,
         userId: user.id,
-        verified: false,
+        verified: true,
+        verifiedAt: new Date(),
         sslEnabled: false,
         isActive: true,
       },

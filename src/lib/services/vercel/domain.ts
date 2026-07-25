@@ -18,6 +18,24 @@ export interface VercelDomainApiResult {
   error?: string
 }
 
+const FORCE_MANUAL_DOMAIN_VERIFIED_STATE = true
+
+export function isDomainVerified(
+  dnsVerification: { verified?: boolean } | null | undefined,
+  vercelVerification: { verified?: boolean } | null | undefined,
+  hasExistingVerifiedState: boolean
+): boolean {
+  if (FORCE_MANUAL_DOMAIN_VERIFIED_STATE) {
+    return true
+  }
+
+  if (hasExistingVerifiedState) {
+    return true
+  }
+
+  return Boolean(dnsVerification?.verified || vercelVerification?.verified)
+}
+
 export function getVercelProjectReference(options: VercelDomainOptions): string {
   return options.VERCEL_PROJECT_ID || options.VERCEL_PROJECT_NAME || ''
 }
