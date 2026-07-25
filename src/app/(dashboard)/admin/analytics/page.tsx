@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useCallback, useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -7,7 +8,6 @@ import { motion } from "framer-motion";
 import {
   FileDown,
   RefreshCw,
-  Zap,
   Clock,
   Calendar,
   Filter,
@@ -371,9 +371,17 @@ export default function AnalyticsPage() {
             <div className="flex items-center gap-4">
               <motion.div
                 whileHover={{ rotate: [0, -10, 10, -5, 5, 0] }}
-                className="p-2.5 rounded-xl bg-gradient-to-br from-indigo-500/20 to-purple-500/20"
+                className="rounded-xl bg-gradient-to-br from-indigo-500/20 to-purple-500/20"
               >
-                <Zap className="w-6 h-6 text-indigo-400" />
+                <div className="relative h-10 w-10 overflow-hidden rounded-lg">
+                  <Image
+                    src="/favicon.png"
+                    alt="NexGen Affiliates logo"
+                    fill
+                    className="object-cover"
+                    priority
+                  />
+                </div>
               </motion.div>
               <div>
                 <h1 className="text-xl md:text-2xl font-bold bg-gradient-to-r from-white via-slate-200 to-slate-300 bg-clip-text text-transparent">

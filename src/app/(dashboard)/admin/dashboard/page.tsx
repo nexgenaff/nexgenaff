@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -10,7 +11,6 @@ import { TrafficBreakdown } from "@/components/dashboard/TrafficBreakdown";
 import {
   RefreshCw,
   Plus,
-  Zap,
   Clock,
   Calendar,
   ChevronDown,
@@ -248,8 +248,16 @@ export default function DashboardPage() {
         >
           <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
             <div className="flex items-center gap-4">
-              <div className="p-2.5 rounded-xl bg-gradient-to-br from-indigo-500/20 to-purple-500/20">
-                <Zap className="w-6 h-6 text-indigo-400" />
+              <div className="rounded-xl bg-gradient-to-br from-indigo-500/20 to-purple-500/20">
+                <div className="relative h-10 w-10 overflow-hidden rounded-lg">
+                  <Image
+                    src="/favicon.png"
+                    alt="NexGen Affiliates logo"
+                    fill
+                    className="object-cover"
+                    priority
+                  />
+                </div>
               </div>
               <div>
                 <h1 className="text-xl md:text-2xl font-bold text-white">

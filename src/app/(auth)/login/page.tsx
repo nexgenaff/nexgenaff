@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -11,7 +12,6 @@ import {
   AlertCircle,
   Rocket,
   ArrowRight,
-  Zap,
 } from "lucide-react";
 
 export default function LoginPage() {
@@ -167,7 +167,14 @@ export default function LoginPage() {
                   }}
                   transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
                 >
-                  <Zap className="w-8 h-8 text-indigo-400" />
+                  <Image
+                    src="/favicon.png"
+                    alt="NexGen Affiliates logo"
+                    width={32}
+                    height={32}
+                    className="h-8 w-8 rounded-lg object-cover"
+                    priority
+                  />
                 </motion.div>
                 <span className="bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
                   Nexgen

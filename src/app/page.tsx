@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import {
@@ -14,7 +15,6 @@ import {
   Linkedin,
   Github,
   MessageCircle,
-  Zap,
   Award,
   TrendingUp,
   Clock,
@@ -132,7 +132,15 @@ const Header = () => (
   >
     <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
       <Link href="/" className="flex items-center gap-2 font-bold text-lg md:text-xl text-white">
-        <Zap className="w-5 h-5 md:w-6 md:h-6 text-indigo-400" aria-hidden="true" />
+        <div className="relative w-5 h-5 md:w-6 md:h-6 overflow-hidden rounded-lg">
+          <Image
+            src="/favicon.png"
+            alt="NexGen Affiliates logo"
+            fill
+            className="object-cover"
+            priority
+          />
+        </div>
         <span>Nexgen Affiliates</span>
       </Link>
       <div className="hidden md:flex items-center gap-6 lg:gap-8 text-sm text-slate-300">
@@ -644,7 +652,14 @@ export default function HomePage() {
             <div className="flex flex-col md:flex-row items-center justify-between gap-4 md:gap-6">
               <div className="flex items-center gap-2 md:gap-3">
                 <div className="p-1.5 md:p-2 rounded-lg bg-gradient-to-br from-indigo-500 to-pink-500">
-                  <Zap className="w-4 h-4 md:w-5 md:h-5 text-white" aria-hidden="true" />
+                  <Image
+                    src="/favicon.png"
+                    alt="Nexgen Affiliates logo"
+                    width={20}
+                    height={20}
+                    className="w-4 h-4 md:w-5 md:h-5 rounded-lg object-cover"
+                    priority
+                  />
                 </div>
                 <span className="text-sm md:text-base font-bold text-white">© 2026 Nexgen Affiliates</span>
               </div>

@@ -16,8 +16,8 @@ export const metadata: Metadata = {
   keywords: 'affiliate tracking, click fraud detection, link management, traffic quality, campaign routing, CPA platform',
   authors: [{ name: 'NexGen Affiliates' }],
   icons: {
-    icon: '/logo.svg',
-    apple: '/logo.svg',
+    icon: '/favicon.png',
+    apple: '/favicon.png',
   },
   openGraph: {
     title: 'NexGen Affiliates | Professional Routing Infrastructure',
@@ -26,11 +26,11 @@ export const metadata: Metadata = {
     url: 'https://nexgenaffiliates.vercel.app',
     images: [
       {
-        url: 'https://nexgenaffiliates.vercel.app/og-image.png',
-        secureUrl: 'https://nexgenaffiliates.vercel.app/og-image.png',
-        width: 1200,
-        height: 630,
-        alt: 'NexGen Affiliates social preview',
+        url: 'https://nexgenaffiliates.vercel.app/favicon.png',
+        secureUrl: 'https://nexgenaffiliates.vercel.app/favicon.png',
+        width: 256,
+        height: 256,
+        alt: 'NexGen Affiliates logo',
         type: 'image/png',
       },
     ],
@@ -39,7 +39,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'NexGen Affiliates | Professional Routing Infrastructure',
     description: 'Secure, auditable affiliate routing and traffic control for teams that need precision, clarity, and dependable execution.',
-    images: ['https://nexgenaffiliates.vercel.app/og-image.png'],
+    images: ['https://nexgenaffiliates.vercel.app/favicon.png'],
     site: '@nexgenaffiliates',
   },
 }
