@@ -121,9 +121,9 @@ export async function PUT(
         )
       }
 
-      if (!attachedDomain.verified || !attachedDomain.isActive) {
+      if (!attachedDomain.isActive) {
         return NextResponse.json(
-          { error: 'Only verified and active custom domains can be attached to a link' },
+          { error: 'Only active custom domains can be attached to a link' },
           { status: 400, headers: getCorsHeaders(origin) }
         )
       }
