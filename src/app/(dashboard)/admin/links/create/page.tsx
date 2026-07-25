@@ -6,8 +6,6 @@ import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowLeft,
-  Plus,
-  Link2,
   Sparkles,
   CheckCircle2,
   Copy,
@@ -199,6 +197,7 @@ const CustomDropdown = ({
                 filteredOptions.map((opt, idx) => (
                   <motion.button
                     key={opt.value}
+                    type="button"   // ✅ FIX: prevent form submission
                     initial={{ opacity: 0, y: 4 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: idx * 0.025 }}
@@ -296,7 +295,7 @@ const CopyButton = ({
     try {
       await navigator.clipboard.writeText(text);
       setCopied(true);
-      onCopy();
+      onCopy(); // ✅ Now actually calls the parent callback
       setTimeout(() => setCopied(false), 2000);
     } catch (error) {
       console.error("Failed to copy:", error);
@@ -468,7 +467,7 @@ export default function CreateLinkPage() {
     })),
   ];
 
-  const hasActiveFilters = customDomainId || offerGroupName;
+  const hasCustomizations = customDomainId || offerGroupName;
 
   return (
     <div className="min-h-screen bg-[#05070b] text-white overflow-x-hidden">
@@ -539,7 +538,7 @@ export default function CreateLinkPage() {
               <span className="text-[10px] font-semibold uppercase tracking-[0.25em] text-indigo-300/80">
                 Campaign Builder
               </span>
-              {hasActiveFilters && (
+              {hasCustomizations && (
                 <span className="ml-auto text-[10px] text-emerald-400 flex items-center gap-1.5">
                   <span className="w-1 h-1 rounded-full bg-emerald-400" />
                   Customized
@@ -624,7 +623,7 @@ export default function CreateLinkPage() {
                 className="rounded-xl border border-indigo-500/15 bg-gradient-to-br from-indigo-500/5 to-purple-500/5 p-4 mt-2"
               >
                 <div className="flex items-center gap-2 text-xs font-medium text-slate-400 uppercase tracking-wider mb-2.5">
-                  <Link2 className="w-3.5 h-3.5 text-indigo-300" />
+                  <Globe className="w-3.5 h-3.5 text-indigo-300" />
                   <span>Preview</span>
                 </div>
                 <div className="rounded-xl border border-white/10 bg-slate-900/60 px-4 py-3 font-mono text-sm text-indigo-300/90 break-all">
