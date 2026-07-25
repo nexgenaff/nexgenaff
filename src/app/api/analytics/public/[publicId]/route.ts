@@ -4,6 +4,12 @@ import { getCorsHeaders } from '@/config/cors';
 
 // ========== HELPERS ==========
 
+const getRangeDays = (range: string = '7d'): number => {
+  if (range === '30d') return 30;
+  if (range === '90d') return 90;
+  return 7;
+};
+
 const getTrendDays = (days: number = 7): Array<{ key: string; label: string }> => {
   const result: Array<{ key: string; label: string }> = [];
   const today = new Date();
@@ -45,7 +51,9 @@ const buildWhereClause = (
   linkAccountId: string,
   search?: string,
   country?: string,
-  unique?: string
+  unique?: string,
+  referrer?: string,
+  range: string = '7d'
 ) => {
   const baseWhere: any = { linkAccountId };
 
@@ -67,10 +75,34 @@ const buildWhereClause = (
     baseWhere.country = country;
   }
 
-  if (unique === 'true') {
+  if (unique === 'true' || unique === 'unique') {
     baseWhere.isUnique = true;
-  } else if (unique === 'false') {
+  } else if (unique === 'false' || unique === 'repeat') {
     baseWhere.isUnique = false;
+  }
+
+  if (referrer === 'direct') {
+    baseWhere.AND = [
+      {
+        OR: [
+          { referrer: null },
+          { referrer: '' },
+        ],
+      },
+    ];
+  } else if (referrer === 'referrer') {
+    baseWhere.AND = [
+      { referrer: { not: null } },
+      { referrer: { not: '' } },
+    ];
+  }
+
+  const days = getRangeDays(range);
+  if (days > 0) {
+    const from = new Date();
+    from.setHours(0, 0, 0, 0);
+    from.setDate(from.getDate() - (days - 1));
+    baseWhere.createdAt = { gte: from };
   }
 
   return baseWhere;
@@ -105,8 +137,10 @@ export async function GET(
     const search = url.searchParams.get('search') || '';
     const country = url.searchParams.get('country') || '';
     const unique = url.searchParams.get('unique') || '';
+    const referrer = url.searchParams.get('referrer') || '';
+    const range = url.searchParams.get('range') || '7d';
 
-    const baseWhere = buildWhereClause(dashboard.linkAccountId, search, country, unique);
+    const baseWhere = buildWhereClause(dashboard.linkAccountId, search, country, unique, referrer, range);
 
     const visibleWhere = { ...baseWhere, isBot: false };
     const botWhere = { ...baseWhere, isBot: true };
@@ -146,7 +180,7 @@ export async function GET(
     });
 
     // Build trend data
-    const trendDays = getTrendDays(7);
+    const trendDays = getTrendDays(getRangeDays(range));
     const trendRows = await prisma.click.findMany({
       where: visibleWhere,
       orderBy: { createdAt: 'asc' },

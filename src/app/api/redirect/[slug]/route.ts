@@ -281,6 +281,7 @@ export async function GET(
       // ── 6a. Re‑check duplicate under lock ──
       const existing = await tx.click.findFirst({
         where: {
+          linkAccountId: link.id,
           OR: [
             { clickSignature: clickFingerprint },
             ...(ip && ip !== 'unknown' ? [{ ipAddress: ip }] : []),

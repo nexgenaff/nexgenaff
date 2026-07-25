@@ -268,6 +268,7 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
   const [filterUnique, setFilterUnique] = useState<'all' | 'unique' | 'repeat'>('all')
   const [filterReferrer, setFilterReferrer] = useState<'all' | 'direct' | 'referrer'>('all')
   const [timeRange, setTimeRange] = useState<'7d' | '30d' | '90d'>('7d')
+  const [refreshKey, setRefreshKey] = useState(0)
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [isCountryDropdownOpen, setIsCountryDropdownOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
@@ -290,7 +291,7 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
       try {
         setIsRefreshing(true)
         const response = await fetch(
-          `/api/analytics/public/${publicId}?search=${encodeURIComponent(search)}&country=${encodeURIComponent(filterCountry)}&range=${timeRange}&limit=10000`,
+          `/api/analytics/public/${publicId}?search=${encodeURIComponent(search)}&country=${encodeURIComponent(filterCountry)}&unique=${encodeURIComponent(filterUnique)}&referrer=${encodeURIComponent(filterReferrer)}&range=${timeRange}&limit=10000`,
           { signal: abortController.signal }
         )
         if (!response.ok) throw new Error('Dashboard not found')
@@ -310,7 +311,7 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
 
     fetchStats()
     return () => abortController.abort()
-  }, [publicId, search, filterCountry, timeRange])
+  }, [publicId, search, filterCountry, filterUnique, filterReferrer, timeRange, refreshKey])
 
   const getDeviceIcon = useCallback((deviceType: string | null, deviceBrand: string | null) => {
     if (!deviceType) return Monitor
@@ -358,44 +359,7 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
     return Array.from(map.values())
   }, [stats?.clicks])
 
-  // Smart filtering using deduplicated clicks
-  const filteredClicks = useMemo(() => {
-    if (!dedupedClicks.length) return []
-    
-    let result = dedupedClicks
-    
-    if (search) {
-      const searchLower = search.toLowerCase()
-      result = result.filter(click => 
-        click.ipAddress?.toLowerCase().includes(searchLower) ||
-        click.country?.toLowerCase().includes(searchLower) ||
-        click.city?.toLowerCase().includes(searchLower) ||
-        click.browser?.toLowerCase().includes(searchLower) ||
-        click.os?.toLowerCase().includes(searchLower) ||
-        click.deviceType?.toLowerCase().includes(searchLower) ||
-        click.referrer?.toLowerCase().includes(searchLower)
-      )
-    }
-    
-    if (filterCountry) {
-      result = result.filter(click => click.country === filterCountry)
-    }
-    
-    if (filterUnique === 'unique') {
-      result = result.filter(click => click.isUnique === true)
-      result = result.filter(click => click.referrer !== null && click.referrer !== '')
-    } else if (filterUnique === 'repeat') {
-      result = result.filter(click => click.isUnique === false)
-    }
-    
-    if (filterReferrer === 'direct') {
-      result = result.filter(click => !click.referrer || click.referrer === '')
-    } else if (filterReferrer === 'referrer') {
-      result = result.filter(click => click.referrer && click.referrer !== '')
-    }
-    
-    return result
-  }, [dedupedClicks, search, filterCountry, filterUnique, filterReferrer])
+  const filteredClicks = useMemo(() => dedupedClicks, [dedupedClicks])
 
   // Computed values – use API summary for top-level, deduped for filtered counts
   const countries = useMemo(() => 
@@ -544,9 +508,8 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
               </div>
               <button 
                 onClick={() => {
-                  setTimeRange(timeRange)
+                  setRefreshKey((current) => current + 1)
                   setIsRefreshing(true)
-                  setTimeout(() => setIsRefreshing(false), 500)
                 }}
                 className={`p-1.5 rounded-lg border transition-colors ${
                   isDark ? 'bg-white/5 border-white/10 text-white/40 hover:text-white/70' : 'bg-gray-100 border-gray-200 text-gray-500 hover:text-gray-800'

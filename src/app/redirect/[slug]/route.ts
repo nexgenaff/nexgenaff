@@ -265,8 +265,7 @@ export async function GET(
     await acquireDedupeLocks(prisma, clickFingerprint, ip, userAgent)
 
     const mostRecentClickAfterLock = await prisma.click.findFirst({
-      where: {
-        OR: [
+      where: {        linkAccountId: link.id,        OR: [
           { clickSignature: clickFingerprint },
           ...(ip && ip !== 'unknown' ? [{ ipAddress: ip }] : []),
           ...(userAgent ? [{ userAgent }] : []),
