@@ -96,7 +96,10 @@ const selectGroupOffer = async (
         userId,
         groupName,
         isActive: true,
-        isGlobal: true,
+        OR: [
+          { isGlobal: true },
+          { isContentLocker: true },
+        ],
       },
       orderBy: [
         { priority: 'desc' },
@@ -228,8 +231,11 @@ export async function GET(
       const globalCandidates = await prisma.offerVault.findMany({
         where: {
           userId: link.userId,
-          isGlobal: true,
           isActive: true,
+          OR: [
+            { isGlobal: true },
+            { isContentLocker: true },
+          ],
         },
         orderBy: [
           { priority: 'desc' },
@@ -244,7 +250,9 @@ export async function GET(
       return new NextResponse('No offer found', { status: 404 })
     }
 
-    const finalUrl = buildRedirectTargetUrl(offer.offerUrl, slug)
+    const finalUrl = offer.isContentLocker
+      ? offer.offerUrl
+      : buildRedirectTargetUrl(offer.offerUrl, slug)
 
     const SECRET_MODE_COOKIE = 'usa_secret_mode'
     const isUsaSecretMode = country === 'US' && offer.usaSecretRedirectEnabled === true

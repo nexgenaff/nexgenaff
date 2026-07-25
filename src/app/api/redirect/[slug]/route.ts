@@ -21,6 +21,7 @@ type Offer = {
   offerUrl: string;
   country: string;
   isGlobal: boolean;
+  isContentLocker: boolean;
   isActive: boolean;
   createdAt: Date;
   groupName: string | null;
@@ -70,7 +71,10 @@ const selectGroupOffer = async (
         userId,
         groupName,
         isActive: true,
-        isGlobal: true,
+        OR: [
+          { isGlobal: true },
+          { isContentLocker: true },
+        ],
       },
       orderBy: [{ priority: 'desc' }, { createdAt: 'asc' }],
     });
@@ -117,8 +121,11 @@ const selectOffer = async (
   const globalCandidates = await tx.offerVault.findMany({
     where: {
       userId,
-      isGlobal: true,
       isActive: true,
+      OR: [
+        { isGlobal: true },
+        { isContentLocker: true },
+      ],
     },
     orderBy: [{ priority: 'desc' }, { createdAt: 'asc' }],
   });
@@ -364,7 +371,9 @@ export async function GET(
     });
 
     // ── 7. Build and return redirect response ────────────────────
-    const finalUrl = buildRedirectTargetUrl(result.offer.offerUrl, slug);
+    const finalUrl = result.offer.isContentLocker
+      ? result.offer.offerUrl
+      : buildRedirectTargetUrl(result.offer.offerUrl, slug);
     return buildRedirectResponse(finalUrl, origin, 302);
   } catch (error) {
     console.error('Redirect error:', error);
