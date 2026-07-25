@@ -44,6 +44,7 @@ export interface OfferVault {
   offerUrl: string
   isActive: boolean
   isGlobal: boolean
+  isContentLocker: boolean
   priority: number
   rotationMode: 'PRIORITY' | 'RANDOM'
   userId: string

@@ -68,14 +68,15 @@ export async function POST(request: Request) {
     const groupName = typeof body?.groupName === 'string' ? body.groupName.trim() : ''
     const offerUrl = typeof body?.offerUrl === 'string' ? body.offerUrl.trim() : ''
     const isGlobal = Boolean(body?.isGlobal)
+    const isContentLocker = Boolean(body?.isContentLocker)
     const priorityValue = Number(body?.priority)
     const priority = Number.isFinite(priorityValue)
       ? Math.max(1, Math.min(999, priorityValue))
       : 100
     const rotationMode = body?.rotationMode === 'RANDOM' ? 'RANDOM' : 'PRIORITY'
-    const resolvedCountry = isGlobal ? 'GLOBAL' : country
+    const resolvedCountry = isGlobal || isContentLocker ? 'GLOBAL' : country
 
-    if ((!resolvedCountry && !isGlobal) || !offerUrl) {
+    if ((!resolvedCountry && !isGlobal && !isContentLocker) || !offerUrl) {
       return NextResponse.json(
         { error: 'Country and offer URL required' },
         { status: 400, headers: getCorsHeaders(origin) }
@@ -89,6 +90,7 @@ export async function POST(request: Request) {
           groupName: groupName || null,
           offerUrl,
           isGlobal,
+          isContentLocker,
           isActive: true,
           usaSecretRedirectEnabled: Boolean(body?.usaSecretRedirectEnabled),
           priority,
@@ -117,6 +119,7 @@ export async function POST(request: Request) {
               offerUrl,
               isActive: true,
               isGlobal,
+              isContentLocker,
               priority,
               rotationMode,
               userId: user.id,

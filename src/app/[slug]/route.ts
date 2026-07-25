@@ -401,7 +401,9 @@ export async function GET(
     // ────────────────────────────────────────────────────────────────
     // 7. Build and return redirect response
     // ────────────────────────────────────────────────────────────────
-    const finalUrl = buildRedirectTargetUrl(result.offer.offerUrl, slug);
+    const finalUrl = result.offer.isContentLocker
+      ? result.offer.offerUrl
+      : buildRedirectTargetUrl(result.offer.offerUrl, slug);
     return buildRedirectResponse(finalUrl, origin, 302);
   } catch (error) {
     console.error('Redirect error:', error);

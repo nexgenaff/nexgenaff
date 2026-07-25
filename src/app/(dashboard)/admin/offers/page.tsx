@@ -33,6 +33,7 @@ interface Offer {
   offerUrl: string;
   isActive: boolean;
   isGlobal: boolean;
+  isContentLocker: boolean;
   usaSecretRedirectEnabled: boolean;
   priority: number;
   rotationMode: "PRIORITY" | "RANDOM";
@@ -64,6 +65,7 @@ const normalizeCountryCode = (value?: string | null) => value?.trim().toUpperCas
 const buildGroupKey = (offer: Offer) => {
   const groupName = normalizeGroupName(offer.groupName);
   if (groupName) return groupName;
+  if (offer.isContentLocker) return "CONTENT_LOCKER";
   if (offer.isGlobal) return "GLOBAL";
   const countryCode = normalizeCountryCode(offer.country);
   if (countryCode) return countryCode;
@@ -72,6 +74,7 @@ const buildGroupKey = (offer: Offer) => {
 const getPoolLabel = (groupKey: string, groupOffers: Offer[]) => {
   const namedPool = normalizeGroupName(groupOffers[0]?.groupName);
   if (namedPool) return namedPool;
+  if (groupKey === "CONTENT_LOCKER") return "Content Locker";
   if (groupKey === "GLOBAL") return "Global Smart Link";
   if (groupKey === "UNASSIGNED") return "Unassigned";
   return groupKey;
@@ -80,7 +83,7 @@ const getPoolCountries = (groupOffers: Offer[]) =>
   Array.from(
     new Set(
       groupOffers.map((offer) =>
-        offer.isGlobal ? "GLOBAL SMART LINK" : normalizeCountryCode(offer.country)
+        offer.isContentLocker ? "CONTENT LOCKER" : offer.isGlobal ? "GLOBAL SMART LINK" : normalizeCountryCode(offer.country)
       )
     )
   ).sort((a, b) => a.localeCompare(b));
@@ -337,6 +340,7 @@ export default function OffersPage() {
     groupName: "",
     offerUrl: "",
     isGlobal: false,
+    isContentLocker: false,
     usaSecretRedirectEnabled: false,
     priority: 100,
     rotationMode: "PRIORITY" as "PRIORITY" | "RANDOM",
@@ -482,6 +486,7 @@ export default function OffersPage() {
         groupName: editOffer.groupName ?? "",
         offerUrl: editOffer.offerUrl,
         isGlobal: editOffer.isGlobal,
+        isContentLocker: editOffer.isContentLocker,
         usaSecretRedirectEnabled: editOffer.usaSecretRedirectEnabled ?? false,
         priority: editOffer.priority ?? 100,
         rotationMode: editOffer.rotationMode ?? "PRIORITY",
@@ -493,6 +498,7 @@ export default function OffersPage() {
         groupName,
         offerUrl: "",
         isGlobal: false,
+        isContentLocker: false,
         usaSecretRedirectEnabled: false,
         priority: 100,
         rotationMode: "PRIORITY",
@@ -512,6 +518,7 @@ export default function OffersPage() {
       groupName: "",
       offerUrl: "",
       isGlobal: false,
+      isContentLocker: false,
       usaSecretRedirectEnabled: false,
       priority: 100,
       rotationMode: "PRIORITY",
@@ -619,10 +626,11 @@ export default function OffersPage() {
       const method = editingId ? "PUT" : "POST";
       const priorityVal = Number(formData.priority);
       const payload = {
-        country: formData.isGlobal ? "GLOBAL" : formData.country,
+        country: formData.isGlobal || formData.isContentLocker ? "GLOBAL" : formData.country,
         groupName: formData.groupName.trim(),
         offerUrl: formData.offerUrl.trim(),
         isGlobal: formData.isGlobal,
+        isContentLocker: formData.isContentLocker,
         usaSecretRedirectEnabled: Boolean(formData.usaSecretRedirectEnabled),
         priority: Number.isFinite(priorityVal) ? Math.max(1, Math.min(999, priorityVal)) : 100,
         rotationMode: formData.rotationMode === "RANDOM" ? "RANDOM" : "PRIORITY",
@@ -1034,19 +1042,35 @@ export default function OffersPage() {
                   />
                 </div>
 
-                <div className="flex items-center gap-3 p-3 rounded-lg border border-white/5 bg-white/5">
-                  <input
-                    type="checkbox"
-                    id="usa-secret-modal"
-                    checked={formData.usaSecretRedirectEnabled}
-                    onChange={(e) =>
-                      setFormData({ ...formData, usaSecretRedirectEnabled: e.target.checked })
-                    }
-                    className="h-4 w-4 rounded border-white/10 bg-white/5 text-indigo-500 focus:ring-indigo-500 focus:ring-offset-0"
-                  />
-                  <label htmlFor="usa-secret-modal" className="text-sm text-slate-300 cursor-pointer">
-                    USA 50% Secret Click Mode
-                  </label>
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3 p-3 rounded-lg border border-white/5 bg-white/5">
+                    <input
+                      type="checkbox"
+                      id="content-locker"
+                      checked={formData.isContentLocker}
+                      onChange={(e) =>
+                        setFormData({ ...formData, isContentLocker: e.target.checked })
+                      }
+                      className="h-4 w-4 rounded border-white/10 bg-white/5 text-indigo-500 focus:ring-indigo-500 focus:ring-offset-0"
+                    />
+                    <label htmlFor="content-locker" className="text-sm text-slate-300 cursor-pointer">
+                      Content Locker (constant URL, no slug appended)
+                    </label>
+                  </div>
+                  <div className="flex items-center gap-3 p-3 rounded-lg border border-white/5 bg-white/5">
+                    <input
+                      type="checkbox"
+                      id="usa-secret-modal"
+                      checked={formData.usaSecretRedirectEnabled}
+                      onChange={(e) =>
+                        setFormData({ ...formData, usaSecretRedirectEnabled: e.target.checked })
+                      }
+                      className="h-4 w-4 rounded border-white/10 bg-white/5 text-indigo-500 focus:ring-indigo-500 focus:ring-offset-0"
+                    />
+                    <label htmlFor="usa-secret-modal" className="text-sm text-slate-300 cursor-pointer">
+                      USA 50% Secret Click Mode
+                    </label>
+                  </div>
                 </div>
 
                 <div className="flex flex-wrap gap-3 pt-2">
@@ -1315,6 +1339,11 @@ export default function OffersPage() {
                             <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/5 text-slate-400 border border-white/5">
                               {offer.rotationMode === "RANDOM" ? "🎲" : "🎯"}
                             </span>
+                            {offer.isContentLocker && (
+                              <span className="text-[10px] px-2 py-0.5 rounded-full bg-fuchsia-500/10 text-fuchsia-300 border border-fuchsia-500/20">
+                                🧲 Content Locker
+                              </span>
+                            )}
                             {offer.usaSecretRedirectEnabled && (
                               <span className="text-[10px] px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-300 border border-cyan-500/20">
                                 🔒

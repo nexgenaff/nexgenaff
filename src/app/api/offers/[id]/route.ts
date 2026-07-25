@@ -29,7 +29,7 @@ export async function PUT(
     }
 
     const body = await request.json()
-    const { country, groupName, offerUrl, isActive, isGlobal, priority, rotationMode } = body
+    const { country, groupName, offerUrl, isActive, isGlobal, isContentLocker, priority, rotationMode } = body
 
     const offer = await prisma.offerVault.findUnique({
       where: { id },
@@ -42,7 +42,7 @@ export async function PUT(
       )
     }
 
-    const nextCountry = Boolean(isGlobal)
+    const nextCountry = Boolean(isGlobal) || Boolean(isContentLocker)
       ? 'GLOBAL'
       : typeof country === 'string'
         ? country.trim().toUpperCase()
@@ -57,6 +57,9 @@ export async function PUT(
     const nextUsaSecretRedirectEnabled = typeof body?.usaSecretRedirectEnabled === 'boolean'
       ? body.usaSecretRedirectEnabled
       : offer.usaSecretRedirectEnabled
+    const nextIsContentLocker = typeof body?.isContentLocker === 'boolean'
+      ? body.isContentLocker
+      : offer.isContentLocker
 
     const updated = await prisma.offerVault.update({
       where: { id },
@@ -66,6 +69,7 @@ export async function PUT(
         offerUrl: nextOfferUrl,
         isActive,
         isGlobal,
+        isContentLocker: nextIsContentLocker,
         usaSecretRedirectEnabled: nextUsaSecretRedirectEnabled,
         priority: nextPriority,
         rotationMode: nextRotationMode,
