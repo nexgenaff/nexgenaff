@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
 import { getUserFromToken, getTokenFromCookie } from '@/lib/auth';
-import { getVerificationInstructions, verifyDomain } from '@/lib/services/dns/verify';
+import { verifyDomain } from '@/lib/services/dns/verify';
 import { buildVerificationInstructionsFromVercelRecords, verifyDomainOnVercel } from '@/lib/services/vercel/domain';
 import { getCorsHeaders } from '@/config/cors';
 import { z } from 'zod';
@@ -86,12 +86,11 @@ export async function POST(request: Request) {
     }
 
     // ─── Build instructions ───
-    const fallbackInstructions = getVerificationInstructions(domain.domain, user.id);
     const instructions =
       buildVerificationInstructionsFromVercelRecords(
         vercelVerification?.verification,
         domain.domain
-      ) ?? fallbackInstructions;
+      ) ?? null;
 
     return NextResponse.json(
       {

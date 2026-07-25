@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
 import { getUserFromToken, getTokenFromCookie } from '@/lib/auth';
-import { getVerificationInstructions, normalizeDomain } from '@/lib/services/dns/verify';
+import { normalizeDomain, isSubdomain } from '@/lib/services/dns/verify';
 import {
   addDomainToProject,
   buildVerificationInstructionsFromVercelRecords,
@@ -19,6 +19,9 @@ const domainSchema = z.object({
     .transform((value) => normalizeDomain(value)),
 }).refine((result) => Boolean(result.domain), {
   message: 'Please enter a valid domain name',
+  path: ['domain'],
+}).refine((result) => isSubdomain(result.domain), {
+  message: 'Only subdomains are supported for custom tracking domains. Use a host like track.example.com.',
   path: ['domain'],
 });
 
@@ -64,7 +67,7 @@ export async function GET(request: Request) {
     const vercelConfig = getVercelConfig();
     const domainsWithInstructions = await Promise.all(
       domains.map(async (domain) => {
-        let verificationInstructions = getVerificationInstructions(domain.domain, user.id);
+        let verificationInstructions = null;
 
         try {
           const vercelVerification = await verifyDomainOnVercel(domain.domain, vercelConfig);
@@ -72,9 +75,9 @@ export async function GET(request: Request) {
             buildVerificationInstructionsFromVercelRecords(
               vercelVerification.verification,
               domain.domain
-            ) ?? verificationInstructions;
+            );
         } catch {
-          // Fallback instructions already set
+          // Vercel verification data unavailable
         }
 
         return {
@@ -166,12 +169,11 @@ export async function POST(request: Request) {
     const vercelVerification = await verifyDomainOnVercel(domain, vercelConfig);
 
     // ─── Build instructions ───
-    const fallbackInstructions = getVerificationInstructions(domain, user.id);
     const instructions =
       buildVerificationInstructionsFromVercelRecords(
         vercelVerification.verification ?? vercelBinding.verification,
         domain
-      ) ?? fallbackInstructions;
+      ) ?? null;
 
     return NextResponse.json(
       {

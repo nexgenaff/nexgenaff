@@ -20,6 +20,12 @@ export function normalizeDomain(domain: string): string {
   }
 }
 
+export function isSubdomain(domain: string): boolean {
+  const normalized = normalizeDomain(domain)
+  const labels = normalized.split('.')
+  return labels.length > 2
+}
+
 export interface DNSRecordInstruction {
   host: string
   value: string
@@ -63,105 +69,96 @@ export async function verifyDomain(domain: string, userId: string): Promise<DNSV
   let cnameVerified = false
   let txtVerified = false
 
+  const subdomain = isSubdomain(normalizedDomain)
+  if (!subdomain) {
+    errors.push('Only subdomains are supported for custom tracking domains. Use a host like track.example.com.')
+  }
+
   try {
     const verificationToken = generateVerificationToken(userId, normalizedDomain)
 
-    try {
-      aRecords = await resolveA(normalizedDomain)
-      aVerified = aRecords.some(record => PLATFORM_A_RECORDS.includes(record))
-      if (!aVerified && aRecords.length > 0) {
-        errors.push(`A record does not point to our platform: ${aRecords.join(', ')}`)
-      }
-    } catch {
-      errors.push('No A record found')
-    }
-
-    try {
-      const cnameLookup = normalizedDomain.startsWith('www.') ? normalizedDomain : `www.${normalizedDomain}`
-      cnameRecords = await resolveCname(cnameLookup)
-      cnameVerified = cnameRecords.some(record =>
-        /vercel-custom-domain|cname\.vercel-dns\.com|vercel-dns\.com/i.test(record)
-      )
-      if (!cnameVerified && cnameRecords.length > 0) {
-        errors.push(`CNAME does not point to our platform: ${cnameRecords.join(', ')}`)
-      }
-    } catch {
-      // Optional www CNAME is not required for apex-domain ownership verification.
-    }
-
-    try {
-      const txtTargets = [normalizedDomain]
-      if (parentDomain && parentDomain !== normalizedDomain) {
-        txtTargets.push(parentDomain)
-      }
-
-      const uniqueTxtTargets = [...new Set(txtTargets)]
-      for (const txtTarget of uniqueTxtTargets) {
-        try {
-          const resolved = await resolveTxt(txtTarget)
-          const txtValues = resolved.map(record => record.join('')).filter(Boolean)
-          txtVerified = txtVerified || txtValues.some(value => value.includes(verificationToken))
-          if (txtValues.length > 0) {
-            txtRecords.push(...resolved)
-          }
-        } catch {
-          // Keep checking the parent zone if the lookup is unavailable on one target.
+    if (subdomain) {
+      try {
+        cnameRecords = await resolveCname(normalizedDomain)
+        cnameVerified = cnameRecords.some(record =>
+          /vercel-custom-domain|cname\.vercel-dns\.com|vercel-dns\.com/i.test(record)
+        )
+        if (!cnameVerified && cnameRecords.length > 0) {
+          errors.push(`CNAME does not point to our platform: ${cnameRecords.join(', ')}`)
         }
+      } catch {
+        errors.push('No CNAME record found for the subdomain')
       }
+    } else {
+      try {
+        aRecords = await resolveA(normalizedDomain)
+        aVerified = aRecords.some(record => PLATFORM_A_RECORDS.includes(record))
+        if (!aVerified && aRecords.length > 0) {
+          errors.push(`A record does not point to our platform: ${aRecords.join(', ')}`)
+        }
+      } catch {
+        errors.push('No A record found')
+      }
+    }
 
-      if (!txtVerified && txtRecords.length > 0) {
-        errors.push('TXT record does not contain the verification token')
+    const txtTargets = [normalizedDomain]
+    if (parentDomain && parentDomain !== normalizedDomain) {
+      txtTargets.push(parentDomain)
+    }
+
+    const uniqueTxtTargets = [...new Set(txtTargets)]
+    for (const txtTarget of uniqueTxtTargets) {
+      try {
+        const resolved = await resolveTxt(txtTarget)
+        const txtValues = resolved.map(record => record.join('')).filter(Boolean)
+        txtVerified = txtVerified || txtValues.some(value => value.includes(verificationToken))
+        if (txtValues.length > 0) {
+          txtRecords.push(...resolved)
+        }
+      } catch {
+        // Keep checking the parent zone if the lookup is unavailable on one target.
       }
-      if (!txtVerified) {
-        errors.push('No TXT record found')
-      }
-    } catch {
+    }
+
+    if (!txtVerified && txtRecords.length > 0) {
+      errors.push('TXT record does not contain the verification token')
+    }
+    if (!txtVerified) {
       errors.push('No TXT record found')
     }
+  } catch {
+    errors.push('No TXT record found')
+  }
 
-    try {
-      const mx = await resolveMx(normalizedDomain)
-      mxRecords = mx.map(r => r.exchange)
-    } catch {
-      // MX records are optional
-    }
+  try {
+    const mx = await resolveMx(normalizedDomain)
+    mxRecords = mx.map(r => r.exchange)
+  } catch {
+    // MX records are optional
+  }
 
-    const verified = (aVerified || cnameVerified) && txtVerified
+  const verified = (aVerified || cnameVerified) && txtVerified
 
-    if (verified) {
-      await prisma.customDomain.update({
-        where: { domain: normalizedDomain },
-        data: {
-          verified: true,
-          verifiedAt: new Date(),
-        },
-      })
-    }
-
-    return {
-      verified,
-      records: {
-        a: aRecords,
-        cname: cnameRecords,
-        txt: txtRecords.flat(),
-        mx: mxRecords,
-        verified: (aVerified || cnameVerified) && txtVerified,
+  if (verified) {
+    await prisma.customDomain.update({
+      where: { domain: normalizedDomain },
+      data: {
+        verified: true,
+        verifiedAt: new Date(),
       },
-      errors: errors.length > 0 ? errors : undefined,
-    }
-  } catch (error) {
-    console.error('DNS verification error:', error)
-    return {
-      verified: false,
-      records: {
-        a: [],
-        cname: [],
-        txt: [],
-        mx: [],
-        verified: false,
-      },
-      errors: ['DNS verification failed'],
-    }
+    })
+  }
+
+  return {
+    verified,
+    records: {
+      a: aRecords,
+      cname: cnameRecords,
+      txt: txtRecords.flat(),
+      mx: mxRecords,
+      verified: (aVerified || cnameVerified) && txtVerified,
+    },
+    errors: errors.length > 0 ? errors : undefined,
   }
 }
 

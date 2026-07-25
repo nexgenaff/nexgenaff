@@ -222,9 +222,27 @@ async function getPublicGeoLocation(ip: string): Promise<GeoLocation | null> {
   return null
 }
 
+const getIp2LocationApiKeys = (): string[] => {
+  const rawKeys = process.env.IP2LOCATION_API_KEYS || process.env.IP2LOCATION_API_KEY || ''
+  return rawKeys
+    .split(',')
+    .map((value) => value.trim())
+    .filter((value) => value.length > 0)
+}
+
+let ip2LocationApiKeyIndex = 0
+
+const selectIp2LocationApiKey = (_ip: string, apiKeys: string[]): string => {
+  if (apiKeys.length === 1) return apiKeys[0]
+
+  const selected = apiKeys[ip2LocationApiKeyIndex % apiKeys.length]
+  ip2LocationApiKeyIndex = (ip2LocationApiKeyIndex + 1) % apiKeys.length
+  return selected
+}
+
 export async function getGeoLocation(ip: string, headers?: Headers): Promise<GeoLocation | null> {
   try {
-    const apiKey = process.env.IP2LOCATION_API_KEY
+    const apiKeys = getIp2LocationApiKeys()
     const normalizedIp = normalizeClientIp(ip)
     const headerGeo = getHeaderGeoLocation(headers)
 
@@ -236,32 +254,49 @@ export async function getGeoLocation(ip: string, headers?: Headers): Promise<Geo
       return LOCAL_DEV_GEO_FALLBACK
     }
 
-    if (!apiKey) {
-      console.warn('IP2LOCATION_API_KEY not set; trying public geo fallback lookup')
+    if (apiKeys.length === 0) {
+      console.warn('IP2LOCATION_API_KEY(S) not set; trying public geo fallback lookup')
       const publicGeo = await getPublicGeoLocation(normalizedIp)
       return publicGeo || getFallbackLocation(normalizedIp)
     }
 
-    const response = await axios.get('https://api.ip2location.io/', {
-      params: {
-        key: apiKey,
-        ip: normalizedIp,
-        format: 'json',
-      },
-      timeout: 5000,
-    })
+    const selectedKey = selectIp2LocationApiKey(normalizedIp, apiKeys)
+    let lastError: unknown = null
 
-    if (response.data && response.data.country_code) {
-      return {
-        country_code: response.data.country_code,
-        country_name: response.data.country_name || COUNTRY_NAME_LOOKUP[response.data.country_code] || '',
-        region: response.data.region_name || '',
-        city: response.data.city_name || '',
-        latitude: parseFloat(response.data.latitude) || 0,
-        longitude: parseFloat(response.data.longitude) || 0,
-        isp: response.data.isp || '',
-        timezone: response.data.timezone || '',
+    for (let attempt = 0; attempt < apiKeys.length; attempt += 1) {
+      const apiKey = attempt === 0 ? selectedKey : apiKeys[(apiKeys.indexOf(selectedKey) + attempt) % apiKeys.length]
+      try {
+        const response = await axios.get('https://api.ip2location.io/', {
+          params: {
+            key: apiKey,
+            ip: normalizedIp,
+            format: 'json',
+          },
+          timeout: 5000,
+        })
+
+        if (response.data && response.data.country_code) {
+          return {
+            country_code: response.data.country_code,
+            country_name: response.data.country_name || COUNTRY_NAME_LOOKUP[response.data.country_code] || '',
+            region: response.data.region_name || '',
+            city: response.data.city_name || '',
+            latitude: parseFloat(response.data.latitude) || 0,
+            longitude: parseFloat(response.data.longitude) || 0,
+            isp: response.data.isp || '',
+            timezone: response.data.timezone || '',
+          }
+        }
+
+        lastError = new Error(`IP2Location returned invalid response for key ${apiKey}`)
+      } catch (error) {
+        lastError = error
+        continue
       }
+    }
+
+    if (lastError) {
+      console.error('IP2Location error:', lastError)
     }
 
     return getFallbackLocation(normalizedIp)

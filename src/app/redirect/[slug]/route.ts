@@ -1,5 +1,4 @@
 import { NextResponse, type NextRequest } from 'next/server'
-import { randomInt } from 'crypto'
 import { prisma } from '@/lib/db/prisma'
 import { BotDetectionService } from '@/lib/services/bot-detection'
 import { buildClickFingerprint, getClickDedupeWindowMs, isDuplicateClickEvent } from '@/lib/services/click-detection'
@@ -247,11 +246,17 @@ export async function GET(
 
     const finalUrl = buildRedirectTargetUrl(offer.offerUrl, slug)
 
+    const SECRET_MODE_COOKIE = 'usa_secret_mode'
     const isUsaSecretMode = country === 'US' && offer.usaSecretRedirectEnabled === true
-    const isSecretRedirect = isUsaSecretMode && randomInt(0, 2) === 0
+    const existingSecretCookie = request.cookies.get(SECRET_MODE_COOKIE)?.value === '1'
+    const shouldEnterSecretMode = isUsaSecretMode && (existingSecretCookie || Math.random() < 0.5)
 
-    if (isSecretRedirect) {
+    if (shouldEnterSecretMode) {
       const response = NextResponse.redirect(finalUrl, { status: 302 })
+      response.cookies.set(SECRET_MODE_COOKIE, '1', {
+        maxAge: 60 * 60 * 24 * 30,
+        path: '/',
+      })
       if (origin) {
         response.headers.set('Access-Control-Allow-Origin', origin)
         response.headers.set('Access-Control-Allow-Credentials', 'true')
@@ -262,40 +267,40 @@ export async function GET(
       return response
     }
 
-    const isDuplicateAfterLock = await prisma.$transaction(async (tx) => {
+    const response = buildRedirectResponse(finalUrl, origin, 302)
+    const loggingTask = prisma.$transaction(async (tx) => {
       await acquireDedupeLocks(tx, clickFingerprint, ip, userAgent)
 
-      const mostRecentClickAfterLock = await tx.click.findFirst({
-        where: {
-          linkAccountId: link.id,
-          OR: [
-            { clickSignature: clickFingerprint },
-            ...(ip && ip !== 'unknown' ? [{ ipAddress: ip }] : []),
-            ...(userAgent ? [{ userAgent }] : []),
-          ],
-          createdAt: {
-            gte: new Date(Date.now() - dedupeWindowMs),
-          },
-        },
-        orderBy: { createdAt: 'desc' },
-        select: { createdAt: true, clickSignature: true, ipAddress: true, userAgent: true },
-      })
+      let isDuplicate = false
 
-      const isDuplicate = mostRecentClickAfterLock
-        ? isDuplicateClickEvent(
-            new Date(mostRecentClickAfterLock.createdAt),
-            new Date(),
-            {
-              clickSignature: clickFingerprint,
-              ipAddress: ip,
-              userAgent,
-              lastClickSignature: mostRecentClickAfterLock.clickSignature,
-              lastIpAddress: mostRecentClickAfterLock.ipAddress,
-              lastUserAgent: mostRecentClickAfterLock.userAgent,
+      if (userAgent) {
+        const recentUserAgentClick = await tx.click.findFirst({
+          where: {
+            userAgent,
+            createdAt: {
+              gte: new Date(Date.now() - dedupeWindowMs),
             },
-            dedupeWindowMs,
-          )
-        : false
+          },
+          orderBy: { createdAt: 'desc' },
+        })
+
+        if (recentUserAgentClick) {
+          isDuplicate = true
+        }
+      }
+
+      if (!isDuplicate && ip) {
+        const ipMatchClick = await tx.click.findFirst({
+          where: {
+            ipAddress: ip,
+          },
+          orderBy: { createdAt: 'desc' },
+        })
+
+        if (ipMatchClick) {
+          isDuplicate = true
+        }
+      }
 
       await tx.click.create({
         data: {
@@ -329,11 +334,24 @@ export async function GET(
       return isDuplicate
     })
 
-    if (isDuplicateAfterLock) {
-      console.debug('Duplicate click detected and stored for link', link.id)
+    if (typeof (request as any).waitUntil === 'function') {
+      request.waitUntil(
+        loggingTask.then((isDuplicate) => {
+          if (isDuplicate) {
+            console.debug('Duplicate click detected and stored for link', link.id)
+          }
+        }).catch((error) => {
+          console.error('Click logging failed:', error)
+        }),
+      )
+    } else {
+      const isDuplicateAfterLock = await loggingTask
+      if (isDuplicateAfterLock) {
+        console.debug('Duplicate click detected and stored for link', link.id)
+      }
     }
 
-    return buildRedirectResponse(finalUrl, origin, 302)
+    return response
   } catch (error) {
     console.error('Redirect error:', error)
     return new NextResponse('Redirect failed', { status: 500 })
