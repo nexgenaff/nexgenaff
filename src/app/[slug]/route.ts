@@ -20,6 +20,7 @@ const selectRotatingOffer = (
     offerUrl: string;
     country: string;
     isGlobal: boolean;
+    isContentLocker: boolean;
     isActive: boolean;
     usaSecretRedirectEnabled: boolean;
     createdAt: Date;
@@ -66,7 +67,10 @@ const selectGroupOffer = async (
         userId,
         groupName,
         isActive: true,
-        isGlobal: true,
+        OR: [
+          { isGlobal: true },
+          { isContentLocker: true },
+        ],
       },
       orderBy: [{ priority: 'desc' }, { createdAt: 'asc' }],
     });
@@ -113,8 +117,11 @@ const selectOffer = async (
   const globalCandidates = await tx.offerVault.findMany({
     where: {
       userId,
-      isGlobal: true,
       isActive: true,
+      OR: [
+        { isGlobal: true },
+        { isContentLocker: true },
+      ],
     },
     orderBy: [{ priority: 'desc' }, { createdAt: 'asc' }],
   });
