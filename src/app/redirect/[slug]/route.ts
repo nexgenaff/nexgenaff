@@ -262,65 +262,71 @@ export async function GET(
       return response
     }
 
-    await acquireDedupeLocks(prisma, clickFingerprint, ip, userAgent)
+    const isDuplicateAfterLock = await prisma.$transaction(async (tx) => {
+      await acquireDedupeLocks(tx, clickFingerprint, ip, userAgent)
 
-    const mostRecentClickAfterLock = await prisma.click.findFirst({
-      where: {        linkAccountId: link.id,        OR: [
-          { clickSignature: clickFingerprint },
-          ...(ip && ip !== 'unknown' ? [{ ipAddress: ip }] : []),
-          ...(userAgent ? [{ userAgent }] : []),
-        ],
-        createdAt: {
-          gte: new Date(Date.now() - dedupeWindowMs),
-        },
-      },
-      orderBy: { createdAt: 'desc' },
-      select: { createdAt: true, clickSignature: true, ipAddress: true, userAgent: true },
-    })
-
-    const isDuplicateAfterLock = mostRecentClickAfterLock
-      ? isDuplicateClickEvent(
-          new Date(mostRecentClickAfterLock.createdAt),
-          new Date(),
-          {
-            clickSignature: clickFingerprint,
-            ipAddress: ip,
-            userAgent,
-            lastClickSignature: mostRecentClickAfterLock.clickSignature,
-            lastIpAddress: mostRecentClickAfterLock.ipAddress,
-            lastUserAgent: mostRecentClickAfterLock.userAgent,
+      const mostRecentClickAfterLock = await tx.click.findFirst({
+        where: {
+          linkAccountId: link.id,
+          OR: [
+            { clickSignature: clickFingerprint },
+            ...(ip && ip !== 'unknown' ? [{ ipAddress: ip }] : []),
+            ...(userAgent ? [{ userAgent }] : []),
+          ],
+          createdAt: {
+            gte: new Date(Date.now() - dedupeWindowMs),
           },
-          dedupeWindowMs,
-        )
-      : false
+        },
+        orderBy: { createdAt: 'desc' },
+        select: { createdAt: true, clickSignature: true, ipAddress: true, userAgent: true },
+      })
 
-    await prisma.click.create({
-      data: {
-        linkAccountId: link.id,
-        clickSignature: clickFingerprint,
-        ipAddress: ip,
-        userAgent: userAgent,
-        country: country || null,
-        region: geo?.region || null,
-        city: geo?.city || null,
-        isp: geo?.isp || null,
-        browser: visitorProfile.browser,
-        browserVersion: visitorProfile.browserVersion,
-        os: visitorProfile.os,
-        deviceType: visitorProfile.deviceType,
-        deviceBrand: visitorProfile.deviceBrand,
-        referrer: referrer || null,
-        isUnique: !isDuplicateAfterLock,
-        isBot: false,
-      },
-    })
+      const isDuplicate = mostRecentClickAfterLock
+        ? isDuplicateClickEvent(
+            new Date(mostRecentClickAfterLock.createdAt),
+            new Date(),
+            {
+              clickSignature: clickFingerprint,
+              ipAddress: ip,
+              userAgent,
+              lastClickSignature: mostRecentClickAfterLock.clickSignature,
+              lastIpAddress: mostRecentClickAfterLock.ipAddress,
+              lastUserAgent: mostRecentClickAfterLock.userAgent,
+            },
+            dedupeWindowMs,
+          )
+        : false
 
-    await prisma.linkAccount.update({
-      where: { id: link.id },
-      data: {
-        totalClicks: { increment: 1 },
-        ...(!isDuplicateAfterLock ? { uniqueClicks: { increment: 1 } } : {}),
-      },
+      await tx.click.create({
+        data: {
+          linkAccountId: link.id,
+          clickSignature: clickFingerprint,
+          ipAddress: ip,
+          userAgent: userAgent,
+          country: country || null,
+          region: geo?.region || null,
+          city: geo?.city || null,
+          isp: geo?.isp || null,
+          browser: visitorProfile.browser,
+          browserVersion: visitorProfile.browserVersion,
+          os: visitorProfile.os,
+          deviceType: visitorProfile.deviceType,
+          deviceBrand: visitorProfile.deviceBrand,
+          referrer: referrer || null,
+          isUnique: !isDuplicate,
+          isBot: false,
+        },
+      })
+
+      await tx.linkAccount.update({
+        where: { id: link.id },
+        data: {
+          totalClicks: { increment: 1 },
+          ...(!isDuplicate ? { uniqueClicks: { increment: 1 } } : {}),
+        },
+      })
+
+      return isDuplicate
     })
 
     if (isDuplicateAfterLock) {

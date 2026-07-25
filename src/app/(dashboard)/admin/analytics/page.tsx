@@ -554,6 +554,8 @@ export default function AnalyticsPage() {
                     className="w-full rounded-xl border border-white/20 bg-slate-800/80 px-3 py-2.5 text-sm text-white focus:border-indigo-400/60 focus:outline-none focus:ring-2 focus:ring-indigo-400/30 transition-all"
                   >
                     <option value="all">All Clicks</option>
+                    <option value="unique">Unique Clicks</option>
+                    <option value="repeat">Repeat Clicks</option>
                     <option value="direct">Direct Clicks</option>
                     <option value="referrer">Referrer Clicks</option>
                   </select>

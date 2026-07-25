@@ -4,13 +4,16 @@ import { getUserFromToken, getTokenFromCookie } from '@/lib/auth';
 import { getCorsHeaders } from '@/config/cors';
 import { buildAccountGeoReport } from '@/lib/utils/report-data';
 
-type Period = 'week' | 'month' | 'year';
+type Period = 'week' | 'month' | 'year' | 'weekly' | 'monthly';
+
+type Granularity = 'daily' | 'weekly' | 'monthly' | 'yearly';
 
 interface DateRange {
   startDate: Date;
   endDate: Date;
   labels: string[];
   bucketCount: number;
+  granularity: Granularity;
 }
 
 interface ClickRecord {
@@ -24,9 +27,19 @@ interface ClickRecord {
   isBot: boolean;
 }
 
+interface DashboardFilters {
+  startDate?: string;
+  endDate?: string;
+  granularity?: Granularity;
+  clickType?: string;
+}
+
+const isValidGranularity = (value: string | null | undefined): value is Granularity =>
+  ['daily', 'weekly', 'monthly', 'yearly'].includes(value || '');
+
 // ========== HELPERS ==========
 
-const getDateRange = (period: Period): DateRange => {
+const getDateRange = (period: Period, filters: DashboardFilters = {}): DateRange => {
   const now = new Date();
   const endDate = new Date(now);
   endDate.setHours(23, 59, 59, 999);
@@ -35,7 +48,81 @@ const getDateRange = (period: Period): DateRange => {
   let bucketCount = 7;
   let labels: string[] = [];
 
-  if (period === 'month') {
+  const granularity = filters.granularity || (period === 'year' ? 'yearly' : period === 'month' ? 'monthly' : 'daily');
+  const groupByWeekly = granularity === 'weekly';
+  const groupByMonthly = granularity === 'monthly' || granularity === 'yearly';
+
+  if (filters.startDate || filters.endDate) {
+    if (filters.startDate) {
+      const parsed = new Date(filters.startDate);
+      if (!Number.isNaN(parsed.getTime())) {
+        startDate = new Date(parsed);
+        startDate.setHours(0, 0, 0, 0);
+      }
+    }
+
+    if (filters.endDate) {
+      const parsedEnd = new Date(filters.endDate);
+      if (!Number.isNaN(parsedEnd.getTime())) {
+        endDate.setTime(parsedEnd.getTime());
+        endDate.setHours(23, 59, 59, 999);
+      }
+    }
+
+    const diffDays = Math.max(0, Math.floor((endDate.getTime() - startDate.getTime()) / 86400000));
+
+    if (groupByWeekly) {
+      bucketCount = Math.max(1, Math.ceil((diffDays + 1) / 7));
+      labels = Array.from({ length: bucketCount }, (_, i) => {
+        const weekStart = new Date(startDate);
+        weekStart.setDate(startDate.getDate() + i * 7);
+        const weekEnd = new Date(weekStart);
+        weekEnd.setDate(weekStart.getDate() + 6);
+        if (weekEnd > endDate) {
+          weekEnd.setTime(endDate.getTime());
+        }
+        return `${weekStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${weekEnd.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
+      });
+    } else if (groupByMonthly) {
+      const startMonth = startDate.getMonth();
+      const startYear = startDate.getFullYear();
+      const endMonth = endDate.getMonth();
+      const endYear = endDate.getFullYear();
+      bucketCount = (endYear - startYear) * 12 + (endMonth - startMonth) + 1;
+      labels = Array.from({ length: bucketCount }, (_, i) => {
+        const d = new Date(startDate);
+        d.setMonth(startMonth + i);
+        return d.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+      });
+    } else {
+      bucketCount = diffDays + 1;
+      labels = Array.from({ length: bucketCount }, (_, i) => {
+        const d = new Date(startDate);
+        d.setDate(startDate.getDate() + i);
+        return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      });
+    }
+  } else if (groupByWeekly) {
+    startDate.setDate(startDate.getDate() - 6 * 7);
+    startDate.setHours(0, 0, 0, 0);
+    bucketCount = 7;
+    labels = Array.from({ length: bucketCount }, (_, i) => {
+      const weekStart = new Date(startDate);
+      weekStart.setDate(startDate.getDate() + i * 7);
+      const weekEnd = new Date(weekStart);
+      weekEnd.setDate(weekStart.getDate() + 6);
+      return `${weekStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${weekEnd.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
+    });
+  } else if (groupByMonthly) {
+    startDate = new Date(now.getFullYear() - 1, now.getMonth(), 1);
+    startDate.setHours(0, 0, 0, 0);
+    bucketCount = 12;
+    labels = Array.from({ length: bucketCount }, (_, i) => {
+      const d = new Date(startDate);
+      d.setMonth(startDate.getMonth() + i);
+      return d.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+    });
+  } else if (period === 'month') {
     startDate.setDate(startDate.getDate() - 29);
     startDate.setHours(0, 0, 0, 0);
     bucketCount = 30;
@@ -65,17 +152,24 @@ const getDateRange = (period: Period): DateRange => {
     });
   }
 
-  return { startDate, endDate, labels, bucketCount };
+  return { startDate, endDate, labels, bucketCount, granularity };
 };
 
-const getBucketIndex = (clickDate: Date, startDate: Date, period: Period, bucketCount: number): number => {
-  if (period === 'year') {
+const getBucketIndex = (clickDate: Date, startDate: Date, dateRange: DateRange): number => {
+  const { bucketCount, granularity } = dateRange;
+  const diffMs = clickDate.getTime() - startDate.getTime();
+  const diffDays = Math.floor(diffMs / 86400000);
+
+  if (granularity === 'weekly') {
+    return Math.min(bucketCount - 1, Math.max(0, Math.floor(diffDays / 7)));
+  }
+
+  if (granularity === 'monthly' || granularity === 'yearly') {
     const diffMonths = (clickDate.getFullYear() - startDate.getFullYear()) * 12 +
       (clickDate.getMonth() - startDate.getMonth());
     return Math.min(bucketCount - 1, Math.max(0, diffMonths));
   }
-  const diffMs = clickDate.getTime() - startDate.getTime();
-  const diffDays = Math.floor(diffMs / 86400000);
+
   return Math.min(bucketCount - 1, Math.max(0, diffDays));
 };
 
@@ -91,7 +185,7 @@ const aggregateClicks = (clicks: ClickRecord[], period: Period, dateRange: DateR
 
   clicks.forEach((click) => {
     const clickDate = new Date(click.createdAt);
-    const bucketIndex = getBucketIndex(clickDate, startDate, period, bucketCount);
+    const bucketIndex = getBucketIndex(clickDate, startDate, dateRange);
 
     trendValues[bucketIndex] += 1;
     if (click.isUnique) uniqueTrendValues[bucketIndex] += 1;
@@ -221,8 +315,20 @@ export async function GET(request: Request) {
     }
 
     const url = new URL(request.url);
-    const period = (url.searchParams.get('period') || 'week') as Period;
-    const dateRange = getDateRange(period);
+    const periodParam = url.searchParams.get('period') || 'week';
+    const period = (['week', 'month', 'year', 'weekly', 'monthly'].includes(periodParam)
+      ? periodParam
+      : 'week') as Period;
+
+    const granularityParam = url.searchParams.get('granularity');
+    const filters: DashboardFilters = {
+      startDate: url.searchParams.get('startDate') || undefined,
+      endDate: url.searchParams.get('endDate') || undefined,
+      granularity: isValidGranularity(granularityParam) ? granularityParam : undefined,
+      clickType: url.searchParams.get('clickType') || undefined,
+    };
+
+    const dateRange = getDateRange(period, filters);
 
     // Get user's links
     const links = await prisma.linkAccount.findMany({
@@ -273,14 +379,26 @@ export async function GET(request: Request) {
     }
 
     // Fetch all clicks in the period
-    const clicks = await prisma.click.findMany({
-      where: {
-        linkAccountId: { in: linkIds },
-        createdAt: {
-          gte: dateRange.startDate,
-          lte: dateRange.endDate,
-        },
+    const clickWhere: any = {
+      linkAccountId: { in: linkIds },
+      createdAt: {
+        gte: dateRange.startDate,
+        lte: dateRange.endDate,
       },
+    };
+
+    if (filters.clickType === 'unique') {
+      clickWhere.isUnique = true;
+    } else if (filters.clickType === 'repeat') {
+      clickWhere.isUnique = false;
+    } else if (filters.clickType === 'direct') {
+      clickWhere.OR = [{ referrer: null }, { referrer: '' }];
+    } else if (filters.clickType === 'referrer') {
+      clickWhere.AND = [{ referrer: { not: null } }, { referrer: { not: '' } }];
+    }
+
+    const clicks = await prisma.click.findMany({
+      where: clickWhere,
       select: {
         linkAccountId: true,
         country: true,
