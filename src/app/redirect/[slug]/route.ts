@@ -334,15 +334,19 @@ export async function GET(
       return isDuplicate
     })
 
-    if (typeof (request as any).waitUntil === 'function') {
-      request.waitUntil(
+    const requestWithWaitUntil = request as Request & {
+      waitUntil?: (promise: Promise<unknown>) => void
+    }
+
+    if (typeof requestWithWaitUntil.waitUntil === 'function') {
+      requestWithWaitUntil.waitUntil(
         loggingTask.then((isDuplicate) => {
           if (isDuplicate) {
             console.debug('Duplicate click detected and stored for link', link.id)
           }
         }).catch((error) => {
           console.error('Click logging failed:', error)
-        }),
+        })
       )
     } else {
       const isDuplicateAfterLock = await loggingTask
