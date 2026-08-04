@@ -94,6 +94,7 @@ model OfferVault {
   isGlobal        Boolean             @default(false)
   isContentLocker Boolean             @default(false)
   usaSecretRedirectEnabled Boolean    @default(false)
+  usaSecretRedirectPercentage Int      @default(50)
   priority        Int                 @default(100)
   rotationMode    OfferRotationMode   @default(PRIORITY)
   userId          String

@@ -145,7 +145,7 @@ export default function LoginPage() {
           variants={cardVariants}
           initial="hidden"
           animate="visible"
-          className="w-full max-w-md rounded-3xl border border-white/10 bg-white/5 backdrop-blur-xl p-8 shadow-2xl shadow-indigo-500/5 hover:shadow-indigo-500/10 transition-shadow duration-500"
+          className="w-full max-w-md rounded-3xl bg-white/5 backdrop-blur-xl p-8 shadow-2xl shadow-indigo-500/5 hover:shadow-indigo-500/10 transition-shadow duration-500"
         >
           <motion.div
             variants={containerVariants}
@@ -156,29 +156,18 @@ export default function LoginPage() {
             {/* Logo & Brand */}
             <motion.div variants={itemVariants} className="flex flex-col items-center">
               <motion.div
-                className="flex items-center gap-2 font-bold text-2xl text-white"
+                className="flex items-center justify-center"
                 whileHover={{ scale: 1.02 }}
                 transition={{ type: "spring", stiffness: 300 }}
               >
-                <motion.div
-                  animate={{
-                    rotate: [0, 10, -5, 0],
-                    scale: [1, 1.1, 0.95, 1],
-                  }}
-                  transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-                >
-                  <Image
-                    src="/favicon.png"
-                    alt="NexGen Affiliates logo"
-                    width={32}
-                    height={32}
-                    className="h-8 w-8 rounded-lg object-cover"
-                    priority
-                  />
-                </motion.div>
-                <span className="bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
-                  Nexgen
-                </span>
+                <Image
+                  src="/afficixo.png"
+                  alt="Afficixo logo"
+                  width={128}
+                  height={128}
+                  className="object-cover"
+                  priority
+                />
               </motion.div>
               <motion.h1
                 variants={itemVariants}
@@ -308,7 +297,7 @@ export default function LoginPage() {
           transition={{ delay: 0.6 }}
           className="w-full max-w-md mt-6 text-center text-xs text-slate-500 border-t border-white/5 pt-4"
         >
-          <span>© 2026 Nexgen Affiliates. All rights reserved.</span>
+          <span>© 2026 Afficixo. All rights reserved.</span>
         </motion.div>
       </div>
     </div>

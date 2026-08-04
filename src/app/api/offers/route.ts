@@ -73,6 +73,10 @@ export async function POST(request: Request) {
     const priority = Number.isFinite(priorityValue)
       ? Math.max(1, Math.min(999, priorityValue))
       : 100
+    const usaSecretRedirectPercentageValue = Number(body?.usaSecretRedirectPercentage)
+    const usaSecretRedirectPercentage = Number.isFinite(usaSecretRedirectPercentageValue)
+      ? Math.max(1, Math.min(100, usaSecretRedirectPercentageValue))
+      : 50
     const rotationMode = body?.rotationMode === 'RANDOM' ? 'RANDOM' : 'PRIORITY'
     const resolvedCountry = isGlobal || isContentLocker ? 'GLOBAL' : country
 
@@ -93,6 +97,7 @@ export async function POST(request: Request) {
           isContentLocker,
           isActive: true,
           usaSecretRedirectEnabled: Boolean(body?.usaSecretRedirectEnabled),
+          usaSecretRedirectPercentage,
           priority,
           rotationMode,
           userId: user.id,

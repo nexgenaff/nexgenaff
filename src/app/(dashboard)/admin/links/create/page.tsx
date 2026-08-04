@@ -20,6 +20,7 @@ import {
 import { buildOfferGroupList } from "@/lib/utils/offer-groups";
 import { coerceArray } from "@/lib/utils/array-response";
 
+// ========== TYPES ==========
 interface Domain {
   id: string;
   domain: string;
@@ -36,7 +37,6 @@ interface CreatedAccount {
 }
 
 // ========== ANIMATIONS ==========
-
 const fadeUp = {
   hidden: { opacity: 0, y: 16 },
   visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] } },
@@ -52,19 +52,7 @@ const slideInRight = {
   visible: { opacity: 1, x: 0, transition: { duration: 0.4, ease: "easeOut" } },
 };
 
-const glowPulse = {
-  animate: {
-    boxShadow: [
-      "0 0 20px rgba(129, 140, 248, 0)",
-      "0 0 40px rgba(129, 140, 248, 0.08)",
-      "0 0 20px rgba(129, 140, 248, 0)",
-    ],
-    transition: { duration: 3, repeat: Infinity, ease: "easeInOut" },
-  },
-};
-
-// ========== CUSTOM DROPDOWN COMPONENT ==========
-
+// ========== DROPDOWN ==========
 interface DropdownOption {
   value: string;
   label: string;
@@ -97,7 +85,6 @@ const CustomDropdown = ({
   const inputRef = useRef<HTMLInputElement>(null);
 
   const selectedOption = options.find((opt) => opt.value === value);
-
   const filteredOptions = options.filter((opt) =>
     opt.label.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -136,11 +123,12 @@ const CustomDropdown = ({
         onClick={() => !disabled && setIsOpen(!isOpen)}
         disabled={disabled}
         className={`
-          w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-white
+          w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 sm:py-2.5 text-sm text-white
           flex items-center justify-between gap-2
           transition-all duration-200
           ${isOpen ? "border-indigo-400/50 ring-2 ring-indigo-400/15" : "hover:border-white/20"}
           ${disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}
+          min-h-[44px]
         `}
       >
         <span className="flex items-center gap-2.5 truncate">
@@ -197,7 +185,7 @@ const CustomDropdown = ({
                 filteredOptions.map((opt, idx) => (
                   <motion.button
                     key={opt.value}
-                    type="button"   // ✅ FIX: prevent form submission
+                    type="button"
                     initial={{ opacity: 0, y: 4 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: idx * 0.025 }}
@@ -241,7 +229,6 @@ const CustomDropdown = ({
 };
 
 // ========== INPUT FIELD ==========
-
 const InputField = ({
   label,
   value,
@@ -269,7 +256,7 @@ const InputField = ({
       type={type}
       value={value}
       onChange={onChange}
-      className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-white placeholder-slate-500 transition-all duration-200 focus:border-indigo-400/50 focus:outline-none focus:ring-2 focus:ring-indigo-400/15 hover:border-white/20"
+      className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 sm:py-2.5 text-sm text-white placeholder-slate-500 transition-all duration-200 focus:border-indigo-400/50 focus:outline-none focus:ring-2 focus:ring-indigo-400/15 hover:border-white/20 min-h-[44px]"
       placeholder={placeholder}
       required={required}
       disabled={disabled}
@@ -279,7 +266,6 @@ const InputField = ({
 );
 
 // ========== COPY BUTTON ==========
-
 const CopyButton = ({
   text,
   label,
@@ -295,7 +281,7 @@ const CopyButton = ({
     try {
       await navigator.clipboard.writeText(text);
       setCopied(true);
-      onCopy(); // ✅ Now actually calls the parent callback
+      onCopy();
       setTimeout(() => setCopied(false), 2000);
     } catch (error) {
       console.error("Failed to copy:", error);
@@ -305,20 +291,19 @@ const CopyButton = ({
   return (
     <button
       onClick={handleCopy}
-      className="p-1.5 rounded-lg hover:bg-white/5 transition-colors text-slate-400 hover:text-white group relative"
+      className="p-2 rounded-lg hover:bg-white/5 transition-colors text-slate-400 hover:text-white group relative min-h-[44px] min-w-[44px] flex items-center justify-center"
       aria-label={`Copy ${label}`}
     >
       {copied ? (
-        <Check className="w-3.5 h-3.5 text-emerald-400" />
+        <Check className="w-4 h-4 text-emerald-400" />
       ) : (
-        <Copy className="w-3.5 h-3.5 group-hover:scale-105 transition-transform" />
+        <Copy className="w-4 h-4 group-hover:scale-105 transition-transform" />
       )}
     </button>
   );
 };
 
 // ========== MAIN PAGE ==========
-
 export default function CreateLinkPage() {
   const router = useRouter();
   const [accountName, setAccountName] = useState("");
@@ -469,9 +454,13 @@ export default function CreateLinkPage() {
 
   const hasCustomizations = customDomainId || offerGroupName;
 
+  const templateText = createdAccount
+    ? `🆔 𝗣𝘂𝗯𝗹𝗶𝘀𝗵𝗲𝗿 𝗜𝗗\n\`${createdAccount.accountName}\`\n\n📊 𝗣𝘂𝗯𝗹𝗶𝗰 𝗔𝗻𝗮𝗹𝘆𝘁𝗶𝗰𝘀\n${createdAccount.publicStatsUrl}\n\n🔗 𝗧𝗿𝗮𝗰𝗸𝗶𝗻𝗴 𝗨𝗥𝗟\n\`${createdAccount.trackingUrl}\``
+    : "";
+
   return (
     <div className="min-h-screen bg-[#05070b] text-white overflow-x-hidden">
-      {/* Animated Background */}
+      {/* Animated Background - reduced intensity on mobile */}
       <div className="fixed inset-0 z-0 pointer-events-none">
         <div className="absolute inset-0 bg-gradient-to-br from-[#05070b] via-[#0d1724] to-[#101827]" />
         <motion.div
@@ -484,32 +473,33 @@ export default function CreateLinkPage() {
           animate={{ x: [0, -70, 50, 0], y: [0, 50, -30, 0], opacity: [0.2, 0.5, 0.2] }}
           transition={{ duration: 30, repeat: Infinity, ease: "easeInOut", delay: 3 }}
         />
-        <div className="absolute inset-0 opacity-[0.015] [background-image:linear-gradient(rgba(255,255,255,0.5)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.5)_1px,transparent_1px)] [background-size:80px_80px]" />
+        {/* Reduced opacity grid on mobile for performance */}
+        <div className="absolute inset-0 opacity-[0.015] [background-image:linear-gradient(rgba(255,255,255,0.5)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.5)_1px,transparent_1px)] [background-size:80px_80px] hidden sm:block" />
       </div>
 
-      <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-12">
+      <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 md:py-12">
         {/* ===== HEADER ===== */}
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
-          className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-10"
+          className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6 sm:mb-10"
         >
           <div className="flex items-center gap-3">
             <motion.button
               onClick={handleBack}
               whileHover={{ x: -2 }}
               whileTap={{ scale: 0.95 }}
-              className="p-2.5 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 transition-all duration-200 text-slate-400 hover:text-white group"
+              className="p-2.5 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 transition-all duration-200 text-slate-400 hover:text-white group min-h-[44px] min-w-[44px] flex items-center justify-center"
               aria-label="Go back"
             >
               <ArrowLeft className="w-4 h-4" />
             </motion.button>
             <div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">
+              <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-white tracking-tight">
                 Create Link
               </h1>
-              <p className="text-sm text-slate-400 mt-0.5">
+              <p className="text-xs sm:text-sm text-slate-400 mt-0.5">
                 Launch a new branded tracking link
               </p>
             </div>
@@ -529,9 +519,9 @@ export default function CreateLinkPage() {
             variants={scaleIn}
             initial="hidden"
             animate="visible"
-            className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl p-6 md:p-8 shadow-xl shadow-indigo-500/5"
+            className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl p-4 sm:p-6 md:p-8 shadow-xl shadow-indigo-500/5"
           >
-            <div className="flex items-center gap-2.5 mb-7">
+            <div className="flex items-center gap-2.5 mb-5 sm:mb-7">
               <div className="p-1.5 rounded-lg bg-gradient-to-br from-indigo-500/20 to-purple-500/20">
                 <Sparkles className="w-3.5 h-3.5 text-indigo-300" />
               </div>
@@ -546,7 +536,7 @@ export default function CreateLinkPage() {
               )}
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-5">
+            <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
               <AnimatePresence mode="wait">
                 {error && (
                   <motion.div
@@ -554,7 +544,7 @@ export default function CreateLinkPage() {
                     initial={{ opacity: 0, y: -8 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -8 }}
-                    className="rounded-xl border border-red-500/30 bg-red-500/10 p-3.5 text-sm text-red-200"
+                    className="rounded-xl border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-200"
                   >
                     {error}
                   </motion.div>
@@ -568,7 +558,7 @@ export default function CreateLinkPage() {
                     initial={{ opacity: 0, y: -8 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -8 }}
-                    className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-3.5 text-sm text-emerald-200"
+                    className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-3 text-sm text-emerald-200"
                   >
                     <div className="flex items-start gap-2.5">
                       <CheckCircle2 className="mt-0.5 h-4 w-4 flex-shrink-0" />
@@ -618,23 +608,29 @@ export default function CreateLinkPage() {
               />
 
               <motion.div
-                variants={glowPulse}
-                animate="animate"
-                className="rounded-xl border border-indigo-500/15 bg-gradient-to-br from-indigo-500/5 to-purple-500/5 p-4 mt-2"
+                animate={{
+                  boxShadow: [
+                    "0 0 20px rgba(129, 140, 248, 0)",
+                    "0 0 40px rgba(129, 140, 248, 0.08)",
+                    "0 0 20px rgba(129, 140, 248, 0)",
+                  ],
+                  transition: { duration: 3, repeat: Infinity, ease: "easeInOut" },
+                }}
+                className="rounded-xl border border-indigo-500/15 bg-gradient-to-br from-indigo-500/5 to-purple-500/5 p-3 sm:p-4 mt-2"
               >
                 <div className="flex items-center gap-2 text-xs font-medium text-slate-400 uppercase tracking-wider mb-2.5">
                   <Globe className="w-3.5 h-3.5 text-indigo-300" />
                   <span>Preview</span>
                 </div>
-                <div className="rounded-xl border border-white/10 bg-slate-900/60 px-4 py-3 font-mono text-sm text-indigo-300/90 break-all">
+                <div className="rounded-xl border border-white/10 bg-slate-900/60 px-3 py-2.5 font-mono text-xs sm:text-sm text-indigo-300/90 break-all">
                   {previewUrl}
                 </div>
-                <div className="flex items-center gap-3 mt-2.5 text-[10px] text-slate-500">
+                <div className="flex flex-wrap items-center gap-2 mt-2.5 text-[10px] text-slate-500">
                   <span className="flex items-center gap-1">
                     <Globe className="w-3 h-3" />
                     {selectedDomain ? "Custom domain" : "Default domain"}
                   </span>
-                  <span className="w-px h-3 bg-slate-700" />
+                  <span className="hidden sm:inline w-px h-3 bg-slate-700" />
                   <span className="flex items-center gap-1">
                     <Layers className="w-3 h-3" />
                     {offerGroupName || "Default routing"}
@@ -647,7 +643,7 @@ export default function CreateLinkPage() {
                 disabled={loading}
                 whileHover={{ scale: loading ? 1 : 1.01 }}
                 whileTap={{ scale: loading ? 1 : 0.98 }}
-                className="relative w-full overflow-hidden rounded-xl bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 px-6 py-3.5 text-sm font-semibold text-white shadow-lg shadow-purple-500/15 hover:shadow-xl hover:shadow-purple-500/30 transition-all duration-300 disabled:opacity-60 disabled:cursor-not-allowed"
+                className="relative w-full overflow-hidden rounded-xl bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 px-6 py-3.5 text-sm font-semibold text-white shadow-lg shadow-purple-500/15 hover:shadow-xl hover:shadow-purple-500/30 transition-all duration-300 disabled:opacity-60 disabled:cursor-not-allowed min-h-[48px]"
               >
                 <div className="absolute inset-0 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 opacity-0 hover:opacity-100 transition-opacity duration-300" />
                 <span className="relative z-10 flex items-center justify-center gap-2.5">
@@ -676,62 +672,46 @@ export default function CreateLinkPage() {
                 initial="hidden"
                 animate="visible"
                 exit={{ opacity: 0, x: 20 }}
-                className="rounded-2xl border border-emerald-500/20 bg-gradient-to-br from-emerald-500/5 to-emerald-500/[0.02] backdrop-blur-xl p-6 shadow-xl shadow-emerald-500/5"
+                className="rounded-2xl border border-emerald-500/20 bg-gradient-to-br from-emerald-500/5 to-emerald-500/[0.02] backdrop-blur-xl p-4 sm:p-6 shadow-xl shadow-emerald-500/5"
               >
-                <div className="flex items-center gap-2.5 pb-4 border-b border-white/5">
-                  <div className="p-1.5 rounded-lg bg-emerald-500/20">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-300" />
-                  </div>
-                  <span className="text-[10px] font-semibold uppercase tracking-[0.25em] text-emerald-300">
-                    Created
-                  </span>
-                  <motion.span
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    className="ml-auto text-[10px] text-emerald-400/60"
-                  >
-                    ✓ Live
-                  </motion.span>
-                </div>
-
-                <div className="py-4 border-b border-white/5 space-y-0.5">
-                  <div className="font-semibold text-white text-base">{createdAccount.accountName}</div>
-                  <div className="text-sm text-slate-400">/{createdAccount.slug}</div>
-                  {createdAccount.domain && (
-                    <div className="text-sm text-emerald-300/70 mt-0.5">Domain: {createdAccount.domain}</div>
-                  )}
-                </div>
-
-                <div className="pt-4 space-y-3">
-                  <div className="rounded-xl border border-white/10 bg-slate-900/40 p-3.5 group">
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="text-[10px] font-medium uppercase tracking-[0.15em] text-slate-400">
-                        Tracking Link
-                      </span>
-                      <CopyButton
-                        text={createdAccount.trackingUrl}
-                        label="tracking link"
-                        onCopy={() => setCopiedKey("tracking")}
-                      />
+                <div className="flex items-center justify-between pb-3 sm:pb-4 border-b border-white/5">
+                  <div className="flex items-center gap-2.5">
+                    <div className="p-1.5 rounded-lg bg-emerald-500/20">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-300" />
                     </div>
-                    <div className="mt-1.5 break-all font-mono text-xs text-indigo-300/80 leading-relaxed">
-                      {createdAccount.trackingUrl}
+                    <span className="text-[10px] font-semibold uppercase tracking-[0.25em] text-emerald-300">
+                      Created
+                    </span>
+                  </div>
+                  <CopyButton
+                    text={templateText}
+                    label="copy all"
+                    onCopy={() => setCopiedKey("all")}
+                  />
+                </div>
+
+                <div className="pt-3 sm:pt-4 space-y-4 text-sm">
+                  {/* Publisher ID */}
+                  <div>
+                    <div className="text-xs font-medium text-slate-400">🆔 𝗣𝘂𝗯𝗹𝗶𝘀𝗵𝗲𝗿 𝗜𝗗</div>
+                    <div className="mt-1 font-mono bg-slate-900/50 rounded-lg px-3 py-2 border border-white/5 break-all">
+                      <code>{createdAccount.accountName}</code>
                     </div>
                   </div>
 
-                  <div className="rounded-xl border border-emerald-500/15 bg-emerald-500/5 p-3.5 group">
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="text-[10px] font-medium uppercase tracking-[0.15em] text-emerald-300/80">
-                        Public Stats
-                      </span>
-                      <CopyButton
-                        text={createdAccount.publicStatsUrl}
-                        label="public stats link"
-                        onCopy={() => setCopiedKey("stats")}
-                      />
-                    </div>
-                    <div className="mt-1.5 break-all font-mono text-xs text-emerald-300/70 leading-relaxed">
+                  {/* Public Analytics */}
+                  <div>
+                    <div className="text-xs font-medium text-slate-400">📊 𝗣𝘂𝗯𝗹𝗶𝗰 𝗔𝗻𝗮𝗹𝘆𝘁𝗶𝗰𝘀</div>
+                    <div className="mt-1 break-all text-slate-300 bg-slate-900/30 rounded-lg px-3 py-2 border border-white/5 text-xs sm:text-sm">
                       {createdAccount.publicStatsUrl}
+                    </div>
+                  </div>
+
+                  {/* Tracking URL */}
+                  <div>
+                    <div className="text-xs font-medium text-slate-400">🔗 𝗧𝗿𝗮𝗰𝗸𝗶𝗻𝗴 𝗨𝗥𝗟</div>
+                    <div className="mt-1 font-mono bg-slate-900/50 rounded-lg px-3 py-2 border border-white/5 break-all text-xs sm:text-sm">
+                      <code>{createdAccount.trackingUrl}</code>
                     </div>
                   </div>
                 </div>
@@ -770,10 +750,10 @@ export default function CreateLinkPage() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.6 }}
-          className="mt-12 pt-4 border-t border-white/5 flex flex-col sm:flex-row items-center justify-between gap-4"
+          className="mt-8 sm:mt-12 pt-4 border-t border-white/5 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500"
         >
-          <span className="text-xs text-slate-500">© 2026 Nexgen Affiliates. All rights reserved.</span>
-          <div className="flex items-center gap-4 text-xs text-slate-500">
+          <span>© 2026 Afficixo. All rights reserved.</span>
+          <div className="flex items-center gap-4">
             <span className="flex items-center gap-1.5">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
               Online

@@ -371,22 +371,17 @@ export default function AnalyticsPage() {
             <div className="flex items-center gap-4">
               <motion.div
                 whileHover={{ rotate: [0, -10, 10, -5, 5, 0] }}
-                className="rounded-xl bg-gradient-to-br from-indigo-500/20 to-purple-500/20"
+                className="relative h-20 w-20 overflow-hidden"
               >
-                <div className="relative h-10 w-10 overflow-hidden rounded-lg">
-                  <Image
-                    src="/favicon.png"
-                    alt="NexGen Affiliates logo"
-                    fill
-                    className="object-cover"
-                    priority
-                  />
-                </div>
+                <Image
+                  src="/afficixo.png"
+                  alt="Afficixo logo"
+                  fill
+                  className="object-contain"
+                  priority
+                />
               </motion.div>
               <div>
-                <h1 className="text-xl md:text-2xl font-bold bg-gradient-to-r from-white via-slate-200 to-slate-300 bg-clip-text text-transparent">
-                  Analytics Overview
-                </h1>
                 <div className="flex items-center gap-3 text-sm text-slate-400 mt-0.5">
                   <span className="flex items-center gap-1.5">
                     <Calendar className="w-3.5 h-3.5" />
@@ -397,18 +392,11 @@ export default function AnalyticsPage() {
                     <Clock className="w-3.5 h-3.5" />
                     {currentTime.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
                   </span>
-                  <span className="flex items-center gap-1.5 text-emerald-400">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                    Live
-                  </span>
                 </div>
               </div>
             </div>
 
             <div className="flex flex-wrap items-center gap-2 w-full lg:w-auto">
-              <div className="rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-medium text-slate-300 backdrop-blur-sm">
-                {stats.totalLinks > 0 ? `${stats.totalLinks} active` : "No data yet"}
-              </div>
               <motion.button
                 onClick={() => fetchStats(true, filters)}
                 whileHover={{ scale: 1.02 }}
@@ -710,7 +698,7 @@ export default function AnalyticsPage() {
           transition={{ delay: 0.8 }}
           className="mt-8 text-center text-xs text-slate-500 border-t border-white/5 pt-4 flex flex-col sm:flex-row items-center justify-between gap-2"
         >
-          <span>© 2026 Nexgen Affiliates. All rights reserved.</span>
+          <span>© 2026 Afficixo. All rights reserved.</span>
           <div className="flex items-center gap-4">
             <span className="flex items-center gap-2">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />

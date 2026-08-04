@@ -84,12 +84,12 @@ export default function SettingsPage() {
         const response = await fetch("/api/auth/me", { credentials: "include" });
         if (response.ok) {
           const data = await response.json();
-          setUserInfo({ username: data.username || "admin", email: data.email || "admin@nextgen.com" });
+          setUserInfo({ username: data.username || "admin", email: data.email || "support@afficixo.com" });
         } else {
-          setUserInfo({ username: "admin", email: "admin@nextgen.com" });
+          setUserInfo({ username: "admin", email: "support@afficixo.com" });
         }
       } catch {
-        setUserInfo({ username: "admin", email: "admin@nextgen.com" });
+        setUserInfo({ username: "admin", email: "support@afficixo.com" });
       } finally {
         setLoading(false);
       }
@@ -240,7 +240,7 @@ export default function SettingsPage() {
             </div>
             <div className="hidden sm:block">
               <p className="text-sm font-medium text-white">{userInfo?.username || "admin"}</p>
-              <p className="text-xs text-slate-400">{userInfo?.email || "admin@nextgen.com"}</p>
+              <p className="text-xs text-slate-400">{userInfo?.email || "support@afficixo.com"}</p>
             </div>
           </div>
         </div>
@@ -341,7 +341,7 @@ export default function SettingsPage() {
                     <Mail className="w-3.5 h-3.5" />
                     Email
                   </p>
-                  <p className="mt-1 text-sm font-medium text-white">{userInfo?.email || "admin@nextgen.com"}</p>
+                  <p className="mt-1 text-sm font-medium text-white">{userInfo?.email || "support@afficixo.com"}</p>
                 </div>
               </div>
 

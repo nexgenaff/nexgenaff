@@ -766,7 +766,6 @@ export default function LinksPage() {
               <div>
                 <p className="text-[10px] font-medium text-slate-400 uppercase tracking-wider">{stat.label}</p>
                 <p className="text-xl font-bold text-white mt-1">{stat.value}</p>
-                <p className="text-xs text-slate-500 mt-0.5">{stat.sub}</p>
               </div>
               <div className={`p-2 rounded-lg bg-white/5 ${stat.iconColor}`}>
                 <stat.icon className="w-4 h-4" />
@@ -1024,7 +1023,7 @@ export default function LinksPage() {
 
       {/* ===== CONFIRMATION ===== */}
       <AnimatePresence>
-        {confirmInline && (
+        {confirmInline && (confirmInline.id === "bulk-reset" || confirmInline.id === "bulk-delete") && (
           <motion.div
             key="confirm"
             variants={messageVariants}
@@ -1101,39 +1100,38 @@ export default function LinksPage() {
               variants={itemVariants}
               whileHover={{ y: -2 }}
               transition={{ type: "spring", damping: 30, stiffness: 400 }}
-              className={`rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl p-4 shadow-lg shadow-indigo-500/5 transition hover:border-white/20 hover:shadow-xl hover:shadow-indigo-500/10 ${
+              className={`rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl p-2 shadow-lg shadow-indigo-500/5 transition hover:border-white/20 hover:shadow-xl hover:shadow-indigo-500/10 ${
                 link.isActive ? "border-l-4 border-l-emerald-400" : "border-l-4 border-l-amber-400"
               }`}
             >
-              <div className="flex flex-col md:flex-row md:items-start gap-4">
+              <div className="flex flex-row flex-wrap items-start gap-1">
                 {/* LEFT: INFO */}
                 <div className="flex-1 min-w-0">
-                  <div className="flex flex-wrap items-center gap-2 mb-2">
-                    <label className="flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[10px] font-medium text-slate-300 cursor-pointer hover:bg-white/10 transition">
+                  <div className="flex flex-wrap items-center gap-1 mb-1.5">
+                    <label className="flex items-center gap-1 rounded-full border border-white/10 bg-white/5 px-1.5 py-0.5 text-[9px] font-medium text-slate-300 cursor-pointer hover:bg-white/10 transition">
                       <input
                         type="checkbox"
                         checked={selectedIds.includes(link.id)}
                         onChange={() => toggleSelectedId(link.id)}
                         className="h-3.5 w-3.5 accent-indigo-400 cursor-pointer"
                       />
-                      Mark
+                      <span>Mark</span>
                     </label>
                     <span
-                      className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[10px] font-semibold uppercase tracking-wider border ${
+                      className={`inline-flex items-center justify-center rounded-full p-0.5 border ${
                         link.isActive
-                          ? "border-emerald-400/40 bg-emerald-500/20 text-emerald-300"
-                          : "border-amber-400/40 bg-amber-500/20 text-amber-300"
+                          ? "border-emerald-400/40 bg-emerald-500/20"
+                          : "border-rose-400/40 bg-rose-500/20"
                       }`}
                     >
                       <span
                         className={`w-1.5 h-1.5 rounded-full ${
-                          link.isActive ? "bg-emerald-400 animate-pulse" : "bg-amber-400"
+                          link.isActive ? "bg-emerald-400 animate-pulse" : "bg-rose-400"
                         }`}
                       />
-                      {link.isActive ? "Active" : "Paused"}
                     </span>
                     <span
-                      className={`rounded-full border px-3 py-1 text-[10px] font-medium ${
+                      className={`rounded-full border px-1.5 py-0.5 text-[9px] font-medium ${
                         link.customDomain?.domain
                           ? "border-cyan-400/40 bg-cyan-500/20 text-cyan-300"
                           : "border-slate-400/40 bg-slate-500/20 text-slate-300"
@@ -1142,28 +1140,23 @@ export default function LinksPage() {
                       {link.customDomain?.domain ? "Custom" : "Default"}
                     </span>
                     {link.offerGroupName && (
-                      <span className="rounded-full border border-violet-400/40 bg-violet-500/20 px-3 py-1 text-[10px] font-medium text-violet-300">
+                      <span className="rounded-full border border-violet-400/40 bg-violet-500/20 px-1.5 py-0.5 text-[9px] font-medium text-violet-300">
                         {link.offerGroupName}
                       </span>
                     )}
                   </div>
 
-                  <h3 className="text-base font-semibold text-white hover:text-indigo-200 transition">
+                  <h3 className="text-sm font-semibold text-white tracking-tight">
                     {link.accountName}
                   </h3>
 
-                  <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-slate-500">
-                    <span className="flex items-center gap-1">
-                      <Calendar className="w-3 h-3" />
-                      {new Date(link.createdAt).toLocaleDateString()}
-                    </span>
-                    <span className="w-px h-3 bg-slate-700" />
+                  <div className="mt-1 flex flex-wrap items-center gap-1 text-[10px] text-slate-500">
                     <span className="flex items-center gap-1">
                       /{link.slug}
                     </span>
                   </div>
 
-                  <div className="mt-3 flex flex-wrap items-center gap-4">
+                  <div className="mt-1 flex flex-wrap items-center gap-1">
                     <div className="flex items-center gap-1.5">
                       <Link2 className="w-3.5 h-3.5 text-indigo-400" />
                       <span className="text-[10px] font-medium text-indigo-400">Tracking</span>
@@ -1186,8 +1179,8 @@ export default function LinksPage() {
                 </div>
 
                 {/* RIGHT: STATS + ACTIONS */}
-                <div className="flex flex-row md:flex-col items-center md:items-end gap-3 md:gap-2">
-                  <div className="flex gap-2">
+                <div className="flex items-center justify-end gap-0.5 self-start mt-0.5 w-full md:w-auto">
+                  <div className="flex items-center gap-1">
                     {[
                       { label: "Clicks", value: formatNumber(link.totalClicks), color: "text-indigo-400" },
                       { label: "Unique", value: formatNumber(link.uniqueClicks), color: "text-emerald-400" },
@@ -1195,7 +1188,7 @@ export default function LinksPage() {
                     ].map((stat) => (
                       <div
                         key={stat.label}
-                        className="rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-center min-w-[56px] hover:bg-white/10 transition"
+                        className="rounded-lg border border-white/10 bg-white/5 px-1.5 py-0.5 text-center min-w-[42px] hover:bg-white/10 transition"
                       >
                         <div className="text-[8px] uppercase tracking-wider text-slate-500">{stat.label}</div>
                         <div className={`text-xs font-bold ${stat.color}`}>{stat.value}</div>
@@ -1203,7 +1196,7 @@ export default function LinksPage() {
                     ))}
                   </div>
 
-                  <div className="flex items-center gap-1.5 p-1 rounded-xl bg-white/5 border border-white/5">
+                  <div className="flex items-center gap-1 p-1 rounded-lg bg-white/5 border border-white/5">
                     <button
                       onClick={() => openEdit(link)}
                       className="p-1.5 rounded-lg text-indigo-300 hover:bg-indigo-500/20 hover:text-indigo-200 transition"

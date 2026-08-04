@@ -68,16 +68,20 @@ export default function Sidebar() {
     <>
       <div className="pointer-events-none absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-transparent via-cyan-400/70 to-transparent" />
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.2),transparent_36%),radial-gradient(circle_at_bottom_right,rgba(244,114,182,0.16),transparent_38%),linear-gradient(135deg,rgba(34,211,238,0.08),transparent_40%,rgba(129,140,248,0.08))]" />
-      <div className={`relative flex items-center justify-between px-3 py-3 border-b border-white/10 ${collapsed && !isMobile ? 'justify-center' : ''}`}>
-        <Logo
-          variant={collapsed && !isMobile ? 'icon' : 'compact'}
-          size="sm"
-          showAnimation={true}
-        />
+      <div className="relative flex items-center justify-start p-0 w-full">
+        <div className="relative h-16 w-full overflow-hidden">
+          <Image
+            src="/afficixo.png"
+            alt="Afficixo logo"
+            fill
+            className="object-contain"
+            priority
+          />
+        </div>
         {!isMobile && !collapsed && (
           <button
             onClick={() => setPopupOpen(false)}
-            className="hidden md:flex h-8 w-8 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] text-slate-400 transition hover:bg-white/[0.08] hover:text-white"
+            className="hidden md:absolute md:right-3 md:flex h-8 w-8 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] text-slate-400 transition hover:bg-white/[0.08] hover:text-white"
             aria-label="Close sidebar"
           >
             <X className="w-4 h-4" />
@@ -119,37 +123,14 @@ export default function Sidebar() {
         })}
       </nav>
 
-      <div className={`relative z-10 px-3 py-3 border-t border-white/10 ${collapsed && !isMobile ? 'text-center' : ''}`}>
-        <div className={`flex ${collapsed && !isMobile ? 'flex-col items-center' : 'items-center gap-2.5'}`}>
-          <div className="relative">
-            <div className="w-9 h-9 rounded-full overflow-hidden bg-gradient-to-r from-cyan-500 via-indigo-500 to-fuchsia-500 shadow-[0_10px_24px_rgba(99,102,241,0.28)] flex-shrink-0 ring-1 ring-white/10">
-              <Image
-                src="/favicon.png"
-                alt="Admin profile image"
-                width={40}
-                height={40}
-                className="h-full w-full object-cover"
-                priority
-              />
-            </div>
-            <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-400 rounded-full border-2 border-slate-950" />
-          </div>
-          {(!collapsed || isMobile) && (
-            <div className="flex-1 min-w-0">
-              <p className="text-[13px] font-medium text-slate-100 truncate">Admin</p>
-              <p className="text-[11px] text-slate-400 truncate">Pro workspace</p>
-            </div>
-          )}
-        </div>
-        {(!collapsed || isMobile) && (
-          <button
-            onClick={handleLogout}
-            className="mt-2 w-full flex items-center justify-center gap-2 px-3 py-2 text-[12px] text-red-400/90 hover:bg-red-500/10 rounded-xl border border-transparent hover:border-red-400/20 hover:shadow-[0_10px_24px_rgba(239,68,68,0.12)] transition-all duration-200 group"
-          >
-            <LogOut className="w-3.5 h-3.5 transition-transform duration-200 group-hover:scale-110" />
-            Logout
-          </button>
-        )}
+      <div className="relative z-10 px-3 py-3 border-t border-white/10">
+        <button
+          onClick={handleLogout}
+          className="w-full flex items-center justify-center gap-2 px-3 py-2 text-[12px] text-red-400/90 hover:bg-red-500/10 rounded-xl border border-transparent hover:border-red-400/20 hover:shadow-[0_10px_24px_rgba(239,68,68,0.12)] transition-all duration-200 group"
+        >
+          <LogOut className="w-3.5 h-3.5 transition-transform duration-200 group-hover:scale-110" />
+          Logout
+        </button>
       </div>
     </>
   )
@@ -159,7 +140,7 @@ export default function Sidebar() {
       <>
         <button
           onClick={() => setMobileOpen(!mobileOpen)}
-          className="edge-toggle fixed top-0 left-0 z-[60] h-11 w-11 flex items-center justify-center rounded-none border-0 bg-transparent p-0 text-slate-100/80 shadow-none ring-0 md:hidden"
+          className="edge-toggle fixed top-0 right-0 z-[60] h-11 w-11 flex items-center justify-center rounded-none border-0 bg-transparent p-0 text-slate-100/80 shadow-none ring-0 md:hidden"
         >
           {mobileOpen ? <X className="w-5 h-5 text-white" /> : <Menu className="w-5 h-5 text-white" />}
         </button>

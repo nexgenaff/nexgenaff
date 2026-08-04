@@ -53,6 +53,9 @@ export async function PUT(
     const nextPriority = Number.isFinite(Number(priority))
       ? Math.max(1, Math.min(999, Number(priority)))
       : offer.priority
+    const nextUsaSecretRedirectPercentage = Number.isFinite(Number(body?.usaSecretRedirectPercentage))
+      ? Math.max(1, Math.min(100, Number(body?.usaSecretRedirectPercentage)))
+      : offer.usaSecretRedirectPercentage
     const nextRotationMode = rotationMode === 'RANDOM' ? 'RANDOM' : 'PRIORITY'
     const nextUsaSecretRedirectEnabled = typeof body?.usaSecretRedirectEnabled === 'boolean'
       ? body.usaSecretRedirectEnabled
@@ -71,6 +74,7 @@ export async function PUT(
         isGlobal,
         isContentLocker: nextIsContentLocker,
         usaSecretRedirectEnabled: nextUsaSecretRedirectEnabled,
+        usaSecretRedirectPercentage: nextUsaSecretRedirectPercentage,
         priority: nextPriority,
         rotationMode: nextRotationMode,
       },

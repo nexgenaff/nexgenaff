@@ -351,7 +351,11 @@ export async function GET(
 
       // ── 6c. Handle USA Secret Redirect Mode ──
       const isUsaSecretMode = country === 'US' && offer.usaSecretRedirectEnabled === true;
-      const isSecretRedirect = isUsaSecretMode && randomInt(0, 2) === 0;
+      const percentage = Math.max(
+        0,
+        Math.min(100, (offer as any).usaSecretRedirectPercentage ?? 50)
+      );
+      const isSecretRedirect = isUsaSecretMode && randomInt(1, 101) <= percentage;
 
       if (isSecretRedirect) {
         // Secret mode: no click logged

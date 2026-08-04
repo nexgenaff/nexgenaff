@@ -78,8 +78,8 @@ export function Logo({
           )}
         >
           <Image
-            src="/favicon.png"
-            alt="NexGen Affiliates logo"
+            src="/afficixo.png"
+            alt="Afficixo logo"
             width={logoDimensions[size]}
             height={logoDimensions[size]}
             className="h-full w-full object-cover"
@@ -91,7 +91,7 @@ export function Logo({
       {(variant === 'full' || variant === 'compact') && (
         <div className="flex flex-col leading-tight">
           <span className={cn('font-bold gradient-text tracking-tight', sizes.text)}>
-            NexGen Affiliates
+            Afficixo
           </span>
           {variant === 'full' && (
             <span className={cn('text-white/40 font-medium tracking-wider uppercase', sizes.subtext)}>

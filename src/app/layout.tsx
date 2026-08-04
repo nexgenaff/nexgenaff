@@ -11,36 +11,36 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://nexgenaffiliates.vercel.app'),
-  title: 'NexGen Affiliates | Professional Routing Infrastructure',
+  title: 'Afficixo | Professional Routing Infrastructure',
   description: 'Secure, auditable affiliate routing and traffic control for teams that need precision, clarity, and dependable execution.',
   keywords: 'affiliate tracking, click fraud detection, link management, traffic quality, campaign routing, CPA platform',
-  authors: [{ name: 'NexGen Affiliates' }],
+  authors: [{ name: 'Afficixo' }],
   icons: {
-    icon: '/favicon.png',
-    apple: '/favicon.png',
+    icon: '/afficixo.png?v=2',
+    apple: '/afficixo.png?v=2',
   },
   openGraph: {
-    title: 'NexGen Affiliates | Professional Routing Infrastructure',
+    title: 'Afficixo | Professional Routing Infrastructure',
     description: 'Secure, auditable affiliate routing and traffic control for teams that need precision, clarity, and dependable execution.',
     type: 'website',
     url: 'https://nexgenaffiliates.vercel.app',
     images: [
       {
-        url: 'https://nexgenaffiliates.vercel.app/favicon.png',
-        secureUrl: 'https://nexgenaffiliates.vercel.app/favicon.png',
+        url: 'https://nexgenaffiliates.vercel.app/afficixo.png?v=2',
+        secureUrl: 'https://nexgenaffiliates.vercel.app/afficixo.png?v=2',
         width: 256,
         height: 256,
-        alt: 'NexGen Affiliates logo',
+        alt: 'Afficixo logo',
         type: 'image/png',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'NexGen Affiliates | Professional Routing Infrastructure',
+    title: 'Afficixo | Professional Routing Infrastructure',
     description: 'Secure, auditable affiliate routing and traffic control for teams that need precision, clarity, and dependable execution.',
-    images: ['https://nexgenaffiliates.vercel.app/favicon.png'],
-    site: '@nexgenaffiliates',
+    images: ['https://nexgenaffiliates.vercel.app/afficixo.png?v=2'],
+    site: '@afficixo',
   },
 }
 

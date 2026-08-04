@@ -45,6 +45,8 @@ export interface OfferVault {
   isActive: boolean
   isGlobal: boolean
   isContentLocker: boolean
+  usaSecretRedirectEnabled: boolean
+  usaSecretRedirectPercentage: number
   priority: number
   rotationMode: 'PRIORITY' | 'RANDOM'
   userId: string

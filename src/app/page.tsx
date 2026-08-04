@@ -128,20 +128,18 @@ const Header = () => (
     initial={{ y: -100 }}
     animate={{ y: 0 }}
     transition={{ duration: 0.5 }}
-    className="fixed top-0 left-0 right-0 z-40 backdrop-blur-md bg-[#05070b]/80 border-b border-white/10"
+    className="fixed top-0 left-0 right-0 z-40 backdrop-blur-md bg-[#05070b]/80"
   >
     <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-      <Link href="/" className="flex items-center gap-2 font-bold text-lg md:text-xl text-white">
-        <div className="relative w-5 h-5 md:w-6 md:h-6 overflow-hidden rounded-lg">
-          <Image
-            src="/favicon.png"
-            alt="NexGen Affiliates logo"
-            fill
-            className="object-cover"
-            priority
-          />
-        </div>
-        <span>Nexgen Affiliates</span>
+      <Link href="/" className="flex items-center text-white">
+        <Image
+          src="/afficixo.png"
+          alt="Afficixo logo"
+          width={72}
+          height={72}
+          className="object-cover"
+          priority
+        />
       </Link>
       <div className="hidden md:flex items-center gap-6 lg:gap-8 text-sm text-slate-300">
         <a href="#features" className="hover:text-white transition-colors">Features</a>
@@ -211,7 +209,7 @@ export default function HomePage() {
               </h1>
 
               <p className="text-base md:text-xl text-slate-400 mb-8 md:mb-10 max-w-2xl leading-relaxed font-light">
-                Join Nexgen Affiliates and unlock a world of high‑converting offers,
+                Join Afficixo and unlock a world of high‑converting offers,
                 seamless traffic monetization, and some of the best payouts in the
                 industry – all on one dynamic platform built for growth.
               </p>
@@ -330,7 +328,7 @@ export default function HomePage() {
         <section id="features" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-24">
           <SectionHeading
             title="Why Partner With Us?"
-            subtitle="At Nexgen Affiliates, we connect publishers and advertisers for mutual growth. Our smart solutions are designed to help you scale revenue effortlessly – no fluff, just results."
+            subtitle="At Afficixo, we connect publishers and advertisers for mutual growth. Our smart solutions are designed to help you scale revenue effortlessly – no fluff, just results."
           />
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
@@ -560,7 +558,7 @@ export default function HomePage() {
                   Ready to Level Up?
                   <br />
                   <GradientText className="text-3xl sm:text-4xl md:text-6xl">
-                    Join Nexgen Affiliates Today
+                    Join Afficixo Today
                   </GradientText>
                 </h2>
                 <p className="text-base md:text-xl text-slate-400 leading-relaxed font-light max-w-2xl mx-auto px-2">
@@ -607,7 +605,7 @@ export default function HomePage() {
           <div className="space-y-3 md:space-y-4">
             {[
               {
-                q: "How do I sign up with Nexgen Affiliates?",
+                q: "How do I sign up with Afficixo?",
                 a: "It's quick and straightforward. Just fill out the affiliate registration form on our site, tell us a bit about your traffic sources, and our team will review your application. Once approved, you'll get immediate access to our entire catalog of high‑converting offers.",
               },
               {
@@ -653,15 +651,15 @@ export default function HomePage() {
               <div className="flex items-center gap-2 md:gap-3">
                 <div className="p-1.5 md:p-2 rounded-lg bg-gradient-to-br from-indigo-500 to-pink-500">
                   <Image
-                    src="/favicon.png"
-                    alt="Nexgen Affiliates logo"
+                    src="/afficixo.png"
+                    alt="Afficixo logo"
                     width={20}
                     height={20}
                     className="w-4 h-4 md:w-5 md:h-5 rounded-lg object-cover"
                     priority
                   />
                 </div>
-                <span className="text-sm md:text-base font-bold text-white">© 2026 Nexgen Affiliates</span>
+                <span className="text-sm md:text-base font-bold text-white">© 2026 Afficixo</span>
               </div>
 
               <div className="flex flex-wrap items-center justify-center gap-4 md:gap-6 text-xs md:text-sm text-slate-400">

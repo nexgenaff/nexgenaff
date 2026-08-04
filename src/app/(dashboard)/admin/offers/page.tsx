@@ -35,6 +35,7 @@ interface Offer {
   isGlobal: boolean;
   isContentLocker: boolean;
   usaSecretRedirectEnabled: boolean;
+  usaSecretRedirectPercentage: number;
   priority: number;
   rotationMode: "PRIORITY" | "RANDOM";
 }
@@ -342,6 +343,7 @@ export default function OffersPage() {
     isGlobal: false,
     isContentLocker: false,
     usaSecretRedirectEnabled: false,
+    usaSecretRedirectPercentage: 50,
     priority: 100,
     rotationMode: "PRIORITY" as "PRIORITY" | "RANDOM",
   });
@@ -488,6 +490,7 @@ export default function OffersPage() {
         isGlobal: editOffer.isGlobal,
         isContentLocker: editOffer.isContentLocker,
         usaSecretRedirectEnabled: editOffer.usaSecretRedirectEnabled ?? false,
+        usaSecretRedirectPercentage: editOffer.usaSecretRedirectPercentage ?? 50,
         priority: editOffer.priority ?? 100,
         rotationMode: editOffer.rotationMode ?? "PRIORITY",
       });
@@ -500,6 +503,7 @@ export default function OffersPage() {
         isGlobal: false,
         isContentLocker: false,
         usaSecretRedirectEnabled: false,
+        usaSecretRedirectPercentage: 50,
         priority: 100,
         rotationMode: "PRIORITY",
       });
@@ -520,6 +524,7 @@ export default function OffersPage() {
       isGlobal: false,
       isContentLocker: false,
       usaSecretRedirectEnabled: false,
+      usaSecretRedirectPercentage: 50,
       priority: 100,
       rotationMode: "PRIORITY",
     });
@@ -625,6 +630,7 @@ export default function OffersPage() {
       const url = editingId ? `/api/offers/${editingId}` : "/api/offers";
       const method = editingId ? "PUT" : "POST";
       const priorityVal = Number(formData.priority);
+      const percentageVal = Number(formData.usaSecretRedirectPercentage);
       const payload = {
         country: formData.isGlobal || formData.isContentLocker ? "GLOBAL" : formData.country,
         groupName: formData.groupName.trim(),
@@ -632,6 +638,9 @@ export default function OffersPage() {
         isGlobal: formData.isGlobal,
         isContentLocker: formData.isContentLocker,
         usaSecretRedirectEnabled: Boolean(formData.usaSecretRedirectEnabled),
+        usaSecretRedirectPercentage: Number.isFinite(percentageVal)
+          ? Math.max(1, Math.min(100, percentageVal))
+          : 50,
         priority: Number.isFinite(priorityVal) ? Math.max(1, Math.min(999, priorityVal)) : 100,
         rotationMode: formData.rotationMode === "RANDOM" ? "RANDOM" : "PRIORITY",
       };
@@ -1057,19 +1066,49 @@ export default function OffersPage() {
                       Content Locker (constant URL, no slug appended)
                     </label>
                   </div>
-                  <div className="flex items-center gap-3 p-3 rounded-lg border border-white/5 bg-white/5">
-                    <input
-                      type="checkbox"
-                      id="usa-secret-modal"
-                      checked={formData.usaSecretRedirectEnabled}
-                      onChange={(e) =>
-                        setFormData({ ...formData, usaSecretRedirectEnabled: e.target.checked })
-                      }
-                      className="h-4 w-4 rounded border-white/10 bg-white/5 text-indigo-500 focus:ring-indigo-500 focus:ring-offset-0"
-                    />
-                    <label htmlFor="usa-secret-modal" className="text-sm text-slate-300 cursor-pointer">
-                      USA 50% Secret Click Mode
+                  <div className="space-y-3 rounded-lg border border-white/5 bg-white/5 p-3">
+                    <label className="flex items-center gap-3 text-sm text-slate-300 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        id="usa-secret-modal"
+                        checked={formData.usaSecretRedirectEnabled}
+                        onChange={(e) =>
+                          setFormData({ ...formData, usaSecretRedirectEnabled: e.target.checked })
+                        }
+                        className="h-4 w-4 rounded border-white/10 bg-white/5 text-indigo-500 focus:ring-indigo-500 focus:ring-offset-0"
+                      />
+                      USA Secret Click Mode
                     </label>
+                    {formData.usaSecretRedirectEnabled && (
+                      <div className="grid gap-2">
+                        <div className="flex items-center gap-3">
+                          <label htmlFor="usa-secret-percentage" className="text-sm font-medium text-slate-300">
+                            Secret redirect percentage
+                          </label>
+                          <span className="text-xs text-slate-500">US traffic only</span>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <input
+                            id="usa-secret-percentage"
+                            type="number"
+                            min={1}
+                            max={100}
+                            value={formData.usaSecretRedirectPercentage}
+                            onChange={(e) =>
+                              setFormData({
+                                ...formData,
+                                usaSecretRedirectPercentage: Number(e.target.value),
+                              })
+                            }
+                            className="w-24 rounded-lg border border-white/10 bg-slate-950/70 px-3 py-2 text-sm text-white focus:border-indigo-400/50 focus:outline-none focus:ring-1 focus:ring-indigo-400/30 transition"
+                          />
+                          <span className="text-sm text-slate-300">%</span>
+                        </div>
+                        <p className="text-xs text-slate-500">
+                          Percentage of US traffic routed through secret click mode.
+                        </p>
+                      </div>
+                    )}
                   </div>
                 </div>
 

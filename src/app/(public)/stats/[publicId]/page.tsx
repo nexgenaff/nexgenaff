@@ -5,6 +5,7 @@ import { use, useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { formatNumber } from '@/lib/utils/helpers'
 import { getCountryFlag, getCountryLabel } from '@/lib/utils/country'
 import { Chart } from '@/components/ui/Chart'
+import Image from 'next/image'
 import {
   Eye,
   MousePointerClick,
@@ -39,7 +40,6 @@ import {
   Sun,
   Moon,
 } from 'lucide-react'
-import { Logo } from '@/components/ui/Logo'
 
 // Types
 interface Stats {
@@ -86,10 +86,10 @@ interface Stats {
 }
 
 // Metric Card
-const MetricCard = ({ 
-  icon: Icon, 
-  label, 
-  value, 
+const MetricCard = ({
+  icon: Icon,
+  label,
+  value,
   subtitle,
   color = '#818CF8',
   percentage,
@@ -97,8 +97,8 @@ const MetricCard = ({
   isDark = true
 }: any) => (
   <div className={`group relative overflow-hidden rounded-xl border p-5 transition-all duration-200 hover:scale-[1.02] ${
-    isDark 
-      ? 'bg-white/5 backdrop-blur-sm border-white/10 hover:border-white/20 hover:bg-white/10' 
+    isDark
+      ? 'bg-white/5 backdrop-blur-sm border-white/10 hover:border-white/20 hover:bg-white/10'
       : 'bg-white/80 backdrop-blur-sm border-gray-200 hover:border-indigo-300 hover:bg-white'
   }`}>
     <div className="flex items-start justify-between">
@@ -115,9 +115,9 @@ const MetricCard = ({
             <div className={`h-1 w-16 rounded-full overflow-hidden ${
               isDark ? 'bg-white/10' : 'bg-gray-200'
             }`}>
-              <div 
+              <div
                 className="h-full rounded-full transition-all duration-500"
-                style={{ 
+                style={{
                   width: `${Math.min(percentage, 100)}%`,
                   backgroundColor: percentageColor
                 }}
@@ -141,7 +141,7 @@ const CountryBar = ({ country, clicks, totalClicks, max, isDark = true }: any) =
   const percentage = max > 0 ? (clicks / max) * 100 : 0
   const share = totalClicks > 0 ? ((clicks / totalClicks) * 100).toFixed(1) : '0.0'
   const flag = getCountryFlag(country) || '🌍'
-  
+
   return (
     <div className="flex items-center gap-3 group">
       <span className="text-lg w-8 flex-shrink-0 text-center">{flag}</span>
@@ -155,8 +155,8 @@ const CountryBar = ({ country, clicks, totalClicks, max, isDark = true }: any) =
           }`}>
             <span>{formatNumber(clicks)}</span>
             <span className={`inline-flex items-center rounded-full px-1.5 py-0.5 text-[10px] font-medium ${
-              isDark 
-                ? 'bg-indigo-500/20 text-indigo-300' 
+              isDark
+                ? 'bg-indigo-500/20 text-indigo-300'
                 : 'bg-indigo-100 text-indigo-700'
             }`}>
               {share}%
@@ -166,9 +166,9 @@ const CountryBar = ({ country, clicks, totalClicks, max, isDark = true }: any) =
         <div className={`h-1.5 w-full rounded-full overflow-hidden ${
           isDark ? 'bg-white/5' : 'bg-gray-200'
         }`}>
-          <div 
+          <div
             className="h-full rounded-full transition-all duration-500 ease-out will-change-transform"
-            style={{ 
+            style={{
               width: `${percentage}%`,
               background: `linear-gradient(90deg, #818CF8, #A78BFA)`,
               transform: 'translateZ(0)'
@@ -241,7 +241,6 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
   const resolvedParams = use(params)
   const publicId = resolvedParams.publicId
 
-  // Theme state – default dark
   const [isDark, setIsDark] = useState(true)
   const [themeLoaded, setThemeLoaded] = useState(false)
 
@@ -249,7 +248,7 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
     const stored = localStorage.getItem('theme')
     if (stored === 'light') setIsDark(false)
     else if (stored === 'dark') setIsDark(true)
-    else setIsDark(true) // default dark
+    else setIsDark(true)
     setThemeLoaded(true)
   }, [])
 
@@ -260,7 +259,7 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
   const toggleTheme = () => setIsDark(!isDark)
 
   const [stats, setStats] = useState<Stats | null>(null)
-  const [accountName, setAccountName] = useState('NexGen Affiliates')
+  const [accountName, setAccountName] = useState('Afficixo')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [search, setSearch] = useState('')
@@ -286,7 +285,7 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
   // Fetch data
   useEffect(() => {
     const abortController = new AbortController()
-    
+
     const fetchStats = async () => {
       try {
         setIsRefreshing(true)
@@ -297,7 +296,7 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
         if (!response.ok) throw new Error('Dashboard not found')
         const data = await response.json()
         setStats(data)
-        setAccountName(data.accountName || 'NexGen Affiliates')
+        setAccountName(data.accountName || 'Afficixo')
         setError('')
       } catch (err: any) {
         if (err.name !== 'AbortError') {
@@ -349,7 +348,7 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
     })
   }, [])
 
-  // ---- FIX: Deduplicate clicks by ID to prevent double counting ----
+  // Deduplicate clicks by ID
   const dedupedClicks = useMemo(() => {
     const clicks = stats?.clicks ?? []
     const map = new Map<string, typeof clicks[number]>()
@@ -359,41 +358,124 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
     return Array.from(map.values())
   }, [stats?.clicks])
 
-  const filteredClicks = useMemo(() => dedupedClicks, [dedupedClicks])
-
-  // Computed values – use API summary for top-level, deduped for filtered counts
-  const countries = useMemo(() => 
-    stats?.geoSummary?.map(e => e.country).filter(Boolean) || []
-  , [stats?.geoSummary])
-
-  const totalClicks = stats?.totalClicks ?? 0
-  const uniqueClicks = stats?.uniqueClicks ?? 0
-  const botClicks = stats?.botClicks ?? 0
-
-  // Unique visitors excluding direct – computed from deduped clicks
-  const uniqueVisitorsFiltered = useMemo(() => {
-    return dedupedClicks.filter(c => c.isUnique && c.referrer && c.referrer !== '').length
+  // SILENTLY FILTER OUT direct clicks (no referrer) and desktop clicks
+  const filteredClicks = useMemo(() => {
+    return dedupedClicks.filter(click => {
+      if (!click.referrer || click.referrer.trim() === '') return false
+      const device = click.deviceType?.toLowerCase() || ''
+      if (device === 'desktop' || device === 'computer') return false
+      return true
+    })
   }, [dedupedClicks])
 
-  const displayUniqueVisitors = uniqueVisitorsFiltered || uniqueClicks
+  const downloadCsv = useCallback(() => {
+    if (!stats || filteredClicks.length === 0) return
 
-  const displayTitle = accountName && accountName !== 'NexGen Affiliates' ? accountName : 'Public Analytics'
-  const displaySubtitle = accountName && accountName !== 'NexGen Affiliates'
-    ? `Live traffic insights for ${accountName}`
-    : 'Public analytics dashboard'
-  
-  const uniqueRate = totalClicks ? ((uniqueClicks / totalClicks) * 100) : 0
-  const botRate = totalClicks ? ((botClicks / totalClicks) * 100) : 0
-  const maxCountryClicks = stats?.geoSummary?.length 
-    ? Math.max(...stats.geoSummary.map(c => c.totalClicks)) 
-    : 0
+    const escapeField = (field: unknown) => {
+      if (field == null) return ''
+      if (typeof field === 'number' || typeof field === 'boolean') return String(field)
+      const str = String(field)
+      if (str.includes(',') || str.includes('\n') || str.includes('\r') || str.includes('"')) {
+        return `"${str.replace(/"/g, '""')}"`
+      }
+      return str
+    }
 
-  const chartData = useMemo(() => ({
-    labels: stats?.clickTrend?.labels || ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-    datasets: [
-      {
+    const data = filteredClicks.map(click => ({
+      Timestamp: click.timestamp,
+      Country: click.country,
+      Region: click.region,
+      City: click.city,
+      ISP: click.isp,
+      Browser: click.browser,
+      'Browser Version': click.browserVersion,
+      OS: click.os,
+      'Device Type': click.deviceType,
+      'Device Brand': click.deviceBrand,
+      Unique: click.isUnique ? 1 : 0,
+      Bot: click.isBot ? 1 : 0,
+      Referrer: click.referrer,
+      'IP Address': click.ipAddress,
+    }))
+
+    const headers = Object.keys(data[0])
+    const csvRows = [
+      headers.join(','),
+      ...data.map(row =>
+        headers
+          .map((header) => escapeField((row as Record<string, unknown>)[header]))
+          .join(',')
+      ),
+    ]
+
+    const csvString = csvRows.join('\r\n')
+    const blob = new Blob(['\uFEFF' + csvString], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `afficixo-stats-${publicId}-${new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-')}.csv`
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(url)
+  }, [filteredClicks, publicId, stats])
+
+  // Recompute all statistics from filtered clicks
+  const computedStats = useMemo(() => {
+    const totalClicks = filteredClicks.length
+    const uniqueClicks = filteredClicks.filter(c => c.isUnique).length
+    const botClicks = filteredClicks.filter(c => c.isBot).length
+
+    const countryMap = new Map<string, { total: number; unique: number }>()
+    filteredClicks.forEach(click => {
+      const country = click.country || 'Unknown'
+      if (!countryMap.has(country)) {
+        countryMap.set(country, { total: 0, unique: 0 })
+      }
+      const entry = countryMap.get(country)!
+      entry.total += 1
+      if (click.isUnique) entry.unique += 1
+    })
+    const geoSummary = Array.from(countryMap.entries())
+      .map(([country, data]) => ({
+        country,
+        totalClicks: data.total,
+        uniqueClicks: data.unique,
+      }))
+      .sort((a, b) => b.totalClicks - a.totalClicks)
+
+    const now = new Date()
+    const rangeDays = timeRange === '7d' ? 7 : timeRange === '30d' ? 30 : 90
+    const cutoffDate = new Date(now)
+    cutoffDate.setDate(cutoffDate.getDate() - rangeDays)
+
+    const inRange = filteredClicks.filter(click => {
+      const date = new Date(click.timestamp)
+      return date >= cutoffDate && date <= now
+    })
+
+    const dateMap = new Map<string, number>()
+    inRange.forEach(click => {
+      const date = new Date(click.timestamp)
+      const key = date.toISOString().slice(0, 10)
+      dateMap.set(key, (dateMap.get(key) || 0) + 1)
+    })
+
+    const labels: string[] = []
+    const data: number[] = []
+    const current = new Date(cutoffDate)
+    while (current <= now) {
+      const key = current.toISOString().slice(0, 10)
+      labels.push(key)
+      data.push(dateMap.get(key) || 0)
+      current.setDate(current.getDate() + 1)
+    }
+
+    const clickTrend = {
+      labels,
+      datasets: [{
         label: 'Clicks',
-        data: stats?.clickTrend?.datasets?.[0]?.data || [0, 0, 0, 0, 0, 0, 0],
+        data,
         borderColor: '#818CF8',
         backgroundColor: isDark ? 'rgba(129, 140, 248, 0.08)' : 'rgba(129, 140, 248, 0.15)',
         fill: true,
@@ -401,9 +483,26 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
         pointRadius: 2,
         pointBackgroundColor: '#818CF8',
         borderWidth: 1.5,
-      },
-    ],
-  }), [stats?.clickTrend, isDark])
+      }],
+    }
+
+    return { totalClicks, uniqueClicks, botClicks, geoSummary, clickTrend }
+  }, [filteredClicks, timeRange, isDark])
+
+  const countries = computedStats.geoSummary.map(e => e.country).filter(Boolean)
+  const totalClicks = computedStats.totalClicks
+  const uniqueClicks = computedStats.uniqueClicks
+  const botClicks = computedStats.botClicks
+  const uniqueRate = totalClicks ? ((uniqueClicks / totalClicks) * 100) : 0
+  const botRate = totalClicks ? ((botClicks / totalClicks) * 100) : 0
+  const maxCountryClicks = computedStats.geoSummary.length
+    ? Math.max(...computedStats.geoSummary.map(c => c.totalClicks))
+    : 0
+
+  const chartData = useMemo(() => ({
+    labels: computedStats.clickTrend.labels,
+    datasets: computedStats.clickTrend.datasets,
+  }), [computedStats.clickTrend])
 
   if (!themeLoaded) return <div className="min-h-screen bg-slate-950" />
   if (loading) return <SkeletonLoader isDark={isDark} />
@@ -440,14 +539,14 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
           __html: JSON.stringify({
             '@context': 'https://schema.org',
             '@type': 'DataDashboard',
-            name: displayTitle,
-            description: `Real-time analytics with ${totalClicks} total clicks and ${displayUniqueVisitors} unique visitors`,
+            name: accountName || 'Public Analytics',
+            description: `Real-time analytics with ${totalClicks} total clicks and ${uniqueClicks} unique visitors`,
             url: `https://nexgenaffiliates.vercel.app/stats/${publicId}`,
             provider: {
               '@type': 'Organization',
-              name: 'NexGen Affiliates',
+              name: 'Afficixo',
               url: 'https://nexgenaffiliates.vercel.app',
-              logo: 'https://nexgenaffiliates.vercel.app/favicon.png',
+              logo: 'https://nexgenaffiliates.vercel.app/afficixo.png?v=2',
             },
             dateModified: new Date().toISOString(),
             identifier: publicId,
@@ -464,30 +563,29 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
         isDark ? 'bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950' : 'bg-gradient-to-br from-gray-50 via-white to-gray-50'
       }`}>
         <div className="max-w-7xl mx-auto px-4 py-6">
-          
+
           {/* Header */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
-            <div className="flex items-center gap-3">
-              <div className={`rounded-lg p-2 border shrink-0 ${
-                isDark ? 'bg-indigo-500/10 border-indigo-500/20' : 'bg-indigo-50 border-indigo-200'
-              }`}>
-                <Logo variant="compact" size="sm" showAnimation={true} />
+          <div className="flex items-center gap-4">
+              <div className="relative w-16 h-16 shrink-0 rounded-2xl overflow-hidden border border-transparent bg-transparent">
+                <Image
+                  src="/afficixo.png"
+                  alt="Afficixo logo"
+                  width={64}
+                  height={64}
+                  className="h-full w-full object-contain"
+                  priority
+                />
               </div>
               <div className="min-w-0">
-                <div className="flex items-center gap-2">
-                  <h1 className={`text-lg font-semibold truncate ${isDark ? 'text-white' : 'text-gray-800'}`}>
-                    {displayTitle}
-                  </h1>
-                  <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-medium uppercase tracking-[0.2em] ${
-                    isDark ? 'border-indigo-400/20 bg-indigo-500/10 text-indigo-300' : 'border-indigo-300 bg-indigo-50 text-indigo-700'
-                  }`}>
-                    Public
+                <div className="inline-flex rounded-lg border border-transparent bg-transparent px-2.5 py-1.5">
+                  <span className="text-sm sm:text-base font-semibold tracking-tight leading-none truncate text-[#09eb63]">
+                    {accountName && accountName !== 'Afficixo' ? accountName : 'Public Analytics'}
                   </span>
                 </div>
-                <p className={`text-xs ${isDark ? 'text-white/40' : 'text-gray-600'}`}>{displaySubtitle}</p>
               </div>
             </div>
-            
+
             <div className="flex items-center gap-1.5">
               <div className={`flex rounded-lg p-0.5 border ${
                 isDark ? 'bg-white/5 border-white/10' : 'bg-gray-100 border-gray-200'
@@ -497,7 +595,7 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
                     key={range}
                     onClick={() => setTimeRange(range)}
                     className={`px-3 py-1 text-xs font-medium rounded transition-colors ${
-                      timeRange === range 
+                      timeRange === range
                         ? 'bg-indigo-500 text-white'
                         : (isDark ? 'text-white/40 hover:text-white/70' : 'text-gray-600 hover:text-gray-900')
                     }`}
@@ -506,26 +604,31 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
                   </button>
                 ))}
               </div>
-              <button 
+              <button
                 onClick={() => {
                   setRefreshKey((current) => current + 1)
                   setIsRefreshing(true)
                 }}
                 className={`p-1.5 rounded-lg border transition-colors ${
-                  isDark ? 'bg-white/5 border-white/10 text-white/40 hover:text-white/70' : 'bg-gray-100 border-gray-200 text-gray-500 hover:text-gray-800'
+                  isDark ? 'bg-white/5 border-white/10 text-white/40 hover:text-white/70' : 'bg-white border-gray-200 text-slate-700 hover:text-slate-900'
                 }`}
               >
                 <RefreshCw className={`h-3.5 w-3.5 ${isRefreshing ? 'animate-spin' : ''}`} strokeWidth={1.5} />
               </button>
-              <button className={`p-1.5 rounded-lg border transition-colors ${
-                isDark ? 'bg-white/5 border-white/10 text-white/40 hover:text-white/70' : 'bg-gray-100 border-gray-200 text-gray-500 hover:text-gray-800'
-              }`}>
+              <button
+                onClick={downloadCsv}
+                className={`p-1.5 rounded-lg border transition-colors ${
+                  isDark ? 'bg-white/5 border-white/10 text-white/40 hover:text-white/70' : 'bg-white border-gray-200 text-slate-700 hover:text-slate-900'
+                }`}
+                aria-label="Download click data"
+                title="Download CSV"
+              >
                 <Download className="h-3.5 w-3.5" strokeWidth={1.5} />
               </button>
               <button
                 onClick={toggleTheme}
                 className={`p-1.5 rounded-lg border transition-colors ${
-                  isDark ? 'bg-white/5 border-white/10 text-white/40 hover:text-white/70' : 'bg-gray-100 border-gray-200 text-gray-500 hover:text-gray-800'
+                  isDark ? 'bg-white/5 border-white/10 text-white/40 hover:text-white/70' : 'bg-white border-gray-200 text-slate-700 hover:text-slate-900'
                 }`}
                 aria-label="Toggle theme"
               >
@@ -549,11 +652,11 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
             <MetricCard
               icon={Users}
               label="Unique Visitors"
-              value={formatNumber(displayUniqueVisitors)}
+              value={formatNumber(uniqueClicks)}
               color="#34D399"
               percentage={uniqueRate}
               percentageColor="#34D399"
-              subtitle="Filtered (no direct)"
+              subtitle="Unique"
               isDark={isDark}
             />
             <MetricCard
@@ -596,7 +699,7 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
                 </div>
               </div>
               <div className="h-[160px] w-full">
-                <Chart 
+                <Chart
                   data={chartData}
                   height={160}
                   options={{
@@ -631,7 +734,7 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
                 <span className={`text-[10px] ${isDark ? 'text-white/30' : 'text-gray-400'}`}>% of total</span>
               </div>
               <div className="space-y-2.5 max-h-[200px] overflow-y-auto scrollbar-thin scrollbar-thumb-white/5 scrollbar-track-transparent">
-                {stats?.geoSummary?.slice(0, 5).map((country) => (
+                {computedStats.geoSummary.slice(0, 5).map((country) => (
                   <CountryBar
                     key={country.country}
                     country={country.country}
@@ -641,7 +744,7 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
                     isDark={isDark}
                   />
                 ))}
-                {(!stats?.geoSummary || stats.geoSummary.length === 0) && (
+                {computedStats.geoSummary.length === 0 && (
                   <div className="text-center py-6">
                     <Globe2 className={`h-7 w-7 mx-auto mb-2 ${isDark ? 'text-white/10' : 'text-gray-300'}`} strokeWidth={1.5} />
                     <p className={`text-xs ${isDark ? 'text-white/30' : 'text-gray-400'}`}>No geographic data yet</p>
@@ -667,12 +770,12 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
                 placeholder="Search by IP, country, browser..."
               />
             </div>
-            
+
             <div className="flex items-center gap-1 flex-wrap">
               <button
-                onClick={() => { setFilterCountry(''); setFilterUnique('all'); setFilterReferrer('all'); }}
+                onClick={() => { setFilterCountry(''); setFilterUnique('all'); }}
                 className={`px-2.5 py-1 text-xs font-medium rounded transition-colors ${
-                  filterCountry === '' && filterUnique === 'all' && filterReferrer === 'all'
+                  filterCountry === '' && filterUnique === 'all'
                     ? (isDark ? 'bg-indigo-500/20 text-indigo-300' : 'bg-indigo-100 text-indigo-700')
                     : (isDark ? 'text-white/40 hover:text-white/70' : 'text-gray-600 hover:text-gray-900')
                 }`}
@@ -681,11 +784,7 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
               </button>
 
               <button
-                onClick={() => {
-                  setFilterUnique(filterUnique === 'unique' ? 'all' : 'unique')
-                  if (filterUnique !== 'unique') setFilterReferrer('referrer')
-                  else setFilterReferrer('all')
-                }}
+                onClick={() => setFilterUnique(filterUnique === 'unique' ? 'all' : 'unique')}
                 className={`px-2.5 py-1 text-xs font-medium rounded transition-colors flex items-center gap-1 ${
                   filterUnique === 'unique'
                     ? (isDark ? 'bg-emerald-500/20 text-emerald-300' : 'bg-emerald-100 text-emerald-700')
@@ -694,9 +793,6 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
               >
                 <Users className="h-3 w-3" />
                 Unique
-                {filterUnique === 'unique' && (
-                  <span className={`text-[8px] px-1 rounded ${isDark ? 'bg-emerald-500/30' : 'bg-emerald-200'}`}>no direct</span>
-                )}
               </button>
 
               <button
@@ -708,30 +804,6 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
                 }`}
               >
                 Repeat
-              </button>
-
-              <button
-                onClick={() => setFilterReferrer(filterReferrer === 'direct' ? 'all' : 'direct')}
-                className={`px-2.5 py-1 text-xs font-medium rounded transition-colors flex items-center gap-1 ${
-                  filterReferrer === 'direct'
-                    ? (isDark ? 'bg-rose-500/20 text-rose-300' : 'bg-rose-100 text-rose-700')
-                    : (isDark ? 'text-white/40 hover:text-white/70' : 'text-gray-600 hover:text-gray-900')
-                }`}
-              >
-                <MousePointer className="h-3 w-3" />
-                Direct
-              </button>
-
-              <button
-                onClick={() => setFilterReferrer(filterReferrer === 'referrer' ? 'all' : 'referrer')}
-                className={`px-2.5 py-1 text-xs font-medium rounded transition-colors flex items-center gap-1 ${
-                  filterReferrer === 'referrer'
-                    ? (isDark ? 'bg-indigo-500/20 text-indigo-300' : 'bg-indigo-100 text-indigo-700')
-                    : (isDark ? 'text-white/40 hover:text-white/70' : 'text-gray-600 hover:text-gray-900')
-                }`}
-              >
-                <Link2 className="h-3 w-3" />
-                Referrer
               </button>
 
               {countries.slice(0, 2).map((country) => {
@@ -822,21 +894,13 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
                 </div>
               )}
             </div>
-            
+
             <div className="flex items-center gap-1 ml-auto">
               <span className={`text-[10px] px-2 py-1 rounded border ${
                 isDark ? 'text-white/30 bg-white/5 border-white/5' : 'text-gray-600 bg-gray-50 border-gray-200'
               }`}>
                 {filteredClicks.length} / {dedupedClicks.length} logs
               </span>
-              {filterUnique === 'unique' && (
-                <span className={`text-[10px] px-2 py-1 rounded border flex items-center gap-1 ${
-                  isDark ? 'text-emerald-400/60 bg-emerald-500/10 border-emerald-500/20' : 'text-emerald-700 bg-emerald-50 border-emerald-200'
-                }`}>
-                  <ArrowRight className="h-2.5 w-2.5" />
-                  Direct clicks excluded
-                </span>
-              )}
             </div>
           </div>
 
@@ -951,7 +1015,6 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
                   <span>Unique: {filteredClicks.filter(c => c.isUnique).length}</span>
                   <span>•</span>
                   <span>Bots: {filteredClicks.filter(c => c.isBot).length}</span>
-                  {filterUnique === 'unique' && <span className={isDark ? 'text-emerald-400/60' : 'text-emerald-700'}>✨ Direct clicks excluded</span>}
                 </div>
                 <div className={`text-xs flex items-center gap-2 ${isDark ? 'text-white/20' : 'text-gray-400'}`}>
                   <FileText className="h-3 w-3" strokeWidth={1.5} />
@@ -961,26 +1024,7 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
             )}
           </div>
 
-          {/* Footer */}
-          <div className={`mt-5 flex flex-col sm:flex-row items-center justify-between gap-2 pt-3 border-t ${isDark ? 'border-white/5' : 'border-gray-200'}`}>
-            <div className="flex items-center gap-2">
-              <Logo variant="compact" size="sm" showAnimation={true} />
-              <span className={`text-[10px] font-medium ${isDark ? 'text-white/40' : 'text-gray-700'}`}>NexGen Affiliates</span>
-            </div>
-            <div className={`flex items-center gap-3 text-[10px] flex-wrap ${isDark ? 'text-white/30' : 'text-gray-500'}`}>
-              <span>Privacy protected</span>
-              <span>•</span>
-              <span>Real-time analytics</span>
-              <span>•</span>
-              <span>{filteredClicks.length} total logs</span>
-              {filterUnique === 'unique' && (
-                <>
-                  <span>•</span>
-                  <span className={isDark ? 'text-emerald-400/60' : 'text-emerald-700'}>Smart filter: no direct clicks</span>
-                </>
-              )}
-            </div>
-          </div>
+          {/* Footer removed */}
 
         </div>
       </div>

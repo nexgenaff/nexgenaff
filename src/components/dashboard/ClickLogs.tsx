@@ -78,7 +78,11 @@ interface ConfirmDialogState {
   onConfirm: () => Promise<void> | void
 }
 
-export default function ClickLogs() {
+interface ClickLogsProps {
+  filter: string
+}
+
+export default function ClickLogs({ filter }: ClickLogsProps) {
   const router = useRouter()
   const [clicks, setClicks] = useState<Click[]>([])
   const [total, setTotal] = useState(0)
