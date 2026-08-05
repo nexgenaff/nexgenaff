@@ -5,6 +5,8 @@ import { getCorsHeaders } from '@/config/cors'
 import { prisma } from '@/lib/db/prisma'
 import { ADMIN_USERNAME, ADMIN_PASSWORD, OWNER_USERNAME, OWNER_PASSWORD } from '@/lib/constants'
 
+const ADMIN_ENV_USERNAME = ADMIN_USERNAME?.trim() || ''
+const ADMIN_ENV_PASSWORD = ADMIN_PASSWORD?.trim() || ''
 const OWNER_ENV_USERNAME = OWNER_USERNAME?.trim() || ''
 const OWNER_ENV_PASSWORD = OWNER_PASSWORD?.trim() || ''
 
@@ -48,10 +50,10 @@ export async function POST(request: Request) {
     }
 
     if (!user) {
-      if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
+      if (ADMIN_ENV_USERNAME && ADMIN_ENV_PASSWORD && username === ADMIN_ENV_USERNAME && password === ADMIN_ENV_PASSWORD) {
         if (dbError) {
           console.warn('DB unavailable; issuing in-memory token for', username)
-          user = { id: `local-${ADMIN_USERNAME}`, username: ADMIN_USERNAME, role: 'ADMIN' } as any
+          user = { id: `local-${ADMIN_ENV_USERNAME}`, username: ADMIN_ENV_USERNAME, role: 'ADMIN' } as any
         } else {
           const existingAdmin = await prisma.user.findUnique({
             where: { username: ADMIN_USERNAME },

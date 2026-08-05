@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
-import { getUserFromToken, getTokenFromCookie, isAdmin } from '@/lib/auth';
+import { getUserFromToken, getTokenFromCookie, isAdmin, isOwner, getOwnerUserId } from '@/lib/auth';
 import { getCorsHeaders } from '@/config/cors';
 import { buildAccountGeoReport } from '@/lib/utils/report-data';
 
@@ -330,8 +330,16 @@ export async function GET(request: Request) {
 
     const dateRange = getDateRange(period, filters);
 
-    // Get user's links (managers only see their own; admins see all)
-    const linkWhere = isAdmin(user) ? {} : { userId: user.id }
+    const ownerUserId = await getOwnerUserId();
+    const linkWhere = isOwner(user)
+      ? {
+          OR: [
+            { userId: ownerUserId || undefined },
+            { user: { role: 'MANAGER' } },
+          ],
+        }
+      : { userId: user.id };
+
     const links = await prisma.linkAccount.findMany({
       where: linkWhere,
       select: { id: true, accountName: true },

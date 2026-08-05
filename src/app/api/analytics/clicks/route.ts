@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
-import { getUserFromToken, getTokenFromCookie, isAdmin } from '@/lib/auth';
+import { getUserFromToken, getTokenFromCookie, isAdmin, isOwner, getOwnerUserId } from '@/lib/auth';
 import { getCorsHeaders } from '@/config/cors';
 
 interface FilterParams {
@@ -96,7 +96,16 @@ export async function GET(request: Request) {
     };
 
     // Get all link IDs for the user
-    const linkWhere = isAdmin(user) ? {} : { userId: user.id }
+    const ownerUserId = await getOwnerUserId();
+    const linkWhere = isOwner(user)
+      ? {
+          OR: [
+            { userId: ownerUserId || undefined },
+            { user: { role: 'MANAGER' } },
+          ],
+        }
+      : { userId: user.id };
+
     const links = await prisma.linkAccount.findMany({
       where: linkWhere,
       select: { id: true },

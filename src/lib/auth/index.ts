@@ -24,7 +24,7 @@ export function isAdminOrOwner(user: { role?: UserRole } | null | undefined): bo
 }
 
 async function createOwnerUser(): Promise<string | null> {
-  if (!OWNER_PASSWORD) {
+  if (!OWNER_USERNAME || !OWNER_PASSWORD) {
     return null
   }
 
@@ -46,6 +46,10 @@ async function createOwnerUser(): Promise<string | null> {
 }
 
 export async function getOwnerUserId(): Promise<string | null> {
+  if (!OWNER_USERNAME) {
+    return null
+  }
+
   const owner = await prisma.user.findUnique({
     where: { username: OWNER_USERNAME },
     select: { id: true, role: true },

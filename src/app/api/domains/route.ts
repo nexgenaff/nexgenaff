@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
-import { getUserFromToken, getTokenFromCookie, getOwnerUserId } from '@/lib/auth';
+import { getUserFromToken, getTokenFromCookie, getOwnerUserId, isOwner } from '@/lib/auth';
 import { normalizeDomain, isSubdomain } from '@/lib/services/dns/verify';
 import {
   addDomainToProject,
@@ -63,7 +63,9 @@ export async function GET(request: Request) {
     const ownerUserId = await getOwnerUserId();
     const whereClause = user.role === 'MANAGER'
       ? { userId: { in: [user.id, ownerUserId].filter((id): id is string => Boolean(id)) } }
-      : {}
+      : isOwner(user)
+        ? { userId: ownerUserId ? ownerUserId : undefined }
+        : { userId: user.id }
 
     const domains = await prisma.customDomain.findMany({
       where: whereClause,

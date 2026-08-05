@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { prisma } from '@/lib/db/prisma'
-import { getUserFromToken, getTokenFromCookie, isAdmin, getOwnerUserId } from '@/lib/auth'
+import { getUserFromToken, getTokenFromCookie, isAdmin, isOwner, getOwnerUserId } from '@/lib/auth'
 import { getCorsHeaders } from '@/config/cors'
 
 const normalizeSlug = (value: unknown) => {
@@ -39,10 +39,23 @@ export async function GET(
       include: {
         customDomain: true,
         publicDashboard: true,
+        user: true,
       },
     })
 
-    if (!link || (!isAdmin(user) && link.userId !== user.id)) {
+    if (!link || (!isAdmin(user) && !isOwner(user) && link.userId !== user.id)) {
+      return NextResponse.json(
+        { error: 'Link not found' },
+        { status: 404, headers: getCorsHeaders(origin) }
+      )
+    }
+
+    if (isOwner(user) && link.user.role === 'ADMIN' && link.userId !== (await getOwnerUserId())) {
+      return NextResponse.json(
+        { error: 'Link not found' },
+        { status: 404, headers: getCorsHeaders(origin) }
+      )
+    }
       return NextResponse.json(
         { error: 'Link not found' },
         { status: 404, headers: getCorsHeaders(origin) }
@@ -102,7 +115,7 @@ export async function PUT(
       where: { id },
     })
 
-    if (!existingLink || (!isAdmin(user) && existingLink.userId !== user.id)) {
+    if (!existingLink || (!isAdmin(user) && !isOwner(user) && existingLink.userId !== user.id)) {
       return NextResponse.json(
         { error: 'Link not found' },
         { status: 404, headers: getCorsHeaders(origin) }
@@ -115,7 +128,9 @@ export async function PUT(
       })
 
       const ownerUserId = await getOwnerUserId()
-      const canUseDomain = isAdmin(user) || attachedDomain?.userId === user.id || attachedDomain?.userId === ownerUserId
+      const canUseDomain =
+        attachedDomain?.userId === user.id ||
+        attachedDomain?.userId === ownerUserId && (isOwner(user) || isManager(user))
 
       if (!attachedDomain || !canUseDomain) {
         return NextResponse.json(
