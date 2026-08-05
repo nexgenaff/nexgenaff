@@ -1,4 +1,3 @@
-// app/(public)/stats/[publicId]/page.tsx
 'use client'
 
 import { use, useState, useEffect, useCallback, useMemo, useRef } from 'react'
@@ -271,6 +270,12 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [isCountryDropdownOpen, setIsCountryDropdownOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
+
+  // Auto-select USA and Unique filters on page load
+  useEffect(() => {
+    setFilterCountry('US')
+    setFilterUnique('unique')
+  }, [])
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
