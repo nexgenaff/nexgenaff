@@ -56,11 +56,6 @@ export async function GET(
         { status: 404, headers: getCorsHeaders(origin) }
       )
     }
-      return NextResponse.json(
-        { error: 'Link not found' },
-        { status: 404, headers: getCorsHeaders(origin) }
-      )
-    }
 
     return NextResponse.json(link, { headers: getCorsHeaders(origin) })
   } catch (error) {
