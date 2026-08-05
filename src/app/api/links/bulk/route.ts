@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db/prisma'
-import { getUserFromToken, getTokenFromCookie } from '@/lib/auth'
+import { getUserFromToken, getTokenFromCookie, isAdmin, getOwnerUserId } from '@/lib/auth'
 import { getCorsHeaders } from '@/config/cors'
 
 const normalizeIds = (value: unknown) => {
@@ -34,6 +34,13 @@ export async function POST(request: Request) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401, headers: getCorsHeaders(origin) }
+      )
+    }
+
+    if (!isAdmin(user)) {
+      return NextResponse.json(
+        { error: 'Forbidden' },
+        { status: 403, headers: getCorsHeaders(origin) }
       )
     }
 
@@ -121,9 +128,12 @@ export async function POST(request: Request) {
           where: { id: body.customDomainId },
         })
 
-        if (!attachedDomain || attachedDomain.userId !== user.id) {
+        const ownerUserId = await getOwnerUserId()
+        const canUseDomain = isAdmin(user) || attachedDomain?.userId === user.id || attachedDomain?.userId === ownerUserId
+
+        if (!attachedDomain || !canUseDomain) {
           return NextResponse.json(
-            { error: 'Selected custom domain does not exist or is not owned by your account' },
+            { error: 'Selected custom domain does not exist or is not owned by your account or the shared owner account' },
             { status: 400, headers: getCorsHeaders(origin) }
           )
         }

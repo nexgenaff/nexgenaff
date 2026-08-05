@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
@@ -333,6 +334,7 @@ const modalVariants = {
 export default function OffersPage() {
   const router = useRouter();
   const [offers, setOffers] = useState<Offer[]>([]);
+  const [userRole, setUserRole] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [showFormModal, setShowFormModal] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -364,6 +366,17 @@ export default function OffersPage() {
   });
   const countryPickerRef = useRef<HTMLDivElement | null>(null);
 
+  const fetchUser = useCallback(async () => {
+    try {
+      const response = await fetch('/api/auth/me', { credentials: 'include' })
+      if (!response.ok) return
+      const data = await response.json()
+      setUserRole(data?.role ?? null)
+    } catch {
+      setUserRole(null)
+    }
+  }, [])
+
   const fetchOffers = useCallback(async () => {
     try {
       const response = await fetch("/api/offers", { credentials: "include" });
@@ -381,8 +394,11 @@ export default function OffersPage() {
   }, [router]);
 
   useEffect(() => {
-    void fetchOffers();
-  }, [fetchOffers]);
+    void (async () => {
+      await Promise.all([fetchUser(), fetchOffers()])
+      setLoading(false)
+    })()
+  }, [fetchUser, fetchOffers]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -713,6 +729,25 @@ export default function OffersPage() {
         </div>
       </div>
     );
+  }
+
+  if (userRole === 'MANAGER') {
+    return (
+      <div className="min-h-[320px] rounded-3xl border border-white/10 bg-white/5 p-8 text-center">
+        <h1 className="text-2xl font-semibold text-white">Offer Vault Access Restricted</h1>
+        <p className="mt-3 text-sm text-slate-400">
+          Your account is not authorized to manage offers directly. Use the links dashboard to create and track links.
+        </p>
+        <div className="mt-6 flex justify-center">
+          <Link
+            href="/admin/links"
+            className="inline-flex items-center justify-center rounded-full bg-indigo-500 px-5 py-3 text-sm font-semibold text-white hover:bg-indigo-600 transition"
+          >
+            Return to Links
+          </Link>
+        </div>
+      </div>
+    )
   }
 
   return (

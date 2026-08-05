@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
-import { getUserFromToken, getTokenFromCookie } from '@/lib/auth';
+import { getUserFromToken, getTokenFromCookie, isAdmin } from '@/lib/auth';
 import { getCorsHeaders } from '@/config/cors';
 
 const RECENT_CLICKS_LIMIT = 20;
@@ -32,8 +32,9 @@ export async function GET(request: Request) {
       return NextResponse.json([], { headers: getCorsHeaders(origin) });
     }
 
+    const linkWhere = isAdmin(user) ? {} : { userId: user.id }
     const links = await prisma.linkAccount.findMany({
-      where: { userId: user.id },
+      where: linkWhere,
       select: { id: true },
     });
 

@@ -27,6 +27,7 @@ export default function Sidebar() {
   const [isMobile, setIsMobile] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
   const [popupOpen, setPopupOpen] = useState(false)
+  const [userRole, setUserRole] = useState<string | null>(null)
 
   useEffect(() => {
     const checkMobile = () => {
@@ -49,11 +50,28 @@ export default function Sidebar() {
     setPopupOpen(false)
   }, [pathname])
 
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const response = await fetch('/api/auth/me', { credentials: 'include' })
+        if (!response.ok) return
+        const data = await response.json()
+        setUserRole(data?.role ?? null)
+      } catch {
+        setUserRole(null)
+      }
+    }
+
+    fetchUser()
+  }, [])
+
   const menuItems = [
     { href: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { href: '/admin/links/create', label: 'Create Link', icon: Plus },
     { href: '/admin/links', label: 'All Links', icon: Link2 },
-    { href: '/admin/offers', label: 'Offer Vault', icon: Package },
+    ...(userRole !== 'MANAGER'
+      ? [{ href: '/admin/offers', label: 'Offer Vault', icon: Package }]
+      : []),
     { href: '/admin/domains', label: 'Custom Domains', icon: Globe2 },
     { href: '/admin/analytics', label: 'Analytics', icon: BarChart3 },
     { href: '/admin/settings', label: 'Settings', icon: Settings },

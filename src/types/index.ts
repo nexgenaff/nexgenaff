@@ -1,8 +1,10 @@
+export type UserRole = 'ADMIN' | 'MANAGER'
+
 export interface User {
   id: string
   username: string
   email: string
-  role: 'ADMIN' | 'MANAGER'
+  role: UserRole
   createdAt: string
   updatedAt: string
   lastLogin: string | null

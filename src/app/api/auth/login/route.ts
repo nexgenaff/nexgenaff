@@ -4,8 +4,12 @@ import { verifyCredentials, generateToken } from '@/lib/auth'
 import { getCorsHeaders } from '@/config/cors'
 import { prisma } from '@/lib/db/prisma'
 
+import { OWNER_USERNAME, OWNER_PASSWORD } from '@/lib/constants'
+
 const ADMIN_USERNAME = process.env.ADMIN_USERNAME?.trim() || 'admin'
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD?.trim() || 'admin123'
+const OWNER_ENV_USERNAME = OWNER_USERNAME?.trim() || ''
+const OWNER_ENV_PASSWORD = OWNER_PASSWORD?.trim() || ''
 
 export async function POST(request: Request) {
   try {
@@ -68,6 +72,32 @@ export async function POST(request: Request) {
             console.error('Error upserting user for login:', username, err)
             console.warn('Falling back to local bootstrap token for', username)
             user = { id: `local-${ADMIN_USERNAME}`, username: ADMIN_USERNAME, role: 'ADMIN' } as any
+          }
+        }
+      } else if (
+        OWNER_ENV_USERNAME && OWNER_ENV_PASSWORD &&
+        username === OWNER_ENV_USERNAME && password === OWNER_ENV_PASSWORD
+      ) {
+        if (dbError) {
+          console.warn('DB unavailable; issuing in-memory token for owner', username)
+          user = { id: `local-${OWNER_ENV_USERNAME}`, username: OWNER_ENV_USERNAME, role: 'ADMIN' } as any
+        } else {
+          try {
+            const hashed = await bcrypt.hash(OWNER_ENV_PASSWORD, 10)
+            user = await prisma.user.upsert({
+              where: { username: OWNER_ENV_USERNAME },
+              update: { password: hashed },
+              create: {
+                username: OWNER_ENV_USERNAME,
+                email: `${OWNER_ENV_USERNAME}@example.com`,
+                password: hashed,
+                role: 'ADMIN',
+              },
+            })
+          } catch (err) {
+            console.error('Error upserting owner user for login:', username, err)
+            console.warn('Falling back to local bootstrap token for owner', username)
+            user = { id: `local-${OWNER_ENV_USERNAME}`, username: OWNER_ENV_USERNAME, role: 'ADMIN' } as any
           }
         }
       } else {

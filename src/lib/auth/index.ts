@@ -1,9 +1,76 @@
 import jwt from 'jsonwebtoken'
 import bcrypt from 'bcryptjs'
 import { prisma } from '@/lib/db/prisma'
+import { OWNER_USERNAME, OWNER_PASSWORD } from '@/lib/constants'
+import type { UserRole } from '@/types'
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-this-in-production'
 const JWT_EXPIRY = parseInt(process.env.JWT_EXPIRY || '86400')
+
+export function isAdmin(user: { role?: UserRole } | null | undefined): boolean {
+  return Boolean(user && user.role === 'ADMIN')
+}
+
+export function isManager(user: { role?: UserRole } | null | undefined): boolean {
+  return Boolean(user && user.role === 'MANAGER')
+}
+
+async function createOwnerUser(): Promise<string | null> {
+  if (!OWNER_PASSWORD) {
+    return null
+  }
+
+  const hashed = await bcrypt.hash(OWNER_PASSWORD, 10)
+  try {
+    const owner = await prisma.user.create({
+      data: {
+        username: OWNER_USERNAME,
+        email: `${OWNER_USERNAME}@example.com`,
+        password: hashed,
+        role: 'ADMIN',
+      },
+    })
+    return owner.id
+  } catch (err) {
+    console.error('Failed to create owner user:', err)
+    return null
+  }
+}
+
+export async function getOwnerUserId(): Promise<string | null> {
+  const owner = await prisma.user.findUnique({
+    where: { username: OWNER_USERNAME },
+    select: { id: true },
+  })
+
+  if (owner?.id) {
+    return owner.id
+  }
+
+  return await createOwnerUser()
+}
+
+export async function getEffectiveOfferUserId(userId: string): Promise<string> {
+  const ownerUserId = await getOwnerUserId()
+  if (!ownerUserId) {
+    return userId
+  }
+
+  if (userId === ownerUserId) {
+    return ownerUserId
+  }
+
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { role: true },
+  })
+
+  if (user?.role === 'MANAGER') {
+    return ownerUserId
+  }
+
+  return userId
+}
 
 export async function verifyCredentials(username: string, password: string) {
   const user = await prisma.user.findUnique({

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
-import { getUserFromToken, getTokenFromCookie } from '@/lib/auth';
+import { getUserFromToken, getTokenFromCookie, getOwnerUserId } from '@/lib/auth';
 import { normalizeDomain, isSubdomain } from '@/lib/services/dns/verify';
 import {
   addDomainToProject,
@@ -60,8 +60,13 @@ export async function GET(request: Request) {
       );
     }
 
+    const ownerUserId = await getOwnerUserId();
+    const whereClause = user.role === 'MANAGER'
+      ? { userId: { in: [user.id, ownerUserId].filter((id): id is string => Boolean(id)) } }
+      : {}
+
     const domains = await prisma.customDomain.findMany({
-      where: { userId: user.id },
+      where: whereClause,
       orderBy: { createdAt: 'desc' },
     });
 
@@ -134,6 +139,8 @@ export async function POST(request: Request) {
         { status: 401, headers: getCorsHeaders(origin) }
       );
     }
+
+    const createUserId = user.id;
 
     const body = await request.json();
     const validation = domainSchema.safeParse(body);

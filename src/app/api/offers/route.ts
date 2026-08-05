@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db/prisma'
-import { getUserFromToken, getTokenFromCookie } from '@/lib/auth'
+import { getUserFromToken, getTokenFromCookie, isAdmin, getOwnerUserId } from '@/lib/auth'
 import { getCorsHeaders } from '@/config/cors'
 
 export async function GET(request: Request) {
@@ -24,8 +24,20 @@ export async function GET(request: Request) {
       )
     }
 
+    const ownerUserId = await getOwnerUserId()
+    if (!ownerUserId) {
+      return NextResponse.json(
+        { error: 'Owner account unavailable' },
+        { status: 500, headers: getCorsHeaders(origin) }
+      )
+    }
+
+    const queryWhere = isAdmin(user)
+      ? { userId: user.id }
+      : { userId: ownerUserId }
+
     const offers = await prisma.offerVault.findMany({
-      where: { userId: user.id },
+      where: queryWhere,
       orderBy: [
         { isGlobal: 'desc' },
         { createdAt: 'asc' },
@@ -60,6 +72,13 @@ export async function POST(request: Request) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401, headers: getCorsHeaders(origin) }
+      )
+    }
+
+    if (!isAdmin(user)) {
+      return NextResponse.json(
+        { error: 'Forbidden' },
+        { status: 403, headers: getCorsHeaders(origin) }
       )
     }
 

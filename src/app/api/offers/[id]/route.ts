@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { prisma } from '@/lib/db/prisma'
-import { getUserFromToken, getTokenFromCookie } from '@/lib/auth'
+import { getUserFromToken, getTokenFromCookie, isAdmin } from '@/lib/auth'
 import { getCorsHeaders } from '@/config/cors'
 
 export async function PUT(
@@ -28,6 +28,13 @@ export async function PUT(
       )
     }
 
+    if (!isAdmin(user)) {
+      return NextResponse.json(
+        { error: 'Forbidden' },
+        { status: 403, headers: getCorsHeaders(origin) }
+      )
+    }
+
     const body = await request.json()
     const { country, groupName, offerUrl, isActive, isGlobal, isContentLocker, priority, rotationMode } = body
 
@@ -35,7 +42,7 @@ export async function PUT(
       where: { id },
     })
 
-    if (!offer || offer.userId !== user.id) {
+    if (!offer) {
       return NextResponse.json(
         { error: 'Offer not found' },
         { status: 404, headers: getCorsHeaders(origin) }
@@ -119,7 +126,7 @@ export async function DELETE(
       where: { id },
     })
 
-    if (!offer || offer.userId !== user.id) {
+    if (!offer || (!isAdmin(user) && offer.userId !== user.id)) {
       return NextResponse.json(
         { error: 'Offer not found' },
         { status: 404, headers: getCorsHeaders(origin) }

@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { prisma } from '@/lib/db/prisma'
-import { getUserFromToken, getTokenFromCookie } from '@/lib/auth'
+import { getUserFromToken, getTokenFromCookie, isAdmin, getOwnerUserId } from '@/lib/auth'
 import { getCorsHeaders } from '@/config/cors'
 
 const normalizeSlug = (value: unknown) => {
@@ -42,7 +42,7 @@ export async function GET(
       },
     })
 
-    if (!link || link.userId !== user.id) {
+    if (!link || (!isAdmin(user) && link.userId !== user.id)) {
       return NextResponse.json(
         { error: 'Link not found' },
         { status: 404, headers: getCorsHeaders(origin) }
@@ -102,7 +102,7 @@ export async function PUT(
       where: { id },
     })
 
-    if (!existingLink || existingLink.userId !== user.id) {
+    if (!existingLink || (!isAdmin(user) && existingLink.userId !== user.id)) {
       return NextResponse.json(
         { error: 'Link not found' },
         { status: 404, headers: getCorsHeaders(origin) }
@@ -114,9 +114,12 @@ export async function PUT(
         where: { id: customDomainId },
       })
 
-      if (!attachedDomain || attachedDomain.userId !== user.id) {
+      const ownerUserId = await getOwnerUserId()
+      const canUseDomain = isAdmin(user) || attachedDomain?.userId === user.id || attachedDomain?.userId === ownerUserId
+
+      if (!attachedDomain || !canUseDomain) {
         return NextResponse.json(
-          { error: 'Selected custom domain does not exist or is not owned by your account' },
+          { error: 'Selected custom domain does not exist or is not owned by your account or the shared owner account' },
           { status: 400, headers: getCorsHeaders(origin) }
         )
       }
@@ -201,6 +204,7 @@ export async function POST(
       )
     }
 
+
     const body = await request.json()
     if (body.action !== 'reset') {
       return NextResponse.json(
@@ -274,6 +278,13 @@ export async function DELETE(
       return NextResponse.json(
         { error: 'Link not found' },
         { status: 404, headers: getCorsHeaders(origin) }
+      )
+    }
+
+    if (!isAdmin(user)) {
+      return NextResponse.json(
+        { error: 'Forbidden' },
+        { status: 403, headers: getCorsHeaders(origin) }
       )
     }
 

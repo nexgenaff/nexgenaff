@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
-import { getUserFromToken, getTokenFromCookie } from '@/lib/auth';
+import { getUserFromToken, getTokenFromCookie, isAdmin } from '@/lib/auth';
 import { getCorsHeaders } from '@/config/cors';
 
 interface FilterParams {
@@ -96,8 +96,9 @@ export async function GET(request: Request) {
     };
 
     // Get all link IDs for the user
+    const linkWhere = isAdmin(user) ? {} : { userId: user.id }
     const links = await prisma.linkAccount.findMany({
-      where: { userId: user.id },
+      where: linkWhere,
       select: { id: true },
     });
 

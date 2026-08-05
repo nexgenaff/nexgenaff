@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
-import { getUserFromToken, getTokenFromCookie } from '@/lib/auth';
+import { getUserFromToken, getTokenFromCookie, getOwnerUserId, isAdmin } from '@/lib/auth';
 import { verifyDomain } from '@/lib/services/dns/verify';
 import { buildVerificationInstructionsFromVercelRecords, isDomainVerified, verifyDomainOnVercel } from '@/lib/services/vercel/domain';
 import { getCorsHeaders } from '@/config/cors';
@@ -46,15 +46,16 @@ export async function POST(request: Request) {
       where: { id: validation.data.domainId },
     });
 
-    if (!domain || domain.userId !== user.id) {
+    const ownerUserId = await getOwnerUserId();
+    if (!domain || (!isAdmin(user) && domain.userId !== user.id && domain.userId !== ownerUserId)) {
       return NextResponse.json(
         { error: 'Domain not found' },
         { status: 404, headers: getCorsHeaders(origin) }
       );
     }
 
-    // ─── Run DNS verification ───
-    const dnsVerification = await verifyDomain(domain.domain, user.id);
+    // ─── Run DNS verification using the owned domain user id ───
+    const dnsVerification = await verifyDomain(domain.domain, domain.userId);
 
     // ─── Run Vercel verification ───
     const vercelToken = process.env.VERCEL_TOKEN || process.env.VERCEL_API_TOKEN;

@@ -5,6 +5,7 @@ import { buildClickFingerprint, getClickDedupeWindowMs, isDuplicateClickEvent } 
 import { getGeoLocation } from '@/lib/services/geo/ip2location'
 import { buildRedirectTargetUrl } from '@/lib/utils/redirect'
 import { parseVisitorProfile } from '@/lib/utils/visitor-profile'
+import { getEffectiveOfferUserId } from '@/lib/auth'
 
 const normalizeGroupName = (value?: string | null) => value?.trim() ?? ''
 const BOT_FALLBACK_URL = process.env.BOT_FALLBACK_URL || 'https://weebly.pro'
@@ -217,14 +218,16 @@ export async function GET(
 
     let offer: Offer | null = null
 
+    const effectiveOfferUserId = await getEffectiveOfferUserId(link.userId)
+
     if (link.offerGroupName) {
-      offer = await selectGroupOffer(link.userId, country, link.offerGroupName)
+      offer = await selectGroupOffer(effectiveOfferUserId, country, link.offerGroupName)
     }
 
     if (!offer) {
       const countryCandidates = await prisma.offerVault.findMany({
         where: {
-          userId: link.userId,
+          userId: effectiveOfferUserId,
           country,
           isActive: true,
           isGlobal: false,
@@ -244,7 +247,7 @@ export async function GET(
     if (!offer) {
       const globalCandidates = await prisma.offerVault.findMany({
         where: {
-          userId: link.userId,
+          userId: effectiveOfferUserId,
           isActive: true,
           OR: [
             { isGlobal: true },

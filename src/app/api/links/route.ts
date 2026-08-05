@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db/prisma'
-import { getUserFromToken, getTokenFromCookie } from '@/lib/auth'
+import { getUserFromToken, getTokenFromCookie, getOwnerUserId, isManager, isAdmin } from '@/lib/auth'
 import { getCorsHeaders } from '@/config/cors'
 import crypto from 'crypto'
 
@@ -25,8 +25,12 @@ export async function GET(request: Request) {
       )
     }
 
+    const whereClause = isManager(user)
+      ? { userId: user.id }
+      : {}
+
     const links = await prisma.linkAccount.findMany({
-      where: { userId: user.id },
+      where: whereClause,
       include: {
         customDomain: true,
         publicDashboard: true,
@@ -65,6 +69,7 @@ export async function POST(request: Request) {
       )
     }
 
+    const ownerUserId = await getOwnerUserId()
     const body = await request.json()
     const { accountName, slug, customDomainId, offerGroupName } = body
 
@@ -73,9 +78,14 @@ export async function POST(request: Request) {
         where: { id: customDomainId },
       })
 
-      if (!attachedDomain || attachedDomain.userId !== user.id) {
+      const canUseCustomDomain =
+        isAdmin(user) ||
+        attachedDomain?.userId === user.id ||
+        attachedDomain?.userId === ownerUserId
+
+      if (!attachedDomain || !canUseCustomDomain) {
         return NextResponse.json(
-          { error: 'Selected custom domain does not exist or is not owned by your account' },
+          { error: 'Selected custom domain does not exist or is not owned by your account or the shared owner account' },
           { status: 400, headers: getCorsHeaders(origin) }
         )
       }

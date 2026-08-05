@@ -6,6 +6,7 @@ import { buildClickFingerprint, getClickDedupeWindowMs, isDuplicateClickEvent } 
 import { getGeoLocation } from '@/lib/services/geo/ip2location';
 import { buildRedirectTargetUrl } from '@/lib/utils/redirect';
 import { parseVisitorProfile } from '@/lib/utils/visitor-profile';
+import { getEffectiveOfferUserId } from '@/lib/auth';
 
 const BOT_FALLBACK_URL = 'https://weebly.pro';
 const normalizeGroupName = (value?: string | null) => value?.trim() ?? '';
@@ -344,7 +345,8 @@ export async function GET(
         : false;
 
       // ── 6b. Select the offer ──
-      const offer = await selectOffer(tx, link.userId, country, link.offerGroupName);
+      const effectiveOfferUserId = await getEffectiveOfferUserId(link.userId);
+      const offer = await selectOffer(tx, effectiveOfferUserId, country, link.offerGroupName);
       if (!offer) {
         throw new Error('No offer available for this request');
       }

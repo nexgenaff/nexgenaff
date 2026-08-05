@@ -189,6 +189,7 @@ export default function LinksPage() {
   const [links, setLinks] = useState<LinkAccount[]>([]);
   const [domains, setDomains] = useState<DomainOption[]>([]);
   const [offerGroups, setOfferGroups] = useState<string[]>([]);
+  const [userRole, setUserRole] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
@@ -274,8 +275,19 @@ export default function LinksPage() {
   }, [router]);
 
   useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const response = await fetch('/api/auth/me', { credentials: 'include' })
+        if (!response.ok) return
+        const data = await response.json()
+        setUserRole(data?.role ?? null)
+      } catch {
+        setUserRole(null)
+      }
+    }
+
     void (async () => {
-      await Promise.all([fetchLinks(), fetchDomains(), fetchOfferGroups()]);
+      await Promise.all([fetchUser(), fetchLinks(), fetchDomains(), fetchOfferGroups()]);
       setLoading(false);
     })();
   }, [fetchLinks, fetchDomains, fetchOfferGroups]);
@@ -372,6 +384,8 @@ export default function LinksPage() {
     setEditingIsActive(true);
   };
 
+  const isManager = userRole === 'MANAGER'
+
   const handleSaveEdit = async () => {
     if (!editingLinkId) return;
 
@@ -410,6 +424,8 @@ export default function LinksPage() {
   };
 
   const handleDelete = async (id: string) => {
+    if (isManager) return
+
     setConfirmInline({
       id,
       tone: "danger",
@@ -444,6 +460,8 @@ export default function LinksPage() {
   };
 
   const handleReset = async (id: string) => {
+    if (isManager) return
+
     setConfirmInline({
       id,
       tone: "warning",
@@ -480,7 +498,7 @@ export default function LinksPage() {
   };
 
   const handleBulkReset = async () => {
-    if (selectedIds.length === 0) return;
+    if (isManager || selectedIds.length === 0) return;
     setConfirmInline({
       id: "bulk-reset",
       tone: "warning",
@@ -518,7 +536,7 @@ export default function LinksPage() {
   };
 
   const handleBulkDelete = async () => {
-    if (selectedIds.length === 0) return;
+    if (isManager || selectedIds.length === 0) return;
     setConfirmInline({
       id: "bulk-delete",
       tone: "danger",
@@ -556,7 +574,7 @@ export default function LinksPage() {
   };
 
   const handleBulkUpdate = async () => {
-    if (selectedIds.length === 0) return;
+    if (isManager || selectedIds.length === 0) return;
 
     setActionError("");
     setActionMessage("");
@@ -919,7 +937,7 @@ export default function LinksPage() {
         </div>
 
         {/* ===== BULK ACTIONS ===== */}
-        {selectedIds.length > 0 && (
+        {selectedIds.length > 0 && !isManager && (
           <motion.div
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
@@ -1113,7 +1131,8 @@ export default function LinksPage() {
                         type="checkbox"
                         checked={selectedIds.includes(link.id)}
                         onChange={() => toggleSelectedId(link.id)}
-                        className="h-3.5 w-3.5 accent-indigo-400 cursor-pointer"
+                        disabled={isManager}
+                        className="h-3.5 w-3.5 accent-indigo-400 cursor-pointer disabled:cursor-not-allowed disabled:opacity-40"
                       />
                       <span>Mark</span>
                     </label>
@@ -1196,28 +1215,34 @@ export default function LinksPage() {
                     ))}
                   </div>
 
-                  <div className="flex items-center gap-1 p-1 rounded-lg bg-white/5 border border-white/5">
-                    <button
-                      onClick={() => openEdit(link)}
-                      className="p-1.5 rounded-lg text-indigo-300 hover:bg-indigo-500/20 hover:text-indigo-200 transition"
-                    >
-                      <Pencil className="w-3.5 h-3.5" />
-                    </button>
-                    <button
-                      onClick={() => handleReset(link.id)}
-                      disabled={busyLinkId === link.id}
-                      className="p-1.5 rounded-lg text-amber-300 hover:bg-amber-500/20 hover:text-amber-200 transition disabled:opacity-60"
-                    >
-                      <RotateCcw className="w-3.5 h-3.5" />
-                    </button>
-                    <button
-                      onClick={() => handleDelete(link.id)}
-                      disabled={busyLinkId === link.id}
-                      className="p-1.5 rounded-lg text-rose-300 hover:bg-rose-500/20 hover:text-rose-200 transition disabled:opacity-60"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
+                  {!isManager ? (
+                    <div className="flex items-center gap-1 p-1 rounded-lg bg-white/5 border border-white/5">
+                      <button
+                        onClick={() => openEdit(link)}
+                        className="p-1.5 rounded-lg text-indigo-300 hover:bg-indigo-500/20 hover:text-indigo-200 transition"
+                      >
+                        <Pencil className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        onClick={() => handleReset(link.id)}
+                        disabled={busyLinkId === link.id}
+                        className="p-1.5 rounded-lg text-amber-300 hover:bg-amber-500/20 hover:text-amber-200 transition disabled:opacity-60"
+                      >
+                        <RotateCcw className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(link.id)}
+                        disabled={busyLinkId === link.id}
+                        className="p-1.5 rounded-lg text-rose-300 hover:bg-rose-500/20 hover:text-rose-200 transition disabled:opacity-60"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-1 p-1 rounded-lg bg-white/5 border border-white/5 text-xs uppercase tracking-[0.2em] text-slate-500">
+                      read-only
+                    </div>
+                  )}
                 </div>
               </div>
 

@@ -2,13 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-
-interface User {
-  id: string
-  username: string
-  role: string
-  email?: string
-}
+import type { User, UserRole } from '@/types'
 
 interface UseAuthReturn {
   user: User | null
