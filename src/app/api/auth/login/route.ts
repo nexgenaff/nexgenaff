@@ -86,7 +86,7 @@ export async function POST(request: Request) {
       ) {
         if (dbError) {
           console.warn('DB unavailable; issuing in-memory token for owner', username)
-          user = { id: `local-${OWNER_ENV_USERNAME}`, username: OWNER_ENV_USERNAME, role: 'ADMIN' } as any
+          user = { id: `local-${OWNER_ENV_USERNAME}`, username: OWNER_ENV_USERNAME, role: 'OWNER' } as any
         } else {
           const existingOwner = await prisma.user.findUnique({
             where: { username: OWNER_ENV_USERNAME },
@@ -100,13 +100,13 @@ export async function POST(request: Request) {
                   username: OWNER_ENV_USERNAME,
                   email: `${OWNER_ENV_USERNAME}@example.com`,
                   password: hashed,
-                  role: 'ADMIN',
+                  role: 'OWNER',
                 },
               })
             } catch (err) {
               console.error('Error creating owner user for login:', username, err)
               console.warn('Falling back to local bootstrap token for owner', username)
-              user = { id: `local-${OWNER_ENV_USERNAME}`, username: OWNER_ENV_USERNAME, role: 'ADMIN' } as any
+              user = { id: `local-${OWNER_ENV_USERNAME}`, username: OWNER_ENV_USERNAME, role: 'OWNER' } as any
             }
           } else {
             return NextResponse.json(

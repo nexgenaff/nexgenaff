@@ -15,6 +15,14 @@ export function isManager(user: { role?: UserRole } | null | undefined): boolean
   return Boolean(user && user.role === 'MANAGER')
 }
 
+export function isOwner(user: { role?: UserRole } | null | undefined): boolean {
+  return Boolean(user && user.role === 'OWNER')
+}
+
+export function isAdminOrOwner(user: { role?: UserRole } | null | undefined): boolean {
+  return isAdmin(user) || isOwner(user)
+}
+
 async function createOwnerUser(): Promise<string | null> {
   if (!OWNER_PASSWORD) {
     return null
@@ -27,7 +35,7 @@ async function createOwnerUser(): Promise<string | null> {
         username: OWNER_USERNAME,
         email: `${OWNER_USERNAME}@example.com`,
         password: hashed,
-        role: 'ADMIN',
+        role: 'OWNER',
       },
     })
     return owner.id
@@ -40,10 +48,20 @@ async function createOwnerUser(): Promise<string | null> {
 export async function getOwnerUserId(): Promise<string | null> {
   const owner = await prisma.user.findUnique({
     where: { username: OWNER_USERNAME },
-    select: { id: true },
+    select: { id: true, role: true },
   })
 
   if (owner?.id) {
+    if (owner.role !== 'OWNER') {
+      try {
+        await prisma.user.update({
+          where: { id: owner.id },
+          data: { role: 'OWNER' },
+        })
+      } catch (err) {
+        console.error('Failed to normalize owner role for existing owner user:', err)
+      }
+    }
     return owner.id
   }
 
@@ -120,7 +138,8 @@ export async function getUserFromToken(token: string): Promise<AuthUser | null> 
   // Support temporary in-memory tokens with userId prefixed by 'local-'
   if (decoded.userId && decoded.userId.startsWith('local-')) {
     const username = decoded.userId.replace(/^local-/, '')
-    return { id: decoded.userId, username, role: 'ADMIN' }
+    const role = username === OWNER_USERNAME ? 'OWNER' : 'ADMIN'
+    return { id: decoded.userId, username, role }
   }
 
   return (await prisma.user.findUnique({
