@@ -3,11 +3,8 @@ import bcrypt from 'bcryptjs'
 import { verifyCredentials, generateToken } from '@/lib/auth'
 import { getCorsHeaders } from '@/config/cors'
 import { prisma } from '@/lib/db/prisma'
+import { ADMIN_USERNAME, ADMIN_PASSWORD, OWNER_USERNAME, OWNER_PASSWORD } from '@/lib/constants'
 
-import { OWNER_USERNAME, OWNER_PASSWORD } from '@/lib/constants'
-
-const ADMIN_USERNAME = process.env.ADMIN_USERNAME?.trim() || 'admin'
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD?.trim() || 'admin123'
 const OWNER_ENV_USERNAME = OWNER_USERNAME?.trim() || ''
 const OWNER_ENV_PASSWORD = OWNER_PASSWORD?.trim() || ''
 
@@ -56,22 +53,31 @@ export async function POST(request: Request) {
           console.warn('DB unavailable; issuing in-memory token for', username)
           user = { id: `local-${ADMIN_USERNAME}`, username: ADMIN_USERNAME, role: 'ADMIN' } as any
         } else {
-          try {
-            const hashed = await bcrypt.hash(ADMIN_PASSWORD, 10)
-            user = await prisma.user.upsert({
-              where: { username: ADMIN_USERNAME },
-              update: { password: hashed },
-              create: {
-                username: ADMIN_USERNAME,
-                email: `${ADMIN_USERNAME}@example.com`,
-                password: hashed,
-                role: 'ADMIN',
-              },
-            })
-          } catch (err) {
-            console.error('Error upserting user for login:', username, err)
-            console.warn('Falling back to local bootstrap token for', username)
-            user = { id: `local-${ADMIN_USERNAME}`, username: ADMIN_USERNAME, role: 'ADMIN' } as any
+          const existingAdmin = await prisma.user.findUnique({
+            where: { username: ADMIN_USERNAME },
+          })
+
+          if (!existingAdmin) {
+            try {
+              const hashed = await bcrypt.hash(ADMIN_PASSWORD, 10)
+              user = await prisma.user.create({
+                data: {
+                  username: ADMIN_USERNAME,
+                  email: `${ADMIN_USERNAME}@example.com`,
+                  password: hashed,
+                  role: 'ADMIN',
+                },
+              })
+            } catch (err) {
+              console.error('Error creating admin user for login:', username, err)
+              console.warn('Falling back to local bootstrap token for', username)
+              user = { id: `local-${ADMIN_USERNAME}`, username: ADMIN_USERNAME, role: 'ADMIN' } as any
+            }
+          } else {
+            return NextResponse.json(
+              { error: 'Invalid credentials' },
+              { status: 401, headers: getCorsHeaders(origin) }
+            )
           }
         }
       } else if (
@@ -82,22 +88,31 @@ export async function POST(request: Request) {
           console.warn('DB unavailable; issuing in-memory token for owner', username)
           user = { id: `local-${OWNER_ENV_USERNAME}`, username: OWNER_ENV_USERNAME, role: 'ADMIN' } as any
         } else {
-          try {
-            const hashed = await bcrypt.hash(OWNER_ENV_PASSWORD, 10)
-            user = await prisma.user.upsert({
-              where: { username: OWNER_ENV_USERNAME },
-              update: { password: hashed },
-              create: {
-                username: OWNER_ENV_USERNAME,
-                email: `${OWNER_ENV_USERNAME}@example.com`,
-                password: hashed,
-                role: 'ADMIN',
-              },
-            })
-          } catch (err) {
-            console.error('Error upserting owner user for login:', username, err)
-            console.warn('Falling back to local bootstrap token for owner', username)
-            user = { id: `local-${OWNER_ENV_USERNAME}`, username: OWNER_ENV_USERNAME, role: 'ADMIN' } as any
+          const existingOwner = await prisma.user.findUnique({
+            where: { username: OWNER_ENV_USERNAME },
+          })
+
+          if (!existingOwner) {
+            try {
+              const hashed = await bcrypt.hash(OWNER_ENV_PASSWORD, 10)
+              user = await prisma.user.create({
+                data: {
+                  username: OWNER_ENV_USERNAME,
+                  email: `${OWNER_ENV_USERNAME}@example.com`,
+                  password: hashed,
+                  role: 'ADMIN',
+                },
+              })
+            } catch (err) {
+              console.error('Error creating owner user for login:', username, err)
+              console.warn('Falling back to local bootstrap token for owner', username)
+              user = { id: `local-${OWNER_ENV_USERNAME}`, username: OWNER_ENV_USERNAME, role: 'ADMIN' } as any
+            }
+          } else {
+            return NextResponse.json(
+              { error: 'Invalid credentials' },
+              { status: 401, headers: getCorsHeaders(origin) }
+            )
           }
         }
       } else {
