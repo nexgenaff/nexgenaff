@@ -106,7 +106,14 @@ export function verifyToken(token: string): { userId: string } | null {
   }
 }
 
-export async function getUserFromToken(token: string) {
+type AuthUser = {
+  id: string
+  username: string
+  role: UserRole
+  email?: string
+}
+
+export async function getUserFromToken(token: string): Promise<AuthUser | null> {
   const decoded = verifyToken(token)
   if (!decoded) return null
 
@@ -116,7 +123,7 @@ export async function getUserFromToken(token: string) {
     return { id: decoded.userId, username, role: 'ADMIN' }
   }
 
-  return await prisma.user.findUnique({
+  return (await prisma.user.findUnique({
     where: { id: decoded.userId },
     select: {
       id: true,
@@ -124,7 +131,7 @@ export async function getUserFromToken(token: string) {
       email: true,
       role: true,
     },
-  })
+  })) as AuthUser | null
 }
 
 export function getTokenFromCookie(cookieHeader: string): string | null {
