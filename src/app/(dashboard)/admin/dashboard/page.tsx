@@ -74,6 +74,7 @@ export default function DashboardPage() {
   const [now, setNow] = useState(() => new Date());
   const [showTelegramPopup, setShowTelegramPopup] = useState(false);
   const [userRole, setUserRole] = useState<string | null>(null);
+  const [authIdentity, setAuthIdentity] = useState<string | null>(null);
 
   // ─── ZOOM FIX: ensure viewport meta is correct ───
   useEffect(() => {
@@ -195,7 +196,15 @@ export default function DashboardPage() {
         if (!response.ok) return;
 
         const data = await response.json();
+        const nextIdentity = data.id ? `${data.role ?? "unknown"}:${data.id}` : null;
         setUserRole(data.role ?? null);
+        setAuthIdentity((currentIdentity) => {
+          if (currentIdentity === nextIdentity) {
+            return currentIdentity;
+          }
+
+          return nextIdentity;
+        });
       } catch (error) {
         console.error("Failed to load user role for popup", error);
       }
@@ -205,9 +214,9 @@ export default function DashboardPage() {
   }, []);
 
   useEffect(() => {
-    if (userRole !== "MANAGER") return;
+    if (userRole !== "MANAGER" || !authIdentity) return;
 
-    const storageKey = "afficixo-manager-telegram-popup-shown";
+    const storageKey = `afficixo-manager-telegram-popup-shown:${authIdentity}`;
     const alreadyShown = window.sessionStorage.getItem(storageKey);
 
     if (!alreadyShown) {
@@ -217,7 +226,7 @@ export default function DashboardPage() {
       }, 1200);
       return () => window.clearTimeout(timer);
     }
-  }, [userRole]);
+  }, [userRole, authIdentity]);
 
   const handleCloseTelegramPopup = () => {
     setShowTelegramPopup(false);
