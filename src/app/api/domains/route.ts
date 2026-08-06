@@ -22,8 +22,12 @@ const domainSchema = z.object({
 }).refine((result) => Boolean(result.domain), {
   message: 'Please enter a valid domain name',
   path: ['domain'],
-}).refine((result) => isSubdomain(result.domain), {
-  message: 'Only subdomains are supported for custom tracking domains. Use a host like track.example.com.',
+}).refine((result) => {
+  // Allow root domains (example.com) and subdomains (track.example.com).
+  const labels = result.domain.split('.')
+  return labels.length >= 2
+}, {
+  message: 'Please enter a valid domain (example.com or track.example.com).',
   path: ['domain'],
 });
 

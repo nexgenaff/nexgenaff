@@ -70,9 +70,6 @@ export async function verifyDomain(domain: string, userId: string): Promise<DNSV
   let txtVerified = false
 
   const subdomain = isSubdomain(normalizedDomain)
-  if (!subdomain) {
-    errors.push('Only subdomains are supported for custom tracking domains. Use a host like track.example.com.')
-  }
 
   try {
     const verificationToken = generateVerificationToken(userId, normalizedDomain)
