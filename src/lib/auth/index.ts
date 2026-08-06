@@ -31,6 +31,8 @@ export function isAdminOrOwner(user: { role?: UserRole; username?: string } | nu
   return isAdmin(user) || isOwner(user)
 }
 
+let ownerRoleNormalizationFailed = false
+
 async function createOwnerUser(): Promise<string | null> {
   if (!OWNER_USERNAME || !OWNER_PASSWORD) {
     return null
@@ -80,16 +82,10 @@ export async function getOwnerUserId(): Promise<string | null> {
   })
 
   if (owner?.id) {
-    if (owner.role !== 'OWNER') {
-      try {
-        await prisma.user.update({
-          where: { id: owner.id },
-          data: { role: 'OWNER' },
-        })
-      } catch (err) {
-        console.error('Failed to normalize owner role for existing owner user:', err)
-      }
-    }
+    // If the configured owner account exists, return its id. Some databases
+    // may not support the OWNER enum value, so do not attempt to normalize
+    // the role at runtime. The app already treats the configured owner
+    // username as owner via `isOwner()` fallback.
     return owner.id
   }
 
@@ -163,9 +159,25 @@ export async function getUserFromToken(token: string): Promise<AuthUser | null> 
   const decoded = verifyToken(token)
   if (!decoded) return null
 
-  // Support temporary in-memory tokens with userId prefixed by 'local-'
+  // Support temporary in-memory tokens with userId prefixed by 'local-'. If
+  // the corresponding user already exists in the database, return the DB
+  // user so writes use a proper FK-backed id.
   if (decoded.userId && decoded.userId.startsWith('local-')) {
     const username = decoded.userId.replace(/^local-/, '')
+    const existing = await prisma.user.findUnique({
+      where: { username },
+      select: {
+        id: true,
+        username: true,
+        email: true,
+        role: true,
+      },
+    })
+
+    if (existing) {
+      return existing as AuthUser
+    }
+
     const role = username === OWNER_USERNAME ? 'OWNER' : 'ADMIN'
     return { id: decoded.userId, username, role }
   }

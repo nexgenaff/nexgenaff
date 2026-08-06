@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db/prisma'
-import { getUserFromToken, getTokenFromCookie, getOwnerUserId, isAdmin, isOwner } from '@/lib/auth'
+import { getUserFromToken, getTokenFromCookie, getOwnerUserId, getEffectiveOfferUserId, isAdmin, isOwner } from '@/lib/auth'
 import { getCorsHeaders } from '@/config/cors'
 import crypto from 'crypto'
 
@@ -75,6 +75,19 @@ export async function POST(request: Request) {
     const body = await request.json()
     const { accountName, slug, customDomainId, offerGroupName } = body
 
+    let finalUserId: string = user.id
+    if (typeof finalUserId === 'string' && finalUserId.startsWith('local-')) {
+      const username = finalUserId.replace(/^local-/, '')
+      const existing = await prisma.user.findUnique({ where: { username }, select: { id: true } })
+      if (existing?.id) {
+        finalUserId = existing.id
+      } else if (ownerUserId) {
+        finalUserId = ownerUserId
+      }
+    } else {
+      finalUserId = await getEffectiveOfferUserId(user.id)
+    }
+
     if (customDomainId) {
       const attachedDomain = await prisma.customDomain.findUnique({
         where: { id: customDomainId },
@@ -127,7 +140,7 @@ export async function POST(request: Request) {
         slug,
         customDomainId: customDomainId || null,
         offerGroupName: typeof offerGroupName === 'string' ? offerGroupName.trim() || null : null,
-        userId: user.id,
+        userId: finalUserId,
         publicDashboard: {
           create: { publicId },
         },
