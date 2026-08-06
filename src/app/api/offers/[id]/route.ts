@@ -71,21 +71,45 @@ export async function PUT(
       ? body.isContentLocker
       : offer.isContentLocker
 
-    const updated = await prisma.offerVault.update({
-      where: { id },
-      data: {
-        country: nextCountry,
-        groupName: nextGroupName,
-        offerUrl: nextOfferUrl,
-        isActive,
-        isGlobal,
-        isContentLocker: nextIsContentLocker,
-        usaSecretRedirectEnabled: nextUsaSecretRedirectEnabled,
-        usaSecretRedirectPercentage: nextUsaSecretRedirectPercentage,
-        priority: nextPriority,
-        rotationMode: nextRotationMode,
-      },
-    })
+    const updateData: Record<string, unknown> = {
+      country: nextCountry,
+      groupName: nextGroupName,
+      offerUrl: nextOfferUrl,
+      isActive,
+      isGlobal,
+      isContentLocker: nextIsContentLocker,
+      usaSecretRedirectEnabled: nextUsaSecretRedirectEnabled,
+      usaSecretRedirectPercentage: nextUsaSecretRedirectPercentage,
+      priority: nextPriority,
+      rotationMode: nextRotationMode,
+    }
+
+    let updated
+    try {
+      try {
+        updated = await prisma.offerVault.update({
+          where: { id },
+          data: updateData as any,
+        })
+      } catch (innerError) {
+        const innerMessage = innerError instanceof Error ? innerError.message : String(innerError)
+        if (innerMessage.includes('Unknown argument `usaSecretRedirectEnabled`')) {
+          delete updateData.usaSecretRedirectEnabled
+          updated = await prisma.offerVault.update({
+            where: { id },
+            data: updateData as any,
+          })
+        } else {
+          throw innerError
+        }
+      }
+    } catch (error) {
+      console.error('Error updating offer:', error)
+      return NextResponse.json(
+        { error: 'Failed to update offer' },
+        { status: 500 }
+      )
+    }
 
     return NextResponse.json(updated, { headers: getCorsHeaders(origin) })
   } catch (error) {

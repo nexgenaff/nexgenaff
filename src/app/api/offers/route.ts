@@ -100,6 +100,7 @@ export async function POST(request: Request) {
       : 50
     const rotationMode = body?.rotationMode === 'RANDOM' ? 'RANDOM' : 'PRIORITY'
     const resolvedCountry = isGlobal || isContentLocker ? 'GLOBAL' : country
+    const usaSecretRedirectEnabled = Boolean(body?.usaSecretRedirectEnabled)
 
     if ((!resolvedCountry && !isGlobal && !isContentLocker) || !offerUrl) {
       return NextResponse.json(
@@ -108,22 +109,33 @@ export async function POST(request: Request) {
       )
     }
 
+    const offerData: Record<string, unknown> = {
+      country: resolvedCountry,
+      groupName: groupName || null,
+      offerUrl,
+      isGlobal,
+      isContentLocker,
+      isActive: true,
+      usaSecretRedirectEnabled,
+      usaSecretRedirectPercentage,
+      priority,
+      rotationMode,
+      userId: user.id,
+    }
+
     try {
-      const offer = await prisma.offerVault.create({
-        data: {
-          country: resolvedCountry,
-          groupName: groupName || null,
-          offerUrl,
-          isGlobal,
-          isContentLocker,
-          isActive: true,
-          usaSecretRedirectEnabled: Boolean(body?.usaSecretRedirectEnabled),
-          usaSecretRedirectPercentage,
-          priority,
-          rotationMode,
-          userId: user.id,
-        },
-      })
+      let offer
+      try {
+        offer = await prisma.offerVault.create({ data: offerData as any })
+      } catch (innerError) {
+        const innerMessage = innerError instanceof Error ? innerError.message : String(innerError)
+        if (innerMessage.includes('Unknown argument `usaSecretRedirectEnabled`')) {
+          delete offerData.usaSecretRedirectEnabled
+          offer = await prisma.offerVault.create({ data: offerData as any })
+        } else {
+          throw innerError
+        }
+      }
 
       return NextResponse.json(offer, {
         status: 201,
