@@ -15,11 +15,19 @@ export function isManager(user: { role?: UserRole } | null | undefined): boolean
   return Boolean(user && user.role === 'MANAGER')
 }
 
-export function isOwner(user: { role?: UserRole } | null | undefined): boolean {
-  return Boolean(user && user.role === 'OWNER')
+export function isOwner(user: { role?: UserRole; username?: string } | null | undefined): boolean {
+  if (!user) return false
+  if (user.role === 'OWNER') return true
+  // Fallback: if the user's username matches the configured OWNER_USERNAME,
+  // treat them as owner even if the DB role is inconsistent (helps recover
+  // from enum-mismatch fallbacks that created the account as ADMIN).
+  if (typeof user.username === 'string' && OWNER_USERNAME && user.username === OWNER_USERNAME) {
+    return true
+  }
+  return false
 }
 
-export function isAdminOrOwner(user: { role?: UserRole } | null | undefined): boolean {
+export function isAdminOrOwner(user: { role?: UserRole; username?: string } | null | undefined): boolean {
   return isAdmin(user) || isOwner(user)
 }
 
