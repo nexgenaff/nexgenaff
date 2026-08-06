@@ -207,7 +207,7 @@ export async function POST(
       where: { id },
     })
 
-    if (!link || link.userId !== user.id) {
+    if (!link || (!isAdmin(user) && !isOwner(user) && link.userId !== user.id)) {
       return NextResponse.json(
         { error: 'Link not found' },
         { status: 404, headers: getCorsHeaders(origin) }
@@ -284,17 +284,10 @@ export async function DELETE(
       where: { id },
     })
 
-    if (!link || link.userId !== user.id) {
+    if (!link || (!isAdmin(user) && !isOwner(user) && link.userId !== user.id)) {
       return NextResponse.json(
         { error: 'Link not found' },
         { status: 404, headers: getCorsHeaders(origin) }
-      )
-    }
-
-    if (!isAdmin(user)) {
-      return NextResponse.json(
-        { error: 'Forbidden' },
-        { status: 403, headers: getCorsHeaders(origin) }
       )
     }
 

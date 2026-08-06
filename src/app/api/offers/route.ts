@@ -33,7 +33,7 @@ export async function GET(request: Request) {
     }
 
     const queryWhere = isAdmin(user)
-      ? { userId: user.id }
+      ? {} // admins see all offers
       : { userId: ownerUserId }
 
     const offers = await prisma.offerVault.findMany({
@@ -75,7 +75,7 @@ export async function POST(request: Request) {
       )
     }
 
-    if (!isAdmin(user)) {
+    if (!isAdmin(user) && !isOwner(user)) {
       return NextResponse.json(
         { error: 'Forbidden' },
         { status: 403, headers: getCorsHeaders(origin) }
