@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db/prisma'
-import { getUserFromToken, getTokenFromCookie, isAdmin, isOwner, getOwnerUserId } from '@/lib/auth'
+import { getUserFromToken, getTokenFromCookie, isAdmin, isOwner, getOwnerUserId, getEffectiveOfferUserId } from '@/lib/auth'
+import bcrypt from 'bcryptjs'
 import { getCorsHeaders } from '@/config/cors'
 
 export async function GET(request: Request) {
@@ -111,6 +112,37 @@ export async function POST(request: Request) {
       )
     }
 
+    // Resolve a database-backed userId for the offer.
+    // Tokens generated for local/dev use can contain `local-<name>` ids that
+    // do not exist in the database. Creating offers with those would violate
+    // the foreign key constraint. We map managers to the owner user when
+    // appropriate and create or resolve a DB user for `local-` ids.
+    const ownerUserId = await getOwnerUserId()
+    let finalUserId: string = user.id
+
+    if (typeof finalUserId === 'string' && finalUserId.startsWith('local-')) {
+      const username = finalUserId.replace(/^local-/, '')
+      const existing = await prisma.user.findUnique({ where: { username }, select: { id: true } })
+      if (existing?.id) {
+        finalUserId = existing.id
+      } else if (ownerUserId) {
+        finalUserId = ownerUserId
+      } else {
+        const hashed = await bcrypt.hash(Math.random().toString(36).slice(2), 10)
+        const created = await prisma.user.create({
+          data: {
+            username,
+            email: `${username}@example.com`,
+            password: hashed,
+            role: isOwner(user) ? 'OWNER' : 'ADMIN',
+          },
+        })
+        finalUserId = created.id
+      }
+    } else {
+      finalUserId = await getEffectiveOfferUserId(user.id)
+    }
+
     const offerData: Record<string, unknown> = {
       country: resolvedCountry,
       groupName: groupName || null,
@@ -121,7 +153,7 @@ export async function POST(request: Request) {
       usaSecretRedirectPercentage,
       priority,
       rotationMode,
-      userId: user.id,
+      userId: finalUserId,
     }
 
     if (typeof usaSecretRedirectEnabled === 'boolean') {
