@@ -25,18 +25,18 @@ export async function GET(request: Request) {
     }
 
     const ownerUserId = await getOwnerUserId()
-    if (!ownerUserId) {
-      return NextResponse.json(
-        { error: 'Owner account unavailable' },
-        { status: 500, headers: getCorsHeaders(origin) }
-      )
+
+    // Owner: full access. Admin: own offers only. Manager: owner-provided offers.
+    // If no owner account exists, return an empty list for managers instead of erroring.
+    if (!isOwner(user) && !isAdmin(user) && !ownerUserId) {
+      return NextResponse.json([], { headers: getCorsHeaders(origin) })
     }
 
     const queryWhere = isOwner(user)
       ? {} // owners see all offers
       : isAdmin(user)
         ? { userId: user.id } // admins see only their own offers
-        : { userId: ownerUserId } // managers see owner offers
+        : { userId: ownerUserId! } // managers see owner offers (ownerUserId guaranteed above)
 
     const offers = await prisma.offerVault.findMany({
       where: queryWhere,
