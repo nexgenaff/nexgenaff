@@ -207,17 +207,11 @@ export default function DashboardPage() {
   useEffect(() => {
     if (userRole !== "MANAGER") return;
 
-    const storageKey = "afficixo-manager-telegram-popup-dismissed";
-    const dismissed = window.sessionStorage.getItem(storageKey);
-
-    if (!dismissed) {
-      const timer = window.setTimeout(() => setShowTelegramPopup(true), 1200);
-      return () => window.clearTimeout(timer);
-    }
+    const timer = window.setTimeout(() => setShowTelegramPopup(true), 1200);
+    return () => window.clearTimeout(timer);
   }, [userRole]);
 
   const handleCloseTelegramPopup = () => {
-    window.sessionStorage.setItem("afficixo-manager-telegram-popup-dismissed", "true");
     setShowTelegramPopup(false);
   };
 
