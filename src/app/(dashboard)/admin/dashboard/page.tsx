@@ -16,6 +16,7 @@ import {
   ShieldCheck,
   Activity,
   TrendingUp,
+  HelpCircle,
 } from "lucide-react";
 
 interface DashboardStats {
@@ -75,6 +76,7 @@ export default function DashboardPage() {
   const [showTelegramPopup, setShowTelegramPopup] = useState(false);
   const [userRole, setUserRole] = useState<string | null>(null);
   const [authIdentity, setAuthIdentity] = useState<string | null>(null);
+  const [isHelpPopoverOpen, setIsHelpPopoverOpen] = useState(false);
 
   // ─── ZOOM FIX: ensure viewport meta is correct ───
   useEffect(() => {
@@ -230,6 +232,12 @@ export default function DashboardPage() {
 
   const handleCloseTelegramPopup = () => {
     setShowTelegramPopup(false);
+    setIsHelpPopoverOpen(false);
+  };
+
+  const handleOpenHelpPopover = () => {
+    setShowTelegramPopup(true);
+    setIsHelpPopoverOpen(true);
   };
 
   if (loading) {
@@ -253,9 +261,6 @@ export default function DashboardPage() {
       </div>
 
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 sm:pt-6">
-        {showTelegramPopup && userRole === "MANAGER" ? (
-          <TelegramCommunityPopup onClose={handleCloseTelegramPopup} />
-        ) : null}
         {/* ─── Header ─── */}
         <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-[#0d111a]/95 rounded-2xl p-4 sm:p-5 backdrop-blur-md shadow-xl mb-4 sm:mb-6">
           <div className="flex items-center gap-3">
@@ -285,6 +290,16 @@ export default function DashboardPage() {
           </div>
 
           <div className="flex items-center justify-end gap-2 w-full sm:w-auto">
+            {userRole === "MANAGER" ? (
+              <button
+                type="button"
+                onClick={handleOpenHelpPopover}
+                aria-label="Open help popup"
+                className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-slate-300 transition-all hover:bg-white/10 hover:text-white"
+              >
+                <HelpCircle className="h-4 w-4" />
+              </button>
+            ) : null}
             <Link
               href="/admin/links/create"
               aria-label="Create new link"
@@ -295,6 +310,12 @@ export default function DashboardPage() {
             </Link>
           </div>
         </header>
+
+        {showTelegramPopup && userRole === "MANAGER" && isHelpPopoverOpen ? (
+          <div className="mb-4 flex justify-end">
+            <TelegramCommunityPopup onClose={handleCloseTelegramPopup} />
+          </div>
+        ) : null}
 
         {/* ─── Period selector ─── */}
         <div className="flex items-center bg-[#0d111a]/85 border border-slate-800/80 p-1 rounded-2xl mb-4 sm:mb-6 shadow-md">
