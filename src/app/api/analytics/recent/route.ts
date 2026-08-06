@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
 import type { Prisma } from '@prisma/client';
-import { getUserFromToken, getTokenFromCookie, isAdmin, isOwner, getOwnerUserId } from '@/lib/auth';
+import { getUserFromToken, getTokenFromCookie, isAdmin, isOwner, isManager, getOwnerUserId } from '@/lib/auth';
 import { getCorsHeaders } from '@/config/cors';
 
 const RECENT_CLICKS_LIMIT = 20;
@@ -32,11 +32,18 @@ export async function GET(request: Request) {
     // short-circuit with an empty result so managers/owners see actual data.
 
     const ownerUserId = await getOwnerUserId();
-    const linkWhere: Prisma.LinkAccountWhereInput = isOwner(user)
-      ? {}
-      : isAdmin(user)
-        ? { userId: user.id }
-        : { userId: ownerUserId || user.id };
+    let linkWhere: Prisma.LinkAccountWhereInput;
+    if (isOwner(user)) {
+      linkWhere = {};
+    } else if (isAdmin(user)) {
+      linkWhere = { userId: user.id };
+    } else if (isManager(user)) {
+      const or: Prisma.LinkAccountWhereInput[] = [{ userId: user.id }];
+      if (ownerUserId) or.push({ userId: ownerUserId });
+      linkWhere = { OR: or };
+    } else {
+      linkWhere = { userId: ownerUserId || user.id };
+    }
 
     const links = await prisma.linkAccount.findMany({
       where: linkWhere,
