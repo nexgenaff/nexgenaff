@@ -363,12 +363,25 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
     return Array.from(map.values())
   }, [stats?.clicks])
 
-  // SILENTLY FILTER OUT direct clicks (no referrer) and desktop clicks
+  // Filter logic:
+  // - USA: Exclude direct clicks (no referrer) AND desktop clicks
+  // - All other countries: Include ALL clicks (including direct and desktop)
   const filteredClicks = useMemo(() => {
     return dedupedClicks.filter(click => {
-      if (!click.referrer || click.referrer.trim() === '') return false
-      const device = click.deviceType?.toLowerCase() || ''
-      if (device === 'desktop' || device === 'computer') return false
+      const country = click.country || ''
+      const isUSA = country === 'US'
+      
+      // If it's USA, apply strict filtering
+      if (isUSA) {
+        // Exclude direct clicks (no referrer)
+        if (!click.referrer || click.referrer.trim() === '') return false
+        // Exclude desktop/computer clicks
+        const device = click.deviceType?.toLowerCase() || ''
+        if (device === 'desktop' || device === 'computer') return false
+        return true
+      }
+      
+      // For all other countries: Include ALL clicks
       return true
     })
   }, [dedupedClicks])
@@ -495,6 +508,15 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
   }, [filteredClicks, timeRange, isDark])
 
   const countries = computedStats.geoSummary.map(e => e.country).filter(Boolean)
+  
+  // Force USA to always appear in the filter bar
+  const allCountries = useMemo(() => {
+    const countrySet = new Set(countries)
+    // Always include USA in the list, even if it has no data
+    countrySet.add('US')
+    return Array.from(countrySet)
+  }, [countries])
+
   const totalClicks = computedStats.totalClicks
   const uniqueClicks = computedStats.uniqueClicks
   const botClicks = computedStats.botClicks
@@ -811,7 +833,27 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
                 Repeat
               </button>
 
-              {countries.slice(0, 2).map((country) => {
+              {/* Always show USA as the first country button */}
+              {(() => {
+                const flag = getCountryFlag('US') || '🇺🇸'
+                const isSelected = filterCountry === 'US'
+                return (
+                  <button
+                    key="US"
+                    onClick={() => setFilterCountry(isSelected ? '' : 'US')}
+                    className={`px-2.5 py-1 text-xs font-medium rounded transition-colors ${
+                      isSelected
+                        ? (isDark ? 'bg-indigo-500/20 text-indigo-300' : 'bg-indigo-100 text-indigo-700')
+                        : (isDark ? 'text-white/40 hover:text-white/70' : 'text-gray-600 hover:text-gray-900')
+                    }`}
+                  >
+                    <span className="text-base">{flag}</span>
+                  </button>
+                )
+              })()}
+
+              {/* Show next 1 country from data (excluding USA if it appears) */}
+              {countries.filter(c => c !== 'US').slice(0, 1).map((country) => {
                 const flag = getCountryFlag(country) || '🌍'
                 return (
                   <button
@@ -828,17 +870,18 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
                 )
               })}
 
-              {countries.length > 2 && (
+              {/* Show "More" dropdown if there are countries beyond USA + 1 */}
+              {countries.filter(c => c !== 'US').length > 1 && (
                 <div className="relative" ref={dropdownRef}>
                   <button
                     onClick={() => setIsCountryDropdownOpen(!isCountryDropdownOpen)}
                     className={`px-2.5 py-1 text-xs font-medium rounded transition-colors flex items-center gap-1 ${
-                      filterCountry && !countries.slice(0, 2).includes(filterCountry)
+                      filterCountry && !['US', ...countries.filter(c => c !== 'US').slice(0, 1)].includes(filterCountry)
                         ? (isDark ? 'bg-indigo-500/20 text-indigo-300' : 'bg-indigo-100 text-indigo-700')
                         : (isDark ? 'text-white/40 hover:text-white/70' : 'text-gray-600 hover:text-gray-900')
                     }`}
                   >
-                    {filterCountry && !countries.slice(0, 2).includes(filterCountry) ? (
+                    {filterCountry && !['US', ...countries.filter(c => c !== 'US').slice(0, 1)].includes(filterCountry) ? (
                       <>
                         <span className="text-base">{selectedCountryFlag}</span>
                         <span className="truncate max-w-[60px]">{selectedCountryLabel}</span>
@@ -861,10 +904,12 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
                       }`}>
                         Select Country
                       </div>
-                      {countries.slice(2).map((country) => {
+                      {/* Show all countries in dropdown (including USA) */}
+                      {allCountries.map((country) => {
                         const flag = getCountryFlag(country) || '🌍'
                         const label = getCountryLabel(country)
                         const isSelected = filterCountry === country
+                        const hasData = countries.includes(country)
                         return (
                           <button
                             key={country}
@@ -877,11 +922,16 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
                           >
                             <span className="text-base">{flag}</span>
                             <span className="truncate">{label}</span>
+                            {!hasData && (
+                              <span className={`text-[9px] ml-auto ${isDark ? 'text-white/20' : 'text-gray-400'}`}>
+                                (no data)
+                              </span>
+                            )}
                             {isSelected && <CheckCircle className={`h-3 w-3 ml-auto ${isDark ? 'text-indigo-400' : 'text-indigo-600'}`} strokeWidth={2} />}
                           </button>
                         )
                       })}
-                      {filterCountry && !countries.slice(0, 2).includes(filterCountry) && (
+                      {filterCountry && (
                         <div className={`border-t px-2 py-1 ${isDark ? 'border-white/5' : 'border-gray-100'}`}>
                           <button
                             onClick={() => { setFilterCountry(''); setIsCountryDropdownOpen(false) }}
