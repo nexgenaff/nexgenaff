@@ -134,7 +134,7 @@ export async function POST(request: Request) {
             username,
             email: `${username}@example.com`,
             password: hashed,
-            role: isOwner(user) ? 'OWNER' : 'ADMIN',
+            role: 'ADMIN',
           },
         })
         finalUserId = created.id

@@ -40,8 +40,24 @@ async function createOwnerUser(): Promise<string | null> {
     })
     return owner.id
   } catch (err) {
-    console.error('Failed to create owner user:', err)
-    return null
+    // Some deployments may have an older DB enum that doesn't include
+    // the `OWNER` value. Fall back to creating the account as `ADMIN`
+    // to avoid blocking startup. Log the original error for diagnostics.
+    console.error('Failed to create owner user with role OWNER, retrying as ADMIN:', err)
+    try {
+      const ownerAsAdmin = await prisma.user.create({
+        data: {
+          username: OWNER_USERNAME,
+          email: `${OWNER_USERNAME}@example.com`,
+          password: hashed,
+          role: 'ADMIN',
+        },
+      })
+      return ownerAsAdmin.id
+    } catch (err2) {
+      console.error('Failed to create owner user as ADMIN too:', err2)
+      return null
+    }
   }
 }
 
