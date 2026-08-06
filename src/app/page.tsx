@@ -132,14 +132,15 @@ const Header = () => (
   >
     <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
       <Link href="/" className="flex items-center text-white">
-        <Image
-          src="/afficixo.png"
-          alt="Afficixo logo"
-          width={72}
-          height={72}
-          className="object-cover"
-          priority
-        />
+        <div className="relative h-9 w-9 md:h-10 md:w-10 rounded-lg overflow-hidden">
+          <Image
+            src="/afficixo.png"
+            alt="Afficixo logo"
+            fill
+            className="object-contain"
+            priority
+          />
+        </div>
       </Link>
       <div className="hidden md:flex items-center gap-6 lg:gap-8 text-sm text-slate-300">
         <a href="#features" className="hover:text-white transition-colors">Features</a>
@@ -649,13 +650,12 @@ export default function HomePage() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex flex-col md:flex-row items-center justify-between gap-4 md:gap-6">
               <div className="flex items-center gap-2 md:gap-3">
-                <div className="p-1.5 md:p-2 rounded-lg bg-gradient-to-br from-indigo-500 to-pink-500">
+                <div className="relative h-9 w-9 md:h-10 md:w-10 rounded-lg overflow-hidden">
                   <Image
                     src="/afficixo.png"
                     alt="Afficixo logo"
-                    width={20}
-                    height={20}
-                    className="w-4 h-4 md:w-5 md:h-5 rounded-lg object-cover"
+                    fill
+                    className="object-contain"
                     priority
                   />
                 </div>

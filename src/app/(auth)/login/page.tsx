@@ -284,7 +284,7 @@ export default function LoginPage() {
             >
               Need access?{" "}
               <a
-                href="https://t.me/affiliate_king_rafsan"
+                href="https://t.me/afficixo"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="font-medium text-indigo-300 hover:text-indigo-200 transition-colors hover:underline underline-offset-2"
