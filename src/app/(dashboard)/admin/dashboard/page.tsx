@@ -7,6 +7,7 @@ import Link from "next/link";
 import StatsCards from "@/components/dashboard/StatsCards";
 import ClickLogs from "@/components/dashboard/ClickLogs";
 import { TrafficBreakdown } from "@/components/dashboard/TrafficBreakdown";
+import TelegramCommunityPopup from "@/components/ui/TelegramCommunityPopup";
 import {
   RefreshCw,
   Plus,
@@ -71,6 +72,8 @@ export default function DashboardPage() {
   const [period, setPeriod] = useState<"week" | "month" | "year">("week");
   const [logFilter, setLogFilter] = useState<string>("all"); // ✅ was missing
   const [now, setNow] = useState(() => new Date());
+  const [showTelegramPopup, setShowTelegramPopup] = useState(false);
+  const [userRole, setUserRole] = useState<string | null>(null);
 
   // ─── ZOOM FIX: ensure viewport meta is correct ───
   useEffect(() => {
@@ -185,6 +188,39 @@ export default function DashboardPage() {
     void loadDashboardData();
   }, [loadDashboardData]);
 
+  useEffect(() => {
+    const loadUserRole = async () => {
+      try {
+        const response = await fetch("/api/auth/me", { credentials: "include" });
+        if (!response.ok) return;
+
+        const data = await response.json();
+        setUserRole(data.role ?? null);
+      } catch (error) {
+        console.error("Failed to load user role for popup", error);
+      }
+    };
+
+    void loadUserRole();
+  }, []);
+
+  useEffect(() => {
+    if (userRole !== "MANAGER") return;
+
+    const storageKey = "afficixo-manager-telegram-popup-dismissed";
+    const dismissed = window.sessionStorage.getItem(storageKey);
+
+    if (!dismissed) {
+      const timer = window.setTimeout(() => setShowTelegramPopup(true), 1200);
+      return () => window.clearTimeout(timer);
+    }
+  }, [userRole]);
+
+  const handleCloseTelegramPopup = () => {
+    window.sessionStorage.setItem("afficixo-manager-telegram-popup-dismissed", "true");
+    setShowTelegramPopup(false);
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-[#07090e] flex flex-col items-center justify-center gap-3">
@@ -206,6 +242,9 @@ export default function DashboardPage() {
       </div>
 
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 sm:pt-6">
+        {showTelegramPopup && userRole === "MANAGER" ? (
+          <TelegramCommunityPopup onClose={handleCloseTelegramPopup} />
+        ) : null}
         {/* ─── Header ─── */}
         <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-[#0d111a]/95 rounded-2xl p-4 sm:p-5 backdrop-blur-md shadow-xl mb-4 sm:mb-6">
           <div className="flex items-center gap-3">
