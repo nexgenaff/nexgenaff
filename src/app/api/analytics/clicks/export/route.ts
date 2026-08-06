@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
-import { getUserFromToken, getTokenFromCookie } from '@/lib/auth';
+import { getUserFromToken, getTokenFromCookie, getOwnerUserId, isAdmin, isOwner } from '@/lib/auth';
 import { getCorsHeaders } from '@/config/cors';
 
 const MAX_EXPORT_ROWS = 100000; // Prevent memory exhaustion
@@ -62,8 +62,15 @@ export async function GET(request: Request) {
     );
 
     // Get all link IDs for the user
+    const ownerUserId = await getOwnerUserId();
+    const linkWhere = isOwner(user)
+      ? {}
+      : isAdmin(user)
+        ? { userId: user.id }
+        : { userId: ownerUserId || user.id };
+
     const links = await prisma.linkAccount.findMany({
-      where: { userId: user.id },
+      where: linkWhere,
       select: { id: true },
     });
 

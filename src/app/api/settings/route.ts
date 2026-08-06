@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import bcrypt from 'bcryptjs'
 import { getCorsHeaders } from '@/config/cors'
-import { getTokenFromCookie, getUserFromToken } from '@/lib/auth'
+import { getTokenFromCookie, getUserFromToken, getOwnerUserId, isAdmin, isOwner } from '@/lib/auth'
 import { prisma } from '@/lib/db/prisma'
 
 const ADMIN_USERNAME = process.env.ADMIN_USERNAME?.trim() || 'admin'
@@ -118,7 +118,14 @@ export async function POST(request: Request) {
     }
 
     if (action === 'reset-analytics') {
-      const linkAccounts = await prisma.linkAccount.findMany({ where: { userId: user.id }, select: { id: true } })
+      const ownerUserId = await getOwnerUserId()
+      const whereClause = isOwner(user)
+        ? {}
+        : isAdmin(user)
+          ? { userId: user.id }
+          : { userId: ownerUserId || user.id }
+
+      const linkAccounts = await prisma.linkAccount.findMany({ where: whereClause, select: { id: true } })
       const ids = linkAccounts.map((item) => item.id)
 
       await prisma.$transaction([
@@ -143,7 +150,14 @@ export async function POST(request: Request) {
     }
 
     if (action === 'delete-data') {
-      const linkAccounts = await prisma.linkAccount.findMany({ where: { userId: user.id }, select: { id: true } })
+      const ownerUserId = await getOwnerUserId()
+      const whereClause = isOwner(user)
+        ? {}
+        : isAdmin(user)
+          ? { userId: user.id }
+          : { userId: ownerUserId || user.id }
+
+      const linkAccounts = await prisma.linkAccount.findMany({ where: whereClause, select: { id: true } })
       const ids = linkAccounts.map((item) => item.id)
 
       await prisma.$transaction([
@@ -156,9 +170,9 @@ export async function POST(request: Request) {
         prisma.deviceStat.deleteMany({ where: { linkAccountId: { in: ids } } }),
         prisma.referrerStat.deleteMany({ where: { linkAccountId: { in: ids } } }),
         prisma.publicDashboard.deleteMany({ where: { linkAccountId: { in: ids } } }),
-        prisma.linkAccount.deleteMany({ where: { userId: user.id } }),
-        prisma.customDomain.deleteMany({ where: { userId: user.id } }),
-        prisma.offerVault.deleteMany({ where: { userId: user.id } }),
+        prisma.linkAccount.deleteMany({ where: whereClause }),
+        prisma.customDomain.deleteMany({ where: isOwner(user) ? {} : isAdmin(user) ? { userId: user.id } : { userId: ownerUserId || user.id } }),
+        prisma.offerVault.deleteMany({ where: isOwner(user) ? {} : isAdmin(user) ? { userId: user.id } : { userId: ownerUserId || user.id } }),
       ])
 
       return NextResponse.json(
