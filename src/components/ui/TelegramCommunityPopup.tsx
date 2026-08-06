@@ -8,7 +8,7 @@ interface TelegramCommunityPopupProps {
 
 export default function TelegramCommunityPopup({ onClose }: TelegramCommunityPopupProps) {
   return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-transparent p-4" onClick={onClose}>
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/25 p-4 backdrop-blur-[2px]" onClick={onClose}>
       <div
         className="relative w-full max-w-[440px] rounded-[28px] border border-white/10 bg-[linear-gradient(145deg,#1a1a2e,#16213e)] p-8 shadow-[0_30px_80px_rgba(0,0,0,0.6)]"
         onClick={(event) => event.stopPropagation()}
