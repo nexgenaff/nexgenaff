@@ -286,34 +286,9 @@ export async function GET(request: Request) {
       );
     }
 
-    // If using a local test user, return mock data
-    if (user.id && typeof user.id === 'string' && user.id.startsWith('local-')) {
-      return NextResponse.json(
-        {
-          totalClicks: 0,
-          uniqueClicks: 0,
-          botClicks: 0,
-          totalLinks: 0,
-          geoData: [],
-          chartData: {
-            labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-            datasets: [
-              {
-                label: 'Clicks',
-                data: [0, 0, 0, 0, 0, 0, 0],
-                borderColor: '#8B5CF6',
-                backgroundColor: 'rgba(139, 92, 246, 0.14)',
-                fill: true,
-                tension: 0.35,
-                pointRadius: 3,
-              },
-            ],
-          },
-          accountGeoReport: { labels: [], datasets: [], accountBreakdown: [] },
-        },
-        { headers: getCorsHeaders(origin) }
-      );
-    }
+    // Local test users will follow the same data paths as real users so
+    // managers and owners can exercise the dashboard/analytics behavior
+    // during development. No special-case mock data is returned here.
 
     const url = new URL(request.url);
     const periodParam = url.searchParams.get('period') || 'week';

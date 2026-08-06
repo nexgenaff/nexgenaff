@@ -28,10 +28,8 @@ export async function GET(request: Request) {
       );
     }
 
-    // Local test user → return empty array
-    if (user.id && typeof user.id === 'string' && user.id.startsWith('local-')) {
-      return NextResponse.json([], { headers: getCorsHeaders(origin) });
-    }
+    // Local test users follow the same data paths as real users — do not
+    // short-circuit with an empty result so managers/owners see actual data.
 
     const ownerUserId = await getOwnerUserId();
     const linkWhere: Prisma.LinkAccountWhereInput = isOwner(user)
