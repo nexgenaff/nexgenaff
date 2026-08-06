@@ -1,5 +1,6 @@
 'use client'
 
+import type { MouseEvent } from 'react'
 import { X } from 'lucide-react'
 
 interface TelegramCommunityPopupProps {
@@ -7,13 +8,22 @@ interface TelegramCommunityPopupProps {
 }
 
 export default function TelegramCommunityPopup({ onClose }: TelegramCommunityPopupProps) {
+  const handleCloseClick = (event: MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault()
+    event.stopPropagation()
+    onClose()
+  }
+
   return (
-    <div className="relative w-full max-w-[300px] overflow-hidden rounded-[20px] border border-cyan-400/25 bg-[linear-gradient(145deg,#171d31,#0f172a)] p-3 shadow-[0_18px_50px_rgba(0,0,0,0.72)] sm:max-w-[320px]">
+    <div
+      className="relative w-full max-w-[300px] overflow-hidden rounded-[20px] border border-cyan-400/25 bg-[linear-gradient(145deg,#171d31,#0f172a)] p-3 shadow-[0_18px_50px_rgba(0,0,0,0.72)] sm:max-w-[320px]"
+      onClick={(event) => event.stopPropagation()}
+    >
       <div className="absolute inset-x-0 top-0 h-20 bg-[radial-gradient(circle_at_top,rgba(0,136,204,0.22),transparent_70%)]" />
 
       <button
         type="button"
-        onClick={onClose}
+        onClick={handleCloseClick}
         aria-label="Close popup"
         className="absolute right-2.5 top-2.5 z-10 flex h-7 w-7 items-center justify-center rounded-full border border-white/10 bg-slate-950/40 text-slate-300 backdrop-blur-sm transition-all hover:-rotate-90 hover:bg-slate-900/70 hover:text-white"
       >
