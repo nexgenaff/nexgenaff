@@ -207,8 +207,16 @@ export default function DashboardPage() {
   useEffect(() => {
     if (userRole !== "MANAGER") return;
 
-    const timer = window.setTimeout(() => setShowTelegramPopup(true), 1200);
-    return () => window.clearTimeout(timer);
+    const storageKey = "afficixo-manager-telegram-popup-shown";
+    const alreadyShown = window.sessionStorage.getItem(storageKey);
+
+    if (!alreadyShown) {
+      const timer = window.setTimeout(() => {
+        setShowTelegramPopup(true);
+        window.sessionStorage.setItem(storageKey, "true");
+      }, 1200);
+      return () => window.clearTimeout(timer);
+    }
   }, [userRole]);
 
   const handleCloseTelegramPopup = () => {
