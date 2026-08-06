@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db/prisma'
+import type { Prisma } from '@prisma/client';
+import type { UserRole } from '@/types';
 import { getUserFromToken, getTokenFromCookie, getOwnerUserId, isManager, isAdmin, isOwner } from '@/lib/auth'
 import { getCorsHeaders } from '@/config/cors'
 import crypto from 'crypto'
@@ -29,12 +31,12 @@ export async function GET(request: Request) {
     const whereClause = isManager(user)
       ? { userId: user.id }
       : isOwner(user)
-        ? {
-            OR: [
-              { userId: ownerUserId || undefined },
-              { user: { role: 'MANAGER' } },
-            ],
-          }
+              ? {
+                  OR: [
+                    { userId: ownerUserId || undefined },
+                    { user: { role: 'MANAGER' as UserRole } },
+                  ],
+                }
         : { userId: user.id }
 
     const links = await prisma.linkAccount.findMany({

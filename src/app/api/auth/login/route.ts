@@ -56,16 +56,16 @@ export async function POST(request: Request) {
           user = { id: `local-${ADMIN_ENV_USERNAME}`, username: ADMIN_ENV_USERNAME, role: 'ADMIN' } as any
         } else {
           const existingAdmin = await prisma.user.findUnique({
-            where: { username: ADMIN_USERNAME },
+            where: { username: ADMIN_ENV_USERNAME },
           })
 
           if (!existingAdmin) {
             try {
-              const hashed = await bcrypt.hash(ADMIN_PASSWORD, 10)
+              const hashed = await bcrypt.hash(ADMIN_ENV_PASSWORD, 10)
               user = await prisma.user.create({
                 data: {
-                  username: ADMIN_USERNAME,
-                  email: `${ADMIN_USERNAME}@example.com`,
+                  username: ADMIN_ENV_USERNAME,
+                  email: `${ADMIN_ENV_USERNAME}@example.com`,
                   password: hashed,
                   role: 'ADMIN',
                 },
@@ -73,7 +73,7 @@ export async function POST(request: Request) {
             } catch (err) {
               console.error('Error creating admin user for login:', username, err)
               console.warn('Falling back to local bootstrap token for', username)
-              user = { id: `local-${ADMIN_USERNAME}`, username: ADMIN_USERNAME, role: 'ADMIN' } as any
+              user = { id: `local-${ADMIN_ENV_USERNAME}`, username: ADMIN_ENV_USERNAME, role: 'ADMIN' } as any
             }
           } else {
             return NextResponse.json(

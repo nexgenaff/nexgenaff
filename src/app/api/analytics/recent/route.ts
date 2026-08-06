@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
+import type { Prisma } from '@prisma/client';
+import type { UserRole } from '@/types';
 import { getUserFromToken, getTokenFromCookie, isAdmin, isOwner, getOwnerUserId } from '@/lib/auth';
 import { getCorsHeaders } from '@/config/cors';
 
@@ -33,11 +35,11 @@ export async function GET(request: Request) {
     }
 
     const ownerUserId = await getOwnerUserId();
-    const linkWhere = isOwner(user)
+    const linkWhere: Prisma.LinkAccountWhereInput = isOwner(user)
       ? {
           OR: [
             { userId: ownerUserId || undefined },
-            { user: { role: 'MANAGER' } },
+            { user: { role: 'MANAGER' as UserRole } },
           ],
         }
       : { userId: user.id };

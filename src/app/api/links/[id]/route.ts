@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { prisma } from '@/lib/db/prisma'
-import { getUserFromToken, getTokenFromCookie, isAdmin, isOwner, getOwnerUserId } from '@/lib/auth'
+import { getUserFromToken, getTokenFromCookie, isAdmin, isOwner, isManager, getOwnerUserId } from '@/lib/auth'
 import { getCorsHeaders } from '@/config/cors'
 
 const normalizeSlug = (value: unknown) => {
