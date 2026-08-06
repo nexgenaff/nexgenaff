@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db/prisma'
 import { getUserFromToken, getTokenFromCookie, getOwnerUserId, getEffectiveOfferUserId, isAdmin, isOwner } from '@/lib/auth'
 import { getCorsHeaders } from '@/config/cors'
+import { getLinkAccountVisibilityWhereClause } from '@/lib/utils/link-account-access'
 import crypto from 'crypto'
 
 export async function GET(request: Request) {
@@ -25,11 +26,8 @@ export async function GET(request: Request) {
       )
     }
 
-    const whereClause = isOwner(user)
-      ? {} // owners see all link accounts
-      : isAdmin(user)
-        ? { userId: user.id } // admins see only their own link accounts
-        : { userId: user.id } // managers see only their own links
+    const ownerUserId = await getOwnerUserId()
+    const whereClause = getLinkAccountVisibilityWhereClause(user, ownerUserId)
 
     const links = await prisma.linkAccount.findMany({
       where: whereClause,
