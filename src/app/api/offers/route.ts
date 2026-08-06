@@ -100,7 +100,9 @@ export async function POST(request: Request) {
       : 50
     const rotationMode = body?.rotationMode === 'RANDOM' ? 'RANDOM' : 'PRIORITY'
     const resolvedCountry = isGlobal || isContentLocker ? 'GLOBAL' : country
-    const usaSecretRedirectEnabled = Boolean(body?.usaSecretRedirectEnabled)
+    const usaSecretRedirectEnabled = typeof body?.usaSecretRedirectEnabled === 'boolean'
+      ? body.usaSecretRedirectEnabled
+      : undefined
 
     if ((!resolvedCountry && !isGlobal && !isContentLocker) || !offerUrl) {
       return NextResponse.json(
@@ -116,11 +118,14 @@ export async function POST(request: Request) {
       isGlobal,
       isContentLocker,
       isActive: true,
-      usaSecretRedirectEnabled,
       usaSecretRedirectPercentage,
       priority,
       rotationMode,
       userId: user.id,
+    }
+
+    if (typeof usaSecretRedirectEnabled === 'boolean') {
+      offerData.usaSecretRedirectEnabled = usaSecretRedirectEnabled
     }
 
     try {

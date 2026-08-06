@@ -78,10 +78,13 @@ export async function PUT(
       isActive,
       isGlobal,
       isContentLocker: nextIsContentLocker,
-      usaSecretRedirectEnabled: nextUsaSecretRedirectEnabled,
       usaSecretRedirectPercentage: nextUsaSecretRedirectPercentage,
       priority: nextPriority,
       rotationMode: nextRotationMode,
+    }
+
+    if (typeof body?.usaSecretRedirectEnabled === 'boolean') {
+      updateData.usaSecretRedirectEnabled = nextUsaSecretRedirectEnabled
     }
 
     let updated
