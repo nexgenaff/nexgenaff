@@ -19,7 +19,7 @@ import {
   CheckCircle,
   XCircle,
   ExternalLink,
-  Eye,
+  MousePointerClick,
   Trash2,
   Clock,
   RefreshCw,
@@ -402,7 +402,7 @@ export default function ClickLogs({ filter }: ClickLogsProps) {
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-2">
             <div className="rounded-xl border border-slate-800 bg-slate-900/80 p-2">
-              <Eye className="h-5 w-5 text-slate-400" />
+              <MousePointerClick className="h-5 w-5 text-slate-400" />
             </div>
             <div>
               <h3 className="text-lg font-semibold text-slate-100">Click Logs</h3>
@@ -604,17 +604,12 @@ export default function ClickLogs({ filter }: ClickLogsProps) {
                 <td colSpan={9} className="px-4 py-12 text-center">
                   <div className="mx-auto flex max-w-xl flex-col items-center rounded-[24px] border border-slate-800 bg-slate-950/70 px-8 py-10 text-center shadow-inner">
                     <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl border border-slate-800 bg-slate-900/80">
-                      <Eye className="h-6 w-6 text-slate-300" />
+                      <MousePointerClick className="h-6 w-6 text-slate-300" />
                     </div>
                     <p className="text-lg font-semibold text-slate-100">No traffic yet</p>
                     <p className="mt-2 max-w-md text-sm leading-6 text-slate-400">
                       Share a link and the first clicks will appear here with campaign, device, and location insights.
                     </p>
-                    <div className="mt-5 flex flex-wrap items-center justify-center gap-2 text-xs font-medium uppercase tracking-[0.24em] text-slate-500">
-                      <span className="rounded-full border border-slate-800 bg-slate-900/80 px-3 py-1">Live activity</span>
-                      <span className="rounded-full border border-slate-800 bg-slate-900/80 px-3 py-1">Device mix</span>
-                      <span className="rounded-full border border-slate-800 bg-slate-900/80 px-3 py-1">Geo view</span>
-                    </div>
                   </div>
                 </td>
               </tr>

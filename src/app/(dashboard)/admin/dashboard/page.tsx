@@ -239,6 +239,19 @@ export default function DashboardPage() {
     setIsHelpPopoverOpen(true);
   };
 
+  useEffect(() => {
+    if (!showTelegramPopup) return;
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== "Escape" && event.key !== "Esc") return;
+      event.preventDefault();
+      handleCloseTelegramPopup();
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [showTelegramPopup]);
+
   if (loading) {
     return (
       <div className="min-h-screen bg-[#07090e] flex flex-col items-center justify-center gap-3">
@@ -313,8 +326,14 @@ export default function DashboardPage() {
         </header>
 
         {showTelegramPopup && userRole === "MANAGER" && isHelpPopoverOpen ? (
-          <div className="mb-4 flex justify-end">
-            <TelegramCommunityPopup onClose={handleCloseTelegramPopup} />
+          <div className="fixed inset-0 z-50 flex items-start justify-center px-4 pt-24 sm:pt-28">
+            <div
+              className="absolute inset-0 bg-slate-950/60 backdrop-blur-sm"
+              onClick={handleCloseTelegramPopup}
+            />
+            <div className="relative pointer-events-auto">
+              <TelegramCommunityPopup onClose={handleCloseTelegramPopup} />
+            </div>
           </div>
         ) : null}
 
@@ -402,14 +421,6 @@ export default function DashboardPage() {
           </div>
         </section>
 
-        {/* ─── Footer ─── */}
-        <footer className="mt-8 text-center text-[11px] sm:text-xs text-slate-500 border-t border-slate-800/60 pt-4 flex flex-col sm:flex-row items-center justify-between gap-2">
-          <span>© 2026 Next-Gen Affiliates. Enterprise Conversion Engine.</span>
-          <div className="flex items-center gap-1.5 text-emerald-400 font-medium">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
-            Node Operational
-          </div>
-        </footer>
       </div>
     </div>
   );
