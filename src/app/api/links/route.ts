@@ -1,8 +1,6 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db/prisma'
-import type { Prisma } from '@prisma/client';
-import type { UserRole } from '@/types';
-import { getUserFromToken, getTokenFromCookie, getOwnerUserId, isManager, isAdmin, isOwner } from '@/lib/auth'
+import { getUserFromToken, getTokenFromCookie, isAdmin, isOwner } from '@/lib/auth'
 import { getCorsHeaders } from '@/config/cors'
 import crypto from 'crypto'
 
@@ -27,17 +25,11 @@ export async function GET(request: Request) {
       )
     }
 
-    const ownerUserId = await getOwnerUserId()
-    const whereClause = isManager(user)
-      ? { userId: user.id }
-      : isOwner(user)
-              ? {
-                  OR: [
-                    { userId: ownerUserId || undefined },
-                    { user: { role: 'MANAGER' as UserRole } },
-                  ],
-                }
-        : { userId: user.id }
+    const whereClause = isOwner(user)
+      ? {} // owners see all link accounts
+      : isAdmin(user)
+        ? { userId: user.id } // admins see only their own link accounts
+        : { userId: user.id } // managers see only their own links
 
     const links = await prisma.linkAccount.findMany({
       where: whereClause,
@@ -88,9 +80,11 @@ export async function POST(request: Request) {
         where: { id: customDomainId },
       })
 
-      const canUseCustomDomain =
-        attachedDomain?.userId === user.id ||
-        attachedDomain?.userId === ownerUserId && (isOwner(user) || isManager(user))
+      const canUseCustomDomain = isOwner(user)
+        ? true
+        : isAdmin(user)
+          ? attachedDomain?.userId === user.id
+          : attachedDomain?.userId === ownerUserId
 
       if (!attachedDomain || !canUseCustomDomain) {
         return NextResponse.json(

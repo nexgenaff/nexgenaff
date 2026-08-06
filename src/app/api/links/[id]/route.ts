@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { prisma } from '@/lib/db/prisma'
-import { getUserFromToken, getTokenFromCookie, isAdmin, isOwner, isManager, getOwnerUserId } from '@/lib/auth'
+import { getUserFromToken, getTokenFromCookie, isAdmin, isOwner, getOwnerUserId } from '@/lib/auth'
 import { getCorsHeaders } from '@/config/cors'
 
 const normalizeSlug = (value: unknown) => {
@@ -110,7 +110,7 @@ export async function PUT(
       where: { id },
     })
 
-    if (!existingLink || (!isAdmin(user) && !isOwner(user) && existingLink.userId !== user.id)) {
+    if (!existingLink || (!isOwner(user) && existingLink.userId !== user.id)) {
       return NextResponse.json(
         { error: 'Link not found' },
         { status: 404, headers: getCorsHeaders(origin) }
@@ -123,9 +123,11 @@ export async function PUT(
       })
 
       const ownerUserId = await getOwnerUserId()
-      const canUseDomain =
-        attachedDomain?.userId === user.id ||
-        attachedDomain?.userId === ownerUserId && (isOwner(user) || isManager(user))
+      const canUseDomain = isOwner(user)
+        ? true
+        : isAdmin(user)
+          ? attachedDomain?.userId === user.id
+          : attachedDomain?.userId === ownerUserId
 
       if (!attachedDomain || !canUseDomain) {
         return NextResponse.json(

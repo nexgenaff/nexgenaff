@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db/prisma'
-import { getUserFromToken, getTokenFromCookie, isAdmin, isOwner, getOwnerUserId } from '@/lib/auth'
+import { getUserFromToken, getTokenFromCookie, isAdmin, isOwner, isManager, getOwnerUserId } from '@/lib/auth'
 import { getCorsHeaders } from '@/config/cors'
 
 const normalizeIds = (value: unknown) => {
@@ -37,7 +37,7 @@ export async function POST(request: Request) {
       )
     }
 
-    if (!isAdmin(user) && !isOwner(user)) {
+    if (!isOwner(user) && !isAdmin(user) && !isManager(user)) {
       return NextResponse.json(
         { error: 'Forbidden' },
         { status: 403, headers: getCorsHeaders(origin) }
@@ -55,21 +55,13 @@ export async function POST(request: Request) {
       )
     }
 
-    const ownerUserId = await getOwnerUserId()
-    const allowedUserId = isAdmin(user) ? user.id : ownerUserId
-
-    if (!allowedUserId) {
-      return NextResponse.json(
-        { error: 'Owner account unavailable' },
-        { status: 500, headers: getCorsHeaders(origin) }
-      )
-    }
-
     const matchingLinks = await prisma.linkAccount.findMany({
-      where: {
-        id: { in: ids },
-        userId: allowedUserId,
-      },
+      where: isOwner(user)
+        ? { id: { in: ids } }
+        : {
+            id: { in: ids },
+            userId: user.id,
+          },
       select: { id: true },
     })
 
@@ -139,7 +131,11 @@ export async function POST(request: Request) {
         })
 
         const ownerUserId = await getOwnerUserId()
-        const canUseDomain = isAdmin(user) || attachedDomain?.userId === user.id || attachedDomain?.userId === ownerUserId
+        const canUseDomain = isOwner(user)
+          ? true
+          : isAdmin(user)
+            ? attachedDomain?.userId === user.id
+            : attachedDomain?.userId === ownerUserId
 
         if (!attachedDomain || !canUseDomain) {
           return NextResponse.json(

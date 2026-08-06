@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
-import { getUserFromToken, getTokenFromCookie, getOwnerUserId, isAdmin } from '@/lib/auth';
+import { getUserFromToken, getTokenFromCookie, getOwnerUserId, isAdmin, isOwner } from '@/lib/auth';
 import { verifyDomain } from '@/lib/services/dns/verify';
 import { buildVerificationInstructionsFromVercelRecords, isDomainVerified, verifyDomainOnVercel } from '@/lib/services/vercel/domain';
 import { getCorsHeaders } from '@/config/cors';
@@ -47,7 +47,7 @@ export async function POST(request: Request) {
     });
 
     const ownerUserId = await getOwnerUserId();
-    if (!domain || (!isAdmin(user) && domain.userId !== user.id && domain.userId !== ownerUserId)) {
+    if (!domain || (!isOwner(user) && !isAdmin(user) && domain.userId !== user.id && domain.userId !== ownerUserId)) {
       return NextResponse.json(
         { error: 'Domain not found' },
         { status: 404, headers: getCorsHeaders(origin) }

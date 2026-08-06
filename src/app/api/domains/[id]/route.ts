@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
-import { getUserFromToken, getTokenFromCookie, isAdmin, isOwner, getOwnerUserId } from '@/lib/auth';
+import { getUserFromToken, getTokenFromCookie, isAdmin, isOwner } from '@/lib/auth';
 import { getCorsHeaders } from '@/config/cors';
 
 export async function DELETE(
@@ -33,8 +33,14 @@ export async function DELETE(
       where: { id },
     });
 
-    const ownerUserId = await getOwnerUserId();
-    if (!domain || (!isAdmin(user) && !isOwner(user) && domain.userId !== user.id && domain.userId !== ownerUserId)) {
+    if (!domain || (!isOwner(user) && !isAdmin(user))) {
+      return NextResponse.json(
+        { error: 'Forbidden' },
+        { status: 403, headers: getCorsHeaders(origin) }
+      );
+    }
+
+    if (!domain || (!isOwner(user) && domain.userId !== user.id)) {
       return NextResponse.json(
         { error: 'Domain not found' },
         { status: 404, headers: getCorsHeaders(origin) }

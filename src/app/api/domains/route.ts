@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
-import { getUserFromToken, getTokenFromCookie, getOwnerUserId, isOwner } from '@/lib/auth';
+import { getUserFromToken, getTokenFromCookie, getOwnerUserId, isAdmin, isOwner } from '@/lib/auth';
 import { normalizeDomain, isSubdomain } from '@/lib/services/dns/verify';
 import {
   addDomainToProject,
@@ -61,11 +61,11 @@ export async function GET(request: Request) {
     }
 
     const ownerUserId = await getOwnerUserId();
-    const whereClause = user.role === 'MANAGER'
-      ? { userId: { in: [user.id, ownerUserId].filter((id): id is string => Boolean(id)) } }
-      : isOwner(user)
-        ? { userId: ownerUserId ? ownerUserId : undefined }
-        : { userId: user.id }
+    const whereClause = isOwner(user)
+      ? {} // owners see all domains
+      : isAdmin(user)
+        ? { userId: user.id } // admins see only their own domains
+        : { userId: ownerUserId || user.id } // managers see owner domains
 
     const domains = await prisma.customDomain.findMany({
       where: whereClause,
@@ -142,7 +142,12 @@ export async function POST(request: Request) {
       );
     }
 
-    const createUserId = user.id;
+    if (!isOwner(user) && !isAdmin(user)) {
+      return NextResponse.json(
+        { error: 'Forbidden' },
+        { status: 403, headers: getCorsHeaders(origin) }
+      );
+    }
 
     const body = await request.json();
     const validation = domainSchema.safeParse(body);

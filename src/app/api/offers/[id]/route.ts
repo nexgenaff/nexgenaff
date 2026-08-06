@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { prisma } from '@/lib/db/prisma'
-import { getUserFromToken, getTokenFromCookie, isAdminOrOwner } from '@/lib/auth'
+import { getUserFromToken, getTokenFromCookie, isAdmin, isOwner } from '@/lib/auth'
 import { getCorsHeaders } from '@/config/cors'
 
 export async function PUT(
@@ -28,21 +28,21 @@ export async function PUT(
       )
     }
 
-    if (!isAdminOrOwner(user)) {
+    const body = await request.json()
+    const { country, groupName, offerUrl, isActive, isGlobal, isContentLocker, priority, rotationMode } = body
+
+    if (!isOwner(user) && !isAdmin(user)) {
       return NextResponse.json(
         { error: 'Forbidden' },
         { status: 403, headers: getCorsHeaders(origin) }
       )
     }
 
-    const body = await request.json()
-    const { country, groupName, offerUrl, isActive, isGlobal, isContentLocker, priority, rotationMode } = body
-
     const offer = await prisma.offerVault.findUnique({
       where: { id },
     })
 
-    if (!offer) {
+    if (!offer || (!isOwner(user) && offer.userId !== user.id)) {
       return NextResponse.json(
         { error: 'Offer not found' },
         { status: 404, headers: getCorsHeaders(origin) }
@@ -126,7 +126,14 @@ export async function DELETE(
       where: { id },
     })
 
-    if (!offer || (!isAdminOrOwner(user) && offer.userId !== user.id)) {
+    if (!offer || (!isOwner(user) && !isAdmin(user))) {
+      return NextResponse.json(
+        { error: 'Forbidden' },
+        { status: 403, headers: getCorsHeaders(origin) }
+      )
+    }
+
+    if (!offer || (!isOwner(user) && offer.userId !== user.id)) {
       return NextResponse.json(
         { error: 'Offer not found' },
         { status: 404, headers: getCorsHeaders(origin) }
