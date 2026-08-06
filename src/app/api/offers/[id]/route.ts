@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { prisma } from '@/lib/db/prisma'
-import { getUserFromToken, getTokenFromCookie, isAdmin } from '@/lib/auth'
+import { getUserFromToken, getTokenFromCookie, isAdminOrOwner } from '@/lib/auth'
 import { getCorsHeaders } from '@/config/cors'
 
 export async function PUT(
@@ -28,7 +28,7 @@ export async function PUT(
       )
     }
 
-    if (!isAdmin(user)) {
+    if (!isAdminOrOwner(user)) {
       return NextResponse.json(
         { error: 'Forbidden' },
         { status: 403, headers: getCorsHeaders(origin) }
@@ -126,7 +126,7 @@ export async function DELETE(
       where: { id },
     })
 
-    if (!offer || (!isAdmin(user) && offer.userId !== user.id)) {
+    if (!offer || (!isAdminOrOwner(user) && offer.userId !== user.id)) {
       return NextResponse.json(
         { error: 'Offer not found' },
         { status: 404, headers: getCorsHeaders(origin) }

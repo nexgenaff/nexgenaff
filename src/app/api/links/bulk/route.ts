@@ -58,6 +58,13 @@ export async function POST(request: Request) {
     const ownerUserId = await getOwnerUserId()
     const allowedUserId = isAdmin(user) ? user.id : ownerUserId
 
+    if (!allowedUserId) {
+      return NextResponse.json(
+        { error: 'Owner account unavailable' },
+        { status: 500, headers: getCorsHeaders(origin) }
+      )
+    }
+
     const matchingLinks = await prisma.linkAccount.findMany({
       where: {
         id: { in: ids },

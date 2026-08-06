@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db/prisma'
-import { getUserFromToken, getTokenFromCookie, isAdmin, getOwnerUserId } from '@/lib/auth'
+import { getUserFromToken, getTokenFromCookie, isAdminOrOwner, getOwnerUserId } from '@/lib/auth'
 import { getCorsHeaders } from '@/config/cors'
 
 export async function GET(request: Request) {
@@ -32,8 +32,8 @@ export async function GET(request: Request) {
       )
     }
 
-    const queryWhere = isAdmin(user)
-      ? {} // admins see all offers
+    const queryWhere = isAdminOrOwner(user)
+      ? {} // admins and owners see all offers
       : { userId: ownerUserId }
 
     const offers = await prisma.offerVault.findMany({
@@ -75,7 +75,7 @@ export async function POST(request: Request) {
       )
     }
 
-    if (!isAdmin(user) && !isOwner(user)) {
+    if (!isAdminOrOwner(user)) {
       return NextResponse.json(
         { error: 'Forbidden' },
         { status: 403, headers: getCorsHeaders(origin) }
