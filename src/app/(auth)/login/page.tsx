@@ -5,6 +5,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion } from "framer-motion";
+import { markManagerTelegramPopupPending } from "@/lib/utils/telegram-popup";
 import {
   User,
   Lock,
@@ -38,6 +39,10 @@ export default function LoginPage() {
 
       if (!response.ok) {
         throw new Error(data.error || "Login failed");
+      }
+
+      if (data?.user?.role === "MANAGER") {
+        markManagerTelegramPopupPending(window);
       }
 
       router.push("/admin/dashboard");
