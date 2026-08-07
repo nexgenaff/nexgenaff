@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { motion } from "framer-motion";
 import StatsCards from "@/components/dashboard/StatsCards";
 import ClickLogs from "@/components/dashboard/ClickLogs";
 import { TrafficBreakdown } from "@/components/dashboard/TrafficBreakdown";
@@ -254,11 +255,25 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#07090e] flex flex-col items-center justify-center gap-3">
-        <div className="w-8 h-8 rounded-full border-2 border-indigo-500/20 border-t-indigo-500 animate-spin" />
-        <span className="text-xs font-medium text-slate-400 tracking-wider uppercase">
-          Loading Telemetry
-        </span>
+      <div className="flex min-h-screen items-center justify-center bg-[#07090e] text-center">
+        <div className="flex flex-col items-center justify-center gap-4">
+          <Image
+            src="/afficixo.png"
+            alt="Afficixo logo"
+            width={200}
+            height={200}
+            sizes="(max-width: 768px) 200px, 240px"
+            className="mx-auto object-cover"
+            priority
+          />
+          <div className="h-1.5 w-28 overflow-hidden rounded-full bg-white/10">
+            <motion.div
+              className="h-full w-1/2 rounded-full bg-gradient-to-r from-indigo-400 via-violet-400 to-cyan-400"
+              animate={{ x: ["-80%", "180%"] }}
+              transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut" }}
+            />
+          </div>
+        </div>
       </div>
     );
   }

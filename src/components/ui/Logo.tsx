@@ -61,6 +61,13 @@ export function Logo({
     xl: 64,
   }
 
+  const imageSizes = {
+    sm: '(max-width: 768px) 32px, 32px',
+    md: '(max-width: 768px) 40px, 40px',
+    lg: '(max-width: 768px) 48px, 48px',
+    xl: '(max-width: 768px) 64px, 64px',
+  }
+
   return (
     <div
       className={cn(
@@ -82,6 +89,7 @@ export function Logo({
             alt="Afficixo logo"
             width={logoDimensions[size]}
             height={logoDimensions[size]}
+            sizes={imageSizes[size]}
             className="h-full w-full object-cover"
             priority
           />

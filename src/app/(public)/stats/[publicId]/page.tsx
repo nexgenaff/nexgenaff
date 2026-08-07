@@ -520,6 +520,7 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
   const totalClicks = computedStats.totalClicks
   const uniqueClicks = computedStats.uniqueClicks
   const botClicks = computedStats.botClicks
+  const usaUniqueClicks = filteredClicks.filter((click) => click.country === 'US').length
   const uniqueRate = totalClicks ? ((uniqueClicks / totalClicks) * 100) : 0
   const botRate = totalClicks ? ((botClicks / totalClicks) * 100) : 0
   const maxCountryClicks = computedStats.geoSummary.length
@@ -841,13 +842,14 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
                   <button
                     key="US"
                     onClick={() => setFilterCountry(isSelected ? '' : 'US')}
-                    className={`px-2.5 py-1 text-xs font-medium rounded transition-colors ${
+                    className={`flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded transition-colors ${
                       isSelected
                         ? (isDark ? 'bg-indigo-500/20 text-indigo-300' : 'bg-indigo-100 text-indigo-700')
                         : (isDark ? 'text-white/40 hover:text-white/70' : 'text-gray-600 hover:text-gray-900')
                     }`}
                   >
                     <span className="text-base">{flag}</span>
+                    <span>{usaUniqueClicks}</span>
                   </button>
                 )
               })()}

@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
@@ -275,16 +276,24 @@ export default function DomainsPage() {
 
   if (loading) {
     return (
-      <div className="flex h-64 items-center justify-center">
-        <div className="text-center">
-          <motion.div
-            animate={{ rotate: 360 }}
-            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-            className="mx-auto h-12 w-12 rounded-full border-4 border-indigo-400/30 border-t-indigo-400"
+      <div className="flex h-64 items-center justify-center text-center">
+        <div className="flex flex-col items-center justify-center gap-4">
+          <Image
+            src="/afficixo.png"
+            alt="Afficixo logo"
+            width={200}
+            height={200}
+            sizes="(max-width: 768px) 200px, 240px"
+            className="mx-auto object-cover"
+            priority
           />
-          <p className="mt-4 text-sm text-slate-400 animate-pulse">
-            Loading domains…
-          </p>
+          <div className="h-1.5 w-28 overflow-hidden rounded-full bg-white/10">
+            <motion.div
+              className="h-full w-1/2 rounded-full bg-gradient-to-r from-indigo-400 via-violet-400 to-cyan-400"
+              animate={{ x: ["-80%", "180%"] }}
+              transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut" }}
+            />
+          </div>
         </div>
       </div>
     );

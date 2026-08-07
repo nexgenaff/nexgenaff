@@ -11,17 +11,38 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://nexgenaffiliates.vercel.app'),
-  title: 'Afficixo | Professional Routing Infrastructure',
-  description: 'Secure, auditable affiliate routing and traffic control for teams that need precision, clarity, and dependable execution.',
-  keywords: 'affiliate tracking, click fraud detection, link management, traffic quality, campaign routing, CPA platform',
+  title: 'Afficixo | Affiliate Offers & Routing Infrastructure',
+  description:
+    'Afficixo helps affiliates and advertisers scale revenue with high-converting offers, advanced routing, fraud protection, and transparent analytics.',
+  keywords:
+    'affiliate marketing, affiliate offers, campaign routing, click fraud detection, traffic monetization, CPA network, performance marketing, affiliate analytics',
   authors: [{ name: 'Afficixo' }],
+  creator: 'Afficixo',
+  alternates: {
+    canonical: 'https://nexgenaffiliates.vercel.app',
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      noimageindex: false,
+      noarchive: false,
+    },
+  },
+  themeColor: [
+    { media: '(prefers-color-scheme: dark)', color: '#05070b' },
+    { media: '(prefers-color-scheme: light)', color: '#ffffff' },
+  ],
   icons: {
     icon: '/afficixo.png?v=2',
     apple: '/afficixo.png?v=2',
   },
   openGraph: {
-    title: 'Afficixo | Professional Routing Infrastructure',
-    description: 'Secure, auditable affiliate routing and traffic control for teams that need precision, clarity, and dependable execution.',
+    title: 'Afficixo | Affiliate Offers & Routing Infrastructure',
+    description:
+      'Afficixo helps affiliates and advertisers scale revenue with high-converting offers, advanced routing, fraud protection, and transparent analytics.',
     type: 'website',
     url: 'https://nexgenaffiliates.vercel.app',
     images: [
@@ -37,8 +58,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Afficixo | Professional Routing Infrastructure',
-    description: 'Secure, auditable affiliate routing and traffic control for teams that need precision, clarity, and dependable execution.',
+    title: 'Afficixo | Affiliate Offers & Routing Infrastructure',
+    description:
+      'Afficixo helps affiliates and advertisers scale revenue with high-converting offers, advanced routing, fraud protection, and transparent analytics.',
     images: ['https://nexgenaffiliates.vercel.app/afficixo.png?v=2'],
     site: '@afficixo',
   },
@@ -57,7 +79,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body suppressHydrationWarning className={`${inter.variable} font-sans antialiased`}>
-        <div className="min-h-screen animate-fade-in">
+        <div className="min-h-screen">
           <PageTransition>{children}</PageTransition>
         </div>
       </body>

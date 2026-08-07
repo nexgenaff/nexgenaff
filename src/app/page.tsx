@@ -30,6 +30,16 @@ import {
   Eye,
 } from "lucide-react";
 
+const structuredData = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  name: "Afficixo",
+  url: "https://nexgenaffiliates.vercel.app",
+  logo: "https://nexgenaffiliates.vercel.app/afficixo.png?v=2",
+  description:
+    "Afficixo helps affiliates and advertisers scale revenue with high-converting offers, advanced routing, fraud protection, and transparent analytics.",
+};
+
 // ========== ANIMATIONS ==========
 
 const fadeUpVariants = {
@@ -177,8 +187,13 @@ export default function HomePage() {
         <div className="absolute inset-0 opacity-[0.03] [background-image:linear-gradient(rgba(255,255,255,1)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,1)_1px,transparent_1px)] [background-size:60px_60px]" />
       </div>
 
-      <div className="relative z-10">
+      <main id="main-content" className="relative z-10">
         <Header />
+        <script
+          type="application/ld+json"
+          suppressHydrationWarning
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+        />
 
         {/* ===== HERO ===== */}
         <section className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-28 pb-16 md:py-40 lg:py-48">
@@ -688,7 +703,7 @@ export default function HomePage() {
             </div>
           </div>
         </footer>
-      </div>
+      </main>
     </div>
   );
 }

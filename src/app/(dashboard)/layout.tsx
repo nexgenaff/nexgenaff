@@ -11,42 +11,33 @@ export default function DashboardLayout({
   children: React.ReactNode
 }) {
   const router = useRouter()
-  const [isLoading, setIsLoading] = useState(true)
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
 
   useEffect(() => {
+    let isActive = true
+
     const checkAuth = async () => {
       try {
         const response = await fetch('/api/auth/me', { credentials: 'include' })
-        if (response.ok) {
-          setIsAuthenticated(true)
-        } else {
+
+        if (!isActive) return
+
+        if (!response.ok) {
           router.push('/login')
         }
-      } catch {
+      } catch (error) {
+        if (!isActive) return
+
+        console.error('Dashboard auth check failed:', error)
         router.push('/login')
-      } finally {
-        setIsLoading(false)
       }
     }
 
     checkAuth()
+
+    return () => {
+      isActive = false
+    }
   }, [router])
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black flex">
-        <Sidebar />
-        <div className="flex-1 flex flex-col min-w-0">
-          <main className="flex-1 p-3 sm:p-6 overflow-x-hidden overflow-y-auto" />
-        </div>
-      </div>
-    )
-  }
-
-  if (!isAuthenticated) {
-    return null
-  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black flex">

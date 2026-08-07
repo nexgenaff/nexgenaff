@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -22,6 +23,7 @@ import {
   AlertTriangle,
   Zap,
   Calendar,
+  ArrowUpRight,
   Rocket,
   Layers,
   ChevronDown,
@@ -634,14 +636,24 @@ export default function LinksPage() {
 
   if (loading) {
     return (
-      <div className="flex h-64 items-center justify-center">
-        <div className="text-center">
-          <motion.div
-            animate={{ rotate: 360 }}
-            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-            className="mx-auto h-12 w-12 rounded-full border-4 border-indigo-400/30 border-t-indigo-400"
+      <div className="flex h-64 items-center justify-center text-center">
+        <div className="flex flex-col items-center justify-center gap-4">
+          <Image
+            src="/afficixo.png"
+            alt="Afficixo logo"
+            width={200}
+            height={200}
+            sizes="(max-width: 768px) 200px, 240px"
+            className="mx-auto object-cover"
+            priority
           />
-          <p className="mt-4 text-sm text-slate-400 animate-pulse">Loading link accounts…</p>
+          <div className="h-1.5 w-28 overflow-hidden rounded-full bg-white/10">
+            <motion.div
+              className="h-full w-1/2 rounded-full bg-gradient-to-r from-indigo-400 via-violet-400 to-cyan-400"
+              animate={{ x: ["-80%", "180%"] }}
+              transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut" }}
+            />
+          </div>
         </div>
       </div>
     );
@@ -1188,6 +1200,15 @@ export default function LinksPage() {
                     <div className="flex items-center gap-1.5">
                       <Globe2 className="w-3.5 h-3.5 text-emerald-400" />
                       <span className="text-[10px] font-medium text-emerald-400">Stats</span>
+                      <a
+                        href={getPublicStatsUrl(link)}
+                        target="_blank"
+                        rel="noreferrer"
+                        aria-label="Open public stats"
+                        className="inline-flex items-center justify-center rounded-lg border border-white/5 bg-white/5 p-1.5 text-emerald-300 transition hover:border-emerald-400/40 hover:bg-emerald-500/10 hover:text-emerald-200"
+                      >
+                        <ArrowUpRight className="h-3.5 w-3.5" />
+                      </a>
                       <CopyIcon
                         text={getPublicStatsUrl(link)}
                         label="public stats link"

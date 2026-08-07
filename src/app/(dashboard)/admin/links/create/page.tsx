@@ -123,12 +123,12 @@ const CustomDropdown = ({
         onClick={() => !disabled && setIsOpen(!isOpen)}
         disabled={disabled}
         className={`
-          w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 sm:py-2.5 text-sm text-white
+          w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 sm:px-4 sm:py-3 text-sm text-white
           flex items-center justify-between gap-2
           transition-all duration-200
           ${isOpen ? "border-indigo-400/50 ring-2 ring-indigo-400/15" : "hover:border-white/20"}
           ${disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}
-          min-h-[44px]
+          min-h-[42px] sm:min-h-[44px]
         `}
       >
         <span className="flex items-center gap-2.5 truncate">
@@ -223,7 +223,7 @@ const CustomDropdown = ({
         )}
       </AnimatePresence>
 
-      {helper && <p className="mt-1.5 text-xs text-slate-400">{helper}</p>}
+      {helper && <p className="mt-1.5 text-[11px] sm:text-xs text-slate-400">{helper}</p>}
     </div>
   );
 };
@@ -249,19 +249,19 @@ const InputField = ({
   helper?: string;
 }) => (
   <div className="group">
-    <label className="block text-xs font-medium text-slate-300 mb-1.5 tracking-wide">
+    <label className="mb-1.5 block text-[11px] font-medium tracking-[0.12em] text-slate-300 uppercase sm:text-xs sm:tracking-wide">
       {label}
     </label>
     <input
       type={type}
       value={value}
       onChange={onChange}
-      className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 sm:py-2.5 text-sm text-white placeholder-slate-500 transition-all duration-200 focus:border-indigo-400/50 focus:outline-none focus:ring-2 focus:ring-indigo-400/15 hover:border-white/20 min-h-[44px]"
+      className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-white placeholder-slate-500 transition-all duration-200 focus:border-indigo-400/50 focus:outline-none focus:ring-2 focus:ring-indigo-400/15 hover:border-white/20 min-h-[42px] sm:min-h-[44px] sm:px-4 sm:py-3"
       placeholder={placeholder}
       required={required}
       disabled={disabled}
     />
-    {helper && <p className="mt-1.5 text-xs text-slate-400">{helper}</p>}
+    {helper && <p className="mt-1.5 text-[11px] text-slate-400 sm:text-xs">{helper}</p>}
   </div>
 );
 
@@ -317,6 +317,16 @@ export default function CreateLinkPage() {
   const [loading, setLoading] = useState(false);
   const [createdAccount, setCreatedAccount] = useState<CreatedAccount | null>(null);
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia("(max-width: 768px)");
+    const handleChange = () => setIsMobile(mediaQuery.matches);
+    handleChange();
+
+    mediaQuery.addEventListener?.("change", handleChange);
+    return () => mediaQuery.removeEventListener?.("change", handleChange);
+  }, []);
 
   const fetchDomains = useCallback(async () => {
     try {
@@ -460,18 +470,30 @@ export default function CreateLinkPage() {
 
   return (
     <div className="min-h-screen bg-[#05070b] text-white overflow-x-hidden">
-      {/* Animated Background - reduced intensity on mobile */}
+      {/* Reduced motion on mobile for smoother performance */}
       <div className="fixed inset-0 z-0 pointer-events-none">
         <div className="absolute inset-0 bg-gradient-to-br from-[#05070b] via-[#0d1724] to-[#101827]" />
         <motion.div
           className="absolute -top-40 -left-40 w-[600px] h-[600px] bg-gradient-radial from-indigo-900/25 via-transparent to-transparent blur-3xl"
-          animate={{ x: [0, 80, -40, 0], y: [0, -60, 30, 0], opacity: [0.3, 0.6, 0.3] }}
-          transition={{ duration: 25, repeat: Infinity, ease: "easeInOut" }}
+          animate={
+            isMobile
+              ? { opacity: 0.18 }
+              : { x: [0, 80, -40, 0], y: [0, -60, 30, 0], opacity: [0.3, 0.6, 0.3] }
+          }
+          transition={isMobile ? { duration: 0.6 } : { duration: 25, repeat: Infinity, ease: "easeInOut" }}
         />
         <motion.div
           className="absolute -bottom-40 -right-40 w-[600px] h-[600px] bg-gradient-radial from-purple-900/20 via-transparent to-transparent blur-3xl"
-          animate={{ x: [0, -70, 50, 0], y: [0, 50, -30, 0], opacity: [0.2, 0.5, 0.2] }}
-          transition={{ duration: 30, repeat: Infinity, ease: "easeInOut", delay: 3 }}
+          animate={
+            isMobile
+              ? { opacity: 0.12 }
+              : { x: [0, -70, 50, 0], y: [0, 50, -30, 0], opacity: [0.2, 0.5, 0.2] }
+          }
+          transition={
+            isMobile
+              ? { duration: 0.6 }
+              : { duration: 30, repeat: Infinity, ease: "easeInOut", delay: 3 }
+          }
         />
         {/* Reduced opacity grid on mobile for performance */}
         <div className="absolute inset-0 opacity-[0.015] [background-image:linear-gradient(rgba(255,255,255,0.5)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.5)_1px,transparent_1px)] [background-size:80px_80px] hidden sm:block" />
@@ -513,13 +535,13 @@ export default function CreateLinkPage() {
         </motion.div>
 
         {/* ===== MAIN GRID ===== */}
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1.3fr_0.7fr] items-start">
+        <div className="grid w-full max-w-full grid-cols-1 gap-6 lg:grid-cols-[1.3fr_0.7fr] items-start">
           {/* ===== FORM ===== */}
           <motion.div
             variants={scaleIn}
             initial="hidden"
             animate="visible"
-            className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl p-4 sm:p-6 md:p-8 shadow-xl shadow-indigo-500/5"
+            className="w-full max-w-full overflow-hidden rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl p-4 sm:p-6 md:p-8 shadow-xl shadow-indigo-500/5"
           >
             <div className="flex items-center gap-2.5 mb-5 sm:mb-7">
               <div className="p-1.5 rounded-lg bg-gradient-to-br from-indigo-500/20 to-purple-500/20">
@@ -536,7 +558,7 @@ export default function CreateLinkPage() {
               )}
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
+            <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-5">
               <AnimatePresence mode="wait">
                 {error && (
                   <motion.div
@@ -572,16 +594,16 @@ export default function CreateLinkPage() {
                 label="Account Name"
                 value={accountName}
                 onChange={(e) => setAccountName(e.target.value)}
-                placeholder="e.g., iPhone Campaign"
+                placeholder=""
                 required
                 disabled={loading}
               />
 
               <InputField
-                label="Slug"
+                label="Sub_ID"
                 value={slug}
                 onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/\s/g, "-"))}
-                placeholder="e.g., iphone-offer"
+                placeholder="use random words"
                 helper="Letters, numbers, and hyphens only"
                 required
                 disabled={loading}
@@ -608,14 +630,20 @@ export default function CreateLinkPage() {
               />
 
               <motion.div
-                animate={{
-                  boxShadow: [
-                    "0 0 20px rgba(129, 140, 248, 0)",
-                    "0 0 40px rgba(129, 140, 248, 0.08)",
-                    "0 0 20px rgba(129, 140, 248, 0)",
-                  ],
-                  transition: { duration: 3, repeat: Infinity, ease: "easeInOut" },
-                }}
+                animate={
+                  isMobile
+                    ? { boxShadow: "0 0 20px rgba(129, 140, 248, 0.04)" }
+                    : {
+                        boxShadow: [
+                          "0 0 20px rgba(129, 140, 248, 0)",
+                          "0 0 40px rgba(129, 140, 248, 0.08)",
+                          "0 0 20px rgba(129, 140, 248, 0)",
+                        ],
+                      }
+                }
+                transition={
+                  isMobile ? { duration: 0.6 } : { duration: 3, repeat: Infinity, ease: "easeInOut" }
+                }
                 className="rounded-xl border border-indigo-500/15 bg-gradient-to-br from-indigo-500/5 to-purple-500/5 p-3 sm:p-4 mt-2"
               >
                 <div className="flex items-center gap-2 text-xs font-medium text-slate-400 uppercase tracking-wider mb-2.5">
@@ -672,7 +700,7 @@ export default function CreateLinkPage() {
                 initial="hidden"
                 animate="visible"
                 exit={{ opacity: 0, x: 20 }}
-                className="rounded-2xl border border-emerald-500/20 bg-gradient-to-br from-emerald-500/5 to-emerald-500/[0.02] backdrop-blur-xl p-4 sm:p-6 shadow-xl shadow-emerald-500/5"
+                className="rounded-2xl border border-emerald-500/20 bg-gradient-to-br from-emerald-500/5 to-emerald-500/[0.02] backdrop-blur-xl p-3 sm:p-6 shadow-xl shadow-emerald-500/5"
               >
                 <div className="flex items-center justify-between pb-3 sm:pb-4 border-b border-white/5">
                   <div className="flex items-center gap-2.5">
@@ -680,7 +708,7 @@ export default function CreateLinkPage() {
                       <CheckCircle2 className="w-3.5 h-3.5 text-emerald-300" />
                     </div>
                     <span className="text-[10px] font-semibold uppercase tracking-[0.25em] text-emerald-300">
-                      Created
+                      Ready to share with your employees
                     </span>
                   </div>
                   <CopyButton
@@ -693,25 +721,41 @@ export default function CreateLinkPage() {
                 <div className="pt-3 sm:pt-4 space-y-4 text-sm">
                   {/* Publisher ID */}
                   <div>
-                    <div className="text-xs font-medium text-slate-400">🆔 𝗣𝘂𝗯𝗹𝗶𝘀𝗵𝗲𝗿 𝗜𝗗</div>
-                    <div className="mt-1 font-mono bg-slate-900/50 rounded-lg px-3 py-2 border border-white/5 break-all">
+                    <div className="text-xs font-medium text-slate-400">Publisher ID</div>
+                    <div className="mt-1 flex items-center justify-between gap-3 rounded-xl border border-white/5 bg-slate-900/50 px-3 py-2 font-mono text-sm break-all text-slate-100">
                       <code>{createdAccount.accountName}</code>
                     </div>
                   </div>
 
                   {/* Public Analytics */}
                   <div>
-                    <div className="text-xs font-medium text-slate-400">📊 𝗣𝘂𝗯𝗹𝗶𝗰 𝗔𝗻𝗮𝗹𝘆𝘁𝗶𝗰𝘀</div>
-                    <div className="mt-1 break-all text-slate-300 bg-slate-900/30 rounded-lg px-3 py-2 border border-white/5 text-xs sm:text-sm">
-                      {createdAccount.publicStatsUrl}
+                    <div className="text-xs font-medium text-slate-400">Public analytics</div>
+                    <div className="mt-1 flex items-center justify-between gap-3 rounded-xl border border-white/5 bg-slate-900/30 px-3 py-2">
+                      <span className="break-all text-xs text-slate-300 sm:text-sm">{createdAccount.publicStatsUrl}</span>
+                      <a
+                        href={createdAccount.publicStatsUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="shrink-0 rounded-lg border border-white/10 bg-white/5 px-2 py-1 text-[10px] font-medium text-slate-200 transition hover:border-emerald-400/40 hover:text-emerald-200"
+                      >
+                        Open
+                      </a>
                     </div>
                   </div>
 
                   {/* Tracking URL */}
                   <div>
-                    <div className="text-xs font-medium text-slate-400">🔗 𝗧𝗿𝗮𝗰𝗸𝗶𝗻𝗴 𝗨𝗥𝗟</div>
-                    <div className="mt-1 font-mono bg-slate-900/50 rounded-lg px-3 py-2 border border-white/5 break-all text-xs sm:text-sm">
+                    <div className="text-xs font-medium text-slate-400">Tracking URL</div>
+                    <div className="mt-1 flex items-center justify-between gap-3 rounded-xl border border-white/5 bg-slate-900/50 px-3 py-2 font-mono text-xs break-all text-slate-100 sm:text-sm">
                       <code>{createdAccount.trackingUrl}</code>
+                      <a
+                        href={createdAccount.trackingUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="shrink-0 rounded-lg border border-white/10 bg-white/5 px-2 py-1 text-[10px] font-medium text-slate-200 transition hover:border-indigo-400/40 hover:text-indigo-200"
+                      >
+                        Open
+                      </a>
                     </div>
                   </div>
                 </div>
@@ -720,10 +764,10 @@ export default function CreateLinkPage() {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.3 }}
-                  className="mt-4 pt-4 border-t border-white/5 flex items-center gap-2 text-[10px] text-slate-500"
+                  className="mt-4 flex items-center gap-2 border-t border-white/5 pt-4 text-[10px] font-medium text-emerald-300"
                 >
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                  Link is live and ready to use
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                  Your link is live and ready to share
                 </motion.div>
               </motion.div>
             ) : (
@@ -745,23 +789,6 @@ export default function CreateLinkPage() {
           </AnimatePresence>
         </div>
 
-        {/* ===== FOOTER ===== */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.6 }}
-          className="mt-8 sm:mt-12 pt-4 border-t border-white/5 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500"
-        >
-          <span>© 2026 Afficixo. All rights reserved.</span>
-          <div className="flex items-center gap-4">
-            <span className="flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-              Online
-            </span>
-            <span className="w-px h-3 bg-slate-700" />
-            <span>v2.0.1</span>
-          </div>
-        </motion.div>
       </div>
     </div>
   );

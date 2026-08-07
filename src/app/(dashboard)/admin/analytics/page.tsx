@@ -318,12 +318,25 @@ export default function AnalyticsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#05070b] flex items-center justify-center">
-        <motion.div
-          animate={{ rotate: 360 }}
-          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-          className="w-12 h-12 rounded-full border-4 border-indigo-400/30 border-t-indigo-400"
-        />
+      <div className="flex min-h-screen items-center justify-center bg-[#05070b]">
+        <div className="flex flex-col items-center justify-center gap-4">
+          <Image
+            src="/afficixo.png"
+            alt="Afficixo logo"
+            width={200}
+            height={200}
+            sizes="(max-width: 768px) 200px, 240px"
+            className="mx-auto object-cover"
+            priority
+          />
+          <div className="h-1.5 w-28 overflow-hidden rounded-full bg-white/10">
+            <motion.div
+              className="h-full w-1/2 rounded-full bg-gradient-to-r from-indigo-400 via-violet-400 to-cyan-400"
+              animate={{ x: ["-80%", "180%"] }}
+              transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut" }}
+            />
+          </div>
+        </div>
       </div>
     );
   }
