@@ -281,6 +281,7 @@ export default function HomePage() {
     }
 
     function initCanvas() {
+      if (!canvas) return;
       canvas.setAttribute("width", window.innerWidth.toString());
       canvas.setAttribute("height", window.innerHeight.toString());
       can_w = parseInt(canvas.getAttribute("width")!);
