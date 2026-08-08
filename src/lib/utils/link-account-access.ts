@@ -7,6 +7,17 @@ export type LinkAccountVisibilityUser = {
   username?: string
 }
 
+export function getLinkAccountUserId(
+  user: LinkAccountVisibilityUser,
+  ownerUserId: string | null | undefined
+) {
+  if (isOwner(user)) {
+    return ownerUserId || user.id
+  }
+
+  return user.id
+}
+
 export function getLinkAccountVisibilityWhereClause(
   user: LinkAccountVisibilityUser,
   ownerUserId: string | null | undefined
@@ -15,9 +26,5 @@ export function getLinkAccountVisibilityWhereClause(
     return {}
   }
 
-  if (isAdmin(user)) {
-    return { userId: user.id }
-  }
-
-  return { userId: user.id }
+  return { userId: getLinkAccountUserId(user, ownerUserId) }
 }

@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { getLinkAccountVisibilityWhereClause } from './link-account-access'
+import { getLinkAccountUserId, getLinkAccountVisibilityWhereClause } from './link-account-access'
 
 test('keeps managers scoped to their own link accounts', () => {
   const whereClause = getLinkAccountVisibilityWhereClause(
@@ -27,4 +27,13 @@ test('keeps admins scoped to their own links', () => {
   )
 
   assert.deepEqual(whereClause, { userId: 'admin-1' })
+})
+
+test('uses the signed-in manager id as the owner of a new link account', () => {
+  const userId = getLinkAccountUserId(
+    { id: 'manager-1', role: 'MANAGER', username: 'manager' },
+    'owner-999'
+  )
+
+  assert.equal(userId, 'manager-1')
 })
