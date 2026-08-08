@@ -142,9 +142,9 @@ export default function SignupClient() {
           initial={{ opacity: 0, scale: 0.97, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           transition={{ duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }}
-          className="w-full max-w-sm rounded-3xl bg-white/5 backdrop-blur-xl p-6 shadow-2xl shadow-indigo-500/5 hover:shadow-indigo-500/10 transition-shadow duration-500"
+          className="w-full max-w-[440px] rounded-3xl bg-white/5 backdrop-blur-xl p-5 shadow-2xl shadow-indigo-500/5 hover:shadow-indigo-500/10 transition-shadow duration-500"
         >
-          <div className="space-y-5">
+          <div className="space-y-4">
             <div className="flex flex-col items-center gap-2">
               <div className="flex items-center justify-center">
                 <Image
@@ -202,9 +202,9 @@ export default function SignupClient() {
               <span>{googleLoading ? "Redirecting to Google..." : "Join with Google"}</span>
             </button>
 
-            <form onSubmit={handleSubmit} className="space-y-3">
+            <form onSubmit={handleSubmit} className="space-y-2.5">
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-1.5">Username</label>
+                <label className="sr-only">Username</label>
                 <div className="relative group">
                   <User className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                   <input
@@ -220,7 +220,7 @@ export default function SignupClient() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-1.5">Email</label>
+                <label className="sr-only">Email</label>
                 <div className="relative group">
                   <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                   <input
@@ -228,7 +228,7 @@ export default function SignupClient() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 pl-10 text-white placeholder-slate-500 focus:border-indigo-400/50 focus:outline-none focus:ring-2 focus:ring-indigo-400/30 transition-all duration-300 hover:border-white/20"
-                    placeholder="you@example.com"
+                    placeholder="Enter your Email"
                     required
                     disabled={loading}
                   />
@@ -236,7 +236,7 @@ export default function SignupClient() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-1.5">Password</label>
+                <label className="sr-only">Password</label>
                 <div className="relative group">
                   <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                   <input
@@ -251,29 +251,29 @@ export default function SignupClient() {
                 </div>
               </div>
 
-              <div className="rounded-xl bg-indigo-500/10 p-3 text-sm text-slate-200">
-                <div className="mb-3 flex items-center gap-2 rounded-lg bg-black/20 px-3 py-2 text-sm text-white">
+              <div className="mb-3 flex items-center justify-between gap-2 rounded-xl bg-black/20 px-3 py-1.5 text-sm text-white w-full">
+                <div className="flex items-center gap-1.5">
                   <span className="font-semibold text-indigo-200">{captchaPrompt}</span>
                   <span className="text-slate-400">=</span>
-                  <input
-                    type="number"
-                    value={captchaAnswer}
-                    onChange={(e) => setCaptchaAnswer(e.target.value)}
-                    className="w-20 rounded border border-white/10 bg-white/10 px-2 py-1 text-white placeholder-slate-500 focus:border-indigo-400/50 focus:outline-none"
-                    placeholder="Answer"
-                    disabled={loading}
-                  />
-                  <button
-                    type="button"
-                    onClick={generateCaptcha}
-                    className="ml-1 text-xs text-indigo-300 hover:text-indigo-200"
-                    disabled={loading}
-                  >
-                    Refresh
-                  </button>
                 </div>
-                {captchaError ? <div className="text-sm text-rose-300">{captchaError}</div> : null}
+                <input
+                  type="number"
+                  value={captchaAnswer}
+                  onChange={(e) => setCaptchaAnswer(e.target.value)}
+                  className="w-20 rounded border border-white/10 bg-white/10 px-2.5 py-1 text-white placeholder-slate-500 focus:border-indigo-400/50 focus:outline-none"
+                  placeholder="Answer"
+                  disabled={loading}
+                />
+                <button
+                  type="button"
+                  onClick={generateCaptcha}
+                  className="ml-2 inline-flex h-8 w-8 items-center justify-center rounded-lg bg-white/10 text-sm text-indigo-300 transition-colors duration-200 hover:bg-white/15 hover:text-indigo-200"
+                  disabled={loading}
+                >
+                  ⟳
+                </button>
               </div>
+              {captchaError ? <div className="text-sm text-rose-300">{captchaError}</div> : null}
 
               <button
                 type="submit"
