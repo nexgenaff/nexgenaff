@@ -34,8 +34,8 @@ const structuredData = {
   "@context": "https://schema.org",
   "@type": "Organization",
   name: "Afficixo",
-  url: "https://nexgenaffiliates.vercel.app",
-  logo: "https://nexgenaffiliates.vercel.app/afficixo.png?v=2",
+  url: "https://weebly.pro",
+  logo: "https://weebly.pro/afficixo.png?v=2",
   description:
     "Afficixo helps affiliates and advertisers scale revenue with high-converting offers, advanced routing, fraud protection, and transparent analytics.",
 };

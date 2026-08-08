@@ -10,7 +10,7 @@ const inter = Inter({
 })
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://nexgenaffiliates.vercel.app'),
+  metadataBase: new URL('https://weebly.pro'),
   title: 'Afficixo | Affiliate Offers & Routing Infrastructure',
   description:
     'Afficixo helps affiliates and advertisers scale revenue with high-converting offers, advanced routing, fraud protection, and transparent analytics.',
@@ -19,7 +19,7 @@ export const metadata: Metadata = {
   authors: [{ name: 'Afficixo' }],
   creator: 'Afficixo',
   alternates: {
-    canonical: 'https://nexgenaffiliates.vercel.app',
+    canonical: 'https://weebly.pro',
   },
   robots: {
     index: true,
@@ -44,11 +44,11 @@ export const metadata: Metadata = {
     description:
       'Afficixo helps affiliates and advertisers scale revenue with high-converting offers, advanced routing, fraud protection, and transparent analytics.',
     type: 'website',
-    url: 'https://nexgenaffiliates.vercel.app',
+    url: 'https://weebly.pro',
     images: [
       {
-        url: 'https://nexgenaffiliates.vercel.app/afficixo.png?v=2',
-        secureUrl: 'https://nexgenaffiliates.vercel.app/afficixo.png?v=2',
+        url: 'https://weebly.pro/afficixo.png?v=2',
+        secureUrl: 'https://weebly.pro/afficixo.png?v=2',
         width: 256,
         height: 256,
         alt: 'Afficixo logo',
@@ -61,7 +61,7 @@ export const metadata: Metadata = {
     title: 'Afficixo | Affiliate Offers & Routing Infrastructure',
     description:
       'Afficixo helps affiliates and advertisers scale revenue with high-converting offers, advanced routing, fraud protection, and transparent analytics.',
-    images: ['https://nexgenaffiliates.vercel.app/afficixo.png?v=2'],
+    images: ['https://weebly.pro/afficixo.png?v=2'],
     site: '@afficixo',
   },
 }
