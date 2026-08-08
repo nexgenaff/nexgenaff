@@ -19,5 +19,5 @@ export function getLinkAccountVisibilityWhereClause(
     return { userId: user.id }
   }
 
-  return { userId: ownerUserId || user.id }
+  return { userId: user.id }
 }

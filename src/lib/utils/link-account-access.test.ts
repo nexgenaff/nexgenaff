@@ -2,13 +2,13 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 import { getLinkAccountVisibilityWhereClause } from './link-account-access'
 
-test('returns owner-wide visibility for managers so they can see shared link accounts', () => {
+test('keeps managers scoped to their own link accounts', () => {
   const whereClause = getLinkAccountVisibilityWhereClause(
     { id: 'manager-1', role: 'MANAGER', username: 'manager' },
     'owner-999'
   )
 
-  assert.deepEqual(whereClause, { userId: 'owner-999' })
+  assert.deepEqual(whereClause, { userId: 'manager-1' })
 })
 
 test('keeps owners on the unrestricted view', () => {

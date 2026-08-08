@@ -313,9 +313,7 @@ export async function GET(request: Request) {
     } else if (isAdmin(user)) {
       linkWhere = { userId: user.id };
     } else if (isManager(user)) {
-      const or: Prisma.LinkAccountWhereInput[] = [{ userId: user.id }];
-      if (ownerUserId) or.push({ userId: ownerUserId });
-      linkWhere = { OR: or };
+      linkWhere = { userId: user.id };
     } else {
       linkWhere = { userId: ownerUserId || user.id };
     }
