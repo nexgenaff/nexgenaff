@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { motion } from "framer-motion";
 import Link from "next/link";
+import { useEffect, useRef } from "react";
 import {
   ArrowRight,
   Users,
@@ -176,11 +177,252 @@ const Header = () => (
 // ========== MAIN PAGE ==========
 
 export default function HomePage() {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  // ─── PARTICLE NETWORK ANIMATION ───
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    let can_w: number, can_h: number;
+    const BALL_NUM = 35;
+    const R = 2.5;
+    const dis_limit = 280;
+    const link_line_width = 1.0;
+    const alpha_f = 0.025;
+
+    // Dark theme colors
+    const ball_color = { r: 0, g: 255, b: 100 };
+    const line_color = { r: 255, g: 255, b: 255 };
+
+    let balls: any[] = [];
+    let animationId: number;
+
+    function randomNumFrom(min: number, max: number) {
+      return Math.random() * (max - min) + min;
+    }
+
+    function randomSidePos(length: number) {
+      return Math.ceil(Math.random() * length);
+    }
+
+    function randomArrayItem(arr: any[]) {
+      return arr[Math.floor(Math.random() * arr.length)];
+    }
+
+    function getRandomSpeed(pos: string) {
+      const min = -0.8,
+        max = 0.8;
+      switch (pos) {
+        case "top":
+          return [randomNumFrom(min, max), randomNumFrom(0.2, max)];
+        case "right":
+          return [randomNumFrom(min, -0.2), randomNumFrom(min, max)];
+        case "bottom":
+          return [randomNumFrom(min, max), randomNumFrom(min, -0.2)];
+        case "left":
+          return [randomNumFrom(0.2, max), randomNumFrom(min, max)];
+        default:
+          return [0, 0];
+      }
+    }
+
+    function getRandomBall() {
+      const pos = randomArrayItem(["top", "right", "bottom", "left"]);
+      switch (pos) {
+        case "top":
+          return {
+            x: randomSidePos(can_w),
+            y: -R,
+            vx: getRandomSpeed("top")[0],
+            vy: getRandomSpeed("top")[1],
+            r: R,
+            alpha: 1,
+            phase: randomNumFrom(0, 10),
+            glow: randomNumFrom(0.5, 1),
+          };
+        case "right":
+          return {
+            x: can_w + R,
+            y: randomSidePos(can_h),
+            vx: getRandomSpeed("right")[0],
+            vy: getRandomSpeed("right")[1],
+            r: R,
+            alpha: 1,
+            phase: randomNumFrom(0, 10),
+            glow: randomNumFrom(0.5, 1),
+          };
+        case "bottom":
+          return {
+            x: randomSidePos(can_w),
+            y: can_h + R,
+            vx: getRandomSpeed("bottom")[0],
+            vy: getRandomSpeed("bottom")[1],
+            r: R,
+            alpha: 1,
+            phase: randomNumFrom(0, 10),
+            glow: randomNumFrom(0.5, 1),
+          };
+        case "left":
+          return {
+            x: -R,
+            y: randomSidePos(can_h),
+            vx: getRandomSpeed("left")[0],
+            vy: getRandomSpeed("left")[1],
+            r: R,
+            alpha: 1,
+            phase: randomNumFrom(0, 10),
+            glow: randomNumFrom(0.5, 1),
+          };
+      }
+    }
+
+    function initCanvas() {
+      canvas.setAttribute("width", window.innerWidth.toString());
+      canvas.setAttribute("height", window.innerHeight.toString());
+      can_w = parseInt(canvas.getAttribute("width")!);
+      can_h = parseInt(canvas.getAttribute("height")!);
+    }
+
+    function initBalls(num: number) {
+      for (let i = 1; i <= num; i++) {
+        balls.push({
+          x: randomSidePos(can_w),
+          y: randomSidePos(can_h),
+          vx: getRandomSpeed("top")[0],
+          vy: getRandomSpeed("top")[1],
+          r: R,
+          alpha: 1,
+          phase: randomNumFrom(0, 10),
+          glow: randomNumFrom(0.5, 1),
+        });
+      }
+    }
+
+    function getDisOf(b1: any, b2: any) {
+      const dx = Math.abs(b1.x - b2.x),
+        dy = Math.abs(b1.y - b2.y);
+      return Math.sqrt(dx * dx + dy * dy);
+    }
+
+    function renderBalls() {
+      for (let i = 0; i < balls.length; i++) {
+        const b = balls[i];
+
+        // Glow effect for dark theme
+        const gradient = ctx.createRadialGradient(b.x, b.y, 0, b.x, b.y, R * 4);
+        gradient.addColorStop(
+          0,
+          `rgba(${ball_color.r},${ball_color.g},${ball_color.b},${b.alpha})`
+        );
+        gradient.addColorStop(
+          1,
+          `rgba(${ball_color.r},${ball_color.g},${ball_color.b},0)`
+        );
+
+        ctx.fillStyle = gradient;
+        ctx.beginPath();
+        ctx.arc(b.x, b.y, R * 4, 0, Math.PI * 2, true);
+        ctx.closePath();
+        ctx.fill();
+
+        // Core dot
+        ctx.fillStyle = `rgba(${ball_color.r},${ball_color.g},${ball_color.b},${b.alpha})`;
+        ctx.shadowColor = `rgba(${ball_color.r},${ball_color.g},${ball_color.b},${b.alpha * 0.5})`;
+        ctx.shadowBlur = 10;
+        ctx.beginPath();
+        ctx.arc(b.x, b.y, R, 0, Math.PI * 2, true);
+        ctx.closePath();
+        ctx.fill();
+        ctx.shadowBlur = 0;
+      }
+    }
+
+    function renderLines() {
+      for (let i = 0; i < balls.length; i++) {
+        for (let j = i + 1; j < balls.length; j++) {
+          const fraction = getDisOf(balls[i], balls[j]) / dis_limit;
+          if (fraction < 1) {
+            const alpha = (1 - fraction) * 0.6;
+            ctx.strokeStyle = `rgba(${line_color.r},${line_color.g},${line_color.b},${alpha})`;
+            ctx.lineWidth = link_line_width;
+            ctx.shadowColor = `rgba(${line_color.r},${line_color.g},${line_color.b},${alpha * 0.3})`;
+            ctx.shadowBlur = 5;
+            ctx.beginPath();
+            ctx.moveTo(balls[i].x, balls[i].y);
+            ctx.lineTo(balls[j].x, balls[j].y);
+            ctx.stroke();
+            ctx.closePath();
+            ctx.shadowBlur = 0;
+          }
+        }
+      }
+    }
+
+    function updateBalls() {
+      const new_balls = [];
+      for (let i = 0; i < balls.length; i++) {
+        const b = balls[i];
+        b.x += b.vx;
+        b.y += b.vy;
+        if (b.x > -50 && b.x < can_w + 50 && b.y > -50 && b.y < can_h + 50) {
+          new_balls.push(b);
+        }
+        b.phase += alpha_f;
+        b.alpha = Math.abs(Math.cos(b.phase));
+      }
+      balls = new_balls.slice(0);
+    }
+
+    function addBallIfy() {
+      if (balls.length < BALL_NUM) {
+        balls.push(getRandomBall());
+      }
+    }
+
+    function render() {
+      ctx.clearRect(0, 0, can_w, can_h);
+      renderLines();
+      renderBalls();
+      updateBalls();
+      addBallIfy();
+      animationId = window.requestAnimationFrame(render);
+    }
+
+    // ─── Initialize ───
+    initCanvas();
+    initBalls(BALL_NUM);
+    render();
+
+    // ─── Handle resize ───
+    const handleResize = () => {
+      initCanvas();
+    };
+
+    window.addEventListener("resize", handleResize);
+
+    // ─── Cleanup ───
+    return () => {
+      window.cancelAnimationFrame(animationId);
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
+
   return (
     <div className="relative min-h-screen w-full bg-[#05070b] text-white overflow-x-hidden">
-      {/* Background */}
-      <div className="fixed inset-0 z-0">
-        <div className="absolute inset-0 bg-gradient-to-br from-[#05070b] via-[#0d1724] to-[#101827]" />
+      {/* ─── CANVAS BACKGROUND ─── */}
+      <canvas
+        ref={canvasRef}
+        className="fixed top-0 left-0 w-full h-full pointer-events-none z-0"
+        style={{ opacity: 0.8 }}
+      />
+
+      {/* Background overlays */}
+      <div className="fixed inset-0 z-0 pointer-events-none">
+        <div className="absolute inset-0 bg-gradient-to-br from-[#05070b]/80 via-[#0d1724]/60 to-[#101827]/80" />
         <div className="absolute top-0 left-1/4 w-[800px] h-[800px] bg-gradient-radial from-indigo-900/20 via-transparent to-transparent blur-3xl" />
         <div className="absolute top-1/3 right-0 w-[600px] h-[600px] bg-gradient-radial from-purple-700/15 via-transparent to-transparent blur-3xl" />
         <div className="absolute bottom-0 right-1/3 w-[700px] h-[700px] bg-gradient-radial from-pink-900/10 via-transparent to-transparent blur-3xl" />
@@ -674,13 +916,12 @@ export default function HomePage() {
                     priority
                   />
                 </div>
-                <span className="text-sm md:text-base font-bold text-white">© 2026 Afficixo</span>
               </div>
 
               <div className="flex flex-wrap items-center justify-center gap-4 md:gap-6 text-xs md:text-sm text-slate-400">
-                <a href="#" className="hover:text-white transition-colors">Privacy Policy</a>
-                <a href="#" className="hover:text-white transition-colors">Terms of Service</a>
-                <a href="#" className="hover:text-white transition-colors">Contact</a>
+                <a href="/privacy-policy" className="hover:text-white transition-colors">Privacy Policy</a>
+                <a href="/terms-of-service" className="hover:text-white transition-colors">Terms of Service</a>
+                <a href="/contact" className="hover:text-white transition-colors">Contact</a>
               </div>
 
               <div className="flex items-center gap-3 md:gap-4">

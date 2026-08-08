@@ -86,24 +86,24 @@ export default function Sidebar() {
     <>
       <div className="pointer-events-none absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-transparent via-cyan-400/70 to-transparent" />
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.2),transparent_36%),radial-gradient(circle_at_bottom_right,rgba(244,114,182,0.16),transparent_38%),linear-gradient(135deg,rgba(34,211,238,0.08),transparent_40%,rgba(129,140,248,0.08))]" />
-      <div className="relative flex items-center justify-start p-0 w-full">
-        <div className="relative h-16 w-full overflow-hidden">
-          <Image
-            src="/afficixo.png"
-            alt="Afficixo logo"
-            fill
-            className="object-contain"
-            priority
-          />
-        </div>
-        {!isMobile && !collapsed && (
-          <button
-            onClick={() => setPopupOpen(false)}
-            className="hidden md:absolute md:right-3 md:flex h-8 w-8 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] text-slate-400 transition hover:bg-white/[0.08] hover:text-white"
-            aria-label="Close sidebar"
-          >
-            <X className="w-4 h-4" />
-          </button>
+      <div className="relative flex items-center justify-start p-0 w-full gap-2">
+        <button
+          onClick={handleLogout}
+          aria-label="Logout"
+          className="flex h-6 w-6 items-center justify-center rounded-lg border border-transparent bg-white/5 text-red-400/90 transition hover:border-red-400/20 hover:bg-red-500/10 hover:text-red-300"
+        >
+          <LogOut className="w-3 h-3" />
+        </button>
+        {!collapsed && (
+          <div className="relative h-12 flex-1 overflow-hidden">
+            <Image
+              src="/afficixo.png"
+              alt="Afficixo logo"
+              fill
+              className="object-contain"
+              priority
+            />
+          </div>
         )}
       </div>
 
@@ -141,15 +141,7 @@ export default function Sidebar() {
         })}
       </nav>
 
-      <div className="relative z-10 px-3 py-3 border-t border-white/10">
-        <button
-          onClick={handleLogout}
-          className="w-full flex items-center justify-center gap-2 px-3 py-2 text-[12px] text-red-400/90 hover:bg-red-500/10 rounded-xl border border-transparent hover:border-red-400/20 hover:shadow-[0_10px_24px_rgba(239,68,68,0.12)] transition-all duration-200 group"
-        >
-          <LogOut className="w-3.5 h-3.5 transition-transform duration-200 group-hover:scale-110" />
-          Logout
-        </button>
-      </div>
+      <div className="relative z-10 px-3 py-3 border-t border-white/10" />
     </>
   )
 
@@ -171,8 +163,8 @@ export default function Sidebar() {
         )}
 
         <aside
-          className={`panel-bleed fixed top-0 left-0 bottom-0 z-[50] flex flex-col w-68 h-screen overflow-hidden rounded-none border-0 transition-[transform,opacity,box-shadow] duration-300 ease-out lg:hidden ${
-            mobileOpen ? 'translate-x-0 opacity-100' : '-translate-x-full opacity-90'
+          className={`panel-bleed fixed top-0 right-0 bottom-0 z-[50] flex flex-col w-60 h-screen overflow-hidden rounded-none border-0 transition-[transform,opacity,box-shadow] duration-300 ease-out lg:hidden ${
+            mobileOpen ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-90'
           }`}
         >
           {sidebarContent}
@@ -200,7 +192,7 @@ export default function Sidebar() {
       )}
 
       <aside
-        className={`panel-bleed fixed left-0 top-0 bottom-0 z-[50] hidden md:flex flex-col ${collapsed ? 'w-20' : 'w-72'} h-screen overflow-hidden rounded-none border-0 ring-0 transition-[transform,opacity,box-shadow] duration-300 ease-out ${popupOpen ? 'translate-x-0 opacity-100' : '-translate-x-[120%] opacity-0 pointer-events-none'}`}
+        className={`panel-bleed fixed right-0 top-0 bottom-0 z-[50] hidden md:flex flex-col ${collapsed ? 'w-20' : 'w-60'} h-screen overflow-hidden rounded-none border-0 ring-0 transition-[transform,opacity,box-shadow] duration-300 ease-out ${popupOpen ? 'translate-x-0 opacity-100' : 'translate-x-[120%] opacity-0 pointer-events-none'}`}
       >
         {sidebarContent}
       </aside>
