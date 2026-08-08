@@ -70,7 +70,7 @@ export async function GET(request: Request) {
       ? {} // owners see all domains
       : isAdmin(user)
         ? { userId: user.id } // admins see only their own domains
-        : { userId: ownerUserId || user.id } // managers see owner domains
+        : { userId: user.id } // managers see only their own domains
 
     const domains = await prisma.customDomain.findMany({
       where: whereClause,

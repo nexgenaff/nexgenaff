@@ -37,7 +37,7 @@ export async function GET(request: Request) {
       ? {} // owners see all offers
       : isAdmin(user)
         ? { userId: user.id } // admins see only their own offers
-        : { userId: ownerUserId! } // managers see owner offers (ownerUserId guaranteed above)
+        : { userId: user.id } // managers see only their own offers
 
     const offers = await prisma.offerVault.findMany({
       where: queryWhere,

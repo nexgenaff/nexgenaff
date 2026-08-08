@@ -216,8 +216,8 @@ export async function POST(request: Request) {
         prisma.referrerStat.deleteMany({ where: { linkAccountId: { in: ids } } }),
         prisma.publicDashboard.deleteMany({ where: { linkAccountId: { in: ids } } }),
         prisma.linkAccount.deleteMany({ where: whereClause }),
-        prisma.customDomain.deleteMany({ where: isOwner(user) ? {} : isAdmin(user) ? { userId: user.id } : { userId: ownerUserId || user.id } }),
-        prisma.offerVault.deleteMany({ where: isOwner(user) ? {} : isAdmin(user) ? { userId: user.id } : { userId: ownerUserId || user.id } }),
+        prisma.customDomain.deleteMany({ where: isOwner(user) ? {} : isAdmin(user) ? { userId: user.id } : { userId: user.id } }),
+        prisma.offerVault.deleteMany({ where: isOwner(user) ? {} : isAdmin(user) ? { userId: user.id } : { userId: user.id } }),
       ])
 
       return NextResponse.json(

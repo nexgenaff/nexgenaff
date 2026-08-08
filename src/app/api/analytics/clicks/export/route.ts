@@ -67,7 +67,7 @@ export async function GET(request: Request) {
       ? {}
       : isAdmin(user)
         ? { userId: user.id }
-        : { userId: ownerUserId || user.id };
+        : { userId: user.id };
 
     const links = await prisma.linkAccount.findMany({
       where: linkWhere,
