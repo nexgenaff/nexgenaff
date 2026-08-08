@@ -142,7 +142,7 @@ const Header = () => (
   >
     <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
       <Link href="/" className="flex items-center text-white">
-        <div className="relative h-9 w-9 md:h-10 md:w-10 rounded-lg overflow-hidden">
+        <div className="relative h-24 w-24 md:h-28 md:w-28 rounded-lg overflow-hidden">
           <Image
             src="/afficixo.png"
             alt="Afficixo logo"
