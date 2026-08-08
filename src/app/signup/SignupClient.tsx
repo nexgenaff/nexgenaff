@@ -29,9 +29,9 @@ export default function SignupClient() {
   useEffect(() => {
     const canvas = canvasRef.current
     if (!canvas) return
+    const canvasEl = canvas
 
-    const ctx = canvas.getContext('2d')
-    if (!ctx) return
+    const ctx = canvasEl.getContext('2d')!
 
     let can_w: number, can_h: number
     const BALL_NUM = 35
@@ -127,10 +127,10 @@ export default function SignupClient() {
     }
 
     function initCanvas() {
-      canvas.setAttribute("width", window.innerWidth.toString())
-      canvas.setAttribute("height", window.innerHeight.toString())
-      can_w = parseInt(canvas.getAttribute("width")!)
-      can_h = parseInt(canvas.getAttribute("height")!)
+      canvasEl.setAttribute("width", window.innerWidth.toString())
+      canvasEl.setAttribute("height", window.innerHeight.toString())
+      can_w = parseInt(canvasEl.getAttribute("width")!)
+      can_h = parseInt(canvasEl.getAttribute("height")!)
     }
 
     function initBalls(num: number) {

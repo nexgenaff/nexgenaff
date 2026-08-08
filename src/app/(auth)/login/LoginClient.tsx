@@ -26,8 +26,7 @@ export default function LoginClient() {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
+    const ctx = canvas.getContext("2d")!;
 
     let can_w: number, can_h: number;
     const BALL_NUM = 35;
@@ -123,6 +122,8 @@ export default function LoginClient() {
     }
 
     function initCanvas() {
+      if (!canvas) return;
+
       canvas.setAttribute("width", window.innerWidth.toString());
       canvas.setAttribute("height", window.innerHeight.toString());
       can_w = parseInt(canvas.getAttribute("width")!);
