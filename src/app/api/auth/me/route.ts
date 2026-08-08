@@ -28,6 +28,7 @@ export async function GET(request: Request) {
       id: user.id,
       username: user.username,
       role: user.role,
+      email: user.email,
     }, { headers: getCorsHeaders(origin) })
   } catch (error) {
     console.error('Auth error:', error)

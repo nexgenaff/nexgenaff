@@ -60,6 +60,8 @@ export default function SettingsPage() {
   const [loading, setLoading] = useState(true);
   const [userInfo, setUserInfo] = useState<{ username?: string; email?: string } | null>(null);
   const [showPasswordForm, setShowPasswordForm] = useState(false);
+  const [showEmailForm, setShowEmailForm] = useState(false);
+  const [emailDraft, setEmailDraft] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [feedback, setFeedback] = useState<FeedbackState | null>(null);
   const [showDangerZone, setShowDangerZone] = useState(false);
@@ -85,12 +87,15 @@ export default function SettingsPage() {
         const response = await fetch("/api/auth/me", { credentials: "include" });
         if (response.ok) {
           const data = await response.json();
-          setUserInfo({ username: data.username || "admin", email: data.email || "support@afficixo.com" });
+          setUserInfo({ username: data.username || "admin", email: data.email || "" });
+          setEmailDraft(data.email || "");
         } else {
-          setUserInfo({ username: "admin", email: "support@afficixo.com" });
+          setUserInfo({ username: "admin", email: "" });
+          setEmailDraft("");
         }
       } catch {
-        setUserInfo({ username: "admin", email: "support@afficixo.com" });
+        setUserInfo({ username: "admin", email: "" });
+        setEmailDraft("");
       } finally {
         setLoading(false);
       }
@@ -251,7 +256,7 @@ export default function SettingsPage() {
             </div>
             <div className="hidden sm:block">
               <p className="text-sm font-medium text-white">{userInfo?.username || "admin"}</p>
-              <p className="text-xs text-slate-400">{userInfo?.email || "support@afficixo.com"}</p>
+              <p className="text-xs text-slate-400">{userInfo?.email || "No email added yet"}</p>
             </div>
           </div>
         </div>
@@ -352,7 +357,7 @@ export default function SettingsPage() {
                     <Mail className="w-3.5 h-3.5" />
                     Email
                   </p>
-                  <p className="mt-1 text-sm font-medium text-white">{userInfo?.email || "support@afficixo.com"}</p>
+                  <p className="mt-1 text-sm font-medium text-white">{userInfo?.email || "No email added yet"}</p>
                 </div>
               </div>
 
@@ -363,6 +368,18 @@ export default function SettingsPage() {
                 >
                   <Key className="w-4 h-4" />
                   {showPasswordForm ? "Hide" : "Change password"}
+                </button>
+                <button
+                  onClick={() => {
+                    setShowEmailForm((prev) => !prev)
+                    if (!showEmailForm) {
+                      setEmailDraft(userInfo?.email || "")
+                    }
+                  }}
+                  className="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg border border-white/10 bg-white/5 text-sm font-medium text-slate-300 hover:text-white hover:bg-white/10 transition"
+                >
+                  <Mail className="w-4 h-4" />
+                  {userInfo?.email ? "Update email" : "Add email"}
                 </button>
                 <button
                   onClick={() => setShowDangerZone((prev) => !prev)}
@@ -379,6 +396,82 @@ export default function SettingsPage() {
                   Logout
                 </button>
               </div>
+
+              {/* Email Form */}
+              <AnimatePresence>
+                {showEmailForm && (
+                  <motion.div
+                    variants={slideDown}
+                    initial="hidden"
+                    animate="visible"
+                    exit="exit"
+                    className="overflow-hidden"
+                  >
+                    <form
+                      onSubmit={async (event) => {
+                        event.preventDefault();
+                        setIsSubmitting(true);
+                        setFeedback(null);
+
+                        try {
+                          const response = await fetch("/api/settings", {
+                            method: "POST",
+                            credentials: "include",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ action: "update-email", email: emailDraft.trim() }),
+                          });
+
+                          const data = await response.json().catch(() => ({ message: "Email updated" }));
+                          if (!response.ok) {
+                            throw new Error(data.error || "Unable to update email");
+                          }
+
+                          const nextEmail = emailDraft.trim();
+                          setUserInfo((prev) => (prev ? { ...prev, email: nextEmail } : prev));
+                          setFeedback({ type: "success", message: data.message || "Email updated successfully." });
+                          setShowEmailForm(false);
+                        } catch (error) {
+                          setFeedback({
+                            type: "error",
+                            message: error instanceof Error ? error.message : "Unable to update email",
+                          });
+                        } finally {
+                          setIsSubmitting(false);
+                        }
+                      }}
+                      className="mt-3 rounded-lg border border-white/10 bg-white/5 p-4 space-y-3"
+                    >
+                      <div>
+                        <label className="block text-xs font-medium text-slate-400 mb-1">Email address</label>
+                        <input
+                          type="email"
+                          value={emailDraft}
+                          onChange={(event) => setEmailDraft(event.target.value)}
+                          className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder-slate-500 focus:border-indigo-400/50 focus:outline-none focus:ring-1 focus:ring-indigo-400/30 transition"
+                          placeholder="you@example.com"
+                          required
+                        />
+                      </div>
+                      <div className="flex flex-wrap gap-2.5 pt-1">
+                        <button
+                          type="submit"
+                          disabled={isSubmitting}
+                          className="px-4 py-2 rounded-lg bg-indigo-500 text-sm font-medium text-white hover:bg-indigo-600 transition disabled:opacity-60"
+                        >
+                          {isSubmitting ? "Saving…" : "Save email"}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setShowEmailForm(false)}
+                          className="px-4 py-2 rounded-lg border border-white/10 text-sm font-medium text-slate-300 hover:bg-white/5 transition"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </form>
+                  </motion.div>
+                )}
+              </AnimatePresence>
 
               {/* Password Form */}
               <AnimatePresence>

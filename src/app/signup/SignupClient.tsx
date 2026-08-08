@@ -1,19 +1,49 @@
 "use client"
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
+import { useEffect, useState } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import Image from "next/image"
-import { ArrowLeft, ArrowRight, Lock, User, Mail, Rocket, AlertCircle } from "lucide-react"
+import { ArrowLeft, ArrowRight, Lock, User, Mail, Rocket, AlertCircle, CheckCircle2 } from "lucide-react"
 import { motion } from "framer-motion"
+
+const GOOGLE_BUTTON_CLASS = "group flex w-full items-center justify-center gap-3 rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-semibold text-white transition-all duration-300 hover:border-indigo-400/40 hover:bg-white/10 hover:shadow-lg hover:shadow-indigo-500/20"
 
 export default function SignupClient() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [username, setUsername] = useState("")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [loading, setLoading] = useState(false)
+  const [googleLoading, setGoogleLoading] = useState(false)
   const [error, setError] = useState("")
+  const [success, setSuccess] = useState("")
+
+  useEffect(() => {
+    const errorParam = searchParams.get("error")
+    if (errorParam === "google_auth_failed") {
+      setError("Google sign-up could not be completed. Please try again or use the form below.")
+    } else if (errorParam === "missing_code") {
+      setError("Google returned an incomplete sign-up response. Please try again.")
+    } else if (errorParam === "google_not_configured") {
+      setError("Google sign-up is not configured yet. Add your Google OAuth credentials to continue.")
+    } else {
+      setError("")
+    }
+
+    const successParam = searchParams.get("success")
+    if (successParam === "google-authenticated") {
+      setSuccess("Google sign-up was successful. Redirecting you to your dashboard...")
+      const redirectPath = searchParams.get("redirect") || "/admin/dashboard"
+      const timer = window.setTimeout(() => {
+        router.replace(redirectPath)
+      }, 1000)
+      return () => window.clearTimeout(timer)
+    }
+
+    setSuccess("")
+  }, [router, searchParams])
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault()
@@ -34,9 +64,13 @@ export default function SignupClient() {
         throw new Error(data.error || "Signup failed")
       }
 
-      router.push("/admin/dashboard")
+      setSuccess("Account created successfully. Redirecting you to your dashboard...")
+      window.setTimeout(() => {
+        router.push("/admin/dashboard")
+      }, 500)
     } catch (err: any) {
-      setError(err.message)
+      setSuccess("")
+      setError(err.message || "We could not create your account right now. Please try again.")
     } finally {
       setLoading(false)
     }
@@ -102,11 +136,46 @@ export default function SignupClient() {
             </div>
 
             {error && (
-              <div className="flex items-center gap-2 rounded-xl border border-red-500/20 bg-red-500/10 p-3 text-sm text-red-400 backdrop-blur">
-                <AlertCircle className="h-4 w-4" />
-                <span>{error}</span>
+              <div className="flex items-start gap-2 rounded-xl border border-red-500/20 bg-red-500/10 p-3 text-sm text-red-300 backdrop-blur">
+                <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0" />
+                <span className="leading-6">{error}</span>
               </div>
             )}
+
+            {success && (
+              <div className="flex items-start gap-2 rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-3 text-sm text-emerald-300 backdrop-blur">
+                <CheckCircle2 className="mt-0.5 h-4 w-4 flex-shrink-0" />
+                <span className="leading-6">{success}</span>
+              </div>
+            )}
+
+            <div className="flex items-center gap-3 text-xs uppercase tracking-[0.3em] text-slate-500">
+              <div className="h-px flex-1 bg-white/10" />
+              <span>or</span>
+              <div className="h-px flex-1 bg-white/10" />
+            </div>
+
+            <button
+              type="button"
+              disabled={googleLoading || loading}
+              onClick={() => {
+                setGoogleLoading(true)
+                window.location.assign('/api/auth/google/start?redirect=/admin/dashboard')
+              }}
+              className={`${GOOGLE_BUTTON_CLASS} ${googleLoading ? 'cursor-wait opacity-80' : ''}`}
+            >
+              {googleLoading ? (
+                <span className="h-4 w-4 rounded-full border-2 border-white border-t-transparent animate-spin" />
+              ) : (
+                <svg className="h-5 w-5" viewBox="0 0 24 24" aria-hidden="true">
+                  <path fill="#4285F4" d="M21.6 12.23c0-.78-.07-1.53-.2-2.25H12v4.26h5.38a4.6 4.6 0 0 1-2 3.02v2.5h3.24c1.9-1.75 2.98-4.33 2.98-7.53Z" />
+                  <path fill="#34A853" d="M12 22c2.7 0 4.96-.89 6.62-2.41l-3.24-2.5c-.9.6-2.05.96-3.38.96-2.6 0-4.8-1.75-5.59-4.11H2.9v2.58A10 10 0 0 0 12 22Z" />
+                  <path fill="#FBBC05" d="M6.41 13.94A6.02 6.02 0 0 1 6.41 10.06V7.48H2.9A10 10 0 0 0 2 12c0 1.62.39 3.15 1.09 4.52l3.32-2.58Z" />
+                  <path fill="#EA4335" d="M12 6.04c1.47 0 2.79.5 3.83 1.49l2.87-2.87A9.96 9.96 0 0 0 12 2A10 10 0 0 0 2.9 7.48l3.51 2.58c.79-2.36 2.99-4.11 5.59-4.11Z" />
+                </svg>
+              )}
+              <span>{googleLoading ? "Redirecting to Google..." : "Join with Google"}</span>
+            </button>
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>

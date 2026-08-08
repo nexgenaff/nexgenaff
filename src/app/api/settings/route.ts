@@ -103,6 +103,51 @@ export async function POST(request: Request) {
       )
     }
 
+    if (action === 'update-email') {
+      const email = typeof body?.email === 'string' ? body.email.trim() : ''
+      if (!email) {
+        return NextResponse.json(
+          { error: 'Email is required.' },
+          { status: 400, headers: getCorsHeaders(origin) }
+        )
+      }
+
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        return NextResponse.json(
+          { error: 'Please enter a valid email address.' },
+          { status: 400, headers: getCorsHeaders(origin) }
+        )
+      }
+
+      if (user.id.startsWith('local-')) {
+        return NextResponse.json(
+          {
+            success: true,
+            message: 'Email update simulated for the local demo account.',
+          },
+          { headers: getCorsHeaders(origin) }
+        )
+      }
+
+      const existing = await prisma.user.findFirst({ where: { email } })
+      if (existing && existing.id !== user.id) {
+        return NextResponse.json(
+          { error: 'That email address is already in use.' },
+          { status: 400, headers: getCorsHeaders(origin) }
+        )
+      }
+
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { email, updatedAt: new Date() },
+      })
+
+      return NextResponse.json(
+        { success: true, message: 'Email updated successfully.' },
+        { headers: getCorsHeaders(origin) }
+      )
+    }
+
     if (action === 'toggle-2fa') {
       const enabled = body?.enabled === true
       return NextResponse.json(
