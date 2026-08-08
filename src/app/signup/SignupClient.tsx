@@ -15,6 +15,7 @@ export default function SignupClient() {
   const turnstileContainerRef = useRef<HTMLDivElement | null>(null)
   const turnstileWidgetIdRef = useRef<string | null>(null)
   const turnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || ""
+  const turnstileScriptLoadedRef = useRef(false)
   const [username, setUsername] = useState("")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -35,50 +36,64 @@ export default function SignupClient() {
 
     const renderTurnstile = () => {
       const turnstile = (window as Window & { turnstile?: any }).turnstile
-      if (!turnstile || !turnstileContainerRef.current) return
-
-      if (turnstileWidgetIdRef.current) {
-        turnstile.remove(turnstileWidgetIdRef.current)
+      if (!turnstile || !turnstileContainerRef.current) {
+        setTurnstileError("Security check could not be loaded. Please refresh the page.")
+        return
       }
 
-      const widgetId = turnstile.render(turnstileContainerRef.current, {
-        sitekey: turnstileSiteKey,
-        theme: "dark",
-        appearance: "interaction-only",
-        callback: (token: string) => {
-          setTurnstileToken(token)
-          setTurnstileError("")
-        },
-        "error-callback": () => {
-          setTurnstileToken("")
-          setTurnstileError("Security check failed. Please try again.")
-        },
-        "expired-callback": () => {
-          setTurnstileToken("")
-          setTurnstileError("Security check expired. Please try again.")
-        },
-      })
+      try {
+        if (turnstileWidgetIdRef.current) {
+          turnstile.remove(turnstileWidgetIdRef.current)
+        }
 
-      turnstileWidgetIdRef.current = widgetId
-      setTurnstileReady(true)
+        const widgetId = turnstile.render(turnstileContainerRef.current, {
+          sitekey: turnstileSiteKey,
+          theme: "dark",
+          appearance: "always",
+          callback: (token: string) => {
+            setTurnstileToken(token)
+            setTurnstileError("")
+          },
+          "error-callback": () => {
+            setTurnstileToken("")
+            setTurnstileError("Security check failed. Please try again.")
+          },
+          "expired-callback": () => {
+            setTurnstileToken("")
+            setTurnstileError("Security check expired. Please try again.")
+          },
+        })
+
+        turnstileWidgetIdRef.current = widgetId
+        setTurnstileReady(true)
+        setTurnstileError("")
+      } catch (error) {
+        console.error("Turnstile render failed", error)
+        setTurnstileReady(false)
+        setTurnstileError("Security check could not be loaded. Please refresh the page.")
+      }
     }
 
-    const existingScript = document.querySelector('script[src="https://challenges.cloudflare.com/turnstile/v0/api.js"]')
-    if (existingScript) {
-      existingScript.addEventListener("load", renderTurnstile)
-      if ((window as Window & { turnstile?: any }).turnstile) {
-        renderTurnstile()
-      }
-      return () => {
-        existingScript.removeEventListener("load", renderTurnstile)
-      }
+    if (typeof window === "undefined") return
+
+    const turnstile = (window as Window & { turnstile?: any }).turnstile
+    if (turnstile) {
+      renderTurnstile()
+      return
     }
 
+    if (turnstileScriptLoadedRef.current) return
+
+    turnstileScriptLoadedRef.current = true
     const script = document.createElement("script")
     script.src = "https://challenges.cloudflare.com/turnstile/v0/api.js"
     script.async = true
     script.defer = true
     script.onload = renderTurnstile
+    script.onerror = () => {
+      setTurnstileReady(false)
+      setTurnstileError("Security check could not be loaded. Please refresh the page.")
+    }
     document.body.appendChild(script)
 
     return () => {
