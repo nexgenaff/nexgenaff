@@ -277,6 +277,11 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
     setFilterUnique('unique')
   }, [])
 
+  // Auto-select 30-day time range on page load
+  useEffect(() => {
+    setTimeRange('30d')
+  }, [])
+
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
