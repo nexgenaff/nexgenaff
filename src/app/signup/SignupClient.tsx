@@ -1,110 +1,41 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import Image from "next/image"
 import { ArrowLeft, ArrowRight, Lock, User, Mail, Rocket, AlertCircle, CheckCircle2 } from "lucide-react"
 import { motion } from "framer-motion"
 
-const GOOGLE_BUTTON_CLASS = "group flex w-full items-center justify-center gap-3 rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-semibold text-white transition-all duration-300 hover:border-indigo-400/40 hover:bg-white/10 hover:shadow-lg hover:shadow-indigo-500/20"
+const GOOGLE_BUTTON_CLASS = "group flex w-full items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm font-semibold text-white transition-all duration-300 hover:border-indigo-400/40 hover:bg-white/10 hover:shadow-lg hover:shadow-indigo-500/20"
 
 export default function SignupClient() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const turnstileContainerRef = useRef<HTMLDivElement | null>(null)
-  const turnstileWidgetIdRef = useRef<string | null>(null)
-  const turnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || ""
-  const turnstileScriptLoadedRef = useRef(false)
   const [username, setUsername] = useState("")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [loading, setLoading] = useState(false)
   const [googleLoading, setGoogleLoading] = useState(false)
-  const [turnstileToken, setTurnstileToken] = useState("")
-  const [turnstileReady, setTurnstileReady] = useState(false)
-  const [turnstileError, setTurnstileError] = useState("")
+  const [captchaAnswer, setCaptchaAnswer] = useState("")
+  const [captchaPrompt, setCaptchaPrompt] = useState("3 + 4")
+  const [captchaValue, setCaptchaValue] = useState(7)
+  const [captchaError, setCaptchaError] = useState("")
   const [error, setError] = useState("")
   const [success, setSuccess] = useState("")
 
+  const generateCaptcha = () => {
+    const first = Math.floor(Math.random() * 9) + 1
+    const second = Math.floor(Math.random() * 9) + 1
+    setCaptchaPrompt(`${first} + ${second}`)
+    setCaptchaValue(first + second)
+    setCaptchaAnswer("")
+    setCaptchaError("")
+  }
+
   useEffect(() => {
-    if (!turnstileSiteKey) {
-      setTurnstileReady(false)
-      setTurnstileError("Turnstile is not configured yet. Add NEXT_PUBLIC_TURNSTILE_SITE_KEY to enable it.")
-      return
-    }
-
-    const renderTurnstile = () => {
-      const turnstile = (window as Window & { turnstile?: any }).turnstile
-      if (!turnstile || !turnstileContainerRef.current) {
-        setTurnstileError("Security check could not be loaded. Please refresh the page.")
-        return
-      }
-
-      try {
-        if (turnstileWidgetIdRef.current) {
-          turnstile.remove(turnstileWidgetIdRef.current)
-        }
-
-        const widgetId = turnstile.render(turnstileContainerRef.current, {
-          sitekey: turnstileSiteKey,
-          theme: "dark",
-          appearance: "always",
-          callback: (token: string) => {
-            setTurnstileToken(token)
-            setTurnstileError("")
-          },
-          "error-callback": () => {
-            setTurnstileToken("")
-            setTurnstileError("Security check failed. Please try again.")
-          },
-          "expired-callback": () => {
-            setTurnstileToken("")
-            setTurnstileError("Security check expired. Please try again.")
-          },
-        })
-
-        turnstileWidgetIdRef.current = widgetId
-        setTurnstileReady(true)
-        setTurnstileError("")
-      } catch (error) {
-        console.error("Turnstile render failed", error)
-        setTurnstileReady(false)
-        setTurnstileError("Security check could not be loaded. Please refresh the page.")
-      }
-    }
-
-    if (typeof window === "undefined") return
-
-    const turnstile = (window as Window & { turnstile?: any }).turnstile
-    if (turnstile) {
-      renderTurnstile()
-      return
-    }
-
-    if (turnstileScriptLoadedRef.current) return
-
-    turnstileScriptLoadedRef.current = true
-    const script = document.createElement("script")
-    script.src = "https://challenges.cloudflare.com/turnstile/v0/api.js"
-    script.async = true
-    script.defer = true
-    script.onload = renderTurnstile
-    script.onerror = () => {
-      setTurnstileReady(false)
-      setTurnstileError("Security check could not be loaded. Please refresh the page.")
-    }
-    document.body.appendChild(script)
-
-    return () => {
-      if (turnstileWidgetIdRef.current) {
-        const turnstile = (window as Window & { turnstile?: any }).turnstile
-        if (turnstile?.remove) {
-          turnstile.remove(turnstileWidgetIdRef.current)
-        }
-      }
-    }
-  }, [turnstileSiteKey])
+    generateCaptcha()
+  }, [])
 
   useEffect(() => {
     const errorParam = searchParams.get("error")
@@ -134,9 +65,11 @@ export default function SignupClient() {
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault()
     setError("")
+    setCaptchaError("")
 
-    if (turnstileSiteKey && !turnstileToken) {
-      setError("Please complete the security check before signing up.")
+    const answer = Number(captchaAnswer)
+    if (!Number.isInteger(answer) || answer !== captchaValue) {
+      setCaptchaError("Please solve the captcha correctly before continuing.")
       return
     }
 
@@ -147,7 +80,7 @@ export default function SignupClient() {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, email, password, turnstileToken }),
+        body: JSON.stringify({ username, email, password, captchaPrompt, captchaAnswer: answer }),
       })
 
       const data = await response.json()
@@ -191,7 +124,7 @@ export default function SignupClient() {
 
       <div className="relative z-10 min-h-screen flex flex-col items-center justify-center px-4 py-8">
         <motion.div
-          className="w-full max-w-md mb-6"
+          className="w-full max-w-sm mb-6"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
@@ -209,10 +142,10 @@ export default function SignupClient() {
           initial={{ opacity: 0, scale: 0.97, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           transition={{ duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }}
-          className="w-full max-w-md rounded-3xl bg-white/5 backdrop-blur-xl p-8 shadow-2xl shadow-indigo-500/5 hover:shadow-indigo-500/10 transition-shadow duration-500"
+          className="w-full max-w-sm rounded-3xl bg-white/5 backdrop-blur-xl p-6 shadow-2xl shadow-indigo-500/5 hover:shadow-indigo-500/10 transition-shadow duration-500"
         >
-          <div className="space-y-6">
-            <div className="flex flex-col items-center">
+          <div className="space-y-5">
+            <div className="flex flex-col items-center gap-2">
               <div className="flex items-center justify-center">
                 <Image
                   src="/afficixo.png"
@@ -241,7 +174,7 @@ export default function SignupClient() {
               </div>
             )}
 
-            <div className="flex items-center gap-3 text-xs uppercase tracking-[0.3em] text-slate-500">
+            <div className="flex items-center gap-2 text-xs uppercase tracking-[0.3em] text-slate-500">
               <div className="h-px flex-1 bg-white/10" />
               <span>or</span>
               <div className="h-px flex-1 bg-white/10" />
@@ -269,7 +202,7 @@ export default function SignupClient() {
               <span>{googleLoading ? "Redirecting to Google..." : "Join with Google"}</span>
             </button>
 
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-3">
               <div>
                 <label className="block text-sm font-medium text-slate-300 mb-1.5">Username</label>
                 <div className="relative group">
@@ -278,7 +211,7 @@ export default function SignupClient() {
                     type="text"
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
-                    className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 pl-10 text-white placeholder-slate-500 focus:border-indigo-400/50 focus:outline-none focus:ring-2 focus:ring-indigo-400/30 transition-all duration-300 hover:border-white/20"
+                    className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 pl-10 text-white placeholder-slate-500 focus:border-indigo-400/50 focus:outline-none focus:ring-2 focus:ring-indigo-400/30 transition-all duration-300 hover:border-white/20"
                     placeholder="Choose a username"
                     required
                     disabled={loading}
@@ -294,7 +227,7 @@ export default function SignupClient() {
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 pl-10 text-white placeholder-slate-500 focus:border-indigo-400/50 focus:outline-none focus:ring-2 focus:ring-indigo-400/30 transition-all duration-300 hover:border-white/20"
+                    className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 pl-10 text-white placeholder-slate-500 focus:border-indigo-400/50 focus:outline-none focus:ring-2 focus:ring-indigo-400/30 transition-all duration-300 hover:border-white/20"
                     placeholder="you@example.com"
                     required
                     disabled={loading}
@@ -310,7 +243,7 @@ export default function SignupClient() {
                     type="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 pl-10 text-white placeholder-slate-500 focus:border-indigo-400/50 focus:outline-none focus:ring-2 focus:ring-indigo-400/30 transition-all duration-300 hover:border-white/20"
+                    className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 pl-10 text-white placeholder-slate-500 focus:border-indigo-400/50 focus:outline-none focus:ring-2 focus:ring-indigo-400/30 transition-all duration-300 hover:border-white/20"
                     placeholder="Create a strong password"
                     required
                     disabled={loading}
@@ -318,13 +251,28 @@ export default function SignupClient() {
                 </div>
               </div>
 
-              <div className="rounded-xl border border-indigo-400/20 bg-indigo-500/10 p-3 text-sm text-slate-200">
-                <div className="mb-2 font-medium text-indigo-200">Security check</div>
-                {turnstileReady ? (
-                  <div ref={turnstileContainerRef} className="flex justify-center" />
-                ) : (
-                  <div className="text-sm text-slate-300">{turnstileError || "Loading security check..."}</div>
-                )}
+              <div className="rounded-xl bg-indigo-500/10 p-3 text-sm text-slate-200">
+                <div className="mb-3 flex items-center gap-2 rounded-lg bg-black/20 px-3 py-2 text-sm text-white">
+                  <span className="font-semibold text-indigo-200">{captchaPrompt}</span>
+                  <span className="text-slate-400">=</span>
+                  <input
+                    type="number"
+                    value={captchaAnswer}
+                    onChange={(e) => setCaptchaAnswer(e.target.value)}
+                    className="w-20 rounded border border-white/10 bg-white/10 px-2 py-1 text-white placeholder-slate-500 focus:border-indigo-400/50 focus:outline-none"
+                    placeholder="Answer"
+                    disabled={loading}
+                  />
+                  <button
+                    type="button"
+                    onClick={generateCaptcha}
+                    className="ml-1 text-xs text-indigo-300 hover:text-indigo-200"
+                    disabled={loading}
+                  >
+                    Refresh
+                  </button>
+                </div>
+                {captchaError ? <div className="text-sm text-rose-300">{captchaError}</div> : null}
               </div>
 
               <button
@@ -365,7 +313,7 @@ export default function SignupClient() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.6 }}
-          className="w-full max-w-md mt-6 text-center text-xs text-slate-500 border-t border-white/5 pt-4"
+          className="w-full max-w-sm mt-6 text-center text-xs text-slate-500 border-t border-white/5 pt-4"
         >
           <span>© 2026 Afficixo. All rights reserved.</span>
         </motion.div>
