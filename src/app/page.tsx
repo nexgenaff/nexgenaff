@@ -184,8 +184,7 @@ export default function HomePage() {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
+    const ctx = canvas.getContext("2d")!;
 
     let can_w: number, can_h: number;
     const BALL_NUM = 35;
