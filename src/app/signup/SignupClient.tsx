@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import Image from "next/image"
@@ -12,13 +12,84 @@ const GOOGLE_BUTTON_CLASS = "group flex w-full items-center justify-center gap-3
 export default function SignupClient() {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const turnstileContainerRef = useRef<HTMLDivElement | null>(null)
+  const turnstileWidgetIdRef = useRef<string | null>(null)
+  const turnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || ""
   const [username, setUsername] = useState("")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [loading, setLoading] = useState(false)
   const [googleLoading, setGoogleLoading] = useState(false)
+  const [turnstileToken, setTurnstileToken] = useState("")
+  const [turnstileReady, setTurnstileReady] = useState(false)
+  const [turnstileError, setTurnstileError] = useState("")
   const [error, setError] = useState("")
   const [success, setSuccess] = useState("")
+
+  useEffect(() => {
+    if (!turnstileSiteKey) {
+      setTurnstileReady(false)
+      setTurnstileError("Turnstile is not configured yet. Add NEXT_PUBLIC_TURNSTILE_SITE_KEY to enable it.")
+      return
+    }
+
+    const renderTurnstile = () => {
+      const turnstile = (window as Window & { turnstile?: any }).turnstile
+      if (!turnstile || !turnstileContainerRef.current) return
+
+      if (turnstileWidgetIdRef.current) {
+        turnstile.remove(turnstileWidgetIdRef.current)
+      }
+
+      const widgetId = turnstile.render(turnstileContainerRef.current, {
+        sitekey: turnstileSiteKey,
+        theme: "dark",
+        appearance: "interaction-only",
+        callback: (token: string) => {
+          setTurnstileToken(token)
+          setTurnstileError("")
+        },
+        "error-callback": () => {
+          setTurnstileToken("")
+          setTurnstileError("Security check failed. Please try again.")
+        },
+        "expired-callback": () => {
+          setTurnstileToken("")
+          setTurnstileError("Security check expired. Please try again.")
+        },
+      })
+
+      turnstileWidgetIdRef.current = widgetId
+      setTurnstileReady(true)
+    }
+
+    const existingScript = document.querySelector('script[src="https://challenges.cloudflare.com/turnstile/v0/api.js"]')
+    if (existingScript) {
+      existingScript.addEventListener("load", renderTurnstile)
+      if ((window as Window & { turnstile?: any }).turnstile) {
+        renderTurnstile()
+      }
+      return () => {
+        existingScript.removeEventListener("load", renderTurnstile)
+      }
+    }
+
+    const script = document.createElement("script")
+    script.src = "https://challenges.cloudflare.com/turnstile/v0/api.js"
+    script.async = true
+    script.defer = true
+    script.onload = renderTurnstile
+    document.body.appendChild(script)
+
+    return () => {
+      if (turnstileWidgetIdRef.current) {
+        const turnstile = (window as Window & { turnstile?: any }).turnstile
+        if (turnstile?.remove) {
+          turnstile.remove(turnstileWidgetIdRef.current)
+        }
+      }
+    }
+  }, [turnstileSiteKey])
 
   useEffect(() => {
     const errorParam = searchParams.get("error")
@@ -48,6 +119,12 @@ export default function SignupClient() {
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault()
     setError("")
+
+    if (turnstileSiteKey && !turnstileToken) {
+      setError("Please complete the security check before signing up.")
+      return
+    }
+
     setLoading(true)
 
     try {
@@ -55,7 +132,7 @@ export default function SignupClient() {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, email, password }),
+        body: JSON.stringify({ username, email, password, turnstileToken }),
       })
 
       const data = await response.json()
@@ -224,6 +301,15 @@ export default function SignupClient() {
                     disabled={loading}
                   />
                 </div>
+              </div>
+
+              <div className="rounded-xl border border-indigo-400/20 bg-indigo-500/10 p-3 text-sm text-slate-200">
+                <div className="mb-2 font-medium text-indigo-200">Security check</div>
+                {turnstileReady ? (
+                  <div ref={turnstileContainerRef} className="flex justify-center" />
+                ) : (
+                  <div className="text-sm text-slate-300">{turnstileError || "Loading security check..."}</div>
+                )}
               </div>
 
               <button

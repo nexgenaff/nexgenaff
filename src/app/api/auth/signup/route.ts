@@ -12,12 +12,40 @@ export async function POST(request: Request) {
     const username = typeof body?.username === 'string' ? body.username.trim() : ''
     const email = typeof body?.email === 'string' ? body.email.trim() : ''
     const password = typeof body?.password === 'string' ? body.password.trim() : ''
+    const turnstileToken = typeof body?.turnstileToken === 'string' ? body.turnstileToken.trim() : ''
 
     if (!username || !email || !password) {
       return NextResponse.json(
         { error: 'Username, email, and password are required' },
         { status: 400, headers: getCorsHeaders(origin) }
       )
+    }
+
+    if (process.env.TURNSTILE_SECRET_KEY) {
+      if (!turnstileToken) {
+        return NextResponse.json(
+          { error: 'Please complete the security check before signing up' },
+          { status: 400, headers: getCorsHeaders(origin) }
+        )
+      }
+
+      const verifyResponse = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({
+          secret: process.env.TURNSTILE_SECRET_KEY,
+          response: turnstileToken,
+          remoteip: origin || '',
+        }),
+      })
+
+      const verification = await verifyResponse.json() as { success?: boolean; 'error-codes'?: string[] }
+      if (!verification.success) {
+        return NextResponse.json(
+          { error: 'Security check verification failed. Please try again.' },
+          { status: 400, headers: getCorsHeaders(origin) }
+        )
+      }
     }
 
     const existingUser = await prisma.user.findFirst({
