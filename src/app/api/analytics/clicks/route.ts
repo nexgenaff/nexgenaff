@@ -3,6 +3,7 @@ import { prisma } from '@/lib/db/prisma';
 import type { Prisma } from '@prisma/client';
 import { getUserFromToken, getTokenFromCookie, isAdmin, isOwner, getOwnerUserId } from '@/lib/auth';
 import { getCorsHeaders } from '@/config/cors';
+import { getLinkAccountVisibilityWhereClause } from '@/lib/utils/link-account-access';
 
 interface FilterParams {
   country?: string;
@@ -98,11 +99,7 @@ export async function GET(request: Request) {
 
     // Get all link IDs for the user
     const ownerUserId = await getOwnerUserId();
-    const linkWhere: Prisma.LinkAccountWhereInput = isOwner(user)
-      ? {}
-      : isAdmin(user)
-        ? { userId: user.id }
-        : { userId: user.id };
+    const linkWhere = getLinkAccountVisibilityWhereClause(user, ownerUserId) as Prisma.LinkAccountWhereInput;
 
     const links = await prisma.linkAccount.findMany({
       where: linkWhere,

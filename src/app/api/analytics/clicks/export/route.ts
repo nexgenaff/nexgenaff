@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
 import { getUserFromToken, getTokenFromCookie, getOwnerUserId, isAdmin, isOwner } from '@/lib/auth';
 import { getCorsHeaders } from '@/config/cors';
+import { getLinkAccountVisibilityWhereClause } from '@/lib/utils/link-account-access';
 
 const MAX_EXPORT_ROWS = 100000; // Prevent memory exhaustion
 
@@ -63,11 +64,7 @@ export async function GET(request: Request) {
 
     // Get all link IDs for the user
     const ownerUserId = await getOwnerUserId();
-    const linkWhere = isOwner(user)
-      ? {}
-      : isAdmin(user)
-        ? { userId: user.id }
-        : { userId: user.id };
+    const linkWhere = getLinkAccountVisibilityWhereClause(user, ownerUserId);
 
     const links = await prisma.linkAccount.findMany({
       where: linkWhere,

@@ -4,6 +4,7 @@ import type { Prisma } from '@prisma/client';
 import { getUserFromToken, getTokenFromCookie, isAdmin, isOwner, isManager, getOwnerUserId } from '@/lib/auth';
 import { getCorsHeaders } from '@/config/cors';
 import { buildAccountGeoReport } from '@/lib/utils/report-data';
+import { getLinkAccountVisibilityWhereClause } from '@/lib/utils/link-account-access';
 
 type Period = 'week' | 'month' | 'year' | 'weekly' | 'monthly';
 
@@ -307,16 +308,7 @@ export async function GET(request: Request) {
     const dateRange = getDateRange(period, filters);
 
     const ownerUserId = await getOwnerUserId();
-    let linkWhere: Prisma.LinkAccountWhereInput;
-    if (isOwner(user)) {
-      linkWhere = {};
-    } else if (isAdmin(user)) {
-      linkWhere = { userId: user.id };
-    } else if (isManager(user)) {
-      linkWhere = { userId: user.id };
-    } else {
-      linkWhere = { userId: ownerUserId || user.id };
-    }
+    const linkWhere = getLinkAccountVisibilityWhereClause(user, ownerUserId) as Prisma.LinkAccountWhereInput;
 
     const links = await prisma.linkAccount.findMany({
       where: linkWhere,
