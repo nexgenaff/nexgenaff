@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
-import { getUserFromToken, getTokenFromCookie, getOwnerUserId, isAdmin, isOwner, getOfferSelectionUserIds } from '@/lib/auth';
+import { getUserFromToken, getTokenFromCookie, getOwnerUserId, isAdmin, isOwner, getOfferSelectionUserIds, getEffectiveOwnerBackedUserId } from '@/lib/auth';
 import bcrypt from 'bcryptjs'
-import { normalizeDomain, isSubdomain } from '@/lib/services/dns/verify';
+import { normalizeDomain } from '@/lib/services/dns/verify';
 import {
   addDomainToProject,
   buildVerificationInstructionsFromVercelRecords,
