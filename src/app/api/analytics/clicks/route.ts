@@ -272,10 +272,17 @@ export async function DELETE(request: Request) {
       },
     });
 
-    if (!click || click.linkAccount.userId !== user.id) {
+    if (!click) {
       return NextResponse.json(
         { error: 'Click not found' },
         { status: 404, headers: getCorsHeaders(origin) }
+      );
+    }
+
+    if (!isOwner(user) && click.linkAccount.userId !== user.id) {
+      return NextResponse.json(
+        { error: 'Forbidden' },
+        { status: 403, headers: getCorsHeaders(origin) }
       );
     }
 

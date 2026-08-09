@@ -50,13 +50,6 @@ export async function GET(
       )
     }
 
-    if (isOwner(user) && link.user.role === 'ADMIN' && link.userId !== (await getOwnerUserId())) {
-      return NextResponse.json(
-        { error: 'Link not found' },
-        { status: 404, headers: getCorsHeaders(origin) }
-      )
-    }
-
     return NextResponse.json(link, { headers: getCorsHeaders(origin) })
   } catch (error) {
     console.error('Error fetching link:', error)
@@ -110,10 +103,17 @@ export async function PUT(
       where: { id },
     })
 
-    if (!existingLink || (!isOwner(user) && existingLink.userId !== user.id)) {
+    if (!existingLink) {
       return NextResponse.json(
         { error: 'Link not found' },
         { status: 404, headers: getCorsHeaders(origin) }
+      )
+    }
+
+    if (!isOwner(user) && existingLink.userId !== user.id) {
+      return NextResponse.json(
+        { error: 'Forbidden' },
+        { status: 403, headers: getCorsHeaders(origin) }
       )
     }
 
