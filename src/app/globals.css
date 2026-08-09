@@ -6,6 +6,8 @@
    THEME VARIABLES (light / dark)
    ────────────────────────────────────────────── */
 :root {
+  /* Full page background (perfect match color) */
+  --page-bg: #0b1220;
   /* ─── Primary Palette ─── */
   --primary-50: #F5F3FF;
   --primary-100: #EDE9FE;
@@ -95,7 +97,7 @@ html {
 
 body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  background: var(--surface-bg);
+  background-color: var(--page-bg);
   color: var(--text-primary);
   min-height: 100vh;
   padding: 0;
@@ -444,7 +446,7 @@ body {
    ────────────────────────────────────────────── */
 @media (prefers-color-scheme: dark) {
   body {
-    background-color: #02030a;
+    background-color: var(--page-bg) !important;
   }
 }
 
@@ -453,7 +455,7 @@ body {
    ────────────────────────────────────────────── */
 @media (prefers-color-scheme: light) {
   body {
-    background-color: #f0f2f5;
+    background-color: var(--page-bg) !important;
   }
   .btn-premium {
     background: rgba(255, 255, 255, 0.9);
