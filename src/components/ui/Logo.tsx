@@ -8,6 +8,7 @@ interface LogoProps {
   className?: string
   size?: 'sm' | 'md' | 'lg' | 'xl'
   onClick?: () => void
+  showAnimation?: boolean
 }
 
 export function Logo({
@@ -15,6 +16,7 @@ export function Logo({
   className,
   size = 'md',
   onClick,
+  showAnimation = false,
 }: LogoProps) {
   const sizeClasses = {
     sm: {
