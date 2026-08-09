@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db/prisma'
-import { getUserFromToken, getTokenFromCookie, isAdmin, isOwner, getOwnerUserId, getEffectiveOfferUserId } from '@/lib/auth'
+import { getUserFromToken, getTokenFromCookie, isAdmin, isOwner, getOwnerUserId, getEffectiveOfferUserId, getEffectiveOwnerBackedUserId } from '@/lib/auth'
 import bcrypt from 'bcryptjs'
 import { getCorsHeaders } from '@/config/cors'
 
@@ -140,7 +140,7 @@ export async function POST(request: Request) {
         finalUserId = created.id
       }
     } else {
-      finalUserId = await getEffectiveOfferUserId(user.id)
+      finalUserId = getEffectiveOwnerBackedUserId(user, ownerUserId)
     }
 
     const offerData: Record<string, unknown> = {

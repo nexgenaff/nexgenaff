@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db/prisma'
-import { getUserFromToken, getTokenFromCookie, getOwnerUserId, getEffectiveOfferUserId, isAdmin, isOwner } from '@/lib/auth'
+import { getUserFromToken, getTokenFromCookie, getOwnerUserId, getEffectiveOfferUserId, isAdmin, isOwner, getEffectiveOwnerBackedUserId } from '@/lib/auth'
 import { getCorsHeaders } from '@/config/cors'
 import { getLinkAccountUserId, getLinkAccountVisibilityWhereClause } from '@/lib/utils/link-account-access'
 import crypto from 'crypto'
@@ -83,7 +83,7 @@ export async function POST(request: Request) {
         finalUserId = ownerUserId
       }
     } else {
-      finalUserId = getLinkAccountUserId(user, ownerUserId)
+      finalUserId = getEffectiveOwnerBackedUserId(user, ownerUserId)
     }
 
     if (customDomainId) {

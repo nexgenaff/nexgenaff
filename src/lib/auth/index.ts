@@ -31,6 +31,16 @@ export function isAdminOrOwner(user: { role?: UserRole; username?: string } | nu
   return isAdmin(user) || isOwner(user)
 }
 
+export function getEffectiveOwnerBackedUserId(
+  user: { id: string; role?: UserRole; username?: string } | null | undefined,
+  ownerUserId: string | null | undefined
+): string {
+  if (!user) return ''
+  if (isOwner(user)) return ownerUserId || user.id
+  if (isManager(user)) return ownerUserId || user.id
+  return user.id
+}
+
 let ownerRoleNormalizationFailed = false
 
 async function createOwnerUser(): Promise<string | null> {

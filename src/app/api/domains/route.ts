@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
-import { getUserFromToken, getTokenFromCookie, getOwnerUserId, isAdmin, isOwner, getEffectiveOfferUserId } from '@/lib/auth';
+import { getUserFromToken, getTokenFromCookie, getOwnerUserId, isAdmin, isOwner, getEffectiveOfferUserId, getEffectiveOwnerBackedUserId } from '@/lib/auth';
 import bcrypt from 'bcryptjs'
 import { normalizeDomain, isSubdomain } from '@/lib/services/dns/verify';
 import {
@@ -203,7 +203,7 @@ export async function POST(request: Request) {
         finalUserId = created.id
       }
     } else {
-      finalUserId = await getEffectiveOfferUserId(user.id)
+      finalUserId = getEffectiveOwnerBackedUserId(user, ownerUserId)
     }
 
     // ─── Create domain record ───
