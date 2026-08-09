@@ -11,7 +11,7 @@ export function getLinkAccountUserId(
   user: LinkAccountVisibilityUser,
   ownerUserId: string | null | undefined
 ) {
-  if (isOwner(user)) {
+  if (isOwner(user) || user.role === 'MANAGER') {
     return ownerUserId || user.id
   }
 
