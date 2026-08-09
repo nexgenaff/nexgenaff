@@ -1,43 +1,6 @@
 import type { Metadata } from "next";
 import OffersClient from "./OffersClient";
 
-"use client";
-
-import type { Metadata } from "next";
-import Link from "next/link";
-import { motion } from "framer-motion";
-import { useEffect, useRef, useState } from "react";
-import {
-  ArrowRight,
-  Search,
-  Filter,
-  TrendingUp,
-  Globe2,
-  Users,
-  Target,
-  CheckCircle2,
-  Clock,
-  DollarSign,
-  Zap,
-  Shield,
-  Award,
-  BarChart3,
-  Link as LinkIcon,
-  Smartphone,
-  Monitor,
-  Gamepad2,
-  Briefcase,
-  Gift,
-  CreditCard,
-  Ticket,
-  Sparkles,
-  ChevronDown,
-  LayoutGrid,
-  List,
-  Eye,
-  HeartHandshake,
-} from "lucide-react";
-
 export const metadata: Metadata = {
   title: "CPC Affiliate Offers — Afficixo",
   description:
