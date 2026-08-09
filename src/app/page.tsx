@@ -31,15 +31,23 @@ import {
   Eye,
 } from "lucide-react";
 
-const structuredData = {
-  "@context": "https://schema.org",
-  "@type": "Organization",
-  name: "Afficixo",
-  url: "https://weebly.pro",
-  logo: "https://weebly.pro/afficixo.png?v=2",
-  description:
-    "Afficixo helps affiliates and advertisers scale revenue with high-converting offers, advanced routing, fraud protection, and transparent analytics.",
-};
+const structuredData = [
+  {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name: "Afficixo",
+    url: "https://www.weebly.pro",
+    logo: "https://www.weebly.pro/afficixo.png",
+    description:
+      "Afficixo is a modern pay-per-click affiliate marketplace built for publishers who want to monetize traffic through CPC offers.",
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: "Afficixo",
+    url: "https://www.weebly.pro",
+  },
+];
 
 // ========== ANIMATIONS ==========
 
@@ -154,9 +162,9 @@ const Header = () => (
         </div>
       </Link>
       <div className="hidden md:flex items-center gap-6 lg:gap-8 text-sm text-slate-300">
-        <a href="#features" className="hover:text-white transition-colors">Features</a>
-        <a href="#verticals" className="hover:text-white transition-colors">Verticals</a>
-        <a href="#services" className="hover:text-white transition-colors">Services</a>
+        <Link href="/about" className="hover:text-white transition-colors">About</Link>
+        <Link href="/offers" className="hover:text-white transition-colors">Offers</Link>
+        <Link href="/publishers" className="hover:text-white transition-colors">Publishers</Link>
         <a href="#faq" className="hover:text-white transition-colors">FAQ</a>
       </div>
       <div className="flex items-center gap-3 sm:gap-4">
@@ -459,17 +467,19 @@ export default function HomePage() {
               </motion.div>
 
               <h1 className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-black leading-[1.1] mb-4 md:mb-6 tracking-tight">
-                Where Top Affiliates
+                Pay Per Click
                 <br />
                 <GradientText className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl">
-                  Meet Premium Offers
+                  Affiliate Marketplace
                 </GradientText>
               </h1>
 
+              <p className="text-base md:text-xl text-slate-400 mb-4 max-w-2xl leading-relaxed font-light">
+                Promote Offers. Generate Valid Clicks. Get Paid.
+              </p>
+
               <p className="text-base md:text-xl text-slate-400 mb-8 md:mb-10 max-w-2xl leading-relaxed font-light">
-                Join Afficixo and unlock a world of high‑converting offers,
-                seamless traffic monetization, and some of the best payouts in the
-                industry – all on one dynamic platform built for growth.
+                Afficixo is a modern pay-per-click affiliate marketplace built for publishers who want to monetize their traffic through CPC offers. Discover campaigns, promote offers, track your clicks, analyze performance, and earn from valid traffic.
               </p>
 
               <motion.div
@@ -585,8 +595,8 @@ export default function HomePage() {
         {/* ===== WHY WORK WITH US ===== */}
         <section id="features" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-24">
           <SectionHeading
-            title="Why Partner With Us?"
-            subtitle="At Afficixo, we connect publishers and advertisers for mutual growth. Our smart solutions are designed to help you scale revenue effortlessly – no fluff, just results."
+            title="Why Choose Afficixo?"
+            subtitle="Afficixo is built for publishers and traffic partners who want a simple, transparent way to monetize clicks and scale their CPC affiliate earnings."
           />
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
@@ -602,16 +612,16 @@ export default function HomePage() {
                 <div className="p-2 md:p-3 rounded-xl bg-gradient-to-br from-indigo-500/20 to-purple-500/20">
                   <Users className="w-5 h-5 md:w-6 md:h-6 text-indigo-300" aria-hidden="true" />
                 </div>
-                <h3 className="text-xl md:text-2xl font-bold">For Publishers</h3>
+                <h3 className="text-xl md:text-2xl font-bold">Find CPC Offers</h3>
               </div>
               <p className="text-slate-400 text-sm md:text-base mb-4 md:mb-6">
-                Supercharge your earnings with exclusive, high‑converting offers.
+                Browse available affiliate campaigns and choose offers that match your audience and traffic sources.
               </p>
               <ul className="space-y-3">
                 {[
-                  { icon: TrendingUp, text: "Competitive commissions that actually reward your effort." },
-                  { icon: Headphones, text: "A real person in your corner to help you optimize." },
-                  { icon: Eye, text: "See exactly what's working, down to the click." },
+                  { icon: TrendingUp, text: "Relevant CPC campaigns tailored to your traffic." },
+                  { icon: Headphones, text: "Campaigns matched to publisher audiences." },
+                  { icon: Eye, text: "High-quality offer selection with transparent details." },
                 ].map((item, idx) => (
                   <li key={idx} className="flex items-start gap-3 text-sm md:text-base text-slate-300">
                     <item.icon className="w-4 h-4 md:w-5 md:h-5 text-indigo-400 flex-shrink-0 mt-0.5" aria-hidden="true" />
@@ -633,16 +643,16 @@ export default function HomePage() {
                 <div className="p-2 md:p-3 rounded-xl bg-gradient-to-br from-purple-500/20 to-pink-500/20">
                   <Target className="w-5 h-5 md:w-6 md:h-6 text-purple-300" aria-hidden="true" />
                 </div>
-                <h3 className="text-xl md:text-2xl font-bold">For Advertisers</h3>
+                <h3 className="text-xl md:text-2xl font-bold">Promote Your Offers</h3>
               </div>
               <p className="text-slate-400 text-sm md:text-base mb-4 md:mb-6">
-                Expand your reach through our curated network of top publishers.
+                Create affiliate links and promote selected campaigns through your approved traffic sources.
               </p>
               <ul className="space-y-3">
                 {[
-                  { icon: Globe2, text: "Quality leads from sources you can trust." },
-                  { icon: LayoutDashboard, text: "Tailor your strategy to hit your KPIs." },
-                  { icon: LifeBuoy, text: "Expert support to maximize ROI." },
+                  { icon: Globe2, text: "Build shareable links for every campaign." },
+                  { icon: LayoutDashboard, text: "Use approved traffic sources with confidence." },
+                  { icon: LifeBuoy, text: "Access assets and optimization support as you promote." },
                 ].map((item, idx) => (
                   <li key={idx} className="flex items-start gap-3 text-sm md:text-base text-slate-300">
                     <item.icon className="w-4 h-4 md:w-5 md:h-5 text-purple-400 flex-shrink-0 mt-0.5" aria-hidden="true" />
@@ -651,6 +661,51 @@ export default function HomePage() {
                 ))}
               </ul>
             </motion.div>
+          </div>
+        </section>
+
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-24">
+          <SectionHeading
+            title="Built for Publishers"
+            subtitle="Afficixo provides publishers with the tools they need to manage campaigns, monitor performance, and grow their traffic monetization."
+          />
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
+            {[
+              {
+                title: 'Track Your Clicks',
+                description:
+                  'Monitor clicks and campaign performance with detailed tracking and analytics.',
+                icon: LineChart,
+              },
+              {
+                title: 'Earn From Valid Traffic',
+                description:
+                  'Generate quality traffic and earn according to the applicable CPC rate and campaign requirements.',
+                icon: Sparkles,
+              },
+              {
+                title: 'Built for Publishers',
+                description:
+                  'Manage offers, links, clicks, and earnings from one place and grow your traffic monetization.',
+                icon: LayoutDashboard,
+              },
+            ].map((item, idx) => (
+              <motion.div
+                key={idx}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: idx * 0.05 }}
+                viewport={{ once: true }}
+                className="rounded-3xl border border-white/10 bg-white/5 p-6 md:p-8"
+              >
+                <div className="inline-flex items-center justify-center mb-4 h-12 w-12 rounded-2xl bg-indigo-500/10 text-indigo-300">
+                  <item.icon className="w-6 h-6" aria-hidden="true" />
+                </div>
+                <h3 className="text-xl font-semibold text-white mb-3">{item.title}</h3>
+                <p className="text-sm text-slate-400 leading-relaxed">{item.description}</p>
+              </motion.div>
+            ))}
           </div>
         </section>
 
@@ -863,28 +918,44 @@ export default function HomePage() {
           <div className="space-y-3 md:space-y-4">
             {[
               {
-                q: "How do I sign up with Afficixo?",
-                a: "It's quick and straightforward. Just fill out the affiliate registration form on our site, tell us a bit about your traffic sources, and our team will review your application. Once approved, you'll get immediate access to our entire catalog of high‑converting offers.",
+                q: 'What is Afficixo?',
+                a: 'Afficixo is a pay-per-click affiliate marketplace for publishers and traffic partners who want to earn from valid clicks using CPC offers.',
               },
               {
-                q: "What payment methods do you offer?",
-                a: "We support multiple payout options to suit your preference: Wise, Wire Transfer, and Payoneer. Payments are processed on a Net‑30, Net‑15, or even weekly basis – it all depends on your performance and traffic quality.",
+                q: 'How does the Afficixo CPC marketplace work?',
+                a: 'Publishers discover CPC offers, generate tracking links, promote campaigns, and earn when valid traffic converts according to offer rules.',
               },
               {
-                q: "What verticals do you support?",
-                a: "We've got a wide range of verticals: Jobs, Finance, Health & Beauty, E‑Commerce, Sweepstakes, Gaming, Rewards, Insurance, and more. We're constantly refreshing our offers to keep conversion rates high.",
+                q: 'How do publishers earn with Afficixo?',
+                a: 'Publishers earn money from valid clicks delivered to CPC affiliate offers. The more quality traffic you send, the more you can earn.',
               },
               {
-                q: "What tracking and reporting tools do you provide?",
-                a: "Our real‑time dashboard gives you full visibility into conversions, earnings, and traffic performance. You can dive into detailed reports to spot trends and optimize campaigns on the fly.",
+                q: 'What are CPC affiliate offers?',
+                a: 'CPC affiliate offers pay publishers for each valid click or visit that meets the campaign’s traffic and quality requirements.',
               },
               {
-                q: "Do you offer affiliate support?",
-                a: "Absolutely. You'll have a dedicated affiliate manager to help with campaign setup, optimization, and any questions. We're available via email, Skype, or phone – we want you to succeed.",
+                q: 'How are clicks tracked?',
+                a: 'Clicks are tracked with secure affiliate links and reporting tools that record visitor activity, traffic sources, and campaign performance in real time.',
               },
               {
-                q: "What promotional materials do you provide?",
-                a: "We supply banners, landing pages, and email templates to get you started. Plus, we share actionable insights on which traffic sources and strategies work best – whether you're into email, social, or SEO.",
+                q: 'What is considered a valid click?',
+                a: 'A valid click is traffic that meets the offer’s rules, including approved sources, geo requirements, and anti-fraud checks.',
+              },
+              {
+                q: 'How do I create an affiliate link?',
+                a: 'Once you are approved, create tracking links from the dashboard, then promote those links across your website, social media, and other approved channels.',
+              },
+              {
+                q: 'How can I promote Afficixo offers?',
+                a: 'Promote offers using your approved traffic sources such as websites, social media, email, and display placements while following campaign guidelines.',
+              },
+              {
+                q: 'How can I check my click statistics?',
+                a: 'Your dashboard shows detailed analytics for clicks, earnings, campaign performance, and traffic quality so you can optimize in real time.',
+              },
+              {
+                q: 'When are publisher payments processed?',
+                a: 'Payments are processed based on your account terms and performance schedule, with updates visible in your earnings dashboard.',
               },
             ].map((item, idx) => (
               <motion.div
@@ -919,6 +990,10 @@ export default function HomePage() {
               </div>
 
               <div className="flex flex-wrap items-center justify-center gap-4 md:gap-6 text-xs md:text-sm text-slate-400">
+                <Link href="/about" className="hover:text-white transition-colors">About</Link>
+                <Link href="/offers" className="hover:text-white transition-colors">Offers</Link>
+                <Link href="/publishers" className="hover:text-white transition-colors">Publishers</Link>
+                <Link href="/faq" className="hover:text-white transition-colors">FAQ</Link>
                 <a href="/privacy-policy" className="hover:text-white transition-colors">Privacy Policy</a>
                 <a href="/terms-of-service" className="hover:text-white transition-colors">Terms of Service</a>
                 <a href="/contact" className="hover:text-white transition-colors">Contact</a>

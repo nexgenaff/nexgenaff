@@ -10,16 +10,31 @@ const inter = Inter({
 })
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://weebly.pro'),
-  title: 'Afficixo | Affiliate Offers & Routing Infrastructure',
+  metadataBase: new URL('https://www.weebly.pro'),
+  title: 'Afficixo — Pay Per Click Affiliate Marketplace',
   description:
-    'Afficixo helps affiliates and advertisers scale revenue with high-converting offers, advanced routing, fraud protection, and transparent analytics.',
-  keywords:
-    'affiliate marketing, affiliate offers, campaign routing, click fraud detection, traffic monetization, CPA network, performance marketing, affiliate analytics',
+    'Afficixo is a pay-per-click affiliate marketplace where publishers find CPC offers, promote campaigns, generate valid clicks, track traffic, and earn from quality visitors.',
+  keywords: [
+    'Afficixo',
+    'pay per click affiliate marketplace',
+    'CPC affiliate marketplace',
+    'pay per click affiliate network',
+    'CPC affiliate network',
+    'affiliate marketplace',
+    'CPC offers',
+    'pay per click offers',
+    'earn per click',
+    'affiliate CPC network',
+    'affiliate marketing',
+    'publisher network',
+    'traffic monetization',
+    'click tracking platform',
+    'affiliate links',
+  ],
   authors: [{ name: 'Afficixo' }],
   creator: 'Afficixo',
   alternates: {
-    canonical: 'https://weebly.pro',
+    canonical: 'https://www.weebly.pro',
   },
   robots: {
     index: true,
@@ -36,33 +51,35 @@ export const metadata: Metadata = {
     { media: '(prefers-color-scheme: light)', color: '#ffffff' },
   ],
   icons: {
-    icon: '/afficixo.png?v=2',
-    apple: '/afficixo.png?v=2',
+    icon: '/afficixo.png',
+    apple: '/afficixo.png',
   },
   openGraph: {
-    title: 'Afficixo | Affiliate Offers & Routing Infrastructure',
+    title: 'Afficixo — Pay Per Click Affiliate Marketplace',
     description:
-      'Afficixo helps affiliates and advertisers scale revenue with high-converting offers, advanced routing, fraud protection, and transparent analytics.',
+      'Join Afficixo and discover CPC affiliate offers, promote campaigns, track your traffic, and earn from valid clicks.',
     type: 'website',
-    url: 'https://weebly.pro',
+    url: 'https://www.weebly.pro',
+    siteName: 'Afficixo',
     images: [
       {
-        url: 'https://weebly.pro/afficixo.png?v=2',
-        secureUrl: 'https://weebly.pro/afficixo.png?v=2',
-        width: 256,
-        height: 256,
-        alt: 'Afficixo logo',
+        url: 'https://www.weebly.pro/og-image.png',
+        secureUrl: 'https://www.weebly.pro/og-image.png',
+        width: 1200,
+        height: 630,
+        alt: 'Afficixo Pay Per Click Affiliate Marketplace',
         type: 'image/png',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Afficixo | Affiliate Offers & Routing Infrastructure',
+    title: 'Afficixo — CPC Affiliate Marketplace',
     description:
-      'Afficixo helps affiliates and advertisers scale revenue with high-converting offers, advanced routing, fraud protection, and transparent analytics.',
-    images: ['https://weebly.pro/afficixo.png?v=2'],
+      'Discover CPC offers, promote campaigns, track valid clicks, and monetize your traffic with Afficixo.',
+    images: ['https://www.weebly.pro/og-image.png'],
     site: '@afficixo',
+    creator: 'Afficixo',
   },
 }
 

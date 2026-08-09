@@ -11,7 +11,6 @@ import { TrafficBreakdown } from "@/components/dashboard/TrafficBreakdown";
 import TelegramCommunityPopup from "@/components/ui/TelegramCommunityPopup";
 import { consumeManagerTelegramPopupPending } from "@/lib/utils/telegram-popup";
 import {
-  RefreshCw,
   Plus,
   Clock,
   Calendar,

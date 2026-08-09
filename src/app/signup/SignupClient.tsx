@@ -397,8 +397,8 @@ export default function SignupClient() {
                   priority
                 />
               </div>
-              <h1 className="mt-4 text-xl font-semibold text-white">Create your account</h1>
-              <p className="mt-1 text-sm text-slate-400">Sign up to start creating links and tracking your own campaigns.</p>
+              <h1 className="mt-4 text-xl font-semibold text-white">Join Afficixo</h1>
+              <p className="mt-1 text-sm text-slate-400">Create your Afficixo publisher account and access CPC affiliate offers, tracking tools, campaign management, and traffic monetization features.</p>
             </div>
 
             {error && (

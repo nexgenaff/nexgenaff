@@ -45,7 +45,6 @@ export function buildAccountGeoReport(
     .sort((left, right) => right[1] - left[1] || left[0].localeCompare(right[0]))
     .map(([country]) => country)
 
-  const accountMap = new Map(accounts.map((account) => [account.id, account.accountName || 'Unnamed account']))
   const accountSeries = new Map<string, Map<string, number>>()
 
   clicks.forEach((click) => {

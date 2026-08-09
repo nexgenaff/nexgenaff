@@ -316,7 +316,6 @@ export default function CreateLinkPage() {
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
   const [createdAccount, setCreatedAccount] = useState<CreatedAccount | null>(null);
-  const [copiedKey, setCopiedKey] = useState<string | null>(null);
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
@@ -374,16 +373,6 @@ export default function CreateLinkPage() {
   const previewUrl = selectedDomain
     ? `https://${selectedDomain.domain}/${slug || "your-slug"}`
     : `${getBaseUrl()}/${slug || "your-slug"}`;
-
-  const copyToClipboard = async (text: string, key: string) => {
-    try {
-      await navigator.clipboard.writeText(text);
-      setCopiedKey(key);
-      window.setTimeout(() => setCopiedKey(null), 1600);
-    } catch (error) {
-      console.error("Failed to copy text:", error);
-    }
-  };
 
   const handleBack = () => {
     if (typeof window !== "undefined" && window.history.length > 1) {
@@ -714,7 +703,7 @@ export default function CreateLinkPage() {
                   <CopyButton
                     text={templateText}
                     label="copy all"
-                    onCopy={() => setCopiedKey("all")}
+                    onCopy={() => {}}
                   />
                 </div>
 

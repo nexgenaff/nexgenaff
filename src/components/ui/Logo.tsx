@@ -6,7 +6,6 @@ import { cn } from '@/lib/utils/helpers'
 interface LogoProps {
   variant?: 'full' | 'icon' | 'compact'
   className?: string
-  showAnimation?: boolean
   size?: 'sm' | 'md' | 'lg' | 'xl'
   onClick?: () => void
 }
@@ -14,7 +13,6 @@ interface LogoProps {
 export function Logo({
   variant = 'full',
   className,
-  showAnimation = true,
   size = 'md',
   onClick,
 }: LogoProps) {

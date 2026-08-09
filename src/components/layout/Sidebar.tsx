@@ -18,7 +18,6 @@ import {
   ChevronRight,
   BarChart3,
 } from 'lucide-react'
-import { Logo } from '@/components/ui/Logo'
 
 export default function Sidebar() {
   const pathname = usePathname()

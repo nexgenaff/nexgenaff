@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import type { User, UserRole } from '@/types'
+import type { User } from '@/types'
 
 interface UseAuthReturn {
   user: User | null

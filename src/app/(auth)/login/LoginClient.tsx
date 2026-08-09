@@ -380,7 +380,7 @@ export default function LoginClient() {
                   priority
                 />
               </motion.div>
-              <h1 className="mt-4 text-xl font-semibold text-white">Sign in to your account</h1>
+              <h1 className="mt-4 text-xl font-semibold text-white">Publisher Login</h1>
               <p className="mt-1 text-sm text-slate-400">Use your credentials or continue with Google.</p>
             </div>
 

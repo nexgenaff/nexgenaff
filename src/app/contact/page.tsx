@@ -1,6 +1,45 @@
-export const metadata = {
-  title: "Contact | Afficixo",
-  description: "Get in touch with Afficixo for support, partnership inquiries, and affiliate assistance.",
+import type { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  title: 'Contact Afficixo — Publisher Support',
+  description:
+    'Contact the Afficixo support team for help with your publisher account, affiliate offers, tracking, payments, and platform-related questions.',
+  keywords: [
+    'Afficixo contact',
+    'publisher support',
+    'affiliate support',
+    'CPC affiliate marketplace support',
+    'traffic monetization help',
+  ],
+  alternates: {
+    canonical: 'https://www.weebly.pro/contact',
+  },
+  openGraph: {
+    title: 'Contact Afficixo — Publisher Support',
+    description:
+      'Contact the Afficixo support team for help with your publisher account, affiliate offers, tracking, payments, and platform-related questions.',
+    type: 'website',
+    url: 'https://www.weebly.pro/contact',
+    siteName: 'Afficixo',
+    images: [
+      {
+        url: 'https://www.weebly.pro/og-image.png',
+        secureUrl: 'https://www.weebly.pro/og-image.png',
+        width: 1200,
+        height: 630,
+        alt: 'Afficixo Pay Per Click Affiliate Marketplace',
+        type: 'image/png',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Contact Afficixo — Publisher Support',
+    description:
+      'Contact the Afficixo support team for help with your publisher account, affiliate offers, tracking, payments, and platform-related questions.',
+    images: ['https://www.weebly.pro/og-image.png'],
+    creator: 'Afficixo',
+  },
 }
 
 export default function ContactPage() {

@@ -692,7 +692,7 @@ export default function DomainsPage() {
           animate="visible"
           className="space-y-4"
         >
-          {domains.map((domain, index) => (
+          {domains.map((domain) => (
             <motion.div
               key={domain.id}
               variants={itemVariants}
