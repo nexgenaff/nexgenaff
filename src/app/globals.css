@@ -6,8 +6,8 @@
    THEME VARIABLES (light / dark)
    ────────────────────────────────────────────── */
 :root {
-  /* Full page background (perfect match color) */
-  --page-bg: #0b1220;
+  /* Full page background (full black) */
+  --page-bg: #000000;
   /* ─── Primary Palette ─── */
   --primary-50: #F5F3FF;
   --primary-100: #EDE9FE;
