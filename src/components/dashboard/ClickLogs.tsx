@@ -33,6 +33,7 @@ interface Click {
   ipAddress: string | null
   country: string | null
   city: string | null
+  region?: string | null
   isp: string | null
   referrer: string | null
   browser: string | null
