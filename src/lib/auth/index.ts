@@ -41,8 +41,6 @@ export function getEffectiveOwnerBackedUserId(
   return user.id
 }
 
-let ownerRoleNormalizationFailed = false
-
 async function createOwnerUser(): Promise<string | null> {
   if (!OWNER_USERNAME || !OWNER_PASSWORD) {
     return null
@@ -122,6 +120,32 @@ export async function getEffectiveOfferUserId(userId: string): Promise<string> {
   }
 
   return userId
+}
+
+export async function getOfferSelectionUserIds(userId: string): Promise<string[]> {
+  const ownerUserId = await getOwnerUserId()
+  if (!ownerUserId) {
+    return [userId]
+  }
+
+  if (userId === ownerUserId) {
+    return [ownerUserId]
+  }
+
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { role: true },
+  })
+
+  if (user?.role === 'MANAGER') {
+    return [userId, ownerUserId]
+  }
+
+  if (userId.startsWith('local-')) {
+    return [userId, ownerUserId]
+  }
+
+  return [userId]
 }
 
 export async function verifyCredentials(username: string, password: string) {

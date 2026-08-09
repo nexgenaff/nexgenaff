@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { getEffectiveOwnerBackedUserId } from './index'
+import { getEffectiveOwnerBackedUserId, getOfferSelectionUserIds } from './index'
 
 test('managers resolve to the owner-backed user id for offers and domains', () => {
   const resolved = getEffectiveOwnerBackedUserId(
@@ -29,4 +29,19 @@ test('admins and regular users stay on their own user id', () => {
     getEffectiveOwnerBackedUserId({ id: 'user-1', role: 'ADMIN', username: 'user' }, 'owner-999'),
     'user-1'
   )
+})
+
+test('managers use both their own and owner offer user ids for selection', async () => {
+  const ids = await getOfferSelectionUserIds('manager-1')
+  assert.deepEqual(ids, ['manager-1', 'owner-999'])
+})
+
+test('owners use only the owner user id for offer selection', async () => {
+  const ids = await getOfferSelectionUserIds('owner-999')
+  assert.deepEqual(ids, ['owner-999'])
+})
+
+test('local ids fall back to owner for offer selection when available', async () => {
+  const ids = await getOfferSelectionUserIds('local-manager')
+  assert.deepEqual(ids, ['local-manager', 'owner-999'])
 })

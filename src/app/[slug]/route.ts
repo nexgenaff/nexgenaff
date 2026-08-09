@@ -6,7 +6,7 @@ import { buildClickFingerprint, getClickDedupeWindowMs, isDuplicateClickEvent } 
 import { getGeoLocation } from '@/lib/services/geo/ip2location';
 import { buildRedirectTargetUrl } from '@/lib/utils/redirect';
 import { parseVisitorProfile } from '@/lib/utils/visitor-profile';
-import { getEffectiveOfferUserId } from '@/lib/auth';
+import { getOfferSelectionUserIds } from '@/lib/auth';
 
 const BOT_FALLBACK_URL = 'https://weebly.pro';
 const normalizeGroupName = (value?: string | null) => value?.trim() ?? '';
@@ -83,52 +83,53 @@ const selectGroupOffer = async (
 
 const selectOffer = async (
   tx: any,
-  userId: string,
+  userIds: string[],
   country: string,
   linkGroupName: string | null
 ) => {
-  let offer = null;
+  for (const userId of userIds) {
+    let offer: any = null;
 
-  // 1. Group-specific offer
-  if (linkGroupName) {
-    offer = await selectGroupOffer(tx, userId, country, linkGroupName);
+    if (linkGroupName) {
+      offer = await selectGroupOffer(tx, userId, country, linkGroupName);
+      if (offer) return offer;
+    }
+
+    const countryCandidates = await tx.offerVault.findMany({
+      where: {
+        userId,
+        country,
+        isActive: true,
+        isGlobal: false,
+      },
+      orderBy: [{ priority: 'desc' }, { createdAt: 'asc' }],
+    });
+
+    const namedGroupCandidates = countryCandidates.filter((c: any) => normalizeGroupName(c.groupName));
+    const directCountryCandidates = countryCandidates.filter((c: any) => !normalizeGroupName(c.groupName));
+
+    offer = selectRotatingOffer(
+      namedGroupCandidates.length ? namedGroupCandidates : directCountryCandidates
+    );
+    if (offer) return offer;
+
+    const globalCandidates = await tx.offerVault.findMany({
+      where: {
+        userId,
+        isActive: true,
+        OR: [
+          { isGlobal: true },
+          { isContentLocker: true },
+        ],
+      },
+      orderBy: [{ priority: 'desc' }, { createdAt: 'asc' }],
+    });
+
+    offer = selectRotatingOffer(globalCandidates);
     if (offer) return offer;
   }
 
-  // 2. Country-specific offers
-  const countryCandidates = await tx.offerVault.findMany({
-    where: {
-      userId,
-      country,
-      isActive: true,
-      isGlobal: false,
-    },
-    orderBy: [{ priority: 'desc' }, { createdAt: 'asc' }],
-  });
-
-  const namedGroupCandidates = countryCandidates.filter((c: any) => normalizeGroupName(c.groupName));
-  const directCountryCandidates = countryCandidates.filter((c: any) => !normalizeGroupName(c.groupName));
-
-  offer = selectRotatingOffer(
-    namedGroupCandidates.length ? namedGroupCandidates : directCountryCandidates
-  );
-  if (offer) return offer;
-
-  // 3. Global fallback
-  const globalCandidates = await tx.offerVault.findMany({
-    where: {
-      userId,
-      isActive: true,
-      OR: [
-        { isGlobal: true },
-        { isContentLocker: true },
-      ],
-    },
-    orderBy: [{ priority: 'desc' }, { createdAt: 'asc' }],
-  });
-
-  offer = selectRotatingOffer(globalCandidates);
-  return offer;
+  return null;
 };
 
 // ========== HELPERS ==========
@@ -345,8 +346,8 @@ export async function GET(
         : false;
 
       // ── 6b. Select the offer ──
-      const effectiveOfferUserId = await getEffectiveOfferUserId(link.userId);
-      const offer = await selectOffer(tx, effectiveOfferUserId, country, link.offerGroupName);
+      const offerUserIds = await getOfferSelectionUserIds(link.userId);
+      const offer = await selectOffer(tx, offerUserIds, country, link.offerGroupName);
       if (!offer) {
         throw new Error('No offer available for this request');
       }

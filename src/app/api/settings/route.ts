@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import bcrypt from 'bcryptjs'
 import { getCorsHeaders } from '@/config/cors'
 import { getTokenFromCookie, getUserFromToken, getOwnerUserId, isAdmin, isOwner } from '@/lib/auth'
+import { getLinkAccountVisibilityWhereClause } from '@/lib/utils/link-account-access'
 import { prisma } from '@/lib/db/prisma'
 
 const ADMIN_USERNAME = process.env.ADMIN_USERNAME?.trim() || 'admin'
@@ -164,11 +165,7 @@ export async function POST(request: Request) {
 
     if (action === 'reset-analytics') {
       const ownerUserId = await getOwnerUserId()
-      const whereClause = isOwner(user)
-        ? {}
-        : isAdmin(user)
-          ? { userId: user.id }
-          : { userId: ownerUserId || user.id }
+      const whereClause = getLinkAccountVisibilityWhereClause(user, ownerUserId)
 
       const linkAccounts = await prisma.linkAccount.findMany({ where: whereClause, select: { id: true } })
       const ids = linkAccounts.map((item) => item.id)
@@ -196,11 +193,7 @@ export async function POST(request: Request) {
 
     if (action === 'delete-data') {
       const ownerUserId = await getOwnerUserId()
-      const whereClause = isOwner(user)
-        ? {}
-        : isAdmin(user)
-          ? { userId: user.id }
-          : { userId: ownerUserId || user.id }
+      const whereClause = getLinkAccountVisibilityWhereClause(user, ownerUserId)
 
       const linkAccounts = await prisma.linkAccount.findMany({ where: whereClause, select: { id: true } })
       const ids = linkAccounts.map((item) => item.id)

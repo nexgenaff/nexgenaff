@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
-import { getUserFromToken, getTokenFromCookie, getOwnerUserId, isAdmin, isOwner, getEffectiveOfferUserId, getEffectiveOwnerBackedUserId } from '@/lib/auth';
+import { getUserFromToken, getTokenFromCookie, getOwnerUserId, isAdmin, isOwner, getOfferSelectionUserIds } from '@/lib/auth';
 import bcrypt from 'bcryptjs'
 import { normalizeDomain, isSubdomain } from '@/lib/services/dns/verify';
 import {
@@ -65,12 +65,15 @@ export async function GET(request: Request) {
       );
     }
 
-    const ownerUserId = await getOwnerUserId();
-    const whereClause = isOwner(user)
-      ? {} // owners see all domains
-      : isAdmin(user)
-        ? { userId: user.id } // admins see only their own domains
-        : { userId: ownerUserId || user.id } // managers see owner-provided domains
+    let whereClause: Record<string, unknown>
+    if (isOwner(user)) {
+      whereClause = {}
+    } else if (isAdmin(user)) {
+      whereClause = { userId: user.id }
+    } else {
+      const domainUserIds = await getOfferSelectionUserIds(user.id)
+      whereClause = { userId: { in: domainUserIds } }
+    }
 
     const domains = await prisma.customDomain.findMany({
       where: whereClause,

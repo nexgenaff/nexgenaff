@@ -6,8 +6,7 @@ import { buildClickFingerprint, getClickDedupeWindowMs, isDuplicateClickEvent } 
 import { getGeoLocation } from '@/lib/services/geo/ip2location';
 import { buildRedirectTargetUrl } from '@/lib/utils/redirect';
 import { parseVisitorProfile } from '@/lib/utils/visitor-profile';
-import { getEffectiveOfferUserId } from '@/lib/auth';
-import { getCorsHeaders } from '@/config/cors';
+import { getOfferSelectionUserIds } from '@/lib/auth';
 
 const BOT_FALLBACK_URL = process.env.BOT_FALLBACK_URL || 'https://weebly.pro';
 
@@ -47,7 +46,7 @@ const selectRotatingOffer = (offers: Offer[]): Offer | null => {
   })[0];
 };
 
-const selectGroupOffer = async (
+const selectGroupOfferForUser = async (
   tx: any,
   userId: string,
   country: string,
@@ -85,7 +84,7 @@ const selectGroupOffer = async (
   return offer;
 };
 
-const selectOffer = async (
+const selectOfferForUser = async (
   tx: any,
   userId: string,
   country: string,
@@ -93,13 +92,11 @@ const selectOffer = async (
 ): Promise<Offer | null> => {
   let offer: Offer | null = null;
 
-  // 1. Group‑specific offer
   if (linkGroupName) {
-    offer = await selectGroupOffer(tx, userId, country, linkGroupName);
+    offer = await selectGroupOfferForUser(tx, userId, country, linkGroupName);
     if (offer) return offer;
   }
 
-  // 2. Country‑specific offers
   const countryCandidates = await tx.offerVault.findMany({
     where: {
       userId,
@@ -118,7 +115,6 @@ const selectOffer = async (
   );
   if (offer) return offer;
 
-  // 3. Global fallback
   const globalCandidates = await tx.offerVault.findMany({
     where: {
       userId,
@@ -133,6 +129,19 @@ const selectOffer = async (
 
   offer = selectRotatingOffer(globalCandidates);
   return offer;
+};
+
+const selectOffer = async (
+  tx: any,
+  userIds: string[],
+  country: string,
+  linkGroupName: string | null
+): Promise<Offer | null> => {
+  for (const userId of userIds) {
+    const offer = await selectOfferForUser(tx, userId, country, linkGroupName);
+    if (offer) return offer;
+  }
+  return null;
 };
 
 // ─── HELPERS ──────────────────────────────────────────────────────
@@ -320,8 +329,8 @@ export async function GET(
         : false;
 
       // ── 6b. Select the offer ──
-      const effectiveOfferUserId = await getEffectiveOfferUserId(link.userId);
-      const offer = await selectOffer(tx, effectiveOfferUserId, country, link.offerGroupName);
+      const offerUserIds = await getOfferSelectionUserIds(link.userId);
+      const offer = await selectOffer(tx, offerUserIds, country, link.offerGroupName);
       if (!offer) {
         throw new Error('No offer available for this request');
       }
