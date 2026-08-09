@@ -1,4 +1,4 @@
-import { isAdmin, isOwner } from '@/lib/auth'
+import { isOwner } from '@/lib/auth'
 import type { UserRole } from '@/types'
 
 export type LinkAccountVisibilityUser = {

@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db/prisma'
 import { getUserFromToken, getTokenFromCookie, getOwnerUserId, isAdmin, isOwner } from '@/lib/auth'
 import { getCorsHeaders } from '@/config/cors'
-import { getLinkAccountUserId, getLinkAccountVisibilityWhereClause } from '@/lib/utils/link-account-access'
+import { getLinkAccountVisibilityWhereClause } from '@/lib/utils/link-account-access'
 import crypto from 'crypto'
 
 export async function GET(request: Request) {
