@@ -46,18 +46,27 @@ function BreakdownSection({
       {items.length === 0 ? (
         <p className="text-xs text-slate-400">No breakdown data yet.</p>
       ) : (
-        <div className="space-y-2">
-          {/* thin accent line for visual color */}
-          <div className={`h-1 rounded-full ${accent} opacity-95 mb-2`} />
-          {items.slice(0, 4).map((item, index) => (
-            <div key={`${title}-${item.name}-${index}`}>
-              <div className="mb-1 flex items-center justify-between gap-2 text-xs">
-                <span className="truncate text-slate-100">{item.name || 'Unknown'}</span>
-                <span className={`${valueColor ?? 'text-slate-400'}`}>{formatNumber(item.clicks)}</span>
+        <div className="space-y-3">
+          {items.slice(0, 4).map((item, index) => {
+            const pct = Math.round((item.clicks / Math.max(...items.map(i => i.clicks), 1)) * 100)
+            return (
+              <div key={`${title}-${item.name}-${index}`}>
+                <div className="mb-1 flex items-center justify-between gap-2 text-xs">
+                  <span className="truncate text-slate-100">{item.name || 'Unknown'}</span>
+                  <span className={`${valueColor ?? 'text-slate-400'}`}>{formatNumber(item.clicks)}</span>
+                </div>
+
+                <div className="mt-1 h-1 rounded-full bg-slate-800 overflow-hidden">
+                  <div
+                    className={`${accent} h-1 rounded-full opacity-95`}
+                    style={{ width: `${pct}%` }}
+                  />
+                </div>
+
+                <div className="mt-1 text-[11px] text-slate-500">{formatNumber(item.uniqueClicks)} unique</div>
               </div>
-              <div className="mt-0 text-[11px] text-slate-500">{formatNumber(item.uniqueClicks)} unique</div>
-            </div>
-          ))}
+            )
+          })}
         </div>
       )}
     </div>
