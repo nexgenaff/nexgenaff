@@ -3,6 +3,7 @@
 import { StatsCard } from '@/components/ui/StatsCard'
 import { Chart } from '@/components/ui/Chart'
 import { MousePointerClick, Users, Link2, Bug } from 'lucide-react'
+import { getCountryFlag } from '@/lib/utils/country'
 
 interface StatsCardsProps {
   stats: {
@@ -67,9 +68,11 @@ export default function StatsCards({
     .sort((a, b) => b.clicks - a.clicks)
     .slice(0, 3)
 
+  const flagColors = ['ring-sky-400/30 bg-sky-400/6', 'ring-violet-400/30 bg-violet-400/6', 'ring-emerald-400/30 bg-emerald-400/6']
+
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-1 gap-3 md:grid-cols-4 md:gap-4">
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2">
         <StatsCard
           title="Total Clicks"
           value={stats.totalClicks}
@@ -100,8 +103,8 @@ export default function StatsCards({
         />
       </div>
 
-      <div className="rounded-[24px] border border-slate-800/80 bg-slate-950/70 p-4 shadow-[0_10px_40px_rgba(2,8,23,0.28)] sm:p-6">
-        <div className="mb-4 flex flex-col gap-4 sm:mb-5 sm:flex-row sm:items-center sm:justify-between">
+      <div className="w-full bg-slate-950/70 p-0">
+        <div className="mb-4 flex flex-col gap-4 sm:mb-5 sm:flex-row sm:items-center sm:justify-between px-4 sm:px-6 pt-4">
           <div>
             <p className="text-[10px] font-semibold uppercase tracking-[0.32em] text-sky-300">Performance</p>
             <h3 className="mt-1 text-base font-semibold text-slate-50 sm:text-lg">
@@ -137,11 +140,13 @@ export default function StatsCards({
               duration: 800,
               easing: 'easeOutQuart',
             },
+            // display y-axis scaled: each 10 raw units == 1 on axis labels
+            yScaleFactor: 10,
           }}
         />
 
         <div className="mt-4 grid grid-cols-1 gap-4 lg:mt-5 lg:grid-cols-[1.15fr_0.85fr]">
-          <div className="rounded-2xl border border-slate-800/80 bg-slate-950/70 p-4">
+          <div className="w-full bg-slate-950/70 p-4">
             <div className="mb-3 flex items-center justify-between">
               <h4 className="text-sm font-medium text-sky-200">Hourly distribution</h4>
               <span className="text-[11px] uppercase tracking-[0.24em] text-slate-400">24h</span>
@@ -159,25 +164,34 @@ export default function StatsCards({
             />
           </div>
 
-          <div className="rounded-2xl border border-slate-800/80 bg-slate-950/70 p-4">
+          <div className="w-full bg-slate-950/70 p-4">
             <div className="mb-3 flex items-center justify-between">
               <h4 className="text-sm font-medium text-indigo-200">Top countries</h4>
-              <span className="text-[11px] uppercase tracking-[0.24em] text-slate-400">Geo</span>
             </div>
 
             <div className="space-y-2.5">
               {countryHighlights.length === 0 ? (
                 <p className="text-sm text-slate-400">No geo-click series available yet.</p>
               ) : (
-                countryHighlights.map((country) => (
-                  <div key={country.country} className="rounded-xl border border-slate-800/80 bg-slate-900/70 p-3">
-                    <div className="flex items-center justify-between gap-3">
-                      <span className="text-sm font-medium text-slate-100">{country.country}</span>
-                      <span className="text-sm font-semibold text-slate-50">{country.clicks} clicks</span>
-                    </div>
-                    <div className="mt-1 text-xs text-slate-400">{country.uniqueClicks} unique geo clicks</div>
-                  </div>
-                ))
+                <div className="flex flex-col gap-2">
+                  {countryHighlights.map((country, idx) => {
+                    const colorClass = flagColors[idx % flagColors.length]
+                    return (
+                      <div key={country.country} className="rounded-xl border border-slate-800/80 bg-slate-900/70 p-3 flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className={`w-8 h-8 rounded-full flex items-center justify-center ring-1 ${colorClass}`}>
+                            {getCountryFlag(country.country)}
+                          </div>
+                          <div className="flex flex-col">
+                            <span className="text-sm font-medium text-slate-100">{country.country}</span>
+                            <span className="text-xs text-slate-400">{country.uniqueClicks} unique</span>
+                          </div>
+                        </div>
+                        <div className="text-sm font-semibold text-slate-50">{country.clicks} total</div>
+                      </div>
+                    )
+                  })}
+                </div>
               )}
             </div>
           </div>

@@ -15,7 +15,7 @@ interface TrafficBreakdownProps {
   deviceBreakdown?: BreakdownItem[]
 }
 
-const palette = ['from-slate-600 to-slate-500', 'from-slate-500 to-slate-400', 'from-indigo-500/80 to-slate-600']
+const palette = ['bg-sky-400', 'bg-violet-400', 'bg-emerald-400']
 
 function BreakdownSection({
   title,
@@ -37,29 +37,25 @@ function BreakdownSection({
   const maxValue = Math.max(...items.map(item => item.clicks), 1)
 
   return (
-    <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3 sm:p-4">
-      <div className="mb-3 flex items-center gap-2">
-        <Icon className={`h-4 w-4 ${iconColor ?? 'text-slate-400'}`} />
-        <h4 className={`text-sm font-semibold ${titleColor ?? 'text-white'}`}>{title}</h4>
+    <div className="rounded-lg border border-slate-800 bg-slate-950/70 p-2 sm:p-3">
+      <div className="mb-2 flex items-center gap-2">
+        <Icon className={`h-3 w-3 ${iconColor ?? 'text-slate-400'}`} />
+        <h4 className={`text-xs font-semibold ${titleColor ?? 'text-white'}`}>{title}</h4>
       </div>
 
       {items.length === 0 ? (
         <p className="text-xs text-slate-400">No breakdown data yet.</p>
       ) : (
-        <div className="space-y-3">
+        <div className="space-y-2">
+          {/* thin accent line for visual color */}
+          <div className={`h-1 rounded-full ${accent} opacity-95 mb-2`} />
           {items.slice(0, 4).map((item, index) => (
             <div key={`${title}-${item.name}-${index}`}>
               <div className="mb-1 flex items-center justify-between gap-2 text-xs">
                 <span className="truncate text-slate-100">{item.name || 'Unknown'}</span>
                 <span className={`${valueColor ?? 'text-slate-400'}`}>{formatNumber(item.clicks)}</span>
               </div>
-              <div className="h-2 overflow-hidden rounded-full bg-slate-800/90">
-                <div
-                  className={`h-full rounded-full bg-gradient-to-r ${accent}`}
-                  style={{ width: `${Math.max(8, (item.clicks / maxValue) * 100)}%` }}
-                />
-              </div>
-              <div className="mt-1 text-[11px] text-slate-500">{formatNumber(item.uniqueClicks)} unique</div>
+              <div className="mt-0 text-[11px] text-slate-500">{formatNumber(item.uniqueClicks)} unique</div>
             </div>
           ))}
         </div>
@@ -74,14 +70,8 @@ export function TrafficBreakdown({
   deviceBreakdown = [],
 }: TrafficBreakdownProps) {
   return (
-    <div className="rounded-[24px] border border-slate-800 bg-slate-900/80 p-4 shadow-sm backdrop-blur-sm sm:p-6">
-      <div className="mb-4 flex items-center gap-2">
-        <MousePointerClick className="w-5 h-5 text-violet-400" />
-        <div>
-          <h3 className="text-lg font-semibold text-slate-100">Traffic Intelligence</h3>
-          <p className="text-sm text-slate-400">Referrers, browsers, and device mix</p>
-        </div>
-      </div>
+    <div className="rounded-lg bg-slate-900/80 p-3 shadow-sm sm:p-4">
+      
 
       <div className="grid gap-3">
         <BreakdownSection

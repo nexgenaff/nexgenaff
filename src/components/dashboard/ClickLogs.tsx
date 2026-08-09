@@ -30,9 +30,8 @@ import {
 
 interface Click {
   id: string
-  ipAddress: string
+  ipAddress: string | null
   country: string | null
-  region: string | null
   city: string | null
   isp: string | null
   referrer: string | null
@@ -110,7 +109,7 @@ export default function ClickLogs({ filter }: ClickLogsProps) {
     sortOrder: 'desc',
   })
 
-  const limit = 20
+  const limit = 1000000
 
   const fetchClicks = useCallback(async (showLoading = true) => {
     if (showLoading) {
@@ -344,7 +343,7 @@ export default function ClickLogs({ filter }: ClickLogsProps) {
   }
 
   return (
-    <div className="overflow-hidden rounded-[24px] border border-slate-800 bg-slate-900/80 shadow-sm backdrop-blur-sm">
+    <div className="overflow-hidden rounded-[24px] bg-slate-900/80 shadow-sm backdrop-blur-sm">
       {confirmDialog && (
         <div
           className="fixed inset-0 z-[120] flex items-center justify-center bg-slate-950/90 px-4 py-6 backdrop-blur-sm"
@@ -398,24 +397,13 @@ export default function ClickLogs({ filter }: ClickLogsProps) {
           </motion.div>
         </div>
       )}
-      <div className="border-b border-slate-800 bg-slate-950/60 p-4 sm:p-6">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-2">
-            <div className="rounded-xl border border-slate-800 bg-slate-900/80 p-2">
-              <MousePointerClick className="h-5 w-5 text-slate-400" />
-            </div>
-            <div>
-              <h3 className="text-lg font-semibold text-slate-100">Click Logs</h3>
-              <p className="text-sm text-slate-400">
-                {total.toLocaleString()} total clicks
-              </p>
-            </div>
-          </div>
+      <div className="bg-slate-900/95 border border-slate-800/80 shadow-sm p-4 sm:p-6">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex flex-wrap gap-2">
             <button
               onClick={() => fetchClicks(false)}
               disabled={refreshing}
-              className="flex items-center gap-1 rounded-lg border border-slate-800 bg-slate-900/70 px-3 py-1.5 text-sm text-slate-300 transition hover:bg-slate-800 disabled:opacity-50"
+              className="flex items-center gap-1 rounded-lg border border-slate-700 bg-slate-800/85 px-2.5 py-1 text-xs text-slate-300 transition hover:bg-slate-700 disabled:opacity-50"
             >
               {refreshing ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
@@ -426,19 +414,19 @@ export default function ClickLogs({ filter }: ClickLogsProps) {
             </button>
             <button
               onClick={() => setShowFilters(!showFilters)}
-              className="relative flex items-center gap-1 rounded-lg border border-slate-800 bg-slate-900/70 px-3 py-1.5 text-sm text-slate-300 transition hover:bg-slate-800"
+              className={`relative flex items-center gap-1 rounded-lg border px-2.5 py-1 text-xs transition ${showFilters ? 'border-indigo-500 bg-indigo-500/15 text-indigo-100' : 'border-slate-700 bg-slate-800/85 text-slate-300'} hover:bg-slate-700`}
             >
               <Filter className="w-4 h-4" />
               Filters
               {activeFilterCount > 0 && (
-                <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-slate-100 text-[10px] font-semibold text-slate-900">
+                <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-indigo-500 text-[10px] font-semibold text-slate-950">
                   {activeFilterCount}
                 </span>
               )}
             </button>
             <button
               onClick={handleExport}
-              className="flex items-center gap-1 rounded-lg bg-slate-100 px-3 py-1.5 text-sm font-semibold text-slate-900 transition hover:bg-white"
+              className="flex items-center gap-1 rounded-lg border border-slate-700 bg-slate-800/85 px-2.5 py-1 text-xs font-semibold text-slate-200 transition hover:bg-slate-700"
             >
               <Download className="w-4 h-4" />
               Export
@@ -448,28 +436,49 @@ export default function ClickLogs({ filter }: ClickLogsProps) {
       </div>
 
       {showFilters && (
-        <div className="border-b border-slate-800 bg-slate-950/50 p-4 sm:p-6">
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-3">
-            <div className="xl:col-span-2">
-              <label className="form-label">Search</label>
+        <div className="rounded-[20px] bg-slate-950/95 p-2.5 sm:p-3 shadow-inner">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h3 className="text-[10px] font-semibold uppercase tracking-[0.32em] text-slate-200">Filter options</h3>
+            </div>
+            <div className="flex flex-wrap items-center gap-1.5">
+              <button
+                onClick={clearFilters}
+                className="inline-flex items-center gap-1 rounded-lg border border-slate-700 bg-slate-800/90 px-2 py-0.5 text-[10px] text-slate-300 transition hover:bg-slate-700"
+              >
+                <X className="w-3.5 h-3.5" />
+                Clear
+              </button>
+              <button
+                onClick={() => setShowFilters(false)}
+                className="inline-flex items-center gap-1 rounded-lg bg-indigo-500/90 px-2 py-0.5 text-[10px] font-semibold text-slate-950 transition hover:bg-indigo-400"
+              >
+                Apply
+              </button>
+            </div>
+          </div>
+
+          <div className="mt-2 grid grid-cols-3 gap-2 sm:grid-cols-3 xl:grid-cols-4 items-end">
+            <div className="col-span-full xl:col-span-2">
+              <label className="form-label text-[10px] uppercase tracking-[0.28em] text-slate-400">Search</label>
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8B95A7]" />
                 <input
                   type="text"
                   value={filters.search}
                   onChange={(e) => handleFilterChange('search', e.target.value)}
-                  className="form-input pl-10"
+                  className="form-input clicklogs-filter-field h-9 rounded-xl border border-[#2A3448] bg-[#151C2E] text-[#E5E7EB] text-sm leading-6 placeholder:text-[#8B95A7] pl-10 shadow-none focus:border-indigo-500 focus:ring-indigo-500"
                   placeholder="Search IP, referrer, country..."
                 />
               </div>
             </div>
 
             <div>
-              <label className="form-label">Country</label>
+              <label className="form-label text-[10px] uppercase tracking-[0.28em] text-slate-400">Country</label>
               <select
                 value={filters.country}
                 onChange={(e) => handleFilterChange('country', e.target.value)}
-                className="form-select"
+                className="form-select clicklogs-filter-field h-9 rounded-xl border border-[#2A3448] bg-[#151C2E] text-[#E5E7EB] placeholder:text-[#8B95A7] focus:border-indigo-500 focus:ring-indigo-500"
               >
                 <option value="">All Countries</option>
                 {filterOptions.countries.map((country) => (
@@ -481,11 +490,11 @@ export default function ClickLogs({ filter }: ClickLogsProps) {
             </div>
 
             <div>
-              <label className="form-label">Browser</label>
+              <label className="form-label text-[10px] uppercase tracking-[0.28em] text-slate-400">Browser</label>
               <select
                 value={filters.browser}
                 onChange={(e) => handleFilterChange('browser', e.target.value)}
-                className="form-select"
+                className="form-select clicklogs-filter-field h-9 rounded-xl border border-[#2A3448] bg-[#151C2E] text-[#E5E7EB] placeholder:text-[#8B95A7] focus:border-indigo-500 focus:ring-indigo-500"
               >
                 <option value="">All Browsers</option>
                 {filterOptions.browsers.map((browser) => (
@@ -495,11 +504,11 @@ export default function ClickLogs({ filter }: ClickLogsProps) {
             </div>
 
             <div>
-              <label className="form-label">Device</label>
+              <label className="form-label text-[10px] uppercase tracking-[0.28em] text-slate-400">Device</label>
               <select
                 value={filters.deviceType}
                 onChange={(e) => handleFilterChange('deviceType', e.target.value)}
-                className="form-select"
+                className="form-select clicklogs-filter-field h-9 rounded-xl border border-[#2A3448] bg-[#151C2E] text-[#E5E7EB] placeholder:text-[#8B95A7] focus:border-indigo-500 focus:ring-indigo-500"
               >
                 <option value="">All Devices</option>
                 {filterOptions.deviceTypes.map((device) => (
@@ -509,11 +518,11 @@ export default function ClickLogs({ filter }: ClickLogsProps) {
             </div>
 
             <div>
-              <label className="form-label">Status</label>
+              <label className="form-label text-[10px] uppercase tracking-[0.28em] text-slate-400">Status</label>
               <select
                 value={filters.isUnique}
                 onChange={(e) => handleFilterChange('isUnique', e.target.value)}
-                className="form-select"
+                className="form-select clicklogs-filter-field h-9 rounded-xl border border-[#2A3448] bg-[#151C2E] text-[#E5E7EB] placeholder:text-[#8B95A7] focus:border-indigo-500 focus:ring-indigo-500"
               >
                 <option value="">All traffic</option>
                 <option value="true">Unique only</option>
@@ -522,46 +531,30 @@ export default function ClickLogs({ filter }: ClickLogsProps) {
             </div>
 
             <div>
-              <label className="form-label">Start Date</label>
+              <label className="form-label text-[10px] uppercase tracking-[0.28em] text-slate-400">Start Date</label>
               <input
                 type="date"
                 value={filters.startDate}
                 onChange={(e) => handleFilterChange('startDate', e.target.value)}
-                className="form-input"
+                className="form-input clicklogs-filter-field h-9 rounded-xl border border-[#2A3448] bg-[#151C2E] text-[#E5E7EB] placeholder:text-[#8B95A7] focus:border-indigo-500 focus:ring-indigo-500"
               />
             </div>
 
             <div>
-              <label className="form-label">End Date</label>
+              <label className="form-label text-[10px] uppercase tracking-[0.28em] text-slate-400">End Date</label>
               <input
                 type="date"
                 value={filters.endDate}
                 onChange={(e) => handleFilterChange('endDate', e.target.value)}
-                className="form-input"
+                className="form-input clicklogs-filter-field h-9 rounded-xl border border-[#2A3448] bg-[#151C2E] text-[#E5E7EB] placeholder:text-[#8B95A7] focus:border-indigo-500 focus:ring-indigo-500"
               />
             </div>
-          </div>
-
-          <div className="flex justify-end mt-4 gap-2">
-            <button
-              onClick={clearFilters}
-              className="px-3 py-1.5 text-sm border border-white/10 rounded-lg hover:bg-white/5 transition text-white/30"
-            >
-              <X className="w-4 h-4 inline mr-1" />
-              Clear
-            </button>
-            <button
-              onClick={() => setShowFilters(false)}
-              className="px-3 py-1.5 text-sm btn-gradient rounded-lg"
-            >
-              Apply
-            </button>
           </div>
         </div>
       )}
 
       <div className="border-b border-slate-800 bg-slate-950/40 px-4 py-4 sm:px-6">
-        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+        <div className="grid grid-cols-2 gap-2">
           <div className="rounded-xl border border-slate-800 bg-slate-900/70 px-3 py-2">
             <div className="text-[11px] uppercase tracking-[0.24em] text-slate-400">Unique</div>
             <div className="mt-1 text-sm font-semibold text-white">{summary.unique}</div>
@@ -573,8 +566,79 @@ export default function ClickLogs({ filter }: ClickLogsProps) {
         </div>
       </div>
 
-      <div className="overflow-x-auto">
-        <table className="min-w-[1120px] w-full">
+      <div className="lg:hidden space-y-3 overflow-y-auto" style={{ WebkitOverflowScrolling: 'touch' }}>
+        {clicks.length === 0 ? (
+          <div className="rounded-[24px] bg-slate-950/70 px-4 py-6 text-center">
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-900/80">
+              <MousePointerClick className="h-6 w-6 text-slate-300" />
+            </div>
+            <p className="mt-4 text-lg font-semibold text-slate-100">No traffic yet</p>
+            <p className="mt-2 text-sm leading-6 text-slate-400">
+              Share a link and the first clicks will appear here with campaign, device, and location insights.
+            </p>
+          </div>
+        ) : (
+          clicks.map((click) => {
+            const referrerInfo = getReferrerInfo(click.referrer)
+            return (
+              <div
+                key={click.id}
+                className={`rounded-[20px] bg-slate-950/70 p-3 shadow-sm ${click.isUnique ? '' : 'bg-amber-500/5'}`}
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <div className="text-[10px] uppercase tracking-[0.32em] text-slate-500">Time</div>
+                    <div className="truncate text-sm font-semibold text-emerald-400">{formatDate(click.createdAt)}</div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="shrink-0 rounded-full bg-slate-900/80 px-3 py-1 text-[10px] uppercase tracking-[0.32em] text-slate-300">
+                      {click.isUnique ? 'Unique' : 'Duplicate'}
+                    </span>
+                    <button
+                      onClick={() => handleDeleteClick(click.id)}
+                      className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-rose-500/10 text-rose-200 transition hover:bg-rose-500/20"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+
+                <div className="mt-3 grid grid-cols-[88px_minmax(0,1fr)] gap-x-3 gap-y-1.5 text-sm leading-5 text-slate-300">
+                  <div className="text-[11px] uppercase tracking-[0.32em] text-slate-500">IP</div>
+                  <div className="truncate font-medium text-slate-100">{click.ipAddress}</div>
+
+                  <div className="text-[11px] uppercase tracking-[0.32em] text-slate-500">Campaign</div>
+                  <div className="truncate text-cyan-300">{click.linkAccount.accountName}/{click.linkAccount.slug}</div>
+
+                  <div className="text-[11px] uppercase tracking-[0.32em] text-slate-500">Device</div>
+                  <div className="truncate">{getDeviceLabel(click)}</div>
+
+                  <div className="text-[11px] uppercase tracking-[0.32em] text-slate-500">Browser</div>
+                  <div className="truncate text-violet-300">{getBrowserLabel(click)}</div>
+
+                  <div className="text-[11px] uppercase tracking-[0.32em] text-slate-500">Referrer</div>
+                  <div className="truncate text-slate-400">
+                    {click.referrer ? referrerInfo.hostname : 'Direct'}
+                  </div>
+
+                  <div className="text-[11px] uppercase tracking-[0.32em] text-slate-500">Location</div>
+                  <div className="min-w-0">
+                    <div className="flex flex-col gap-0.5">
+                      <div className="flex items-center gap-1.5"><span>{getCountryFlag(click.country)}</span><span className="font-medium text-white/80">{getCountryLabel(click.country)}</span></div>
+                      <div className="text-[11px] text-white/25">{click.city ? `${click.city}, ${click.region}` : 'Unknown location'}</div>
+                    </div>
+                  </div>
+                </div>
+
+                
+              </div>
+            )
+          })
+        )}
+      </div>
+
+      <div className="hidden lg:block overflow-x-auto" style={{ WebkitOverflowScrolling: 'touch' }}>
+        <table className="min-w-[980px] w-full table-auto">
           <thead className="bg-slate-950/70">
             <tr>
               <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider whitespace-nowrap text-slate-500">
@@ -626,18 +690,14 @@ export default function ClickLogs({ filter }: ClickLogsProps) {
                       {formatDate(click.createdAt)}
                     </div>
                   </td>
-                  <td className="px-4 py-3 text-sm font-mono text-slate-400">
-                    {click.ipAddress}
-                  </td>
+                  <td className="px-4 py-3 text-sm font-mono text-slate-400">{click.ipAddress}</td>
                   <td className="px-4 py-3 text-sm text-slate-300">
                     <div className="flex flex-col gap-0.5">
                       <span className="font-medium text-cyan-300">{click.linkAccount.accountName}</span>
                       <span className="text-[11px] text-slate-500">/{click.linkAccount.slug}</span>
                     </div>
                   </td>
-                  <td className="px-4 py-3 text-sm text-slate-300">
-                    {getLocationSummary(click)}
-                  </td>
+                  <td className="px-4 py-3 text-sm text-slate-300">{getLocationSummary(click)}</td>
                   <td className="px-4 py-3 text-sm text-slate-300">
                     <div className="flex items-center gap-1">
                       {getDeviceIcon(click.deviceType)}
@@ -659,9 +719,7 @@ export default function ClickLogs({ filter }: ClickLogsProps) {
                           rel="noopener noreferrer"
                           className="flex items-center gap-1 text-slate-400 hover:text-slate-200 hover:underline transition"
                           onClick={(event) => {
-                            if (!referrerInfo.href) {
-                              event.preventDefault()
-                            }
+                            if (!referrerInfo.href) event.preventDefault()
                           }}
                         >
                           {referrerInfo.hostname}
@@ -701,32 +759,7 @@ export default function ClickLogs({ filter }: ClickLogsProps) {
         </table>
       </div>
 
-      {total > 0 && (
-        <div className="flex flex-col gap-4 border-t border-slate-800 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-sm text-slate-400">
-            Showing {((page - 1) * limit) + 1} to {Math.min(page * limit, total)} of {total.toLocaleString()} clicks
-          </p>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setPage(p => Math.max(1, p - 1))}
-              disabled={page === 1}
-              className="p-2 border border-white/10 rounded-lg hover:bg-white/5 transition disabled:opacity-50 disabled:cursor-not-allowed text-white/30"
-            >
-              <ChevronLeft className="w-4 h-4" />
-            </button>
-            <span className="rounded-lg bg-slate-900/80 px-3 py-1 text-sm text-slate-300">
-              Page {page} of {totalPages}
-            </span>
-            <button
-              onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-              disabled={page === totalPages}
-              className="p-2 border border-white/10 rounded-lg hover:bg-white/5 transition disabled:opacity-50 disabled:cursor-not-allowed text-white/30"
-            >
-              <ChevronRight className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
-      )}
+      
     </div>
   )
 }

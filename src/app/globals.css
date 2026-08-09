@@ -343,7 +343,51 @@ body {
     calc(100% - 10px) calc(1rem + 2px);
   background-size: 6px 6px, 6px 6px;
   background-repeat: no-repeat;
-  color: var(--text-muted);
+}
+
+.clicklogs-filter-field,
+.clicklogs-filter-field:focus,
+.clicklogs-filter-field:disabled {
+  background-color: #151C2E !important;
+  border: 0 !important;
+  color: #E5E7EB !important;
+  padding: 0.55rem 0.75rem !important;
+  min-height: 36px !important;
+  height: 36px !important;
+  line-height: 1.2 !important;
+  box-shadow: none !important;
+  box-sizing: border-box !important;
+  appearance: none !important;
+  -webkit-appearance: none !important;
+}
+
+.clicklogs-filter-field[type="text"],
+.clicklogs-filter-field[type="date"],
+.clicklogs-filter-field.form-select {
+  background-image: none !important;
+}
+
+.clicklogs-filter-field::placeholder {
+  color: #8B95A7 !important;
+  opacity: 1;
+}
+
+.clicklogs-filter-field[type="date"]::-webkit-datetime-edit,
+.clicklogs-filter-field[type="date"]::-webkit-datetime-edit-fields-wrapper,
+.clicklogs-filter-field[type="date"]::-webkit-datetime-edit-text {
+  color: #E5E7EB !important;
+}
+
+.clicklogs-filter-field[type="date"]::-webkit-calendar-picker-indicator {
+  filter: brightness(0.9) invert(1);
+}
+
+.clicklogs-filter-field:-webkit-autofill,
+.clicklogs-filter-field:-webkit-autofill:hover,
+.clicklogs-filter-field:-webkit-autofill:focus,
+.clicklogs-filter-field:-webkit-autofill:active {
+  box-shadow: 0 0 0px 1000px #151C2E inset !important;
+  -webkit-text-fill-color: #E5E7EB !important;
 }
 
 /* ──────────────────────────────────────────────

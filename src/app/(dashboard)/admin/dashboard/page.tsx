@@ -286,7 +286,7 @@ export default function DashboardPage() {
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#1e293b12_1px,transparent_1px),linear-gradient(to_bottom,#1e293b12_1px,transparent_1px)] bg-[size:3rem_3rem]" />
       </div>
 
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 sm:pt-6">
+      <div className="relative z-10 w-full px-0 pt-4 sm:pt-6">
         {/* ─── Header ─── */}
         <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-[#0d111a]/95 rounded-2xl p-4 sm:p-5 backdrop-blur-md shadow-xl mb-4 sm:mb-6">
           <div className="flex items-center gap-3">
@@ -391,49 +391,9 @@ export default function DashboardPage() {
           />
         </section>
 
-        {/* ─── Click Logs ─── */}
-        <section className="bg-[#0d111a]/95 border border-slate-800/80 rounded-2xl p-4 sm:p-5 backdrop-blur-md shadow-xl overflow-hidden">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4 pb-3 border-b border-slate-800/80">
-            <div>
-              <h2 className="text-sm sm:text-base font-semibold text-white flex items-center gap-2">
-                <Activity className="w-4 h-4 text-indigo-400 flex-shrink-0 animate-pulse" />
-                <span>Live Click Logs & Telemetry Stream</span>
-              </h2>
-              <p className="text-[11px] sm:text-xs text-slate-400 mt-0.5">
-                Low-latency inspection of inbound traffic quality, fingerprints,
-                and bot filtering status.
-              </p>
-            </div>
-
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
-              {/* Filter tabs */}
-              <div className="flex bg-slate-900/80 p-1 rounded-xl border border-slate-800/80 w-full sm:w-auto">
-                {(["all", "valid", "bot"] as const).map((f) => (
-                  <button
-                    key={f}
-                    onClick={() => setLogFilter(f)}
-                    className={`flex-1 sm:flex-none px-3 py-2 text-[11px] font-medium rounded-lg capitalize transition-all min-h-[38px] ${
-                      logFilter === f
-                        ? "bg-slate-800 text-indigo-400 shadow-sm border border-slate-700/60"
-                        : "text-slate-400 hover:text-slate-200"
-                    }`}
-                  >
-                    {f}
-                  </button>
-                ))}
-              </div>
-
-              <div className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-[11px] text-emerald-400 font-mono whitespace-nowrap">
-                <ShieldCheck className="w-3.5 h-3.5 flex-shrink-0" />
-                <span>Mitigation Active</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="overflow-x-auto -mx-4 sm:mx-0 px-4 sm:px-0">
-            <ClickLogs filter={logFilter} />
-          </div>
-        </section>
+        <div className="overflow-x-auto">
+          <ClickLogs filter={logFilter} />
+        </div>
 
       </div>
     </div>

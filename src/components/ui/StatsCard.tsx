@@ -39,14 +39,14 @@ export function StatsCard({
       initial={{ opacity: 0, y: 16, scale: 0.98 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ duration: 0.45, delay: delay / 1000 }}
-      className="stat-card min-w-0 rounded-[20px] border border-slate-700/80 bg-slate-900/90 p-3.5 shadow-[0_10px_30px_rgba(2,8,23,0.25)] backdrop-blur-sm"
+      className="stat-card min-w-0 rounded-xl border border-slate-700/80 bg-slate-900/90 p-3 shadow-[0_8px_24px_rgba(2,8,23,0.22)] backdrop-blur-sm"
     >
-      <div className="flex items-start justify-between gap-3">
+      <div className="flex items-start justify-between gap-2">
         <div className="flex-1 min-w-0">
-          <p className="text-[9px] font-semibold uppercase tracking-[0.3em] text-slate-400">
+          <p className="text-[8px] font-semibold uppercase tracking-[0.28em] text-slate-400">
             {title}
           </p>
-          <p className="mt-2 text-[24px] font-semibold leading-none tracking-[-0.03em] text-slate-50 sm:text-[28px]">
+          <p className="mt-1.5 text-[22px] font-semibold leading-none tracking-[-0.03em] text-slate-50 sm:text-[24px]">
             {formatNumber(value)}
           </p>
           {subtitle && (
@@ -55,7 +55,7 @@ export function StatsCard({
             </p>
           )}
         </div>
-        <div className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl border ${colorClasses[color]}`}>
+        <div className={`flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl border ${colorClasses[color]}`}>
           <Icon className="h-4 w-4" />
         </div>
       </div>
