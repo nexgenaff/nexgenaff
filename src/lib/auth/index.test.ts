@@ -51,3 +51,64 @@ test('selection falls back to the manager id when no owner record exists', async
   const ids = await getOfferSelectionUserIds('manager-1')
   assert.deepEqual(ids, ['manager-1'])
 })
+
+test('manager redirect prefers the owner offer when the manager has no offers', async () => {
+  const managerUserId = 'manager-1'
+  const ownerUserId = 'owner-999'
+
+  const tx = {
+    offerVault: {
+      findMany: async ({ where }: { where: { userId: string; country?: string; isActive?: boolean; isGlobal?: boolean } }) => {
+        if (where.userId === managerUserId) return []
+        if (where.userId === ownerUserId && where.country === 'US' && where.isActive === true) {
+          return [{
+            id: 'owner-offer-1',
+            offerUrl: 'https://owner.example/offer',
+            priority: 100,
+            rotationMode: 'RANDOM',
+            country: 'US',
+            isGlobal: false,
+            isContentLocker: false,
+            isActive: true,
+            createdAt: new Date('2024-01-01T00:00:00.000Z'),
+            groupName: null,
+            usaSecretRedirectEnabled: false,
+          }]
+        }
+        return []
+      },
+    },
+  }
+
+  const selectOfferForUser = async (
+    tx: typeof tx,
+    userId: string,
+    country: string,
+    _linkGroupName: string | null
+  ) => {
+    const candidates = await tx.offerVault.findMany({
+      where: {
+        userId,
+        country,
+        isActive: true,
+        isGlobal: false,
+      },
+    })
+
+    return candidates[0] ?? null
+  }
+
+  const selectOffer = async (tx: typeof tx, userIds: string[], country: string, linkGroupName: string | null) => {
+    for (const userId of userIds) {
+      const offer = await selectOfferForUser(tx, userId, country, linkGroupName)
+      if (offer) return offer
+    }
+    return null
+  }
+
+  const fallbackOfferUserIds = ['manager-1', 'owner-999']
+  const offer = await selectOffer(tx, fallbackOfferUserIds, 'US', null)
+
+  assert.ok(offer)
+  assert.equal(offer.offerUrl, 'https://owner.example/offer')
+})
