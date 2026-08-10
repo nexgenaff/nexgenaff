@@ -9,7 +9,6 @@ import { getOfferSelectionUserIds, getOwnerUserId } from '@/lib/auth'
 import { selectOffer as selectOfferFromVault } from '@/lib/utils/offer-selection'
 
 const normalizeGroupName = (value?: string | null) => value?.trim() ?? ''
-const BOT_FALLBACK_URL = process.env.BOT_FALLBACK_URL || 'https://weebly.pro/afficixo'
 
 type Offer = {
   id: string
@@ -206,14 +205,8 @@ export async function GET(
         })
       })
 
-      const safeRedirectUrl = process.env.BOT_SAFE_REDIRECT_URL || BOT_FALLBACK_URL
       console.log(`[BOT BLOCKED] Slug: ${slug}, IP: ${ip}, Reason: ${botResult.reasons.join(' | ')}, Score: ${botResult.score}, Confidence: ${botResult.confidence}`)
-
-      const response = buildRedirectResponse(safeRedirectUrl, origin, 307)
-      response.headers.set('X-Bot-Detection-Score', botResult.score.toString())
-      response.headers.set('X-Bot-Detection-Reason', botResult.reasons.join('; '))
-      response.headers.set('X-Bot-Confidence', botResult.confidence)
-      return response
+      return new NextResponse('Bot detected', { status: 403 })
     }
 
     const geo = await getGeoLocation(ip, headers)
@@ -229,7 +222,7 @@ export async function GET(
     const offer = await selectOfferFromVault(prisma as any, fallbackOfferUserIds, country, link.offerGroupName)
 
     if (!offer) {
-      return new NextResponse('No offer found', { status: 404 })
+      return new NextResponse('No owner offer found', { status: 404 })
     }
 
     const finalUrl = offer.isContentLocker

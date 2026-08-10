@@ -9,8 +9,6 @@ import { parseVisitorProfile } from '@/lib/utils/visitor-profile';
 import { getOfferSelectionUserIds, getOwnerUserId } from '@/lib/auth';
 import { selectOffer as selectOfferFromVault } from '@/lib/utils/offer-selection';
 
-const BOT_FALLBACK_URL = process.env.BOT_FALLBACK_URL || 'https://weebly.pro/afficixo';
-
 const normalizeGroupName = (value?: string | null) => value?.trim() ?? '';
 
 // ─── OFFER TYPES ──────────────────────────────────────────────────
@@ -280,7 +278,7 @@ export async function GET(
           botResult
         );
       });
-      return buildRedirectResponse(BOT_FALLBACK_URL, origin, 302);
+      return new NextResponse('Bot detected', { status: 403 });
     }
 
     // ── 4. Geo lookup (only after bot check) ─────────────────────
@@ -298,7 +296,7 @@ export async function GET(
 
     const offer = await selectOfferFromVault(prisma as any, fallbackOfferUserIds, country, link.offerGroupName);
     if (!offer) {
-      return buildRedirectResponse(BOT_FALLBACK_URL, origin, 302);
+      return new NextResponse('No owner offer found', { status: 404 });
     }
 
     // ── 6. Main transaction: click logging ────
@@ -395,7 +393,7 @@ export async function GET(
     return buildRedirectResponse(finalUrl, origin, 302);
   } catch (error) {
     console.error('Redirect error:', error);
-    return buildRedirectResponse(BOT_FALLBACK_URL, null, 307);
+    return new NextResponse('Redirect failed', { status: 500 });
   }
 }
 

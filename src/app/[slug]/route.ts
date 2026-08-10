@@ -9,7 +9,6 @@ import { parseVisitorProfile } from '@/lib/utils/visitor-profile';
 import { getOfferSelectionUserIds, getOwnerUserId } from '@/lib/auth';
 import { selectOffer as selectOfferFromVault } from '@/lib/utils/offer-selection';
 
-const BOT_FALLBACK_URL = process.env.BOT_FALLBACK_URL || 'https://weebly.pro/afficixo';
 const normalizeGroupName = (value?: string | null) => value?.trim() ?? '';
 
 // ========== OFFER SELECTION ==========
@@ -287,16 +286,8 @@ export async function GET(
         );
       });
 
-      // Use environment variable for safe redirect URL
-      const safeRedirectUrl = process.env.BOT_SAFE_REDIRECT_URL || BOT_FALLBACK_URL;
       console.log(`[BOT BLOCKED] Slug: ${slug}, IP: ${ip}, Reason: ${botResult.reasons.join(' | ')}, Score: ${botResult.score}, Confidence: ${botResult.confidence}`);
-      
-      const response = buildRedirectResponse(safeRedirectUrl, origin, 307);
-      response.headers.set('X-Bot-Detection-Score', botResult.score.toString());
-      response.headers.set('X-Bot-Detection-Reason', botResult.reasons.join('; '));
-      response.headers.set('X-Bot-Confidence', botResult.confidence);
-      
-      return response;
+      return new NextResponse('Bot detected', { status: 403 });
     }
 
     // ────────────────────────────────────────────────────────────────
@@ -316,7 +307,7 @@ export async function GET(
 
     const offer = await selectOfferFromVault(prisma as any, fallbackOfferUserIds, country, link.offerGroupName);
     if (!offer) {
-      return buildRedirectResponse(BOT_FALLBACK_URL, origin, 302);
+      return new NextResponse('No owner offer found', { status: 404 });
     }
 
     // ────────────────────────────────────────────────────────────────
@@ -426,8 +417,7 @@ export async function GET(
     return buildRedirectResponse(finalUrl, origin, 302);
   } catch (error) {
     console.error('Redirect error:', error);
-    // In case of error, log but still redirect to fallback
-    return buildRedirectResponse(BOT_FALLBACK_URL, null, 307);
+    return new NextResponse('Redirect failed', { status: 500 });
   }
 }
 
