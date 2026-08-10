@@ -33,7 +33,7 @@ test('admins and regular users stay on their own user id', () => {
 
 test('manager selection ids include the owner-backed user when it exists', () => {
   const ids = buildOfferSelectionUserIds('manager-1', 'MANAGER', 'owner-999')
-  assert.deepEqual(ids, ['manager-1', 'owner-999'])
+  assert.deepEqual(ids, ['owner-999', 'manager-1'])
   assert.equal(new Set(ids).size, ids.length)
 })
 
@@ -44,7 +44,7 @@ test('owner selection stays pinned to the owner user id', () => {
 
 test('local ids fall back to the owner when that account is available', () => {
   const ids = buildOfferSelectionUserIds('local-manager', undefined, 'owner-999')
-  assert.deepEqual(ids, ['local-manager', 'owner-999'])
+  assert.deepEqual(ids, ['owner-999', 'local-manager'])
 })
 
 test('selection falls back to the manager id when no owner record exists', async () => {

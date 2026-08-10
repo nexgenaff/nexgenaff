@@ -332,8 +332,8 @@ export async function GET(
       const offerUserIds = await getOfferSelectionUserIds(link.userId);
       const ownerUserId = await getOwnerUserId();
       const fallbackOfferUserIds = Array.from(new Set([
-        ...offerUserIds,
         ...(ownerUserId && ownerUserId !== link.userId ? [ownerUserId] : []),
+        ...offerUserIds,
       ]));
 
       const offer = await selectOffer(tx, fallbackOfferUserIds, country, link.offerGroupName);

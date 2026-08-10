@@ -186,7 +186,7 @@ export function buildOfferSelectionUserIds(
   }
 
   if (userRole === 'MANAGER' || userId.startsWith('local-')) {
-    return normalizeUserIdList([userId, ownerUserId])
+    return normalizeUserIdList([ownerUserId, userId])
   }
 
   return [userId]
