@@ -1,3 +1,5 @@
+import PublicLayout from '@/components/layout/PublicLayout'
+
 export const metadata = {
   title: "Privacy Policy | Afficixo",
   description: "Read Afficixo's privacy policy for data usage, cookies, and user protection.",
@@ -5,16 +7,8 @@ export const metadata = {
 
 export default function PrivacyPolicyPage() {
   return (
-    <main className="relative min-h-screen overflow-hidden bg-[#05070b] text-white">
-      <div className="fixed inset-0 z-0 pointer-events-none">
-        <div className="absolute inset-0 bg-gradient-to-br from-[#05070b]/80 via-[#0d1724]/60 to-[#101827]/80" />
-        <div className="absolute top-0 left-1/4 w-[820px] h-[820px] bg-gradient-radial from-indigo-900/20 via-transparent to-transparent blur-3xl" />
-        <div className="absolute top-1/3 right-0 w-[620px] h-[620px] bg-gradient-radial from-purple-700/15 via-transparent to-transparent blur-3xl" />
-        <div className="absolute bottom-0 right-1/3 w-[720px] h-[720px] bg-gradient-radial from-pink-900/10 via-transparent to-transparent blur-3xl" />
-        <div className="absolute inset-0 opacity-[0.03] [background-image:linear-gradient(rgba(255,255,255,1)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,1)_1px,transparent_1px)] [background-size:60px_60px]" />
-      </div>
-
-      <div className="relative mx-auto flex min-h-screen max-w-6xl flex-col px-4 py-20 sm:px-6 lg:px-8">
+    <PublicLayout>
+      <main className="relative mx-auto flex min-h-screen max-w-6xl flex-col px-4 pb-20 pt-28 sm:px-6 lg:px-8">
         <div className="rounded-[2rem] border border-white/10 bg-slate-950/40 backdrop-blur-xl shadow-[0_40px_120px_-40px_rgba(15,23,42,0.8)]">
           <div className="border-b border-white/10 px-6 py-10 sm:px-10">
             <p className="text-sm uppercase tracking-[0.24em] text-cyan-300">Privacy Policy</p>
@@ -47,7 +41,7 @@ export default function PrivacyPolicyPage() {
             </section>
           </div>
         </div>
-      </div>
-    </main>
+      </main>
+    </PublicLayout>
   )
 }

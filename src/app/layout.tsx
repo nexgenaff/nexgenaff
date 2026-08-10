@@ -46,10 +46,6 @@ export const metadata: Metadata = {
       noarchive: false,
     },
   },
-  themeColor: [
-    { media: '(prefers-color-scheme: dark)', color: '#05070b' },
-    { media: '(prefers-color-scheme: light)', color: '#ffffff' },
-  ],
   icons: {
     icon: '/afficixo.png',
     apple: '/afficixo.png',
@@ -86,6 +82,10 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
+  themeColor: [
+    { media: '(prefers-color-scheme: dark)', color: '#05070b' },
+    { media: '(prefers-color-scheme: light)', color: '#ffffff' },
+  ],
 }
 
 export default function RootLayout({

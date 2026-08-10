@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { getEffectiveOwnerBackedUserId, getOfferSelectionUserIds } from './index'
+import { buildOfferSelectionUserIds, getEffectiveOwnerBackedUserId, getOfferSelectionUserIds } from './index'
 
 test('managers resolve to the owner-backed user id for offers and domains', () => {
   const resolved = getEffectiveOwnerBackedUserId(
@@ -31,17 +31,23 @@ test('admins and regular users stay on their own user id', () => {
   )
 })
 
-test('managers use both their own and owner offer user ids for selection', async () => {
-  const ids = await getOfferSelectionUserIds('manager-1')
+test('manager selection ids include the owner-backed user when it exists', () => {
+  const ids = buildOfferSelectionUserIds('manager-1', 'MANAGER', 'owner-999')
   assert.deepEqual(ids, ['manager-1', 'owner-999'])
+  assert.equal(new Set(ids).size, ids.length)
 })
 
-test('owners use only the owner user id for offer selection', async () => {
-  const ids = await getOfferSelectionUserIds('owner-999')
+test('owner selection stays pinned to the owner user id', () => {
+  const ids = buildOfferSelectionUserIds('owner-999', 'OWNER', 'owner-999')
   assert.deepEqual(ids, ['owner-999'])
 })
 
-test('local ids fall back to owner for offer selection when available', async () => {
-  const ids = await getOfferSelectionUserIds('local-manager')
+test('local ids fall back to the owner when that account is available', () => {
+  const ids = buildOfferSelectionUserIds('local-manager', undefined, 'owner-999')
   assert.deepEqual(ids, ['local-manager', 'owner-999'])
+})
+
+test('selection falls back to the manager id when no owner record exists', async () => {
+  const ids = await getOfferSelectionUserIds('manager-1')
+  assert.deepEqual(ids, ['manager-1'])
 })

@@ -2,13 +2,13 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 import { getLinkAccountUserId, getLinkAccountVisibilityWhereClause } from './link-account-access'
 
-test('keeps managers scoped to their own link accounts', () => {
+test('shows managers both their own link accounts and the shared owner set', () => {
   const whereClause = getLinkAccountVisibilityWhereClause(
     { id: 'manager-1', role: 'MANAGER', username: 'manager' },
     'owner-999'
   )
 
-  assert.deepEqual(whereClause, { userId: 'manager-1' })
+  assert.deepEqual(whereClause, { userId: { in: ['manager-1', 'owner-999'] } })
 })
 
 test('keeps owners on the unrestricted view', () => {
@@ -29,11 +29,27 @@ test('keeps admins scoped to their own links', () => {
   assert.deepEqual(whereClause, { userId: 'admin-1' })
 })
 
-test('uses the signed-in manager id for manager-owned link accounts', () => {
+test('uses the shared owner id for manager visibility checks when present', () => {
   const userId = getLinkAccountUserId(
     { id: 'manager-1', role: 'MANAGER', username: 'manager' },
     'owner-999'
   )
 
-  assert.equal(userId, 'manager-1')
+  assert.equal(userId, 'owner-999')
+})
+
+test('manager dashboards stay isolated from each other while including the shared owner set', () => {
+  const managerAWhere = getLinkAccountVisibilityWhereClause(
+    { id: 'manager-1', role: 'MANAGER', username: 'manager-a' },
+    'owner-999'
+  )
+
+  const managerBWhere = getLinkAccountVisibilityWhereClause(
+    { id: 'manager-2', role: 'MANAGER', username: 'manager-b' },
+    'owner-999'
+  )
+
+  assert.deepEqual(managerAWhere, { userId: { in: ['manager-1', 'owner-999'] } })
+  assert.deepEqual(managerBWhere, { userId: { in: ['manager-2', 'owner-999'] } })
+  assert.notDeepEqual(managerAWhere, managerBWhere)
 })

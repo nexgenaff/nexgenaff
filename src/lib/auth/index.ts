@@ -41,6 +41,56 @@ export function getEffectiveOwnerBackedUserId(
   return user.id
 }
 
+export function normalizeUserIdList(ids: Array<string | null | undefined>): string[] {
+  const seen = new Set<string>()
+
+  for (const id of ids) {
+    if (typeof id !== 'string') continue
+    const trimmed = id.trim()
+    if (!trimmed || seen.has(trimmed)) continue
+    seen.add(trimmed)
+  }
+
+  return [...seen]
+}
+
+export async function resolveUserIdForRecord(
+  user: { id: string; role?: UserRole; username?: string } | null | undefined,
+  ownerUserId: string | null | undefined
+): Promise<string> {
+  if (!user) return ''
+
+  if (typeof user.id === 'string' && user.id.startsWith('local-')) {
+    const username = user.id.replace(/^local-/, '')
+    const existing = await prisma.user.findUnique({
+      where: { username },
+      select: { id: true },
+    })
+
+    if (existing?.id) {
+      return existing.id
+    }
+
+    if (ownerUserId) {
+      return ownerUserId
+    }
+
+    const hashed = await bcrypt.hash(Math.random().toString(36).slice(2), 10)
+    const created = await prisma.user.create({
+      data: {
+        username,
+        email: `${username}@example.com`,
+        password: hashed,
+        role: user.role === 'MANAGER' ? 'MANAGER' : 'ADMIN',
+      },
+    })
+
+    return created.id
+  }
+
+  return getEffectiveOwnerBackedUserId(user, ownerUserId)
+}
+
 async function createOwnerUser(): Promise<string | null> {
   if (!OWNER_USERNAME || !OWNER_PASSWORD) {
     return null
@@ -122,8 +172,11 @@ export async function getEffectiveOfferUserId(userId: string): Promise<string> {
   return userId
 }
 
-export async function getOfferSelectionUserIds(userId: string): Promise<string[]> {
-  const ownerUserId = await getOwnerUserId()
+export function buildOfferSelectionUserIds(
+  userId: string,
+  userRole: UserRole | undefined,
+  ownerUserId: string | null | undefined
+): string[] {
   if (!ownerUserId) {
     return [userId]
   }
@@ -132,20 +185,25 @@ export async function getOfferSelectionUserIds(userId: string): Promise<string[]
     return [ownerUserId]
   }
 
+  if (userRole === 'MANAGER' || userId.startsWith('local-')) {
+    return normalizeUserIdList([userId, ownerUserId])
+  }
+
+  return [userId]
+}
+
+export async function getOfferSelectionUserIds(userId: string): Promise<string[]> {
+  const ownerUserId = await getOwnerUserId()
+  if (!ownerUserId) {
+    return [userId]
+  }
+
   const user = await prisma.user.findUnique({
     where: { id: userId },
     select: { role: true },
   })
 
-  if (user?.role === 'MANAGER') {
-    return [userId, ownerUserId]
-  }
-
-  if (userId.startsWith('local-')) {
-    return [userId, ownerUserId]
-  }
-
-  return [userId]
+  return buildOfferSelectionUserIds(userId, user?.role, ownerUserId)
 }
 
 export async function verifyCredentials(username: string, password: string) {

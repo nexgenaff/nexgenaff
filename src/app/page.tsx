@@ -4,6 +4,7 @@ import Image from "next/image";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
+import PublicLayout from "@/components/layout/PublicLayout";
 import {
   ArrowRight,
   Users,
@@ -503,25 +504,14 @@ export default function HomePage() {
   }, []);
 
   return (
-    <div className="relative min-h-screen w-full bg-[#05070b] text-white overflow-x-hidden">
-      {/* ─── CANVAS BACKGROUND ─── */}
+    <PublicLayout>
       <canvas
         ref={canvasRef}
         className="fixed top-0 left-0 w-full h-full pointer-events-none z-0"
         style={{ opacity: 0.6 }}
       />
 
-      {/* Background overlays - optimized for performance */}
-      <div className="fixed inset-0 z-0 pointer-events-none">
-        <div className="absolute inset-0 bg-gradient-to-br from-[#05070b]/80 via-[#0d1724]/60 to-[#101827]/80" />
-        <div className="absolute top-0 left-1/4 w-[400px] h-[400px] md:w-[800px] md:h-[800px] bg-gradient-radial from-indigo-900/20 via-transparent to-transparent blur-3xl" />
-        <div className="absolute top-1/3 right-0 w-[300px] h-[300px] md:w-[600px] md:h-[600px] bg-gradient-radial from-purple-700/15 via-transparent to-transparent blur-3xl" />
-        <div className="absolute bottom-0 right-1/3 w-[350px] h-[350px] md:w-[700px] md:h-[700px] bg-gradient-radial from-pink-900/10 via-transparent to-transparent blur-3xl" />
-        <div className="absolute inset-0 opacity-[0.03] [background-image:linear-gradient(rgba(255,255,255,1)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,1)_1px,transparent_1px)] [background-size:60px_60px]" />
-      </div>
-
       <main id="main-content" className="relative z-10 w-full max-w-full overflow-x-hidden">
-        <Header />
         <script
           type="application/ld+json"
           suppressHydrationWarning
@@ -588,9 +578,12 @@ export default function HomePage() {
                   </span>
                   <div className="absolute inset-0 bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 opacity-0 group-hover:opacity-100 transition-opacity" />
                 </Link>
-                <button className="w-full sm:w-auto px-6 md:px-8 py-3 md:py-4 rounded-lg font-semibold text-sm md:text-lg border-2 border-slate-400/30 text-white hover:bg-slate-400/10 hover:border-slate-300/60 transition-all duration-300 backdrop-blur-sm min-w-[140px]">
+                <Link
+                  href="/offers"
+                  className="w-full sm:w-auto px-6 md:px-8 py-3 md:py-4 rounded-lg font-semibold text-sm md:text-lg border-2 border-slate-400/30 text-white hover:bg-slate-400/10 hover:border-slate-300/60 transition-all duration-300 backdrop-blur-sm min-w-[140px] text-center"
+                >
                   Browse Offers
-                </button>
+                </Link>
               </motion.div>
 
               {/* Trust badges */}
@@ -1098,9 +1091,12 @@ export default function HomePage() {
                   </span>
                   <div className="absolute inset-0 bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 opacity-0 group-hover:opacity-100 transition-opacity" />
                 </Link>
-                <button className="w-full sm:w-auto px-6 md:px-10 py-3 md:py-4 rounded-lg font-bold text-sm md:text-lg border-2 border-slate-400/30 text-white hover:bg-slate-400/10 hover:border-slate-300/60 transition-all duration-300 backdrop-blur-sm min-w-[160px]">
+                <Link
+                  href="/offers"
+                  className="w-full sm:w-auto px-6 md:px-10 py-3 md:py-4 rounded-lg font-bold text-sm md:text-lg border-2 border-slate-400/30 text-white hover:bg-slate-400/10 hover:border-slate-300/60 transition-all duration-300 backdrop-blur-sm min-w-[160px] text-center"
+                >
                   Browse Offers
-                </button>
+                </Link>
               </div>
             </div>
           </motion.div>
@@ -1172,67 +1168,7 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* ===== FOOTER ===== */}
-        <footer className="border-t border-white/10 bg-white/[0.02] backdrop-blur py-6 md:py-12 mt-8 w-full">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex flex-col md:flex-row items-center justify-between gap-4 md:gap-6">
-              <div className="flex items-center gap-2 md:gap-3 shrink-0">
-                <div className="relative h-8 w-8 md:h-10 md:w-10 rounded-lg overflow-hidden shrink-0">
-                  <Image
-                    src="/afficixo.png"
-                    alt="Afficixo logo"
-                    fill
-                    className="object-contain"
-                    priority
-                  />
-                </div>
-              </div>
-
-              <div className="flex flex-wrap items-center justify-center gap-3 md:gap-6 text-xs md:text-sm text-slate-400">
-                <Link href="/about" className="hover:text-white transition-colors whitespace-nowrap">
-                  About
-                </Link>
-                <Link href="/offers" className="hover:text-white transition-colors whitespace-nowrap">
-                  Offers
-                </Link>
-                <Link href="/publishers" className="hover:text-white transition-colors whitespace-nowrap">
-                  Publishers
-                </Link>
-                <Link href="/faq" className="hover:text-white transition-colors whitespace-nowrap">
-                  FAQ
-                </Link>
-                <a href="/privacy-policy" className="hover:text-white transition-colors whitespace-nowrap">
-                  Privacy Policy
-                </a>
-                <a href="/terms-of-service" className="hover:text-white transition-colors whitespace-nowrap">
-                  Terms of Service
-                </a>
-                <a href="/contact" className="hover:text-white transition-colors whitespace-nowrap">
-                  Contact
-                </a>
-              </div>
-
-              <div className="flex items-center gap-3 md:gap-4 shrink-0">
-                {[
-                  { icon: Twitter, label: "X", href: "#" },
-                  { icon: Linkedin, label: "LinkedIn", href: "#" },
-                  { icon: Github, label: "GitHub", href: "#" },
-                  { icon: MessageCircle, label: "Telegram", href: "#" },
-                ].map(({ icon: Icon, label, href }) => (
-                  <a
-                    key={label}
-                    href={href}
-                    className="text-slate-400 hover:text-white hover:scale-110 transition-all duration-300"
-                    aria-label={label}
-                  >
-                    <Icon className="w-4 h-4 md:w-5 md:h-5 shrink-0" aria-hidden="true" />
-                  </a>
-                ))}
-              </div>
-            </div>
-          </div>
-        </footer>
       </main>
-    </div>
+    </PublicLayout>
   );
 }

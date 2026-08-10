@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
-import { getUserFromToken, getTokenFromCookie, getOwnerUserId, isAdmin, isOwner, getOfferSelectionUserIds, getEffectiveOwnerBackedUserId } from '@/lib/auth';
+import { getUserFromToken, getTokenFromCookie, getOwnerUserId, isAdmin, isOwner, getOfferSelectionUserIds, resolveUserIdForRecord } from '@/lib/auth';
 import bcrypt from 'bcryptjs'
 import { normalizeDomain } from '@/lib/services/dns/verify';
 import {
@@ -180,34 +180,12 @@ export async function POST(request: Request) {
       );
     }
 
-    // Resolve DB-backed user id for the domain record. This prevents
+    // Resolve DB-backed user ids for the domain record. This prevents
     // foreign-key errors when the token contains a `local-` user id that
-    // doesn't exist in the database. Prefer the owner account for managers.
+    // doesn't exist in the database, while ensuring manager writes still map
+    // to the shared owner-backed account when required.
     const ownerUserId = await getOwnerUserId()
-    let finalUserId: string = user.id
-
-    if (typeof finalUserId === 'string' && finalUserId.startsWith('local-')) {
-      const username = finalUserId.replace(/^local-/, '')
-      const existing = await prisma.user.findUnique({ where: { username }, select: { id: true } })
-      if (existing?.id) {
-        finalUserId = existing.id
-      } else if (ownerUserId) {
-        finalUserId = ownerUserId
-      } else {
-        const hashed = await bcrypt.hash(Math.random().toString(36).slice(2), 10)
-        const created = await prisma.user.create({
-          data: {
-            username,
-            email: `${username}@example.com`,
-            password: hashed,
-            role: 'ADMIN',
-          },
-        })
-        finalUserId = created.id
-      }
-    } else {
-      finalUserId = getEffectiveOwnerBackedUserId(user, ownerUserId)
-    }
+    const finalUserId = await resolveUserIdForRecord(user, ownerUserId)
 
     // ─── Create domain record ───
     const newDomain = await prisma.customDomain.create({

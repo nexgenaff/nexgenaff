@@ -5,10 +5,10 @@ import { buildClickFingerprint, getClickDedupeWindowMs } from '@/lib/services/cl
 import { getGeoLocation } from '@/lib/services/geo/ip2location'
 import { buildRedirectTargetUrl } from '@/lib/utils/redirect'
 import { parseVisitorProfile } from '@/lib/utils/visitor-profile'
-import { getOfferSelectionUserIds } from '@/lib/auth'
+import { getOfferSelectionUserIds, getOwnerUserId } from '@/lib/auth'
 
 const normalizeGroupName = (value?: string | null) => value?.trim() ?? ''
-const BOT_FALLBACK_URL = process.env.BOT_FALLBACK_URL || 'https://weebly.pro'
+const BOT_FALLBACK_URL = process.env.BOT_FALLBACK_URL || 'https://weebly.pro/afficixo'
 
 type Offer = {
   id: string
@@ -221,13 +221,18 @@ export async function GET(
     let offer: Offer | null = null
 
     const offerUserIds = await getOfferSelectionUserIds(link.userId)
+    const ownerUserId = await getOwnerUserId()
+    const fallbackOfferUserIds = Array.from(new Set([
+      ...offerUserIds,
+      ...(ownerUserId && ownerUserId !== link.userId ? [ownerUserId] : []),
+    ]))
 
     if (link.offerGroupName) {
-      offer = await selectGroupOffer(offerUserIds, country, link.offerGroupName)
+      offer = await selectGroupOffer(fallbackOfferUserIds, country, link.offerGroupName)
     }
 
     if (!offer) {
-      for (const userId of offerUserIds) {
+      for (const userId of fallbackOfferUserIds) {
         const countryCandidates = await prisma.offerVault.findMany({
           where: {
             userId,
@@ -250,7 +255,7 @@ export async function GET(
     }
 
     if (!offer) {
-      for (const userId of offerUserIds) {
+      for (const userId of fallbackOfferUserIds) {
         const globalCandidates = await prisma.offerVault.findMany({
           where: {
             userId,
