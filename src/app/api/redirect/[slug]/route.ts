@@ -7,6 +7,7 @@ import { getGeoLocation } from '@/lib/services/geo/ip2location';
 import { buildRedirectTargetUrl } from '@/lib/utils/redirect';
 import { parseVisitorProfile } from '@/lib/utils/visitor-profile';
 import { getOfferSelectionUserIds, getOwnerUserId } from '@/lib/auth';
+import { selectOffer as selectOfferFromVault } from '@/lib/utils/offer-selection';
 
 const BOT_FALLBACK_URL = process.env.BOT_FALLBACK_URL || 'https://weebly.pro/afficixo';
 
@@ -336,7 +337,7 @@ export async function GET(
         ...offerUserIds,
       ]));
 
-      const offer = await selectOffer(tx, fallbackOfferUserIds, country, link.offerGroupName);
+      const offer = await selectOfferFromVault(tx as any, fallbackOfferUserIds, country, link.offerGroupName);
       if (!offer) {
         throw new Error('No offer available for this request');
       }

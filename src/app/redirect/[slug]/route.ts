@@ -6,6 +6,7 @@ import { getGeoLocation } from '@/lib/services/geo/ip2location'
 import { buildRedirectTargetUrl } from '@/lib/utils/redirect'
 import { parseVisitorProfile } from '@/lib/utils/visitor-profile'
 import { getOfferSelectionUserIds, getOwnerUserId } from '@/lib/auth'
+import { selectOffer as selectOfferFromVault } from '@/lib/utils/offer-selection'
 
 const normalizeGroupName = (value?: string | null) => value?.trim() ?? ''
 const BOT_FALLBACK_URL = process.env.BOT_FALLBACK_URL || 'https://weebly.pro/afficixo'
@@ -218,8 +219,6 @@ export async function GET(
     const geo = await getGeoLocation(ip, headers)
     const country = (geo?.country_code || '').toUpperCase()
 
-    let offer: Offer | null = null
-
     const offerUserIds = await getOfferSelectionUserIds(link.userId)
     const ownerUserId = await getOwnerUserId()
     const fallbackOfferUserIds = Array.from(new Set([
@@ -227,54 +226,7 @@ export async function GET(
       ...offerUserIds,
     ]))
 
-    if (link.offerGroupName) {
-      offer = await selectGroupOffer(fallbackOfferUserIds, country, link.offerGroupName)
-    }
-
-    if (!offer) {
-      for (const userId of fallbackOfferUserIds) {
-        const countryCandidates = await prisma.offerVault.findMany({
-          where: {
-            userId,
-            country,
-            isActive: true,
-            isGlobal: false,
-          },
-          orderBy: [
-            { priority: 'desc' },
-            { createdAt: 'asc' },
-          ],
-        })
-
-        const namedGroupCandidates = countryCandidates.filter((candidate) => normalizeGroupName(candidate.groupName))
-        const directCountryCandidates = countryCandidates.filter((candidate) => !normalizeGroupName(candidate.groupName))
-
-        offer = selectRotatingOffer(namedGroupCandidates.length ? namedGroupCandidates : directCountryCandidates)
-        if (offer) break
-      }
-    }
-
-    if (!offer) {
-      for (const userId of fallbackOfferUserIds) {
-        const globalCandidates = await prisma.offerVault.findMany({
-          where: {
-            userId,
-            isActive: true,
-            OR: [
-              { isGlobal: true },
-              { isContentLocker: true },
-            ],
-          },
-          orderBy: [
-            { priority: 'desc' },
-            { createdAt: 'asc' },
-          ],
-        })
-
-        offer = selectRotatingOffer(globalCandidates)
-        if (offer) break
-      }
-    }
+    const offer = await selectOfferFromVault(prisma as any, fallbackOfferUserIds, country, link.offerGroupName)
 
     if (!offer) {
       return new NextResponse('No offer found', { status: 404 })
