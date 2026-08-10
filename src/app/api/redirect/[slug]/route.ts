@@ -289,10 +289,19 @@ export async function GET(
 
     const dedupeWindowMs = getClickDedupeWindowMs();
 
-    // ── 5. Primary duplicate check is intentionally omitted because global duplicate detection
-    // is fully enforced inside the transaction under advisory lock.
+    const offerUserIds = await getOfferSelectionUserIds(link.userId);
+    const ownerUserId = await getOwnerUserId();
+    const fallbackOfferUserIds = Array.from(new Set([
+      ...(ownerUserId && ownerUserId !== link.userId ? [ownerUserId] : []),
+      ...offerUserIds,
+    ]));
 
-    // ── 6. Main transaction: offer selection + click logging ────
+    const offer = await selectOfferFromVault(prisma as any, fallbackOfferUserIds, country, link.offerGroupName);
+    if (!offer) {
+      return buildRedirectResponse(BOT_FALLBACK_URL, origin, 302);
+    }
+
+    // ── 6. Main transaction: click logging ────
     const result = await prisma.$transaction(async (tx) => {
       await acquireDedupeLocks(tx, clickFingerprint, ip, userAgent);
 
@@ -329,20 +338,7 @@ export async function GET(
           )
         : false;
 
-      // ── 6b. Select the offer ──
-      const offerUserIds = await getOfferSelectionUserIds(link.userId);
-      const ownerUserId = await getOwnerUserId();
-      const fallbackOfferUserIds = Array.from(new Set([
-        ...(ownerUserId && ownerUserId !== link.userId ? [ownerUserId] : []),
-        ...offerUserIds,
-      ]));
-
-      const offer = await selectOfferFromVault(tx as any, fallbackOfferUserIds, country, link.offerGroupName);
-      if (!offer) {
-        throw new Error('No offer available for this request');
-      }
-
-      // ── 6c. USA Secret Redirect Mode ──
+      // ── 6b. Handle USA Secret Redirect Mode ──
       const isUsaSecretMode = country === 'US' && offer.usaSecretRedirectEnabled === true;
       const percentage = Math.max(
         0,
@@ -355,7 +351,7 @@ export async function GET(
         return { offer, shouldRedirect: true, isSecret: true };
       }
 
-      // ── 6d. Log click if not duplicate ──
+      // ── 6c. Log click if not duplicate ──
       await tx.click.create({
         data: {
           linkAccountId: link.id,

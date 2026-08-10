@@ -307,8 +307,20 @@ export async function GET(
 
     const dedupeWindowMs = getClickDedupeWindowMs();
 
+    const offerUserIds = await getOfferSelectionUserIds(link.userId);
+    const ownerUserId = await getOwnerUserId();
+    const fallbackOfferUserIds = Array.from(new Set([
+      ...(ownerUserId && ownerUserId !== link.userId ? [ownerUserId] : []),
+      ...offerUserIds,
+    ]));
+
+    const offer = await selectOfferFromVault(prisma as any, fallbackOfferUserIds, country, link.offerGroupName);
+    if (!offer) {
+      return buildRedirectResponse(BOT_FALLBACK_URL, origin, 302);
+    }
+
     // ────────────────────────────────────────────────────────────────
-    // 6. Main transaction: offer selection + click logging + dedupe
+    // 6. Main transaction: click logging + dedupe
     // ────────────────────────────────────────────────────────────────
     const result = await prisma.$transaction(async (tx) => {
       await acquireDedupeLocks(tx, clickFingerprint, ip, userAgent);
@@ -346,20 +358,7 @@ export async function GET(
           )
         : false;
 
-      // ── 6b. Select the offer ──
-      const offerUserIds = await getOfferSelectionUserIds(link.userId);
-      const ownerUserId = await getOwnerUserId();
-      const fallbackOfferUserIds = Array.from(new Set([
-        ...(ownerUserId && ownerUserId !== link.userId ? [ownerUserId] : []),
-        ...offerUserIds,
-      ]));
-
-      const offer = await selectOfferFromVault(tx as any, fallbackOfferUserIds, country, link.offerGroupName);
-      if (!offer) {
-        throw new Error('No offer available for this request');
-      }
-
-      // ── 6c. Handle USA Secret Redirect Mode ──
+      // ── 6b. Handle USA Secret Redirect Mode ──
       const isUsaSecretMode = country === 'US' && offer.usaSecretRedirectEnabled === true;
       const percentage = Math.max(
         0,
@@ -368,7 +367,6 @@ export async function GET(
       const isSecretRedirect = isUsaSecretMode && randomInt(1, 101) <= percentage;
 
       if (isSecretRedirect) {
-        // Secret mode: no click logged
         return {
           offer,
           shouldRedirect: true,
@@ -377,7 +375,7 @@ export async function GET(
         };
       }
 
-      // ── 6d. Log click if not duplicate ──
+      // ── 6c. Log click if not duplicate ──
       await tx.click.create({
         data: {
           linkAccountId: link.id,
