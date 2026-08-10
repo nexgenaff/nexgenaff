@@ -49,19 +49,15 @@ const selectGroupOfferForUser = async (
   let offer = selectRotatingOffer(regionalGroupCandidates)
 
   if (!offer) {
-    const globalGroupCandidates = await tx.offerVault.findMany({
+    const fallbackGroupCandidates = await tx.offerVault.findMany({
       where: {
         userId,
         groupName,
         isActive: true,
-        OR: [
-          { isGlobal: true },
-          { isContentLocker: true },
-        ],
       },
       orderBy: [{ priority: 'desc' }, { createdAt: 'asc' }],
     })
-    offer = selectRotatingOffer(globalGroupCandidates)
+    offer = selectRotatingOffer(fallbackGroupCandidates)
   }
 
   return offer
@@ -97,19 +93,15 @@ export const selectOffer = async (
     offer = selectRotatingOffer(namedGroupCandidates.length ? namedGroupCandidates : directCountryCandidates)
     if (offer) return offer
 
-    const globalCandidates = await tx.offerVault.findMany({
+    const fallbackCandidates = await tx.offerVault.findMany({
       where: {
         userId,
         isActive: true,
-        OR: [
-          { isGlobal: true },
-          { isContentLocker: true },
-        ],
       },
       orderBy: [{ priority: 'desc' }, { createdAt: 'asc' }],
     })
 
-    offer = selectRotatingOffer(globalCandidates)
+    offer = selectRotatingOffer(fallbackCandidates)
     if (offer) return offer
   }
 

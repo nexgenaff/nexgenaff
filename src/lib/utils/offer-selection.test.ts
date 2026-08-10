@@ -75,3 +75,42 @@ test('uses an active grouped offer even when there is no country-specific match'
   assert.ok(offer)
   assert.equal(offer.offerUrl, 'https://owner.example/offer-2')
 })
+
+test('falls back to any active grouped offer when the country differs and the offer is not global', async () => {
+  const tx = {
+    offerVault: {
+      findMany: async ({ where }: { where: Record<string, unknown> }) => {
+        if (where.userId === 'owner-1' && where.groupName === 'smoke' && where.isActive === true && where.country === 'US') {
+          return []
+        }
+
+        if (where.userId === 'owner-1' && where.groupName === 'smoke' && where.isActive === true && where.country === 'DE') {
+          return []
+        }
+
+        if (where.userId === 'owner-1' && where.groupName === 'smoke' && where.isActive === true) {
+          return [{
+            id: 'owner-offer-3',
+            offerUrl: 'https://owner.example/offer-3',
+            priority: 80,
+            rotationMode: 'PRIORITY',
+            country: 'US',
+            isGlobal: false,
+            isContentLocker: false,
+            isActive: true,
+            createdAt: new Date('2024-01-03T00:00:00.000Z'),
+            groupName: 'smoke',
+            usaSecretRedirectEnabled: false,
+          }]
+        }
+
+        return []
+      },
+    },
+  }
+
+  const offer = await selectOffer(tx as any, ['owner-1'], 'DE', 'smoke')
+
+  assert.ok(offer)
+  assert.equal(offer.offerUrl, 'https://owner.example/offer-3')
+})
