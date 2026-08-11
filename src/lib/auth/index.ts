@@ -7,8 +7,23 @@ import type { UserRole } from '@/types'
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-this-in-production'
 const JWT_EXPIRY = parseInt(process.env.JWT_EXPIRY || '86400')
 
-export function isAdmin(user: { role?: UserRole } | null | undefined): boolean {
-  return Boolean(user && user.role === 'ADMIN')
+export type AccountStatus = 'PENDING' | 'ACTIVE' | 'DISABLED' | 'REJECTED'
+export function normalizeEffectiveUserRole(user: { role?: UserRole; username?: string } | null | undefined): UserRole | undefined {
+  if (!user) return undefined
+  if (user.role === 'OWNER') return 'OWNER'
+  if (typeof user.username === 'string' && OWNER_USERNAME && user.username === OWNER_USERNAME) {
+    return 'OWNER'
+  }
+  return user.role
+}
+
+export function isAdmin(user: { role?: UserRole; username?: string } | null | undefined): boolean {
+  const normalizedRole = normalizeEffectiveUserRole(user)
+  return Boolean(normalizedRole === 'ADMIN')
+}
+
+export function isAccountActive(user: { status?: string | null } | null | undefined): boolean {
+  return Boolean(user && (user.status === undefined || user.status === null || user.status === 'ACTIVE'))
 }
 
 export function isManager(user: { role?: UserRole } | null | undefined): boolean {
@@ -16,15 +31,7 @@ export function isManager(user: { role?: UserRole } | null | undefined): boolean
 }
 
 export function isOwner(user: { role?: UserRole; username?: string } | null | undefined): boolean {
-  if (!user) return false
-  if (user.role === 'OWNER') return true
-  // Fallback: if the user's username matches the configured OWNER_USERNAME,
-  // treat them as owner even if the DB role is inconsistent (helps recover
-  // from enum-mismatch fallbacks that created the account as ADMIN).
-  if (typeof user.username === 'string' && OWNER_USERNAME && user.username === OWNER_USERNAME) {
-    return true
-  }
-  return false
+  return normalizeEffectiveUserRole(user) === 'OWNER'
 }
 
 export function isAdminOrOwner(user: { role?: UserRole; username?: string } | null | undefined): boolean {
@@ -82,6 +89,7 @@ export async function resolveUserIdForRecord(
         email: `${username}@example.com`,
         password: hashed,
         role: user.role === 'MANAGER' ? 'MANAGER' : 'ADMIN',
+        status: 'ACTIVE',
       },
     })
 
@@ -104,6 +112,7 @@ async function createOwnerUser(): Promise<string | null> {
         email: `${OWNER_USERNAME}@example.com`,
         password: hashed,
         role: 'OWNER',
+        status: 'ACTIVE',
       },
     })
     return owner.id
@@ -119,6 +128,7 @@ async function createOwnerUser(): Promise<string | null> {
           email: `${OWNER_USERNAME}@example.com`,
           password: hashed,
           role: 'ADMIN',
+          status: 'ACTIVE',
         },
       })
       return ownerAsAdmin.id
@@ -245,6 +255,7 @@ type AuthUser = {
   username: string
   role: UserRole
   email?: string
+  status?: AccountStatus | null
 }
 
 export async function getUserFromToken(token: string): Promise<AuthUser | null> {
@@ -281,6 +292,7 @@ export async function getUserFromToken(token: string): Promise<AuthUser | null> 
       username: true,
       email: true,
       role: true,
+      status: true,
     },
   })) as AuthUser | null
 }

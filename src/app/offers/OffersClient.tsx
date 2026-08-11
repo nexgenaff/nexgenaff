@@ -20,10 +20,6 @@ import {
   Smartphone,
   Award,
   Clock,
-  Search,
-  Filter,
-  Grid,
-  List,
   HeartHandshake,
 } from "lucide-react";
 
@@ -526,42 +522,6 @@ export default function OffersClient() {
           </motion.div>
         </section>
 
-        {/* ===== SEARCH & FILTER ===== */}
-        <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pb-16 md:pb-24">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            viewport={{ once: true }}
-            className="relative rounded-3xl border border-white/10 bg-white/5 backdrop-blur-xl p-6 md:p-8"
-          >
-            <div className="flex flex-col md:flex-row gap-4 md:gap-6">
-              <div className="flex-1 relative">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-                <input
-                  type="text"
-                  placeholder="Search offers by title, category, or geo..."
-                  className="w-full pl-12 pr-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-slate-400 focus:outline-none focus:border-indigo-400/50 transition-colors"
-                />
-              </div>
-              <div className="flex gap-3">
-                <button className="flex items-center gap-2 px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-slate-300 hover:text-white hover:border-indigo-400/50 transition-colors">
-                  <Filter className="w-4 h-4" />
-                  <span className="text-sm">Filter</span>
-                </button>
-                <div className="flex rounded-xl bg-white/5 border border-white/10 overflow-hidden">
-                  <button className="px-4 py-3 bg-white/10 text-white">
-                    <Grid className="w-4 h-4" />
-                  </button>
-                  <button className="px-4 py-3 text-slate-400 hover:text-white transition-colors">
-                    <List className="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
-            </div>
-          </motion.div>
-        </section>
-
         {/* ===== OFFERS GRID ===== */}
         <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pb-16 md:pb-24">
           <div className="flex items-center justify-between mb-8">
@@ -656,7 +616,7 @@ export default function OffersClient() {
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true, margin: "-50px" }}
-            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6"
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 items-stretch"
           >
             {[
               {
@@ -680,13 +640,20 @@ export default function OffersClient() {
                 description: "Dedicated account managers to help you optimize and scale your campaigns.",
               },
             ].map((item, idx) => (
-              <motion.div key={idx} custom={idx} variants={fadeUpVariants}>
-                <GlassCard className="p-6 text-center h-full">
-                  <div className="inline-flex p-3 rounded-xl bg-gradient-to-br from-indigo-500/20 to-purple-500/20 mb-4">
+              <motion.div
+                key={idx}
+                custom={idx}
+                variants={fadeUpVariants}
+                className="h-full"
+              >
+                <GlassCard className="p-6 text-center h-full flex flex-col items-center justify-center">
+                  <div className="inline-flex p-3 rounded-xl bg-gradient-to-br from-indigo-500/20 to-purple-500/20 mb-4 shrink-0">
                     <item.icon className="w-6 h-6 text-indigo-300" />
                   </div>
-                  <h3 className="text-lg font-bold mb-2">{item.title}</h3>
-                  <p className="text-sm text-slate-400">{item.description}</p>
+                  <h3 className="text-lg font-bold mb-2 leading-tight">{item.title}</h3>
+                  <p className="text-sm text-slate-400 leading-relaxed max-w-[22ch] mx-auto">
+                    {item.description}
+                  </p>
                 </GlassCard>
               </motion.div>
             ))}

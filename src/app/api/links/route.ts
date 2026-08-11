@@ -34,6 +34,11 @@ export async function GET(request: Request) {
       include: {
         customDomain: true,
         publicDashboard: true,
+        user: {
+          select: {
+            username: true,
+          },
+        },
       },
       orderBy: { createdAt: 'desc' },
     })
@@ -144,6 +149,11 @@ export async function POST(request: Request) {
       include: {
         customDomain: true,
         publicDashboard: true,
+        user: {
+          select: {
+            username: true,
+          },
+        },
       },
     })
 

@@ -8,14 +8,20 @@ datasource db {
 }
 
 model User {
-  id            String    @id @default(cuid())
-  username      String    @unique
-  email         String    @unique
-  password      String
-  role          UserRole  @default(ADMIN)
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  lastLogin     DateTime?
+  id            String      @id @default(cuid())
+  username         String      @unique
+  email            String      @unique
+  fullName         String?
+  source           String?
+  contractNumber   String?
+  telegramUsername String?
+  bkashNumber      String?
+  password         String
+  role             UserRole    @default(ADMIN)
+  status           UserStatus  @default(PENDING)
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+  lastLogin        DateTime?
   
   linkAccounts  LinkAccount[]
   offerVault    OfferVault[]
@@ -28,6 +34,13 @@ enum UserRole {
   ADMIN
   MANAGER
   OWNER
+}
+
+enum UserStatus {
+  PENDING
+  ACTIVE
+  DISABLED
+  REJECTED
 }
 
 model LinkAccount {

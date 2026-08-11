@@ -49,6 +49,19 @@ export async function POST(request: Request) {
       dbError = true
     }
 
+    if (user && user.role === 'MANAGER' && user.status !== 'ACTIVE') {
+      const message = user.status === 'PENDING'
+        ? 'Your manager account is pending owner approval.'
+        : user.status === 'REJECTED'
+          ? 'Your manager account was rejected by the owner.'
+          : 'Your manager account is disabled.'
+
+      return NextResponse.json(
+        { error: message },
+        { status: 403, headers: getCorsHeaders(origin) }
+      )
+    }
+
     if (!user) {
       if (ADMIN_ENV_USERNAME && ADMIN_ENV_PASSWORD && username === ADMIN_ENV_USERNAME && password === ADMIN_ENV_PASSWORD) {
         if (dbError) {
@@ -68,6 +81,7 @@ export async function POST(request: Request) {
                   email: `${ADMIN_ENV_USERNAME}@example.com`,
                   password: hashed,
                   role: 'ADMIN',
+                  status: 'ACTIVE',
                 },
               })
             } catch (err) {
@@ -103,6 +117,7 @@ export async function POST(request: Request) {
                   email: `${OWNER_ENV_USERNAME}@example.com`,
                   password: hashed,
                   role: 'OWNER',
+                  status: 'ACTIVE',
                 },
               })
             } catch (err) {

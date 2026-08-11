@@ -56,9 +56,27 @@ test('manager redirect prefers the owner offer when the manager has no offers', 
   const managerUserId = 'manager-1'
   const ownerUserId = 'owner-999'
 
-  const tx = {
+  type TxShape = {
     offerVault: {
-      findMany: async ({ where }: { where: { userId: string; country?: string; isActive?: boolean; isGlobal?: boolean } }) => {
+      findMany: (args: { where: { userId: string; country?: string; isActive?: boolean; isGlobal?: boolean } }) => Promise<Array<{
+        id: string
+        offerUrl: string
+        priority: number
+        rotationMode: string
+        country: string
+        isGlobal: boolean
+        isContentLocker: boolean
+        isActive: boolean
+        createdAt: Date
+        groupName: string | null
+        usaSecretRedirectEnabled: boolean
+      }>>
+    }
+  }
+
+  const tx: TxShape = {
+    offerVault: {
+      findMany: async ({ where }) => {
         if (where.userId === managerUserId) return []
         if (where.userId === ownerUserId && where.country === 'US' && where.isActive === true) {
           return [{
@@ -81,7 +99,7 @@ test('manager redirect prefers the owner offer when the manager has no offers', 
   }
 
   const selectOfferForUser = async (
-    tx: typeof tx,
+    tx: TxShape,
     userId: string,
     country: string,
     _linkGroupName: string | null
@@ -98,7 +116,7 @@ test('manager redirect prefers the owner offer when the manager has no offers', 
     return candidates[0] ?? null
   }
 
-  const selectOffer = async (tx: typeof tx, userIds: string[], country: string, linkGroupName: string | null) => {
+  const selectOffer = async (tx: TxShape, userIds: string[], country: string, linkGroupName: string | null) => {
     for (const userId of userIds) {
       const offer = await selectOfferForUser(tx, userId, country, linkGroupName)
       if (offer) return offer

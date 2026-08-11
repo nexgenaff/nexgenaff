@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef, useCallback } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
@@ -218,11 +218,16 @@ export default function LoginClient() {
   useEffect(() => {
     const errorParam = searchParams.get("error");
     const successParam = searchParams.get("success");
+    const approvalPending = searchParams.get("approval_pending") === "1";
 
     if (errorParam === "google_auth_failed") {
       setError("Google sign-in could not be completed. Please try again or use your username and password.");
     } else if (errorParam === "missing_code") {
       setError("Google returned an incomplete sign-in response. Please try again.");
+    } else if (errorParam === "google_account_not_found") {
+      setError("No approved account exists for that Google email. Please sign up first or use another sign-in method.");
+    } else if (approvalPending) {
+      setError("Your account is pending owner approval. You can log in only after approval.");
     } else {
       setError("");
     }

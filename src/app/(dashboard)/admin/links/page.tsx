@@ -48,6 +48,7 @@ interface LinkAccount {
   customDomain: { domain: string } | null;
   customDomainId?: string | null;
   publicDashboard: { publicId: string } | null;
+  user?: { username: string } | null;
 }
 
 interface DomainOption {
@@ -387,6 +388,7 @@ export default function LinksPage() {
   };
 
   const isManager = userRole === 'MANAGER'
+  const isOwner = userRole === 'OWNER'
 
   const handleSaveEdit = async () => {
     if (!editingLinkId) return;
@@ -1186,6 +1188,12 @@ export default function LinksPage() {
                       /{link.slug}
                     </span>
                   </div>
+
+                  {isOwner && link.user?.username && (
+                    <div className="mt-1 text-[10px] text-slate-400">
+                      Created by <span className="font-semibold text-slate-100">{link.user.username}</span>
+                    </div>
+                  )}
 
                   <div className="mt-1 flex flex-wrap items-center gap-1">
                     <div className="flex items-center gap-1.5">

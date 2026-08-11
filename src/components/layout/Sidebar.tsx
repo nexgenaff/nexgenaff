@@ -17,6 +17,7 @@ import {
   ChevronLeft,
   ChevronRight,
   BarChart3,
+  ShieldCheck,
 } from 'lucide-react'
 
 export default function Sidebar() {
@@ -65,6 +66,9 @@ export default function Sidebar() {
   }, [])
 
   const menuItems = [
+    ...(userRole === 'OWNER'
+      ? [{ href: '/owner/managers', label: 'Manager Approvals', icon: ShieldCheck }]
+      : []),
     { href: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { href: '/admin/links/create', label: 'Create Link', icon: Plus },
     { href: '/admin/links', label: 'All Links', icon: Link2 },

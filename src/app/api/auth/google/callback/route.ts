@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { createGoogleAuthResponse, exchangeGoogleCode, getGoogleUserInfo, normalizeGoogleRedirectPath, upsertGoogleUser } from '@/lib/auth/google'
+import { createGoogleAuthResponse, exchangeGoogleCode, getGoogleUserInfo, findGoogleUserByEmail, normalizeGoogleRedirectPath } from '@/lib/auth/google'
 import { getGoogleOAuthConfig } from '@/lib/auth/google'
 
 export async function GET(request: Request) {
@@ -41,7 +41,16 @@ export async function GET(request: Request) {
     }
 
     const googleUser = await getGoogleUserInfo(accessToken)
-    const user = await upsertGoogleUser(googleUser.email || '', googleUser.name)
+    const user = await findGoogleUserByEmail(googleUser.email || '')
+
+    if (!user) {
+      return NextResponse.redirect(new URL('/login?error=google_account_not_found', request.url))
+    }
+
+    if (user.status !== 'ACTIVE') {
+      return NextResponse.redirect(new URL('/login?approval_pending=1', request.url))
+    }
+
     const authResponse = await createGoogleAuthResponse(user)
 
     const response = NextResponse.redirect(new URL(`/login?success=google-authenticated&redirect=${encodeURIComponent(redirectPath)}`, request.url))

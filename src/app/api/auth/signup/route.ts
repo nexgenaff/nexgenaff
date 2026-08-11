@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server'
 import bcrypt from 'bcryptjs'
 import { prisma } from '@/lib/db/prisma'
-import { generateToken } from '@/lib/auth'
 import { getCorsHeaders } from '@/config/cors'
 
 export async function POST(request: Request) {
@@ -9,15 +8,19 @@ export async function POST(request: Request) {
 
   try {
     const body = await request.json()
+    const fullName = typeof body?.fullName === 'string' ? body.fullName.trim() : ''
+    const contractNumber = typeof body?.contractNumber === 'string' ? body.contractNumber.trim() : ''
+    const telegramUsername = typeof body?.telegramUsername === 'string' ? body.telegramUsername.trim() : ''
+    const bkashNumber = typeof body?.bkashNumber === 'string' ? body.bkashNumber.trim() : ''
     const username = typeof body?.username === 'string' ? body.username.trim() : ''
     const email = typeof body?.email === 'string' ? body.email.trim() : ''
     const password = typeof body?.password === 'string' ? body.password.trim() : ''
     const captchaPrompt = typeof body?.captchaPrompt === 'string' ? body.captchaPrompt.trim() : ''
     const captchaAnswer = typeof body?.captchaAnswer === 'number' ? body.captchaAnswer : Number(body?.captchaAnswer)
 
-    if (!username || !email || !password) {
+    if (!fullName || !contractNumber || !telegramUsername || !bkashNumber || !username || !email || !password) {
       return NextResponse.json(
-        { error: 'Username, email, and password are required' },
+        { error: 'All fields are required for manager signup' },
         { status: 400, headers: getCorsHeaders(origin) }
       )
     }
@@ -62,33 +65,29 @@ export async function POST(request: Request) {
       data: {
         username,
         email,
+        fullName,
+        contractNumber,
+        telegramUsername,
+        bkashNumber,
         password: hashedPassword,
         role: 'MANAGER',
+        status: 'PENDING',
       },
     })
 
-    const token = generateToken(user.id)
-    const response = NextResponse.json(
+    return NextResponse.json(
       {
         success: true,
+        requiresApproval: true,
         user: {
           id: user.id,
           username: user.username,
           role: user.role,
+          status: user.status,
         },
       },
       { headers: getCorsHeaders(origin) }
     )
-
-    response.cookies.set('auth-token', token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 60 * 60 * 24,
-      path: '/',
-    })
-
-    return response
   } catch (error) {
     console.error('Signup error:', error)
     return NextResponse.json(

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { getUserFromToken, getTokenFromCookie } from '@/lib/auth'
+import { getUserFromToken, getTokenFromCookie, normalizeEffectiveUserRole } from '@/lib/auth'
 import { getCorsHeaders } from '@/config/cors'
 
 export async function GET(request: Request) {
@@ -24,11 +24,21 @@ export async function GET(request: Request) {
       )
     }
 
+    if (user.role === 'MANAGER' && user.status !== 'ACTIVE') {
+      return NextResponse.json(
+        { error: 'Account pending approval' },
+        { status: 403, headers: getCorsHeaders(origin) }
+      )
+    }
+
+    const effectiveRole = normalizeEffectiveUserRole(user)
+
     return NextResponse.json({
       id: user.id,
       username: user.username,
-      role: user.role,
+      role: effectiveRole,
       email: user.email,
+      status: user.status,
     }, { headers: getCorsHeaders(origin) })
   } catch (error) {
     console.error('Auth error:', error)

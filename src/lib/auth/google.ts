@@ -81,42 +81,13 @@ export async function getGoogleUserInfo(accessToken: string) {
   return response.json() as Promise<{ email?: string; name?: string }>
 }
 
-export async function upsertGoogleUser(email: string, name?: string | null) {
+export async function findGoogleUserByEmail(email: string) {
   const normalizedEmail = email.trim().toLowerCase()
-  const baseUsername = buildGoogleUsername(normalizedEmail, name?.trim() || 'google-user')
+  if (!normalizedEmail) return null
 
-  const existingByEmail = await prisma.user.findUnique({
+  return prisma.user.findUnique({
     where: { email: normalizedEmail },
-    select: { id: true, username: true, email: true, role: true },
-  })
-
-  if (existingByEmail) {
-    return existingByEmail
-  }
-
-  let username = baseUsername
-  let suffix = 1
-  while (true) {
-    const existingByUsername = await prisma.user.findUnique({
-      where: { username },
-      select: { id: true },
-    })
-
-    if (!existingByUsername) {
-      break
-    }
-
-    username = `${baseUsername}${suffix}`
-    suffix += 1
-  }
-
-  return prisma.user.create({
-    data: {
-      username,
-      email: normalizedEmail,
-      password: '__google_oauth__',
-      role: 'MANAGER',
-    },
+    select: { id: true, username: true, email: true, role: true, status: true },
   })
 }
 

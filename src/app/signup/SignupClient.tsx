@@ -1,46 +1,67 @@
-"use client"
+"use client" // Client Component – relies on browser APIs, hooks and interactivity
 
 import { useEffect, useState, useRef, useCallback } from "react"
-import { useRouter, useSearchParams } from "next/navigation"
+import { useRouter } from "next/navigation"
 import Link from "next/link"
 import Image from "next/image"
-import { ArrowLeft, ArrowRight, Lock, User, Mail, Rocket, AlertCircle, CheckCircle2 } from "lucide-react"
+import {
+  ArrowLeft,
+  ArrowRight,
+  Lock,
+  User,
+  Mail,
+  PhoneCall,
+  CreditCard,
+  Send,
+  Rocket,
+  AlertCircle,
+  CheckCircle2,
+  RefreshCw,
+  Eye,
+  EyeOff,
+} from "lucide-react"
 import { motion } from "framer-motion"
-
-// Mobile‑optimised particle count (lower on small screens)
-const BALL_NUM = typeof window !== 'undefined' && window.innerWidth < 768 ? 20 : 35
-
-const GOOGLE_BUTTON_CLASS = "group flex w-full items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm font-semibold text-white transition-all duration-300 hover:border-indigo-400/40 hover:bg-white/10 hover:shadow-lg hover:shadow-indigo-500/20"
 
 export default function SignupClient() {
   const router = useRouter()
-  const searchParams = useSearchParams()
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const animationRef = useRef<number>()
+  const [fullName, setFullName] = useState("")
+  const [contractNumber, setContractNumber] = useState("")
+  const [telegramUsername, setTelegramUsername] = useState("")
+  const [bkashNumber, setBkashNumber] = useState("") // renamed back to bkashNumber
   const [username, setUsername] = useState("")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+  const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
-  const [googleLoading, setGoogleLoading] = useState(false)
   const [captchaAnswer, setCaptchaAnswer] = useState("")
   const [captchaPrompt, setCaptchaPrompt] = useState("3 + 4")
   const [captchaValue, setCaptchaValue] = useState(7)
   const [captchaError, setCaptchaError] = useState("")
   const [error, setError] = useState("")
   const [success, setSuccess] = useState("")
+  const [bkashError, setBkashError] = useState("")
+  const [contractError, setContractError] = useState("")
+  const [isMobile, setIsMobile] = useState(false)
 
-  // ─── OPTIMISED PARTICLE NETWORK ───
+  // Mobile detection
+  useEffect(() => {
+    setIsMobile(typeof window !== "undefined" && window.innerWidth < 768)
+  }, [])
+
+  const BALL_NUM = isMobile ? 20 : 35
+
+  // ─── OPTIMISED PARTICLE NETWORK (unchanged) ───
   useEffect(() => {
     const canvas = canvasRef.current
     if (!canvas) return
-    const ctx = canvas.getContext('2d')!
-    const dpr = Math.min(window.devicePixelRatio || 1, 2) // cap at 2x for performance
+    const ctx = canvas.getContext("2d")!
+    const dpr = Math.min(window.devicePixelRatio || 1, 2)
 
     let width: number, height: number
     let balls: any[] = []
-    let frameCount = 0
 
-    // Throttle to ~30 FPS on mobile
     const TARGET_FPS = 30
     const FRAME_INTERVAL = 1000 / TARGET_FPS
     let lastFrameTime = 0
@@ -53,7 +74,6 @@ export default function SignupClient() {
     const ball_color = { r: 0, g: 255, b: 100 }
     const line_color = { r: 255, g: 255, b: 255 }
 
-    // Reusable random helpers (created once)
     const randomNumFrom = (min: number, max: number) => Math.random() * (max - min) + min
     const randomSidePos = (length: number) => Math.ceil(Math.random() * length)
     const randomArrayItem = (arr: any[]) => arr[Math.floor(Math.random() * arr.length)]
@@ -84,7 +104,6 @@ export default function SignupClient() {
     }
 
     const initCanvas = () => {
-      // Use logical size, but scale canvas by dpr (capped)
       const rect = canvas.getBoundingClientRect()
       width = rect.width
       height = rect.height
@@ -119,7 +138,6 @@ export default function SignupClient() {
     const renderBalls = () => {
       for (let i = 0; i < balls.length; i++) {
         const b = balls[i]
-        // Glow – reduce size on mobile
         const glowRadius = R * (width < 768 ? 2.5 : 4)
         const gradient = ctx.createRadialGradient(b.x, b.y, 0, b.x, b.y, glowRadius)
         gradient.addColorStop(0, `rgba(${ball_color.r},${ball_color.g},${ball_color.b},${b.alpha})`)
@@ -130,7 +148,6 @@ export default function SignupClient() {
         ctx.closePath()
         ctx.fill()
 
-        // Core dot – skip shadow on mobile
         ctx.fillStyle = `rgba(${ball_color.r},${ball_color.g},${ball_color.b},${b.alpha})`
         if (width >= 768) {
           ctx.shadowColor = `rgba(${ball_color.r},${ball_color.g},${ball_color.b},${b.alpha * 0.5})`
@@ -180,7 +197,6 @@ export default function SignupClient() {
     }
 
     const render = (timestamp: number) => {
-      // Frame rate throttling
       if (timestamp - lastFrameTime < FRAME_INTERVAL) {
         animationRef.current = requestAnimationFrame(render)
         return
@@ -194,33 +210,28 @@ export default function SignupClient() {
       animationRef.current = requestAnimationFrame(render)
     }
 
-    // ─── INIT ───
     initCanvas()
     initBalls(BALL_NUM)
     animationRef.current = requestAnimationFrame(render)
 
-    // ─── RESIZE (throttled) ───
     let resizeTimeout: number
     const handleResize = () => {
       clearTimeout(resizeTimeout)
       resizeTimeout = window.setTimeout(() => {
         initCanvas()
-        // keep ball positions relative? we re-init for simplicity (performance)
         initBalls(balls.length)
       }, 200)
     }
     window.addEventListener("resize", handleResize)
 
-    // ─── CLEANUP ───
     return () => {
       if (animationRef.current) cancelAnimationFrame(animationRef.current)
       window.removeEventListener("resize", handleResize)
       clearTimeout(resizeTimeout)
-      // Clear canvas to free memory
       ctx.clearRect(0, 0, width, height)
       balls = []
     }
-  }, [])
+  }, [BALL_NUM])
 
   const generateCaptcha = useCallback(() => {
     const first = Math.floor(Math.random() * 9) + 1
@@ -236,34 +247,33 @@ export default function SignupClient() {
   }, [generateCaptcha])
 
   useEffect(() => {
-    const errorParam = searchParams.get("error")
-    if (errorParam === "google_auth_failed") {
-      setError("Google sign-up could not be completed. Please try again or use the form below.")
-    } else if (errorParam === "missing_code") {
-      setError("Google returned an incomplete sign-up response. Please try again.")
-    } else if (errorParam === "google_not_configured") {
-      setError("Google sign-up is not configured yet. Add your Google OAuth credentials to continue.")
-    } else {
-      setError("")
-    }
-
-    const successParam = searchParams.get("success")
-    if (successParam === "google-authenticated") {
-      setSuccess("Google sign-up was successful. Redirecting you to your dashboard...")
-      const redirectPath = searchParams.get("redirect") || "/admin/dashboard"
-      const timer = window.setTimeout(() => {
-        router.replace(redirectPath)
-      }, 1000)
-      return () => window.clearTimeout(timer)
-    }
-
+    setError("")
     setSuccess("")
-  }, [router, searchParams])
+    setBkashError("")
+    setContractError("")
+  }, [router])
+
+  // Validate 11-digit fields
+  const validateDigits = (value: string, fieldName: string) => {
+    if (!/^\d{11}$/.test(value)) {
+      return `${fieldName} must be exactly 11 digits`
+    }
+    return ""
+  }
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault()
     setError("")
     setCaptchaError("")
+    setBkashError("")
+    setContractError("")
+
+    const bkashErr = validateDigits(bkashNumber, "bKash number")
+    const contractErr = validateDigits(contractNumber, "Contract number")
+
+    if (bkashErr) setBkashError(bkashErr)
+    if (contractErr) setContractError(contractErr)
+    if (bkashErr || contractErr) return
 
     const answer = Number(captchaAnswer)
     if (!Number.isInteger(answer) || answer !== captchaValue) {
@@ -278,13 +288,33 @@ export default function SignupClient() {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, email, password, captchaPrompt, captchaAnswer: answer }),
+        body: JSON.stringify({
+          fullName,
+          contractNumber,
+          telegramUsername,
+          bkashNumber,
+          username,
+          email,
+          password,
+          captchaPrompt,
+          captchaAnswer: answer,
+        }),
       })
 
       const data = await response.json()
 
       if (!response.ok) {
         throw new Error(data.error || "Signup failed")
+      }
+
+      if (data?.requiresApproval) {
+        setSuccess(
+          "Account created. Your manager account is pending owner approval. You will be redirected to sign in after approval."
+        )
+        window.setTimeout(() => {
+          router.push("/login?approval_pending=1")
+        }, 1200)
+        return
       }
 
       setSuccess("Account created successfully. Redirecting you to your dashboard...")
@@ -299,16 +329,29 @@ export default function SignupClient() {
     }
   }
 
+  // Handlers – strip non‑digit and clear errors
+  const handleBkashChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.replace(/\D/g, "")
+    setBkashNumber(value)
+    if (bkashError) setBkashError("")
+  }
+
+  const handleContractChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.replace(/\D/g, "")
+    setContractNumber(value)
+    if (contractError) setContractError("")
+  }
+
   return (
     <div className="relative min-h-screen w-full bg-[#05070b] text-white overflow-hidden">
-      {/* ─── CANVAS BACKGROUND ─── */}
+      {/* Canvas background – particle network */}
       <canvas
         ref={canvasRef}
         className="fixed top-0 left-0 w-full h-full pointer-events-none z-0"
-        style={{ opacity: 0.8, willChange: 'transform' }}
+        style={{ opacity: 0.8, willChange: "transform" }}
       />
 
-      {/* ─── GRADIENT OVERLAYS ─── */}
+      {/* Animated gradient overlays */}
       <div className="fixed inset-0 z-0 pointer-events-none">
         <div className="absolute inset-0 bg-gradient-to-br from-[#05070b]/80 via-[#0d1724]/60 to-[#101827]/80" />
         <motion.div
@@ -329,6 +372,7 @@ export default function SignupClient() {
       </div>
 
       <div className="relative z-10 min-h-screen flex flex-col items-center justify-center px-4 py-8">
+        {/* Back to home */}
         <motion.div
           className="w-full max-w-sm mb-6"
           initial={{ opacity: 0, y: 20 }}
@@ -344,6 +388,7 @@ export default function SignupClient() {
           </Link>
         </motion.div>
 
+        {/* Glass card */}
         <motion.div
           initial={{ opacity: 0, scale: 0.97, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -351,21 +396,18 @@ export default function SignupClient() {
           className="w-full max-w-[440px] rounded-3xl bg-white/5 backdrop-blur-xl p-5 shadow-2xl shadow-indigo-500/5 hover:shadow-indigo-500/10 transition-shadow duration-500 border border-white/5"
         >
           <div className="space-y-4">
-            <div className="flex flex-col items-center gap-2">
-              <div className="flex items-center justify-center">
-                <Image
-                  src="/afficixo.png"
-                  alt="Afficixo logo"
-                  width={128}
-                  height={128}
-                  className="object-cover"
-                  priority
-                />
-              </div>
-              <h1 className="mt-4 text-xl font-semibold text-white">Join Afficixo</h1>
-              <p className="mt-1 text-sm text-slate-400">Create your Afficixo publisher account and access CPC affiliate offers, tracking tools, campaign management, and traffic monetization features.</p>
+            <div className="flex items-center justify-center">
+              <Image
+                src="/afficixo.png"
+                alt="Afficixo logo"
+                width={72}
+                height={72}
+                className="object-cover"
+                priority
+              />
             </div>
 
+            {/* Error message */}
             {error && (
               <div className="flex items-start gap-2 rounded-xl border border-red-500/20 bg-red-500/10 p-3 text-sm text-red-300 backdrop-blur">
                 <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0" />
@@ -373,6 +415,7 @@ export default function SignupClient() {
               </div>
             )}
 
+            {/* Success message */}
             {success && (
               <div className="flex items-start gap-2 rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-3 text-sm text-emerald-300 backdrop-blur">
                 <CheckCircle2 className="mt-0.5 h-4 w-4 flex-shrink-0" />
@@ -380,41 +423,117 @@ export default function SignupClient() {
               </div>
             )}
 
-            <div className="flex items-center gap-2 text-xs uppercase tracking-[0.3em] text-slate-500">
-              <div className="h-px flex-1 bg-white/10" />
-              <span>or</span>
-              <div className="h-px flex-1 bg-white/10" />
-            </div>
-
-            <button
-              type="button"
-              disabled={googleLoading || loading}
-              onClick={() => {
-                setGoogleLoading(true)
-                window.location.assign('/api/auth/google/start?redirect=/admin/dashboard')
-              }}
-              className={`${GOOGLE_BUTTON_CLASS} ${googleLoading ? 'cursor-wait opacity-80' : ''}`}
-            >
-              {googleLoading ? (
-                <span className="h-4 w-4 rounded-full border-2 border-white border-t-transparent animate-spin" />
-              ) : (
-                <svg className="h-5 w-5" viewBox="0 0 24 24" aria-hidden="true">
-                  <path fill="#4285F4" d="M21.6 12.23c0-.78-.07-1.53-.2-2.25H12v4.26h5.38a4.6 4.6 0 0 1-2 3.02v2.5h3.24c1.9-1.75 2.98-4.33 2.98-7.53Z" />
-                  <path fill="#34A853" d="M12 22c2.7 0 4.96-.89 6.62-2.41l-3.24-2.5c-.9.6-2.05.96-3.38.96-2.6 0-4.8-1.75-5.59-4.11H2.9v2.58A10 10 0 0 0 12 22Z" />
-                  <path fill="#FBBC05" d="M6.41 13.94A6.02 6.02 0 0 1 6.41 10.06V7.48H2.9A10 10 0 0 0 2 12c0 1.62.39 3.15 1.09 4.52l3.32-2.58Z" />
-                  <path fill="#EA4335" d="M12 6.04c1.47 0 2.79.5 3.83 1.49l2.87-2.87A9.96 9.96 0 0 0 12 2A10 10 0 0 0 2.9 7.48l3.51 2.58c.79-2.36 2.99-4.11 5.59-4.11Z" />
-                </svg>
-              )}
-              <span>{googleLoading ? "Redirecting to Google..." : "Join with Google"}</span>
-            </button>
+              <p className="text-sm text-slate-400">Complete the secure registration form below. Your manager account will be reviewed and approved by the owner.</p>
 
             <form onSubmit={handleSubmit} className="space-y-2.5">
+              {/* Full name */}
               <div>
-                <label className="sr-only">Username</label>
+                <label className="sr-only" htmlFor="fullName">Full name</label>
                 <div className="relative group">
                   <User className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                   <input
+                    id="fullName"
                     type="text"
+                    autoComplete="name"
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 pl-10 text-white placeholder-slate-500 focus:border-indigo-400/50 focus:outline-none focus:ring-2 focus:ring-indigo-400/30 transition-all duration-300 hover:border-white/20"
+                    placeholder="Full name"
+                    required
+                    disabled={loading}
+                  />
+                </div>
+              </div>
+
+              {/* Email */}
+              <div>
+                <label className="sr-only" htmlFor="email">Email</label>
+                <div className="relative group">
+                  <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                  <input
+                    id="email"
+                    type="email"
+                    autoComplete="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 pl-10 text-white placeholder-slate-500 focus:border-indigo-400/50 focus:outline-none focus:ring-2 focus:ring-indigo-400/30 transition-all duration-300 hover:border-white/20"
+                    placeholder="Email address"
+                    required
+                    disabled={loading}
+                  />
+                </div>
+              </div>
+
+              {/* Contract number – with call icon and 11‑digit validation */}
+              <div>
+                <label className="sr-only" htmlFor="contractNumber">Contract number (11 digits)</label>
+                <div className="relative group">
+                  <PhoneCall className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                  <input
+                    id="contractNumber"
+                    type="text"
+                    inputMode="numeric"
+                    value={contractNumber}
+                    onChange={handleContractChange}
+                    className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 pl-10 text-white placeholder-slate-500 focus:border-indigo-400/50 focus:outline-none focus:ring-2 focus:ring-indigo-400/30 transition-all duration-300 hover:border-white/20"
+                    placeholder="11-digit contract number"
+                    maxLength={11}
+                    required
+                    disabled={loading}
+                  />
+                </div>
+                {contractError && <p className="mt-1 text-xs text-rose-400">{contractError}</p>}
+              </div>
+
+              {/* Telegram username */}
+              <div>
+                <label className="sr-only" htmlFor="telegram">Telegram username</label>
+                <div className="relative group">
+                  <Send className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                  <input
+                    id="telegram"
+                    type="text"
+                    value={telegramUsername}
+                    onChange={(e) => setTelegramUsername(e.target.value)}
+                    className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 pl-10 text-white placeholder-slate-500 focus:border-indigo-400/50 focus:outline-none focus:ring-2 focus:ring-indigo-400/30 transition-all duration-300 hover:border-white/20"
+                    placeholder="Telegram username"
+                    required
+                    disabled={loading}
+                  />
+                </div>
+              </div>
+
+              {/* bKash number – with payment icon and 11‑digit validation, improved text */}
+              <div>
+                <label className="sr-only" htmlFor="bkash">bKash number (11 digits)</label>
+                <div className="relative group">
+                  <CreditCard className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                  <input
+                    id="bkash"
+                    type="tel"
+                    inputMode="numeric"
+                    autoComplete="off"
+                    value={bkashNumber}
+                    onChange={handleBkashChange}
+                    className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 pl-10 text-white placeholder-slate-500 focus:border-indigo-400/50 focus:outline-none focus:ring-2 focus:ring-indigo-400/30 transition-all duration-300 hover:border-white/20"
+                    placeholder="bKash account number (11 digits)"
+                    maxLength={11}
+                    required
+                    disabled={loading}
+                  />
+                </div>
+                {bkashError && <p className="mt-1 text-xs text-rose-400">{bkashError}</p>}
+              </div>
+
+              {/* Username */}
+              <div>
+                <label className="sr-only" htmlFor="username">Username</label>
+                <div className="relative group">
+                  <User className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                  <input
+                    id="username"
+                    type="text"
+                    autoComplete="username"
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
                     className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 pl-10 text-white placeholder-slate-500 focus:border-indigo-400/50 focus:outline-none focus:ring-2 focus:ring-indigo-400/30 transition-all duration-300 hover:border-white/20"
@@ -425,38 +544,35 @@ export default function SignupClient() {
                 </div>
               </div>
 
+              {/* Password with show/hide toggle */}
               <div>
-                <label className="sr-only">Email</label>
-                <div className="relative group">
-                  <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 pl-10 text-white placeholder-slate-500 focus:border-indigo-400/50 focus:outline-none focus:ring-2 focus:ring-indigo-400/30 transition-all duration-300 hover:border-white/20"
-                    placeholder="Enter your Email"
-                    required
-                    disabled={loading}
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="sr-only">Password</label>
+                <label className="sr-only" htmlFor="password">Password</label>
                 <div className="relative group">
                   <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                   <input
-                    type="password"
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    autoComplete="new-password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 pl-10 text-white placeholder-slate-500 focus:border-indigo-400/50 focus:outline-none focus:ring-2 focus:ring-indigo-400/30 transition-all duration-300 hover:border-white/20"
+                    className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 pl-10 pr-10 text-white placeholder-slate-500 focus:border-indigo-400/50 focus:outline-none focus:ring-2 focus:ring-indigo-400/30 transition-all duration-300 hover:border-white/20"
                     placeholder="Create a strong password"
                     required
                     disabled={loading}
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition-colors"
+                    tabIndex={-1}
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                  >
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
                 </div>
               </div>
 
+              {/* Captcha */}
               <div className="mb-3 flex items-center justify-between gap-2 rounded-xl bg-black/20 px-3 py-1.5 text-sm text-white w-full">
                 <div className="flex items-center gap-1.5">
                   <span className="font-semibold text-indigo-200">{captchaPrompt}</span>
@@ -473,18 +589,20 @@ export default function SignupClient() {
                 <button
                   type="button"
                   onClick={generateCaptcha}
-                  className="ml-2 inline-flex h-8 w-8 items-center justify-center rounded-lg bg-white/10 text-sm text-indigo-300 transition-colors duration-200 hover:bg-white/15 hover:text-indigo-200"
+                  className="ml-2 inline-flex h-8 w-8 items-center justify-center rounded-lg bg-white/10 text-indigo-300 transition-colors duration-200 hover:bg-white/15 hover:text-indigo-200"
                   disabled={loading}
+                  aria-label="Refresh captcha"
                 >
-                  ⟳
+                  <RefreshCw className="h-4 w-4" />
                 </button>
               </div>
-              {captchaError ? <div className="text-sm text-rose-300">{captchaError}</div> : null}
+              {captchaError && <div className="text-sm text-rose-300">{captchaError}</div>}
 
+              {/* Submit button */}
               <button
                 type="submit"
                 disabled={loading}
-                className="relative w-full overflow-hidden rounded-xl bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 px-6 py-3.5 text-sm font-semibold text-white transition-all duration-300 hover:shadow-2xl hover:shadow-purple-500/40 disabled:opacity-60 disabled:cursor-not-allowed"
+                className="relative w-full overflow-hidden rounded-xl bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 px-6 py-3.5 text-sm font-semibold text-white transition-all duration-300 hover:from-indigo-600 hover:via-purple-600 hover:to-pink-600 hover:shadow-2xl hover:shadow-purple-500/40 disabled:opacity-60 disabled:cursor-not-allowed group"
               >
                 <span className="relative z-10 flex items-center justify-center gap-2">
                   {loading ? (
@@ -493,28 +611,27 @@ export default function SignupClient() {
                     <>
                       <Rocket className="h-4 w-4" />
                       Sign up
-                      <ArrowRight className="h-4 w-4" />
+                      <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" />
                     </>
                   )}
                 </span>
-                <motion.div
-                  className="absolute inset-0 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ duration: 0.3 }}
-                />
               </button>
             </form>
 
+            {/* Sign in link */}
             <div className="border-t border-white/10 pt-5 text-center text-sm text-slate-400">
-              Already have an account?{' '}
-              <Link href="/login" className="font-medium text-indigo-300 hover:text-indigo-200 underline underline-offset-2">
+              Already have an account?{" "}
+              <Link
+                href="/login"
+                className="font-medium text-indigo-300 hover:text-indigo-200 underline underline-offset-2"
+              >
                 Sign in
               </Link>
             </div>
           </div>
         </motion.div>
 
+        {/* Footer */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
