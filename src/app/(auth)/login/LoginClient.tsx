@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
@@ -8,12 +8,16 @@ import { motion } from "framer-motion";
 import { markManagerTelegramPopupPending } from "@/lib/utils/telegram-popup";
 import { User, Lock, ArrowLeft, AlertCircle, Rocket, ArrowRight, CheckCircle2 } from "lucide-react";
 
+// Mobile‑optimised particle count (lower on small screens)
+const BALL_NUM = typeof window !== 'undefined' && window.innerWidth < 768 ? 20 : 35;
+
 const GOOGLE_BUTTON_CLASS = "group flex w-full items-center justify-center gap-3 rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-semibold text-white transition-all duration-300 hover:border-indigo-400/40 hover:bg-white/10 hover:shadow-lg hover:shadow-indigo-500/20";
 
 export default function LoginClient() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const animationRef = useRef<number>();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -21,120 +25,77 @@ export default function LoginClient() {
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
 
-  // ─── PARTICLE NETWORK ANIMATION ───
+  // ─── OPTIMISED PARTICLE NETWORK ───
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-
     const ctx = canvas.getContext("2d")!;
+    const dpr = Math.min(window.devicePixelRatio || 1, 2); // cap at 2x for performance
 
-    let can_w: number, can_h: number;
-    const BALL_NUM = 35;
+    let width: number, height: number;
+    let balls: any[] = [];
+
+    // Throttle to ~30 FPS on mobile
+    const TARGET_FPS = 30;
+    const FRAME_INTERVAL = 1000 / TARGET_FPS;
+    let lastFrameTime = 0;
+
     const R = 2.5;
     const dis_limit = 280;
     const link_line_width = 1.0;
     const alpha_f = 0.025;
 
-    // Dark theme colors
     const ball_color = { r: 0, g: 255, b: 100 };
     const line_color = { r: 255, g: 255, b: 255 };
 
-    let balls: any[] = [];
-    let animationId: number;
+    // Reusable random helpers (created once)
+    const randomNumFrom = (min: number, max: number) => Math.random() * (max - min) + min;
+    const randomSidePos = (length: number) => Math.ceil(Math.random() * length);
+    const randomArrayItem = (arr: any[]) => arr[Math.floor(Math.random() * arr.length)];
 
-    function randomNumFrom(min: number, max: number) {
-      return Math.random() * (max - min) + min;
-    }
-
-    function randomSidePos(length: number) {
-      return Math.ceil(Math.random() * length);
-    }
-
-    function randomArrayItem(arr: any[]) {
-      return arr[Math.floor(Math.random() * arr.length)];
-    }
-
-    function getRandomSpeed(pos: string) {
-      const min = -0.8,
-        max = 0.8;
+    const getRandomSpeed = (pos: string) => {
+      const min = -0.8, max = 0.8;
       switch (pos) {
-        case "top":
-          return [randomNumFrom(min, max), randomNumFrom(0.2, max)];
-        case "right":
-          return [randomNumFrom(min, -0.2), randomNumFrom(min, max)];
-        case "bottom":
-          return [randomNumFrom(min, max), randomNumFrom(min, -0.2)];
-        case "left":
-          return [randomNumFrom(0.2, max), randomNumFrom(min, max)];
-        default:
-          return [0, 0];
+        case "top":    return [randomNumFrom(min, max), randomNumFrom(0.2, max)];
+        case "right":  return [randomNumFrom(min, -0.2), randomNumFrom(min, max)];
+        case "bottom": return [randomNumFrom(min, max), randomNumFrom(min, -0.2)];
+        case "left":   return [randomNumFrom(0.2, max), randomNumFrom(min, max)];
+        default:       return [0, 0];
       }
-    }
+    };
 
-    function getRandomBall() {
+    const getRandomBall = () => {
       const pos = randomArrayItem(["top", "right", "bottom", "left"]);
       switch (pos) {
         case "top":
-          return {
-            x: randomSidePos(can_w),
-            y: -R,
-            vx: getRandomSpeed("top")[0],
-            vy: getRandomSpeed("top")[1],
-            r: R,
-            alpha: 1,
-            phase: randomNumFrom(0, 10),
-            glow: randomNumFrom(0.5, 1),
-          };
+          return { x: randomSidePos(width), y: -R, vx: getRandomSpeed("top")[0], vy: getRandomSpeed("top")[1], r: R, alpha: 1, phase: randomNumFrom(0, 10), glow: randomNumFrom(0.5, 1) };
         case "right":
-          return {
-            x: can_w + R,
-            y: randomSidePos(can_h),
-            vx: getRandomSpeed("right")[0],
-            vy: getRandomSpeed("right")[1],
-            r: R,
-            alpha: 1,
-            phase: randomNumFrom(0, 10),
-            glow: randomNumFrom(0.5, 1),
-          };
+          return { x: width + R, y: randomSidePos(height), vx: getRandomSpeed("right")[0], vy: getRandomSpeed("right")[1], r: R, alpha: 1, phase: randomNumFrom(0, 10), glow: randomNumFrom(0.5, 1) };
         case "bottom":
-          return {
-            x: randomSidePos(can_w),
-            y: can_h + R,
-            vx: getRandomSpeed("bottom")[0],
-            vy: getRandomSpeed("bottom")[1],
-            r: R,
-            alpha: 1,
-            phase: randomNumFrom(0, 10),
-            glow: randomNumFrom(0.5, 1),
-          };
+          return { x: randomSidePos(width), y: height + R, vx: getRandomSpeed("bottom")[0], vy: getRandomSpeed("bottom")[1], r: R, alpha: 1, phase: randomNumFrom(0, 10), glow: randomNumFrom(0.5, 1) };
         case "left":
-          return {
-            x: -R,
-            y: randomSidePos(can_h),
-            vx: getRandomSpeed("left")[0],
-            vy: getRandomSpeed("left")[1],
-            r: R,
-            alpha: 1,
-            phase: randomNumFrom(0, 10),
-            glow: randomNumFrom(0.5, 1),
-          };
+          return { x: -R, y: randomSidePos(height), vx: getRandomSpeed("left")[0], vy: getRandomSpeed("left")[1], r: R, alpha: 1, phase: randomNumFrom(0, 10), glow: randomNumFrom(0.5, 1) };
       }
-    }
+    };
 
-    function initCanvas() {
-      if (!canvas) return;
+    const initCanvas = () => {
+      // Use logical size, but scale canvas by dpr (capped)
+      const rect = canvas.getBoundingClientRect();
+      width = rect.width;
+      height = rect.height;
+      canvas.width = width * dpr;
+      canvas.height = height * dpr;
+      canvas.style.width = `${width}px`;
+      canvas.style.height = `${height}px`;
+      ctx.scale(dpr, dpr);
+    };
 
-      canvas.setAttribute("width", window.innerWidth.toString());
-      canvas.setAttribute("height", window.innerHeight.toString());
-      can_w = parseInt(canvas.getAttribute("width")!);
-      can_h = parseInt(canvas.getAttribute("height")!);
-    }
-
-    function initBalls(num: number) {
-      for (let i = 1; i <= num; i++) {
+    const initBalls = (num: number) => {
+      balls = [];
+      for (let i = 0; i < num; i++) {
         balls.push({
-          x: randomSidePos(can_w),
-          y: randomSidePos(can_h),
+          x: randomSidePos(width),
+          y: randomSidePos(height),
           vx: getRandomSpeed("top")[0],
           vy: getRandomSpeed("top")[1],
           r: R,
@@ -143,48 +104,42 @@ export default function LoginClient() {
           glow: randomNumFrom(0.5, 1),
         });
       }
-    }
+    };
 
-    function getDisOf(b1: any, b2: any) {
-      const dx = Math.abs(b1.x - b2.x),
-        dy = Math.abs(b1.y - b2.y);
+    const getDisOf = (b1: any, b2: any) => {
+      const dx = b1.x - b2.x, dy = b1.y - b2.y;
       return Math.sqrt(dx * dx + dy * dy);
-    }
+    };
 
-    function renderBalls() {
+    const renderBalls = () => {
       for (let i = 0; i < balls.length; i++) {
         const b = balls[i];
-
-        // Glow effect for dark theme
-        const gradient = ctx.createRadialGradient(b.x, b.y, 0, b.x, b.y, R * 4);
-        gradient.addColorStop(
-          0,
-          `rgba(${ball_color.r},${ball_color.g},${ball_color.b},${b.alpha})`
-        );
-        gradient.addColorStop(
-          1,
-          `rgba(${ball_color.r},${ball_color.g},${ball_color.b},0)`
-        );
-
+        // Glow – reduce size on mobile
+        const glowRadius = R * (width < 768 ? 2.5 : 4);
+        const gradient = ctx.createRadialGradient(b.x, b.y, 0, b.x, b.y, glowRadius);
+        gradient.addColorStop(0, `rgba(${ball_color.r},${ball_color.g},${ball_color.b},${b.alpha})`);
+        gradient.addColorStop(1, `rgba(${ball_color.r},${ball_color.g},${ball_color.b},0)`);
         ctx.fillStyle = gradient;
         ctx.beginPath();
-        ctx.arc(b.x, b.y, R * 4, 0, Math.PI * 2, true);
+        ctx.arc(b.x, b.y, glowRadius, 0, Math.PI * 2, true);
         ctx.closePath();
         ctx.fill();
 
-        // Core dot
+        // Core dot – skip shadow on mobile
         ctx.fillStyle = `rgba(${ball_color.r},${ball_color.g},${ball_color.b},${b.alpha})`;
-        ctx.shadowColor = `rgba(${ball_color.r},${ball_color.g},${ball_color.b},${b.alpha * 0.5})`;
-        ctx.shadowBlur = 10;
+        if (width >= 768) {
+          ctx.shadowColor = `rgba(${ball_color.r},${ball_color.g},${ball_color.b},${b.alpha * 0.5})`;
+          ctx.shadowBlur = 10;
+        }
         ctx.beginPath();
         ctx.arc(b.x, b.y, R, 0, Math.PI * 2, true);
         ctx.closePath();
         ctx.fill();
         ctx.shadowBlur = 0;
       }
-    }
+    };
 
-    function renderLines() {
+    const renderLines = () => {
       for (let i = 0; i < balls.length; i++) {
         for (let j = i + 1; j < balls.length; j++) {
           const fraction = getDisOf(balls[i], balls[j]) / dis_limit;
@@ -192,65 +147,71 @@ export default function LoginClient() {
             const alpha = (1 - fraction) * 0.6;
             ctx.strokeStyle = `rgba(${line_color.r},${line_color.g},${line_color.b},${alpha})`;
             ctx.lineWidth = link_line_width;
-            ctx.shadowColor = `rgba(${line_color.r},${line_color.g},${line_color.b},${alpha * 0.3})`;
-            ctx.shadowBlur = 5;
             ctx.beginPath();
             ctx.moveTo(balls[i].x, balls[i].y);
             ctx.lineTo(balls[j].x, balls[j].y);
             ctx.stroke();
-            ctx.closePath();
-            ctx.shadowBlur = 0;
           }
         }
       }
-    }
+    };
 
-    function updateBalls() {
-      const new_balls = [];
+    const updateBalls = () => {
+      const newBalls = [];
       for (let i = 0; i < balls.length; i++) {
         const b = balls[i];
         b.x += b.vx;
         b.y += b.vy;
-        if (b.x > -50 && b.x < can_w + 50 && b.y > -50 && b.y < can_h + 50) {
-          new_balls.push(b);
+        if (b.x > -50 && b.x < width + 50 && b.y > -50 && b.y < height + 50) {
+          newBalls.push(b);
         }
         b.phase += alpha_f;
         b.alpha = Math.abs(Math.cos(b.phase));
       }
-      balls = new_balls.slice(0);
-    }
-
-    function addBallIfy() {
+      balls = newBalls;
       if (balls.length < BALL_NUM) {
         balls.push(getRandomBall());
       }
-    }
+    };
 
-    function render() {
-      ctx.clearRect(0, 0, can_w, can_h);
+    const render = (timestamp: number) => {
+      // Frame rate throttling
+      if (timestamp - lastFrameTime < FRAME_INTERVAL) {
+        animationRef.current = requestAnimationFrame(render);
+        return;
+      }
+      lastFrameTime = timestamp;
+
+      ctx.clearRect(0, 0, width, height);
       renderLines();
       renderBalls();
       updateBalls();
-      addBallIfy();
-      animationId = window.requestAnimationFrame(render);
-    }
-
-    // ─── Initialize ───
-    initCanvas();
-    initBalls(BALL_NUM);
-    render();
-
-    // ─── Handle resize ───
-    const handleResize = () => {
-      initCanvas();
+      animationRef.current = requestAnimationFrame(render);
     };
 
+    // ─── INIT ───
+    initCanvas();
+    initBalls(BALL_NUM);
+    animationRef.current = requestAnimationFrame(render);
+
+    // ─── RESIZE (throttled) ───
+    let resizeTimeout: number;
+    const handleResize = () => {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = window.setTimeout(() => {
+        initCanvas();
+        initBalls(balls.length);
+      }, 200);
+    };
     window.addEventListener("resize", handleResize);
 
-    // ─── Cleanup ───
+    // ─── CLEANUP ───
     return () => {
-      window.cancelAnimationFrame(animationId);
+      if (animationRef.current) cancelAnimationFrame(animationRef.current);
       window.removeEventListener("resize", handleResize);
+      clearTimeout(resizeTimeout);
+      ctx.clearRect(0, 0, width, height);
+      balls = [];
     };
   }, []);
 
@@ -319,7 +280,7 @@ export default function LoginClient() {
       <canvas
         ref={canvasRef}
         className="fixed top-0 left-0 w-full h-full pointer-events-none z-0"
-        style={{ opacity: 0.8 }}
+        style={{ opacity: 0.8, willChange: 'transform' }}
       />
 
       {/* ─── GRADIENT OVERLAYS ─── */}
