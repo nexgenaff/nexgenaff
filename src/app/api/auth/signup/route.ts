@@ -45,17 +45,14 @@ export async function POST(request: Request) {
       )
     }
 
-    const existingUser = await prisma.user.findFirst({
-      where: {
-        OR: [
-          { username },
-          { email },
-        ],
-      },
-      select: { id: true },
-    })
+    const existingUsers = await prisma.$queryRaw<Array<{ id: string }>>`
+      SELECT id
+      FROM users
+      WHERE username = ${username} OR email = ${email}
+      LIMIT 1
+    `
 
-    if (existingUser) {
+    if (existingUsers.length > 0) {
       return NextResponse.json(
         { error: 'Username or email already exists' },
         { status: 400, headers: getCorsHeaders(origin) }
