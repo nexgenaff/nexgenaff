@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { prisma } from '@/lib/db/prisma'
 import { getUserFromToken, getTokenFromCookie, isAdmin, isOwner, getOwnerUserId, getEffectiveOfferUserId } from '@/lib/auth'
+import { createUserSafe } from '@/lib/db/user'
 import bcrypt from 'bcryptjs'
 import { getCorsHeaders } from '@/config/cors'
 
