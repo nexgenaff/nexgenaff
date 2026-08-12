@@ -24,24 +24,43 @@ export async function GET(request: Request) {
   }
 
   try {
-    const managers = await prisma.user.findMany({
-      where: { role: 'MANAGER' },
-      orderBy: { createdAt: 'desc' },
-      select: {
-        id: true,
-        username: true,
-        email: true,
-        source: true,
-        contractNumber: true,
-        telegramUsername: true,
-        bkashNumber: true,
-        role: true,
-        status: true,
-        createdAt: true,
-        updatedAt: true,
-        lastLogin: true,
-      },
-    })
+    const selectFields: Record<string, boolean> = {
+      id: true,
+      username: true,
+      email: true,
+      fullName: true,
+      source: true,
+      contractNumber: true,
+      telegramUsername: true,
+      bkashNumber: true,
+      role: true,
+      status: true,
+      createdAt: true,
+      updatedAt: true,
+      lastLogin: true,
+    }
+
+    let managers = null
+    try {
+      managers = await prisma.user.findMany({
+        where: { role: 'MANAGER' },
+        orderBy: { createdAt: 'desc' },
+        select: selectFields,
+      })
+    } catch (innerError: any) {
+      const missingColumn = String(innerError?.meta?.column || '')
+      if (innerError?.code === 'P2022' && missingColumn.startsWith('users.')) {
+        const missingField = missingColumn.replace('users.', '')
+        delete selectFields[missingField]
+        managers = await prisma.user.findMany({
+          where: { role: 'MANAGER' },
+          orderBy: { createdAt: 'desc' },
+          select: selectFields,
+        })
+      } else {
+        throw innerError
+      }
+    }
 
     return NextResponse.json({ managers }, { headers: getCorsHeaders(origin) })
   } catch (error) {

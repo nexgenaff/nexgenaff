@@ -61,43 +61,32 @@ export async function POST(request: Request) {
 
     const hashedPassword = await bcrypt.hash(password, 10)
 
-    const userData: Omit<Prisma.UserCreateInput, 'fullName'> = {
+    let createData = {
       username,
       email,
-      contractNumber,
-      telegramUsername,
-      bkashNumber,
       password: hashedPassword,
       role: 'MANAGER',
       status: 'PENDING',
-    }
-
-    const createData = fullName
-      ? { ...userData, fullName }
-      : userData
+      ...(fullName ? { fullName } : {}),
+      ...(contractNumber ? { contractNumber } : {}),
+      ...(telegramUsername ? { telegramUsername } : {}),
+      ...(bkashNumber ? { bkashNumber } : {}),
+    } as Prisma.UserCreateInput
 
     let user
-    try {
-      user = await prisma.user.create({ data: createData })
-    } catch (error: any) {
-      const isFullNameMissingColumnError =
-        error?.code === 'P2022' &&
-        String(error?.meta?.column).includes('fullName')
-
-      if (isFullNameMissingColumnError) {
-        user = await prisma.user.create({
-          data: {
-            username,
-            email,
-            contractNumber,
-            telegramUsername,
-            bkashNumber,
-            password: hashedPassword,
-            role: 'MANAGER',
-            status: 'PENDING',
-          },
-        })
-      } else {
+    while (true) {
+      try {
+        user = await prisma.user.create({ data: createData })
+        break
+      } catch (error: any) {
+        const missingColumn = String(error?.meta?.column || '')
+        if (error?.code === 'P2022' && missingColumn.startsWith('users.')) {
+          const missingField = missingColumn.replace('users.', '')
+          const nextData = { ...createData } as Record<string, unknown>
+          delete nextData[missingField]
+          createData = nextData as Prisma.UserCreateInput
+          continue
+        }
         throw error
       }
     }
