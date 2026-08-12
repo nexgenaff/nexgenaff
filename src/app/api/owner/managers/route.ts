@@ -41,23 +41,24 @@ export async function GET(request: Request) {
     }
 
     let managers = null
-    try {
-      managers = await prisma.user.findMany({
-        where: { role: 'MANAGER' },
-        orderBy: { createdAt: 'desc' },
-        select: selectFields,
-      })
-    } catch (innerError: any) {
-      const missingColumn = String(innerError?.meta?.column || '')
-      if (innerError?.code === 'P2022' && missingColumn.startsWith('users.')) {
-        const missingField = missingColumn.replace('users.', '')
-        delete selectFields[missingField]
+    let selectConfig = { ...selectFields }
+    while (true) {
+      try {
         managers = await prisma.user.findMany({
           where: { role: 'MANAGER' },
           orderBy: { createdAt: 'desc' },
-          select: selectFields,
+          select: selectConfig,
         })
-      } else {
+        break
+      } catch (innerError: any) {
+        const missingColumn = String(innerError?.meta?.column || '')
+        if (innerError?.code === 'P2022' && missingColumn.startsWith('users.')) {
+          const missingField = missingColumn.replace('users.', '')
+          if (missingField in selectConfig) {
+            delete selectConfig[missingField]
+            continue
+          }
+        }
         throw innerError
       }
     }
