@@ -93,6 +93,19 @@ export const selectOffer = async (
     offer = selectRotatingOffer(namedGroupCandidates.length ? namedGroupCandidates : directCountryCandidates)
     if (offer) return offer
 
+    // Prefer GLOBAL offers as a fallback before considering other country-specific offers.
+    const globalFallbackCandidates = await tx.offerVault.findMany({
+      where: {
+        userId,
+        isActive: true,
+        isGlobal: true,
+      },
+      orderBy: [{ priority: 'desc' }, { createdAt: 'asc' }],
+    })
+
+    offer = selectRotatingOffer(globalFallbackCandidates)
+    if (offer) return offer
+
     const fallbackCandidates = await tx.offerVault.findMany({
       where: {
         userId,
