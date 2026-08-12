@@ -49,15 +49,16 @@ const selectGroupOfferForUser = async (
   let offer = selectRotatingOffer(regionalGroupCandidates)
 
   if (!offer) {
-    const fallbackGroupCandidates = await tx.offerVault.findMany({
+    const globalGroupCandidates = await tx.offerVault.findMany({
       where: {
         userId,
         groupName,
         isActive: true,
+        isGlobal: true,
       },
       orderBy: [{ priority: 'desc' }, { createdAt: 'asc' }],
     })
-    offer = selectRotatingOffer(fallbackGroupCandidates)
+    offer = selectRotatingOffer(globalGroupCandidates)
   }
 
   return offer
@@ -106,16 +107,9 @@ export const selectOffer = async (
     offer = selectRotatingOffer(globalFallbackCandidates)
     if (offer) return offer
 
-    const fallbackCandidates = await tx.offerVault.findMany({
-      where: {
-        userId,
-        isActive: true,
-      },
-      orderBy: [{ priority: 'desc' }, { createdAt: 'asc' }],
-    })
-
-    offer = selectRotatingOffer(fallbackCandidates)
-    if (offer) return offer
+    // No offer for this geo and no GLOBAL fallback available.
+    // Do not fall back to unrelated country offers.
+    return null
   }
 
   return null
