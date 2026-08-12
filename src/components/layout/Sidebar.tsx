@@ -71,6 +71,7 @@ export default function Sidebar() {
       : []),
     { href: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { href: '/admin/links/create', label: 'Create Link', icon: Plus },
+    { href: '/admin/links/create-turbo', label: 'Create Link - Turbo', icon: Plus },
     { href: '/admin/links', label: 'All Links', icon: Link2 },
     ...(userRole !== 'MANAGER'
       ? [{ href: '/admin/offers', label: 'Offer Vault', icon: Package }]
