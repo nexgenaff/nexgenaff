@@ -191,8 +191,16 @@ export default function OwnerManagersPage() {
       }
 
       if (!response.ok) {
-        const data = await response.json().catch(() => ({}))
-        setError(data?.error || 'Unable to load manager accounts. Please refresh.')
+        const text = await response.text().catch(() => '')
+        let data: { error?: string } = {}
+
+        try {
+          data = JSON.parse(text)
+        } catch {
+          // ignore invalid JSON body
+        }
+
+        setError(data.error || text || 'Unable to load manager accounts. Please refresh.')
         return
       }
 

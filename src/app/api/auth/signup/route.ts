@@ -64,7 +64,7 @@ export async function POST(request: Request) {
 
     const hashedPassword = await bcrypt.hash(password, 10)
 
-    const userData = {
+    const userData: Prisma.UserCreateInput = {
       username,
       email,
       contractNumber,
