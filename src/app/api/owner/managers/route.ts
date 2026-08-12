@@ -23,27 +23,34 @@ export async function GET(request: Request) {
     )
   }
 
-  const managers = await prisma.user.findMany({
-    where: { role: 'MANAGER' },
-    orderBy: { createdAt: 'desc' },
-    select: {
-      id: true,
-      username: true,
-      fullName: true,
-      email: true,
-      source: true,
-      contractNumber: true,
-      telegramUsername: true,
-      bkashNumber: true,
-      role: true,
-      status: true,
-      createdAt: true,
-      updatedAt: true,
-      lastLogin: true,
-    },
-  })
+  try {
+    const managers = await prisma.user.findMany({
+      where: { role: 'MANAGER' },
+      orderBy: { createdAt: 'desc' },
+      select: {
+        id: true,
+        username: true,
+        email: true,
+        source: true,
+        contractNumber: true,
+        telegramUsername: true,
+        bkashNumber: true,
+        role: true,
+        status: true,
+        createdAt: true,
+        updatedAt: true,
+        lastLogin: true,
+      },
+    })
 
-  return NextResponse.json({ managers }, { headers: getCorsHeaders(origin) })
+    return NextResponse.json({ managers }, { headers: getCorsHeaders(origin) })
+  } catch (error) {
+    console.error('Owner managers GET error:', error)
+    return NextResponse.json(
+      { error: 'Failed to load manager accounts.' },
+      { status: 500, headers: getCorsHeaders(origin) }
+    )
+  }
 }
 
 export async function OPTIONS(request: Request) {

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import bcrypt from 'bcryptjs'
+import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/db/prisma'
 import { getCorsHeaders } from '@/config/cors'
 
@@ -51,6 +52,7 @@ export async function POST(request: Request) {
           { email },
         ],
       },
+      select: { id: true },
     })
 
     if (existingUser) {
@@ -61,19 +63,44 @@ export async function POST(request: Request) {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10)
-    const user = await prisma.user.create({
-      data: {
-        username,
-        email,
-        fullName,
-        contractNumber,
-        telegramUsername,
-        bkashNumber,
-        password: hashedPassword,
-        role: 'MANAGER',
-        status: 'PENDING',
-      },
-    })
+
+    const userData = {
+      username,
+      email,
+      contractNumber,
+      telegramUsername,
+      bkashNumber,
+      password: hashedPassword,
+      role: 'MANAGER',
+      status: 'PENDING',
+      ...(fullName ? { fullName } : {}),
+    }
+
+    let user
+    try {
+      user = await prisma.user.create({ data: userData })
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2022' &&
+        String(error.meta?.column).includes('users.fullName')
+      ) {
+        user = await prisma.user.create({
+          data: {
+            username,
+            email,
+            contractNumber,
+            telegramUsername,
+            bkashNumber,
+            password: hashedPassword,
+            role: 'MANAGER',
+            status: 'PENDING',
+          },
+        })
+      } else {
+        throw error
+      }
+    }
 
     return NextResponse.json(
       {
