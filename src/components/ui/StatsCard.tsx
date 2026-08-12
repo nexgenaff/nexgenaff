@@ -24,12 +24,12 @@ export function StatsCard({
   delay = 0,
 }: StatsCardProps) {
   const colorClasses = {
-    indigo: 'border-indigo-400/40 bg-indigo-500/20 text-indigo-200',
-    green: 'border-emerald-400/40 bg-emerald-500/20 text-emerald-200',
-    purple: 'border-violet-400/40 bg-violet-500/20 text-violet-200',
-    red: 'border-rose-400/40 bg-rose-500/20 text-rose-200',
-    blue: 'border-sky-400/40 bg-sky-500/20 text-sky-200',
-    orange: 'border-amber-400/40 bg-amber-500/20 text-amber-200',
+    indigo: 'bg-indigo-500/10 text-indigo-300',
+    green: 'bg-emerald-500/10 text-emerald-300',
+    purple: 'bg-violet-500/10 text-violet-300',
+    red: 'bg-rose-500/10 text-rose-300',
+    blue: 'bg-sky-500/10 text-sky-300',
+    orange: 'bg-amber-500/10 text-amber-300',
   }
 
   const isPositive = trend !== undefined && trend >= 0
@@ -39,37 +39,35 @@ export function StatsCard({
       initial={{ opacity: 0, y: 16, scale: 0.98 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ duration: 0.45, delay: delay / 1000 }}
-      className="stat-card min-w-0 rounded-xl border border-slate-700/80 bg-slate-900/90 p-3 shadow-[0_8px_24px_rgba(2,8,23,0.22)] backdrop-blur-sm"
+      className="min-w-0 rounded-lg bg-slate-800/30 border border-slate-700/30 p-4 hover:bg-slate-800/40 transition-colors duration-200"
     >
-      <div className="flex items-start justify-between gap-2">
+      <div className="flex items-start justify-between gap-3">
         <div className="flex-1 min-w-0">
-          <p className="text-[8px] font-semibold uppercase tracking-[0.28em] text-slate-400">
+          <p className="text-xs font-medium uppercase tracking-widest text-slate-400">
             {title}
           </p>
-          <p className="mt-1.5 text-[22px] font-semibold leading-none tracking-[-0.03em] text-slate-50 sm:text-[24px]">
+          <p className="mt-2 text-2xl sm:text-3xl font-bold text-white">
             {formatNumber(value)}
           </p>
           {subtitle && (
-            <p className="mt-1.5 whitespace-normal break-words text-[9px] uppercase tracking-[0.18em] text-slate-500">
+            <p className="mt-1.5 text-xs text-slate-500">
               {subtitle}
             </p>
           )}
         </div>
-        <div className={`flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl border ${colorClasses[color]}`}>
-          <Icon className="h-4 w-4" />
+        <div className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg ${colorClasses[color]}`}>
+          <Icon className="h-5 w-5" />
         </div>
       </div>
 
       {trend !== undefined && (
-        <div className="mt-3 flex flex-wrap items-center gap-2">
-          <span className={`text-[10px] font-semibold sm:text-[11px] ${isPositive ? 'text-emerald-300' : 'text-rose-300'}`}>
+        <div className="mt-3 flex items-center gap-2">
+          <span className={`text-xs font-semibold ${isPositive ? 'text-emerald-400' : 'text-rose-400'}`}>
             {isPositive ? '↑' : '↓'} {Math.abs(trend)}%
           </span>
-          <span className="text-[10px] text-slate-400 sm:text-[11px]">vs last month</span>
+          <span className="text-xs text-slate-500">vs last month</span>
         </div>
       )}
-
-      <div className="mt-3 h-px w-full bg-gradient-to-r from-slate-700/0 via-slate-600/80 to-slate-700/0" />
     </motion.div>
   )
 }

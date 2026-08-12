@@ -351,19 +351,19 @@ export default function AnalyticsPage() {
         <div className="absolute inset-0 opacity-[0.02] [background-image:linear-gradient(rgba(255,255,255,0.5)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.5)_1px,transparent_1px)] [background-size:60px_60px]" />
       </div>
 
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 md:py-8">
+      <div className="relative z-10 w-full px-0 py-0">
         {/* ===== TOP BAR ===== */}
         <motion.div
           variants={cardVariants}
           initial="hidden"
           animate="visible"
-          className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl p-4 md:p-6 shadow-2xl shadow-indigo-500/5 mb-6"
+          className="mb-8 px-4 sm:px-6 lg:px-8 py-4"
         >
-          <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div className="flex items-center gap-4">
               <motion.div
-                whileHover={{ rotate: [0, -10, 10, -5, 5, 0] }}
-                className="relative h-20 w-20 overflow-hidden"
+                whileHover={{ scale: 1.05 }}
+                className="relative h-12 w-12 overflow-hidden flex-shrink-0"
               >
                 <Image
                   src="/afficixo.png"
@@ -374,47 +374,47 @@ export default function AnalyticsPage() {
                 />
               </motion.div>
               <div>
-                <div className="flex items-center gap-3 text-sm text-slate-400 mt-0.5">
-                  <span className="flex items-center gap-1.5">
+                <h1 className="text-xl sm:text-2xl font-bold text-white">Analytics Dashboard</h1>
+                <div className="flex items-center gap-3 text-xs sm:text-sm text-slate-400 mt-1">
+                  <span className="flex items-center gap-1">
                     <Calendar className="w-3.5 h-3.5" />
-                    {currentTime.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric", year: "numeric" })}
+                    {currentTime.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" })}
                   </span>
-                  <span className="w-1 h-1 rounded-full bg-slate-600" />
-                  <span className="flex items-center gap-1.5">
+                  <span className="hidden sm:block w-1 h-1 rounded-full bg-slate-600" />
+                  <span className="flex items-center gap-1">
                     <Clock className="w-3.5 h-3.5" />
-                    {currentTime.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
+                    {currentTime.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                   </span>
                 </div>
               </div>
             </div>
 
-            <div className="flex flex-wrap items-center gap-2 w-full lg:w-auto">
+            <div className="flex items-center gap-2">
               <motion.button
                 onClick={() => fetchStats(true, filters)}
                 whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.95 }}
-                className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium text-slate-300 hover:text-white hover:border-white/30 transition-all duration-300 backdrop-blur-sm"
+                whileTap={{ scale: 0.98 }}
+                className="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-slate-300 hover:text-white hover:bg-white/5 transition-all duration-200"
               >
                 <RefreshCw className={`w-4 h-4 ${refreshing ? "animate-spin" : ""}`} />
-                {refreshing ? "Refreshing" : "Refresh"}
+                <span className="hidden sm:inline">Refresh</span>
               </motion.button>
               <Link
                 href="/admin/links/create"
-                className="group relative inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 px-4 py-2 text-sm font-semibold text-white hover:shadow-lg hover:shadow-purple-500/30 transition-all duration-300 hover:scale-105 overflow-hidden"
+                className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 px-4 py-2 text-sm font-medium text-white transition-colors duration-200"
               >
-                <span className="relative z-10 flex items-center gap-2">New campaign</span>
-                <div className="absolute inset-0 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 opacity-0 group-hover:opacity-100 transition-opacity" />
+                <span>+ New Link</span>
               </Link>
             </div>
           </div>
         </motion.div>
 
-        {/* ===== STATS CARDS – Single source of truth (NO DUPLICATION) ===== */}
+        {/* ===== STATS CARDS ===== */}
         <motion.div
           variants={cardVariants}
           initial="hidden"
           animate="visible"
-          className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl p-4 md:p-6 shadow-2xl shadow-indigo-500/5 mb-6"
+          className="mb-8 px-4 sm:px-6 lg:px-8"
         >
           <StatsCards
             stats={stats}
@@ -428,25 +428,25 @@ export default function AnalyticsPage() {
           variants={cardVariants}
           initial="hidden"
           animate="visible"
-          className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl shadow-2xl shadow-indigo-500/5 overflow-hidden"
+          className="overflow-hidden px-4 sm:px-6 lg:px-8"
         >
           {/* Header */}
-          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-pink-500/10 px-4 py-3 sm:px-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-6 mb-6 border-b border-white/5">
             <div>
-              <p className="text-[10px] font-semibold uppercase tracking-[0.32em] text-indigo-300">Geo breakdown</p>
-              <h2 className="mt-1 text-sm font-semibold text-white">Account to Country Performance</h2>
+              <h2 className="text-lg font-semibold text-white">Account Performance</h2>
+              <p className="text-sm text-slate-400 mt-1">Clicks by account and country</p>
             </div>
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setShowFilters(!showFilters)}
-                className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-medium text-slate-300 hover:text-white hover:border-white/30 transition-all duration-300 backdrop-blur-sm"
+                className="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-slate-300 hover:text-white hover:bg-white/5 transition-colors duration-200"
               >
                 <Filter className="w-4 h-4" />
-                {showFilters ? "Hide" : "Filters"}
+                <span className="hidden sm:inline">{showFilters ? "Hide" : "Show"} Filters</span>
                 <ChevronDown className={`w-3 h-3 transition-transform ${showFilters ? "rotate-180" : ""}`} />
               </button>
-              <div className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] uppercase tracking-[0.24em] text-slate-400 backdrop-blur-sm">
-                {report?.datasets?.length ? `${reportRows.length} accounts` : "Waiting"}
+              <div className="text-sm text-slate-400">
+                {report?.datasets?.length ? `${reportRows.length} accounts` : "—"}
               </div>
               {reportRows.length > 0 && (
                 <button
