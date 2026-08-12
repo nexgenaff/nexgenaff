@@ -61,7 +61,7 @@ export async function POST(request: Request) {
 
     const hashedPassword = await bcrypt.hash(password, 10)
 
-    const userData: Prisma.UserCreateInput = {
+    const userData: Omit<Prisma.UserCreateInput, 'fullName'> = {
       username,
       email,
       contractNumber,
@@ -70,16 +70,19 @@ export async function POST(request: Request) {
       password: hashedPassword,
       role: 'MANAGER',
       status: 'PENDING',
-      ...(fullName ? { fullName } : {}),
     }
+
+    const createData = fullName
+      ? { ...userData, fullName }
+      : userData
 
     let user
     try {
-      user = await prisma.user.create({ data: userData })
+      user = await prisma.user.create({ data: createData })
     } catch (error: any) {
       const isFullNameMissingColumnError =
         error?.code === 'P2022' &&
-        String(error?.meta?.column).includes('users.fullName')
+        String(error?.meta?.column).includes('fullName')
 
       if (isFullNameMissingColumnError) {
         user = await prisma.user.create({
