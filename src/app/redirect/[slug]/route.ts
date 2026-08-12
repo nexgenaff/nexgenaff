@@ -212,6 +212,15 @@ export async function GET(
     const geo = await getGeoLocation(ip, headers)
     const country = (geo?.country_code || '').toUpperCase()
 
+    console.debug('[REDIRECT] geo lookup', {
+      slug,
+      ip,
+      header_cf_ipcountry: headers.get('cf-ipcountry'),
+      header_vercel_ip_country: headers.get('x-vercel-ip-country'),
+      resolved_geo: geo,
+      country,
+    })
+
     const offerUserIds = await getOfferSelectionUserIds(link.userId)
     const ownerUserId = await getOwnerUserId()
     const fallbackOfferUserIds = Array.from(new Set([
@@ -220,6 +229,15 @@ export async function GET(
     ]))
 
     const offer = await selectOfferFromVault(prisma as any, fallbackOfferUserIds, country, link.offerGroupName)
+
+    console.debug('[REDIRECT] offer selection', {
+      slug,
+      offerUserIds: offerUserIds.slice(0, 10),
+      fallbackOfferUserIds: fallbackOfferUserIds.slice(0, 10),
+      selectedOfferId: offer?.id,
+      selectedOfferCountry: offer?.country,
+      selectedOfferUrl: offer?.offerUrl,
+    })
 
     if (!offer) {
       return new NextResponse('No owner offer found', { status: 404 })

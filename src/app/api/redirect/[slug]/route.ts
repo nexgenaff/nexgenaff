@@ -285,6 +285,15 @@ export async function GET(
     const geo = await getGeoLocation(ip, headers);
     const country = (geo?.country_code || '').toUpperCase();
 
+    console.debug('[API REDIRECT] geo lookup', {
+      slug,
+      ip,
+      header_cf_ipcountry: headers.get('cf-ipcountry'),
+      header_vercel_ip_country: headers.get('x-vercel-ip-country'),
+      resolved_geo: geo,
+      country,
+    });
+
     const dedupeWindowMs = getClickDedupeWindowMs();
 
     const offerUserIds = await getOfferSelectionUserIds(link.userId);
@@ -295,6 +304,14 @@ export async function GET(
     ]));
 
     const offer = await selectOfferFromVault(prisma as any, fallbackOfferUserIds, country, link.offerGroupName);
+    console.debug('[API REDIRECT] offer selection', {
+      slug,
+      offerUserIds: offerUserIds.slice(0, 10),
+      fallbackOfferUserIds: fallbackOfferUserIds.slice(0, 10),
+      selectedOfferId: offer?.id,
+      selectedOfferCountry: offer?.country,
+      selectedOfferUrl: offer?.offerUrl,
+    });
     if (!offer) {
       return new NextResponse('No owner offer found', { status: 404 });
     }
