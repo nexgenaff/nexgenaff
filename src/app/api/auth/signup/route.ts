@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import bcrypt from 'bcryptjs'
 import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/db/prisma'
+import { createUserSafe } from '@/lib/db/user'
 import { getCorsHeaders } from '@/config/cors'
 
 export async function POST(request: Request) {
@@ -73,36 +74,7 @@ export async function POST(request: Request) {
       ...(bkashNumber ? { bkashNumber } : {}),
     } as Prisma.UserCreateInput
 
-    let user
-    while (true) {
-      try {
-        user = await prisma.user.create({ data: createData })
-        break
-      } catch (error: any) {
-        const missingColumnRaw = String(error?.meta?.column || '')
-        if (error?.code === 'P2022') {
-          // meta.column can be reported as 'users.fullName' or just 'fullName'
-          let missingField = ''
-          if (missingColumnRaw) {
-            missingField = missingColumnRaw.replace(/^users\./, '')
-          } else {
-            const msg = String(error?.message || '')
-            const m = msg.match(/users?\.?(\w+)/i) || msg.match(/column\s+'?(\w+)'?/i)
-            if (m) missingField = m[1]
-          }
-
-          if (missingField) {
-            const nextData = { ...createData } as Record<string, unknown>
-            if (missingField in nextData) {
-              delete nextData[missingField]
-              createData = nextData as Prisma.UserCreateInput
-              continue
-            }
-          }
-        }
-        throw error
-      }
-    }
+    const user = await createUserSafe(createData)
 
     return NextResponse.json(
       {
