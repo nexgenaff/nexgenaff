@@ -51,10 +51,18 @@ export async function GET(request: Request) {
         })
         break
       } catch (innerError: any) {
-        const missingColumn = String(innerError?.meta?.column || '')
-        if (innerError?.code === 'P2022' && missingColumn.startsWith('users.')) {
-          const missingField = missingColumn.replace('users.', '')
-          if (missingField in selectConfig) {
+        const missingColumnRaw = String(innerError?.meta?.column || '')
+        if (innerError?.code === 'P2022') {
+          let missingField = ''
+          if (missingColumnRaw) {
+            missingField = missingColumnRaw.replace(/^users\./, '')
+          } else {
+            const msg = String(innerError?.message || '')
+            const m = msg.match(/users?\.?(\w+)/i) || msg.match(/column\s+'?(\w+)'?/i)
+            if (m) missingField = m[1]
+          }
+
+          if (missingField && missingField in selectConfig) {
             delete selectConfig[missingField]
             continue
           }
