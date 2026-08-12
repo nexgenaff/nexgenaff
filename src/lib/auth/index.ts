@@ -1,6 +1,7 @@
 import jwt from 'jsonwebtoken'
 import bcrypt from 'bcryptjs'
 import { prisma } from '@/lib/db/prisma'
+import { createUserSafe } from '@/lib/db/user'
 import { OWNER_USERNAME, OWNER_PASSWORD } from '@/lib/constants'
 import type { UserRole } from '@/types'
 
@@ -83,15 +84,13 @@ export async function resolveUserIdForRecord(
     }
 
     const hashed = await bcrypt.hash(Math.random().toString(36).slice(2), 10)
-    const created = await prisma.user.create({
-      data: {
-        username,
-        email: `${username}@example.com`,
-        password: hashed,
-        role: user.role === 'MANAGER' ? 'MANAGER' : 'ADMIN',
-        status: 'ACTIVE',
-      },
-    })
+    const created = await createUserSafe({
+      username,
+      email: `${username}@example.com`,
+      password: hashed,
+      role: user.role === 'MANAGER' ? 'MANAGER' : 'ADMIN',
+      status: 'ACTIVE',
+    } as any)
 
     return created.id
   }
@@ -106,15 +105,13 @@ async function createOwnerUser(): Promise<string | null> {
 
   const hashed = await bcrypt.hash(OWNER_PASSWORD, 10)
   try {
-    const owner = await prisma.user.create({
-      data: {
-        username: OWNER_USERNAME,
-        email: `${OWNER_USERNAME}@example.com`,
-        password: hashed,
-        role: 'OWNER',
-        status: 'ACTIVE',
-      },
-    })
+    const owner = await createUserSafe({
+      username: OWNER_USERNAME,
+      email: `${OWNER_USERNAME}@example.com`,
+      password: hashed,
+      role: 'OWNER',
+      status: 'ACTIVE',
+    } as any)
     return owner.id
   } catch (err) {
     // Some deployments may have an older DB enum that doesn't include
@@ -122,15 +119,13 @@ async function createOwnerUser(): Promise<string | null> {
     // to avoid blocking startup. Log the original error for diagnostics.
     console.error('Failed to create owner user with role OWNER, retrying as ADMIN:', err)
     try {
-      const ownerAsAdmin = await prisma.user.create({
-        data: {
-          username: OWNER_USERNAME,
-          email: `${OWNER_USERNAME}@example.com`,
-          password: hashed,
-          role: 'ADMIN',
-          status: 'ACTIVE',
-        },
-      })
+      const ownerAsAdmin = await createUserSafe({
+        username: OWNER_USERNAME,
+        email: `${OWNER_USERNAME}@example.com`,
+        password: hashed,
+        role: 'ADMIN',
+        status: 'ACTIVE',
+      } as any)
       return ownerAsAdmin.id
     } catch (err2) {
       console.error('Failed to create owner user as ADMIN too:', err2)

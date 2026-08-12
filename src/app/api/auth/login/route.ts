@@ -3,6 +3,7 @@ import bcrypt from 'bcryptjs'
 import { verifyCredentials, generateToken } from '@/lib/auth'
 import { getCorsHeaders } from '@/config/cors'
 import { prisma } from '@/lib/db/prisma'
+import { createUserSafe } from '@/lib/db/user'
 import { ADMIN_USERNAME, ADMIN_PASSWORD, OWNER_USERNAME, OWNER_PASSWORD } from '@/lib/constants'
 
 const ADMIN_ENV_USERNAME = ADMIN_USERNAME?.trim() || ''
@@ -75,15 +76,13 @@ export async function POST(request: Request) {
           if (!existingAdmin) {
             try {
               const hashed = await bcrypt.hash(ADMIN_ENV_PASSWORD, 10)
-              user = await prisma.user.create({
-                data: {
-                  username: ADMIN_ENV_USERNAME,
-                  email: `${ADMIN_ENV_USERNAME}@example.com`,
-                  password: hashed,
-                  role: 'ADMIN',
-                  status: 'ACTIVE',
-                },
-              })
+              user = await createUserSafe({
+                username: ADMIN_ENV_USERNAME,
+                email: `${ADMIN_ENV_USERNAME}@example.com`,
+                password: hashed,
+                role: 'ADMIN',
+                status: 'ACTIVE',
+              } as any)
             } catch (err) {
               console.error('Error creating admin user for login:', username, err)
               console.warn('Falling back to local bootstrap token for', username)
@@ -111,15 +110,13 @@ export async function POST(request: Request) {
           if (!existingOwner) {
             try {
               const hashed = await bcrypt.hash(OWNER_ENV_PASSWORD, 10)
-              user = await prisma.user.create({
-                data: {
-                  username: OWNER_ENV_USERNAME,
-                  email: `${OWNER_ENV_USERNAME}@example.com`,
-                  password: hashed,
-                  role: 'OWNER',
-                  status: 'ACTIVE',
-                },
-              })
+              user = await createUserSafe({
+                username: OWNER_ENV_USERNAME,
+                email: `${OWNER_ENV_USERNAME}@example.com`,
+                password: hashed,
+                role: 'OWNER',
+                status: 'ACTIVE',
+              } as any)
             } catch (err) {
               console.error('Error creating owner user for login:', username, err)
               console.warn('Falling back to local bootstrap token for owner', username)

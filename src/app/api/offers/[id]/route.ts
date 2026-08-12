@@ -54,14 +54,12 @@ export async function PUT(
         finalUserId = ownerUserId
       } else {
         const hashed = await bcrypt.hash(Math.random().toString(36).slice(2), 10)
-        const created = await prisma.user.create({
-          data: {
-            username,
-            email: `${username}@example.com`,
-            password: hashed,
-            role: 'ADMIN',
-          },
-        })
+        const created = await createUserSafe({
+          username,
+          email: `${username}@example.com`,
+          password: hashed,
+          role: 'ADMIN',
+        } as any)
         finalUserId = created.id
       }
     } else {
