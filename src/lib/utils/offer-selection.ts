@@ -54,7 +54,10 @@ const selectGroupOfferForUser = async (
         userId,
         groupName,
         isActive: true,
-        isGlobal: true,
+        OR: [
+          { isGlobal: true },
+          { isContentLocker: true },
+        ],
       },
       orderBy: [{ priority: 'desc' }, { createdAt: 'asc' }],
     })
@@ -99,7 +102,10 @@ export const selectOffer = async (
       where: {
         userId,
         isActive: true,
-        isGlobal: true,
+        OR: [
+          { isGlobal: true },
+          { isContentLocker: true },
+        ],
       },
       orderBy: [{ priority: 'desc' }, { createdAt: 'asc' }],
     })

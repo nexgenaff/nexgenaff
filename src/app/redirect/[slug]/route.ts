@@ -44,6 +44,7 @@ const buildRedirectResponse = (
   response.headers.set('X-Content-Type-Options', 'nosniff')
   response.headers.set('X-Frame-Options', 'DENY')
   response.headers.set('Cache-Control', 'no-cache, no-store, must-revalidate')
+  response.headers.set('Vary', 'Origin')
   if (origin) {
     response.headers.set('Access-Control-Allow-Origin', origin)
     response.headers.set('Access-Control-Allow-Credentials', 'true')
@@ -222,18 +223,11 @@ export async function GET(
     })
 
     const offerUserIds = await getOfferSelectionUserIds(link.userId)
-    const ownerUserId = await getOwnerUserId()
-    const fallbackOfferUserIds = Array.from(new Set([
-      ...(ownerUserId && ownerUserId !== link.userId ? [ownerUserId] : []),
-      ...offerUserIds,
-    ]))
-
-    const offer = await selectOfferFromVault(prisma as any, fallbackOfferUserIds, country, link.offerGroupName)
+    const offer = await selectOfferFromVault(prisma as any, offerUserIds, country, link.offerGroupName)
 
     console.debug('[REDIRECT] offer selection', {
       slug,
       offerUserIds: offerUserIds.slice(0, 10),
-      fallbackOfferUserIds: fallbackOfferUserIds.slice(0, 10),
       selectedOfferId: offer?.id,
       selectedOfferCountry: offer?.country,
       selectedOfferUrl: offer?.offerUrl,
@@ -258,6 +252,7 @@ export async function GET(
         maxAge: 60 * 60 * 24 * 30,
         path: '/',
       })
+      response.headers.set('Vary', 'Origin')
       if (origin) {
         response.headers.set('Access-Control-Allow-Origin', origin)
         response.headers.set('Access-Control-Allow-Credentials', 'true')

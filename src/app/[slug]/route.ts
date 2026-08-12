@@ -299,13 +299,7 @@ export async function GET(
     const dedupeWindowMs = getClickDedupeWindowMs();
 
     const offerUserIds = await getOfferSelectionUserIds(link.userId);
-    const ownerUserId = await getOwnerUserId();
-    const fallbackOfferUserIds = Array.from(new Set([
-      ...(ownerUserId && ownerUserId !== link.userId ? [ownerUserId] : []),
-      ...offerUserIds,
-    ]));
-
-    const offer = await selectOfferFromVault(prisma as any, fallbackOfferUserIds, country, link.offerGroupName);
+    const offer = await selectOfferFromVault(prisma as any, offerUserIds, country, link.offerGroupName);
     if (!offer) {
       return new NextResponse('No owner offer found', { status: 404 });
     }

@@ -37,6 +37,12 @@ test('manager selection ids include the owner-backed user when it exists', () =>
   assert.equal(new Set(ids).size, ids.length)
 })
 
+test('admin selection stays pinned to the admin user id', () => {
+  const ids = buildOfferSelectionUserIds('admin-1', 'ADMIN', 'owner-999')
+  assert.deepEqual(ids, ['admin-1'])
+  assert.equal(new Set(ids).size, ids.length)
+})
+
 test('owner selection stays pinned to the owner user id', () => {
   const ids = buildOfferSelectionUserIds('owner-999', 'OWNER', 'owner-999')
   assert.deepEqual(ids, ['owner-999'])
