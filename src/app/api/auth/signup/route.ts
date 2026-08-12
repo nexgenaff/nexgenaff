@@ -79,12 +79,12 @@ export async function POST(request: Request) {
     let user
     try {
       user = await prisma.user.create({ data: userData })
-    } catch (error) {
-      if (
-        error instanceof Prisma.PrismaClientKnownRequestError &&
-        error.code === 'P2022' &&
-        String(error.meta?.column).includes('users.fullName')
-      ) {
+    } catch (error: any) {
+      const isFullNameMissingColumnError =
+        error?.code === 'P2022' &&
+        String(error?.meta?.column).includes('users.fullName')
+
+      if (isFullNameMissingColumnError) {
         user = await prisma.user.create({
           data: {
             username,
