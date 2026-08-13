@@ -108,7 +108,7 @@ export default function TemplateManager() {
 
       if (!response.ok) {
         const data = await response.json()
-        throw new Error(data.error)
+        throw new Error(data.details || data.error || 'Failed to save template')
       }
 
       setSuccess(editingId ? 'Template updated successfully!' : 'Template created successfully!')

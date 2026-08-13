@@ -34,6 +34,8 @@ export async function POST(req: NextRequest) {
   try {
     const { name, description, thumbnail, customText, htmlContent, userId, userRole } = await req.json()
 
+    console.log('[TEMPLATES API] Creating template:', { name, userRole })
+
     // Only OWNER can create templates
     if (userRole !== 'OWNER') {
       return NextResponse.json(
@@ -53,11 +55,15 @@ export async function POST(req: NextRequest) {
       },
     })
 
+    console.log('[TEMPLATES API] Template created:', template.id)
     return NextResponse.json(template)
   } catch (error) {
-    console.error('Error creating template:', error)
+    console.error('[TEMPLATES API] Error creating template:', error)
     return NextResponse.json(
-      { error: 'Failed to create template' },
+      { 
+        error: 'Failed to create template',
+        details: error instanceof Error ? error.message : String(error),
+      },
       { status: 500 }
     )
   }
