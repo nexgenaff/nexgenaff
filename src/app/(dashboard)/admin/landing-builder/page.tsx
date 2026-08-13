@@ -201,13 +201,7 @@ export default function LandingPageBuilder() {
     // If template has custom text, use it and replace the placeholder with the actual link.
     // Support multiple occurrences and case variations like {Link} or {LINK}.
     if (page.template?.customText) {
-      textToCopy = page.template.customText.replace(/\{link\}/gi, url)
-
-      // Some templates append a bare URL at the end of the message with an underscore.
-      // If the final text already ends with the URL, add the trailing underscore to match the expected format.
-      if (textToCopy.trim().endsWith(url)) {
-        textToCopy = `${textToCopy}_`
-      }
+      textToCopy = page.template.customText.replace(/\{link\}/gi, `${url}_`)
     }
 
     try {
