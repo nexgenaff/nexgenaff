@@ -31,180 +31,126 @@ export async function GET(
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>404 — Landing page not found</title>
+    <title>404 - Page Not Found</title>
     <style>
-      :root {
-        --bg-1: #0f172a;
-        --bg-2: #111827;
-        --panel: rgba(15, 23, 42, 0.75);
-        --line: rgba(148, 163, 184, 0.18);
-        --text: #e2e8f0;
-        --muted: #a5b4cf;
-        --cyan: #22d3ee;
-        --violet: #8b5cf6;
-        --pink: #f472b6;
-      }
-
-      * { box-sizing: border-box; }
-
-      html, body {
-        margin: 0;
-        width: 100%;
-        min-height: 100%;
-        font-family: Inter, "Segoe UI", sans-serif;
-        background:
-          radial-gradient(circle at top, rgba(34, 211, 238, 0.18), transparent 35%),
-          radial-gradient(circle at bottom right, rgba(139, 92, 246, 0.2), transparent 35%),
-          linear-gradient(135deg, var(--bg-1), var(--bg-2));
-        color: var(--text);
-      }
-
       body {
-        display: grid;
-        place-items: center;
-        min-height: 100vh;
-        overflow: hidden;
-      }
-
-      .scene {
-        position: relative;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        width: min(92vw, 760px);
-        min-height: 520px;
-        padding: 2.5rem 2rem;
-        border: 1px solid var(--line);
-        border-radius: 28px;
-        background: rgba(15, 23, 42, 0.62);
-        backdrop-filter: blur(18px);
-        box-shadow: 0 30px 80px rgba(15, 23, 42, 0.6);
-        overflow: hidden;
-      }
-
-      .scene::before,
-      .scene::after {
-        content: "";
-        position: absolute;
-        width: 320px;
-        height: 320px;
-        border-radius: 50%;
-        filter: blur(28px);
-        opacity: 0.7;
-        animation: float 12s ease-in-out infinite alternate;
-      }
-
-      .scene::before {
-        background: rgba(34, 211, 238, 0.18);
-        top: -80px;
-        left: -40px;
-      }
-
-      .scene::after {
-        background: rgba(139, 92, 246, 0.19);
-        right: -60px;
-        bottom: -90px;
-        animation-delay: 1.7s;
-      }
-
-      .status {
-        position: relative;
-        z-index: 1;
-        display: flex;
-        align-items: end;
-        gap: 0.5rem;
-        margin-bottom: 1rem;
-      }
-
-      .digit {
-        font-size: clamp(5rem, 18vw, 11rem);
-        line-height: 0.85;
-        font-weight: 900;
-        letter-spacing: -0.08em;
-        background: linear-gradient(135deg, var(--cyan), var(--violet), var(--pink));
-        -webkit-background-clip: text;
-        background-clip: text;
-        color: transparent;
-        animation: pulse 2.4s ease-in-out infinite;
-        text-shadow: 0 0 32px rgba(34, 211, 238, 0.45);
-      }
-
-      .title {
-        position: relative;
-        z-index: 1;
-        margin: 0.2rem 0 0.7rem;
-        font-size: clamp(1.8rem, 4vw, 3rem);
-        font-weight: 800;
-        letter-spacing: -0.04em;
-      }
-
-      .subtitle {
-        position: relative;
-        z-index: 1;
-        max-width: 620px;
         margin: 0;
-        color: var(--muted);
-        font-size: 1.06rem;
-        line-height: 1.7;
+        padding: 0;
+        font-family: 'Tomorrow', sans-serif;
+        height: 100vh;
+        background-image: linear-gradient(to top, #2e1753, #1f1746, #131537, #0d1028, #050819);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        overflow: hidden;
+      }
+
+      .text {
+        position: absolute;
+        top: 10%;
+        color: #fff;
         text-align: center;
       }
 
-      .chip {
-        position: relative;
-        z-index: 1;
-        margin-top: 1.6rem;
-        display: inline-flex;
-        align-items: center;
-        gap: 0.6rem;
-        padding: 0.8rem 1.1rem;
-        border: 1px solid rgba(34, 211, 238, 0.28);
-        border-radius: 999px;
-        background: rgba(15, 23, 42, 0.7);
-        color: var(--text);
-        font-size: 0.9rem;
-        letter-spacing: 0.03em;
+      h1 {
+        font-size: 50px;
       }
 
-      .chip::before {
-        content: "";
-        width: 0.7rem;
-        height: 0.7rem;
-        border-radius: 50%;
-        background: linear-gradient(135deg, var(--cyan), var(--violet));
-        box-shadow: 0 0 15px rgba(34, 211, 238, 0.9);
-        animation: blink 1.6s ease-in-out infinite;
+      .star {
+        position: absolute;
+        width: 2px;
+        height: 2px;
+        background: #fff;
+        right: 0;
+        animation: starTwinkle 3s infinite linear;
       }
 
-      @keyframes float {
-        0% { transform: translate3d(0, 0, 0) scale(1); }
-        100% { transform: translate3d(24px, -18px, 0) scale(1.08); }
+      .astronaut img {
+        width: 100px;
+        position: absolute;
+        top: 55%;
+        animation: astronautFly 6s infinite linear;
       }
 
-      @keyframes pulse {
-        0%, 100% { transform: scale(1); opacity: 1; }
-        50% { transform: scale(1.06); opacity: 0.92; }
+      @keyframes astronautFly {
+        0% {
+          left: -100px;
+        }
+        25% {
+          top: 50%;
+          transform: rotate(30deg);
+        }
+        50% {
+          transform: rotate(45deg);
+          top: 55%;
+        }
+        75% {
+          top: 60%;
+          transform: rotate(30deg);
+        }
+        100% {
+          left: 110%;
+          transform: rotate(45deg);
+        }
       }
 
-      @keyframes blink {
-        0%, 100% { opacity: 0.6; }
-        50% { opacity: 1; }
+      @keyframes starTwinkle {
+        0% {
+          background: rgba(255,255,255,0.4);
+        }
+        25% {
+          background: rgba(255,255,255,0.8);
+        }
+        50% {
+          background: rgba(255,255,255,1);
+        }
+        75% {
+          background: rgba(255,255,255,0.8);
+        }
+        100% {
+          background: rgba(255,255,255,0.4);
+        }
       }
     </style>
   </head>
   <body>
-    <main class="scene" aria-live="polite">
-      <div class="status">
-        <div class="digit">4</div>
-        <div class="digit">0</div>
-        <div class="digit">4</div>
-      </div>
-      <h1 class="title">Landing page not found</h1>
-      <p class="subtitle">
-        This subdomain is not publishing a live landing page yet. Check the link or create a landing page to start tracking traffic.
-      </p>
-      <div class="chip">No landing page is currently active on this host</div>
-    </main>
+    <div class="text">
+      <div>ERROR</div>
+      <h1>404</h1>
+      <hr>
+      <div>Page Not Found</div>
+    </div>
+
+    <div class="astronaut">
+      <img src="https://images.vexels.com/media/users/3/152639/isolated/preview/506b575739e90613428cdb399175e2c8-space-astronaut-cartoon-by-vexels.png" alt="Astronaut" class="src" />
+    </div>
+
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        var body = document.body;
+        setInterval(createStar, 100);
+
+        function createStar() {
+          var right = Math.random() * 500;
+          var top = Math.random() * screen.height;
+          var star = document.createElement('div');
+          star.classList.add('star');
+          body.appendChild(star);
+          star.style.top = top + 'px';
+
+          function runStar() {
+            if (right >= screen.width) {
+              star.remove();
+              return;
+            }
+            right += 3;
+            star.style.right = right + 'px';
+          }
+
+          setInterval(runStar, 10);
+        }
+      });
+    </script>
   </body>
 </html>`
 
