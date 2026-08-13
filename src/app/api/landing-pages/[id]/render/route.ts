@@ -8,13 +8,14 @@ const prisma = new PrismaClient()
 // Replaces all variables with actual values
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const userId = req.headers.get('x-user-id')
+    const { id } = await params
 
     const landingPage = await prisma.landingPage.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: { template: true },
     })
 

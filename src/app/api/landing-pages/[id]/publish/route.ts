@@ -6,14 +6,15 @@ const prisma = new PrismaClient()
 // POST publish/unpublish landing page
 export async function POST(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const userId = req.headers.get('x-user-id')
     const { isPublished } = await req.json()
+    const { id } = await params
 
     const landingPage = await prisma.landingPage.findUnique({
-      where: { id: params.id },
+      where: { id },
     })
 
     if (!landingPage) {
@@ -32,7 +33,7 @@ export async function POST(
     }
 
     const updated = await prisma.landingPage.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         isPublished,
         publishedAt: isPublished ? new Date() : null,

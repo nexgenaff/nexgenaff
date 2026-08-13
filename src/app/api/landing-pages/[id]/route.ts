@@ -6,12 +6,13 @@ const prisma = new PrismaClient()
 // GET specific landing page
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const userId = req.headers.get('x-user-id')
+    const { id } = await params
     const landingPage = await prisma.landingPage.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: { template: true },
     })
 
@@ -43,14 +44,15 @@ export async function GET(
 // PUT update landing page
 export async function PUT(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const userId = req.headers.get('x-user-id')
+    const { id } = await params
     const updates = await req.json()
 
     const landingPage = await prisma.landingPage.findUnique({
-      where: { id: params.id },
+      where: { id },
     })
 
     if (!landingPage) {
@@ -69,7 +71,7 @@ export async function PUT(
     }
 
     const updated = await prisma.landingPage.update({
-      where: { id: params.id },
+      where: { id },
       data: updates,
       include: { template: true },
     })
@@ -87,13 +89,14 @@ export async function PUT(
 // DELETE landing page
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const userId = req.headers.get('x-user-id')
+    const { id } = await params
 
     const landingPage = await prisma.landingPage.findUnique({
-      where: { id: params.id },
+      where: { id },
     })
 
     if (!landingPage) {
@@ -112,7 +115,7 @@ export async function DELETE(
     }
 
     await prisma.landingPage.delete({
-      where: { id: params.id },
+      where: { id },
     })
 
     return NextResponse.json({ success: true })
