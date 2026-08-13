@@ -282,9 +282,9 @@ export default function LandingPageBuilder() {
               </div>
               <button
                 onClick={() => setCurrentStep('builder')}
-                className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg transition-colors font-semibold text-sm sm:text-base"
+                className="w-full sm:w-auto flex items-center justify-center gap-1.5 px-4 py-2 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg transition-colors font-semibold text-xs sm:text-sm"
               >
-                <Plus className="w-5 h-5" />
+                <Plus className="w-4 h-4" />
                 New Page
               </button>
             </div>
@@ -300,7 +300,7 @@ export default function LandingPageBuilder() {
                 <p className="text-slate-400 mb-6 text-sm px-4">Get started by creating your first landing page</p>
                 <button
                   onClick={() => setCurrentStep('builder')}
-                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg transition-colors font-semibold text-sm sm:text-base mx-auto"
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-4 py-2 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg transition-colors font-semibold text-xs sm:text-sm mx-auto"
                 >
                   <Plus className="w-4 h-4" />
                   Create Page
