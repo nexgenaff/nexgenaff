@@ -6,16 +6,16 @@ const prisma = new PrismaClient()
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: Promise<{ subdomain: string }> | { subdomain: string } }
+  { params }: { params: Promise<{ subdomain: string }> }
 ) {
   try {
-    // Handle both Promise and direct params (for compatibility with different Next.js versions)
-    const resolvedParams = params instanceof Promise ? await params : params
-    const subdomain = resolvedParams.subdomain.toLowerCase()
+    // Await params (required for Next.js 16)
+    const { subdomain } = await params
+    const normalizedSubdomain = subdomain.toLowerCase()
 
     // Find the landing page
     const landingPage = await prisma.landingPage.findUnique({
-      where: { subdomain },
+      where: { subdomain: normalizedSubdomain },
       include: { template: true },
     })
 
