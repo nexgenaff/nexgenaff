@@ -18,6 +18,7 @@ import {
   ChevronRight,
   BarChart3,
   ShieldCheck,
+  Layers,
 } from 'lucide-react'
 
 export default function Sidebar() {
@@ -78,6 +79,10 @@ export default function Sidebar() {
       : []),
     { href: '/admin/domains', label: 'Custom Domains', icon: Globe2 },
     { href: '/admin/analytics', label: 'Analytics', icon: BarChart3 },
+    { href: '/admin/landing-builder', label: 'Landing page Builder', icon: Layers },
+    ...(userRole === 'OWNER'
+      ? [{ href: '/admin/templates', label: 'Templates', icon: Layers }]
+      : []),
     { href: '/admin/settings', label: 'Settings', icon: Settings },
   ]
 

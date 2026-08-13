@@ -1,9 +1,17 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { getCookieValue } from '@/lib/utils/helpers'
+import { getLandingPageSubdomainFromHost } from '@/lib/utils/landing-page-host'
 
 export function proxy(request: NextRequest) {
   const path = request.nextUrl.pathname
+  const host = request.headers.get('host')
+  const subdomain = getLandingPageSubdomainFromHost(host)
+
+  if (subdomain && path === '/') {
+    const landingPageUrl = new URL(`/lp/${encodeURIComponent(subdomain)}${request.nextUrl.search}`, request.url)
+    return NextResponse.rewrite(landingPageUrl)
+  }
 
   const publicPaths = ['/', '/login', '/stats']
   const isPublicPath = publicPaths.some(p => path.startsWith(p))
