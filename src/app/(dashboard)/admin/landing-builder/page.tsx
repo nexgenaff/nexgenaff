@@ -297,44 +297,59 @@ export default function LandingPageBuilder() {
                 {landingPages.map((page) => (
                   <div 
                     key={page.id} 
-                    className="p-4 sm:p-5 bg-slate-800 border border-slate-700 rounded-lg hover:border-slate-600 transition-colors"
+                    className="group p-4 bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-lg hover:border-cyan-600/50 hover:shadow-lg hover:shadow-cyan-600/10 transition-all"
                   >
-                    <div className="flex items-start justify-between gap-3 mb-4">
+                    {/* Header with Subdomain and Copy Button */}
+                    <div className="flex items-center justify-between gap-2 mb-3">
                       <div className="min-w-0 flex-1">
-                        <p className="text-xs text-slate-500 uppercase tracking-wide mb-1 font-medium">Subdomain</p>
-                        <h3 className="text-sm sm:text-base font-semibold text-slate-100 truncate">
-                          https://{page.subdomain}.{landingPageDomain}
+                        <p className="text-[10px] text-slate-500 uppercase tracking-widest font-bold mb-1">URL</p>
+                        <h3 className="text-xs sm:text-sm font-mono font-semibold text-cyan-300 truncate hover:text-cyan-200 cursor-pointer" title={`https://${page.subdomain}.${landingPageDomain}`}>
+                          {page.subdomain}.{landingPageDomain}
                         </h3>
                       </div>
                       <button
                         type="button"
                         onClick={() => copyLandingPageLink(page)}
                         title="Copy landing page link"
-                        className="flex-shrink-0 inline-flex items-center justify-center w-8 h-8 rounded-md bg-cyan-900/60 text-cyan-300 hover:bg-cyan-800 transition-colors"
+                        className="flex-shrink-0 inline-flex items-center justify-center w-9 h-9 rounded-md bg-cyan-600/20 text-cyan-400 hover:bg-cyan-600/40 active:bg-cyan-600/60 transition-colors group-hover:opacity-100 opacity-80"
                         aria-label={`Copy link for ${page.subdomain}`}
                       >
                         <Copy className="w-4 h-4" />
                       </button>
                     </div>
                     
-                    <div className="mb-4 space-y-2 pb-4 border-t border-slate-700">
+                    {/* Metrics Section */}
+                    <div className="grid grid-cols-2 gap-2 mb-3 pb-3 border-t border-slate-700/50">
                       <div>
-                        <p className="text-xs text-slate-500 font-medium uppercase tracking-wide mb-1">Template</p>
-                        <p className="text-sm text-slate-300">{page.template?.name || 'Unknown'}</p>
+                        <p className="text-[10px] text-slate-500 uppercase tracking-widest font-bold mb-0.5">Template</p>
+                        <p className="text-xs text-slate-300 truncate font-medium">{page.template?.name || '—'}</p>
                       </div>
                       <div>
-                        <p className="text-xs text-slate-500 font-medium uppercase tracking-wide mb-1">Clicks</p>
-                        <p className="text-sm font-semibold text-slate-300">{page.totalClicks}</p>
+                        <p className="text-[10px] text-slate-500 uppercase tracking-widest font-bold mb-0.5">Clicks</p>
+                        <p className={`text-xs font-bold ${page.totalClicks > 0 ? 'text-cyan-400' : 'text-slate-400'}`}>
+                          {page.totalClicks}
+                        </p>
                       </div>
                     </div>
 
-                    <div className="flex gap-2">
+                    {/* Actions */}
+                    <div className="flex gap-2 pt-2 border-t border-slate-700/30">
                       <button
                         onClick={() => deleteLandingPage(page.id)}
-                        className="px-3 py-2 bg-red-900 text-red-300 hover:bg-red-800 rounded text-sm font-medium transition-colors"
+                        className="flex-1 inline-flex items-center justify-center gap-1.5 px-2 py-2 bg-red-900/20 text-red-400 hover:bg-red-900/40 active:bg-red-900/60 rounded text-xs font-medium transition-colors"
                         title="Delete landing page"
                       >
-                        <Trash2 className="w-4 h-4" />
+                        <Trash2 className="w-3.5 h-3.5" />
+                        <span className="hidden sm:inline">Delete</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => copyLandingPageLink(page)}
+                        className="flex-1 inline-flex items-center justify-center gap-1.5 px-2 py-2 bg-cyan-600/20 text-cyan-400 hover:bg-cyan-600/40 active:bg-cyan-600/60 rounded text-xs font-medium transition-colors"
+                        title="Copy link with custom text"
+                      >
+                        <Copy className="w-3.5 h-3.5" />
+                        <span className="hidden sm:inline">Copy</span>
                       </button>
                     </div>
                   </div>
@@ -381,47 +396,45 @@ export default function LandingPageBuilder() {
 
               <form onSubmit={createLandingPage} className="space-y-5 sm:space-y-6">
                 {/* Step 1: Basic Info */}
-                <div className="p-5 sm:p-6 bg-slate-800/50 border border-slate-700 rounded-lg">
-                  <div className="flex items-center gap-2 mb-5">
-                    <Globe className="w-5 h-5 text-cyan-400" />
-                    <h3 className="text-lg sm:text-xl font-semibold text-slate-100">Step 1: Basic Information</h3>
+                <div className="p-4 sm:p-5 bg-slate-800/50 border border-slate-700 rounded-lg">
+                  <div className="flex items-center gap-2 mb-4">
+                    <Globe className="w-4 h-4 text-cyan-400" />
+                    <h3 className="text-base sm:text-lg font-semibold text-slate-100">Step 1: Basic Information</h3>
                   </div>
                   
-                  <div className="space-y-4">
+                  <div className="space-y-3">
                     <div>
-                      <label className="block text-sm font-semibold text-slate-200 mb-2">Subdomain *</label>
-                      <p className="text-xs text-slate-400 mb-2">Unique URL for your page</p>
-                      <div className="flex items-center gap-2 rounded-lg bg-slate-700 border border-slate-600 px-3 py-2 sm:py-3 hover:border-slate-500 transition-colors focus-within:border-cyan-400">
+                      <label className="block text-sm font-semibold text-slate-200 mb-1.5">Subdomain *</label>
+                      <p className="text-[11px] text-slate-400 mb-1.5">Unique URL for your page</p>
+                      <div className="flex items-center gap-2 rounded-lg bg-slate-700 border border-slate-600 px-3 py-2 hover:border-slate-500 transition-colors focus-within:border-cyan-400">
                         <input
                           type="text"
                           value={subdomain}
                           onChange={(e) => validateSubdomain(e.target.value)}
                           placeholder="myoffer"
-                          className={`flex-1 px-0 py-1 sm:py-2 bg-transparent text-slate-100 text-sm sm:text-base placeholder-slate-500 focus:outline-none`}
+                          className={`flex-1 px-0 py-1 bg-transparent text-slate-100 text-sm placeholder-slate-500 focus:outline-none`}
                         />
-                        <span className="text-slate-400 font-medium text-xs sm:text-sm flex-shrink-0">.{landingPageDomain}</span>
+                        <span className="text-slate-400 font-medium text-xs flex-shrink-0">.{landingPageDomain}</span>
                       </div>
-                      {subdomainError && <p className="text-red-400 text-xs mt-2 flex items-center gap-1"><X className="w-3 h-3" /> {subdomainError}</p>}
-                      {!subdomainError && subdomain && <p className="text-green-400 text-xs mt-2 flex items-center gap-1"><Check className="w-3 h-3" /> Looks good!</p>}
+                      {subdomainError && <p className="text-red-400 text-[11px] mt-1.5 flex items-center gap-1"><X className="w-3 h-3" /> {subdomainError}</p>}
+                      {!subdomainError && subdomain && <p className="text-green-400 text-[11px] mt-1.5 flex items-center gap-1"><Check className="w-3 h-3" /> Looks good!</p>}
                     </div>
 
                     <div>
-                      <label className="block text-sm font-semibold text-slate-200 mb-2">Tracking Link *</label>
-                      <p className="text-xs text-slate-400 mb-2">Where visitors get redirected after landing</p>
-                      <div className="flex items-center gap-2 rounded-lg bg-slate-700 border border-slate-600 px-3 py-2 sm:py-3 hover:border-slate-500 transition-colors focus-within:border-cyan-400">
-                        <LinkIcon className="w-4 h-4 sm:w-5 sm:h-5 text-slate-400 flex-shrink-0" />
+                      <label className="block text-sm font-semibold text-slate-200 mb-1.5">Tracking Link *</label>
+                      <p className="text-[11px] text-slate-400 mb-1.5">Where visitors get redirected after landing</p>
+                      <div className="flex items-center gap-2 rounded-lg bg-slate-700 border border-slate-600 px-3 py-2 hover:border-slate-500 transition-colors focus-within:border-cyan-400">
+                        <LinkIcon className="w-4 h-4 text-slate-400 flex-shrink-0" />
                         <input
                           type="url"
                           value={trackingUrl}
                           onChange={(e) => setTrackingUrl(e.target.value)}
                           placeholder="https://example.com/offer"
                           required
-                          className="flex-1 px-0 py-1 sm:py-2 bg-transparent text-slate-100 text-sm sm:text-base placeholder-slate-500 focus:outline-none"
+                          className="flex-1 px-0 py-1 bg-transparent text-slate-100 text-sm placeholder-slate-500 focus:outline-none"
                         />
                       </div>
                     </div>
-
-
                   </div>
                 </div>
 
