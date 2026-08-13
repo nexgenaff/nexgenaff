@@ -215,6 +215,20 @@ export default function LandingPageBuilder() {
     }
   }
 
+  const copyLandingPageUrlOnly = async (page: LandingPage) => {
+    const url = `https://${page.subdomain}.${landingPageDomain}`
+
+    try {
+      await navigator.clipboard.writeText(url)
+      setSuccess(`Copied: ${url}`)
+      setTimeout(() => setSuccess(''), 3000)
+    } catch (err) {
+      console.error('Copy failed:', err)
+      setError('Failed to copy link')
+      setTimeout(() => setError(''), 2000)
+    }
+  }
+
   const deleteLandingPage = async (id: string) => {
     if (!confirm('Are you sure you want to delete this landing page?')) return
     if (!userId) return
@@ -309,10 +323,10 @@ export default function LandingPageBuilder() {
                       </div>
                       <button
                         type="button"
-                        onClick={() => copyLandingPageLink(page)}
-                        title="Copy landing page link"
+                        onClick={() => copyLandingPageUrlOnly(page)}
+                        title="Copy URL only"
                         className="flex-shrink-0 inline-flex items-center justify-center w-9 h-9 rounded-md bg-cyan-600/20 text-cyan-400 hover:bg-cyan-600/40 active:bg-cyan-600/60 transition-colors group-hover:opacity-100 opacity-80"
-                        aria-label={`Copy link for ${page.subdomain}`}
+                        aria-label={`Copy URL for ${page.subdomain}`}
                       >
                         <Copy className="w-4 h-4" />
                       </button>
