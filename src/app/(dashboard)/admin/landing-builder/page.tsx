@@ -318,12 +318,20 @@ export default function LandingPageBuilder() {
                       </button>
                     </div>
                     
-                    {/* Metrics Section */}
+                    {/* Tracking Link & Metrics Section */}
                     <div className="mb-3 pb-3 border-t border-slate-700/50">
-                      <p className="text-[10px] text-slate-500 uppercase tracking-widest font-bold mb-0.5">Clicks</p>
-                      <p className={`text-sm font-bold ${page.totalClicks > 0 ? 'text-cyan-400' : 'text-slate-400'}`}>
-                        {page.totalClicks}
-                      </p>
+                      <div className="mb-2">
+                        <p className="text-[10px] text-slate-500 uppercase tracking-widest font-bold mb-0.5">Redirect To</p>
+                        <p className="text-xs text-slate-300 truncate font-mono hover:text-cyan-300 cursor-pointer" title={page.trackingUrl}>
+                          {page.trackingUrl}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] text-slate-500 uppercase tracking-widest font-bold mb-0.5">Clicks</p>
+                        <p className={`text-sm font-bold ${page.totalClicks > 0 ? 'text-cyan-400' : 'text-slate-400'}`}>
+                          {page.totalClicks}
+                        </p>
+                      </div>
                     </div>
 
                     {/* Actions */}
