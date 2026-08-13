@@ -31,62 +31,6 @@ async function seedTemplates() {
   </div>
 </div>
         `,
-        cssStyles: `
-.landing-container.modern {
-  min-height: 100vh;
-  background: linear-gradient(135deg, {primaryColor}20 0%, {secondaryColor}20 100%);
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  padding: 40px 20px;
-}
-
-.hero-section {
-  max-width: 600px;
-  text-align: center;
-  margin-bottom: 40px;
-}
-
-.headline {
-  font-size: 48px;
-  font-weight: bold;
-  color: {primaryColor};
-  margin-bottom: 20px;
-}
-
-.subtext {
-  font-size: 18px;
-  color: #666;
-  margin-bottom: 30px;
-  line-height: 1.6;
-}
-
-.hero-image {
-  max-width: 100%;
-  height: auto;
-  border-radius: 12px;
-  margin-bottom: 20px;
-}
-
-.cta-button {
-  display: inline-block;
-  padding: 16px 48px;
-  background: linear-gradient(135deg, {primaryColor} 0%, {secondaryColor} 100%);
-  color: white;
-  text-decoration: none;
-  border-radius: 8px;
-  font-weight: bold;
-  font-size: 18px;
-  transition: transform 0.3s, box-shadow 0.3s;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-}
-
-.cta-button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(0,0,0,0.3);
-}
-        `,
       },
     })
 
@@ -105,57 +49,6 @@ async function seedTemplates() {
     <button class="btn">{buttonText}</button>
   </div>
 </div>
-        `,
-        cssStyles: `
-.landing-container.minimal {
-  min-height: 100vh;
-  background: #fff;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 20px;
-}
-
-.content {
-  max-width: 500px;
-  text-align: center;
-}
-
-.content h1 {
-  font-size: 42px;
-  color: {primaryColor};
-  margin-bottom: 20px;
-  font-weight: 700;
-}
-
-.content p {
-  font-size: 16px;
-  color: #555;
-  margin-bottom: 30px;
-  line-height: 1.6;
-}
-
-.content img {
-  max-width: 100%;
-  height: auto;
-  margin-bottom: 30px;
-}
-
-.btn {
-  padding: 14px 40px;
-  background: {primaryColor};
-  color: white;
-  border: none;
-  border-radius: 6px;
-  font-size: 16px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.3s;
-}
-
-.btn:hover {
-  background: {secondaryColor};
-}
         `,
       },
     })
@@ -176,68 +69,6 @@ async function seedTemplates() {
     <a href="#" class="btn-primary">{buttonText}</a>
   </div>
 </div>
-        `,
-        cssStyles: `
-.landing-container.dark {
-  min-height: 100vh;
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 40px 20px;
-  position: relative;
-  overflow: hidden;
-}
-
-.content-wrapper {
-  max-width: 600px;
-  text-align: center;
-  position: relative;
-  z-index: 2;
-}
-
-.content-wrapper h1 {
-  background: linear-gradient(135deg, {primaryColor} 0%, {secondaryColor} 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  font-size: 48px;
-  font-weight: 800;
-  margin-bottom: 20px;
-}
-
-.content-wrapper p {
-  color: #ccc;
-  font-size: 18px;
-  margin-bottom: 40px;
-  line-height: 1.8;
-}
-
-.offer-image {
-  max-width: 100%;
-  height: auto;
-  border-radius: 12px;
-  margin-bottom: 40px;
-  border: 2px solid {primaryColor}40;
-}
-
-.btn-primary {
-  display: inline-block;
-  padding: 16px 50px;
-  background: linear-gradient(135deg, {primaryColor} 0%, {secondaryColor} 100%);
-  color: white;
-  text-decoration: none;
-  border-radius: 8px;
-  font-weight: bold;
-  font-size: 18px;
-  transition: all 0.3s;
-  box-shadow: 0 0 30px {primaryColor}40;
-}
-
-.btn-primary:hover {
-  transform: scale(1.05);
-  box-shadow: 0 0 40px {primaryColor}60;
-}
         `,
       },
     })
