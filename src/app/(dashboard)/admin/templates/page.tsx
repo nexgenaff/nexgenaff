@@ -276,7 +276,7 @@ export default function TemplateManager() {
                 <textarea
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  rows={2}
+                  rows={4}
                   className="w-full px-3 py-1.5 bg-slate-700 border border-slate-600 rounded text-slate-100 text-sm placeholder-slate-500 focus:outline-none focus:border-cyan-400 hover:border-slate-500 transition-colors"
                 />
               </div>
@@ -296,7 +296,7 @@ export default function TemplateManager() {
                 <textarea
                   value={formData.customText}
                   onChange={(e) => setFormData({ ...formData, customText: e.target.value })}
-                  rows={1}
+                  rows={3}
                   className="w-full px-3 py-1.5 bg-slate-700 border border-slate-600 rounded text-slate-100 text-sm placeholder-slate-500 focus:outline-none focus:border-cyan-400 hover:border-slate-500 transition-colors"
                 />
                 <p className="text-xs text-slate-400 mt-2">Use <code className="bg-slate-900 px-1.5 py-0.5 rounded">{`{link}`}</code> as a placeholder for the landing page URL. When copied, it will be replaced with the actual link.</p>
@@ -307,7 +307,7 @@ export default function TemplateManager() {
                 <textarea
                   value={formData.htmlContent}
                   onChange={(e) => setFormData({ ...formData, htmlContent: e.target.value })}
-                  rows={6}
+                  rows={10}
                   className="w-full px-3 py-1.5 bg-slate-700 border border-slate-600 rounded text-slate-100 text-xs placeholder-slate-500 focus:outline-none focus:border-cyan-400 hover:border-slate-500 transition-colors font-mono"
                 />
                 <div className="text-xs text-slate-400 mt-3 space-y-2">
