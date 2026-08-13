@@ -289,6 +289,7 @@ model LandingPageTemplate {
   description     String?
   thumbnail       String?
   htmlContent     String        // Template HTML structure
+  customText      String?       // Custom text to include with link when copied
   isActive        Boolean       @default(true)
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt

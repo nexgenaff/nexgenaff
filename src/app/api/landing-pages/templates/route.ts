@@ -14,6 +14,7 @@ export async function GET(req: NextRequest) {
         name: true,
         description: true,
         thumbnail: true,
+        customText: true,
         htmlContent: true,
       },
     })
@@ -31,7 +32,7 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    const { name, description, thumbnail, htmlContent, userId, userRole } = await req.json()
+    const { name, description, thumbnail, customText, htmlContent, userId, userRole } = await req.json()
 
     // Only OWNER can create templates
     if (userRole !== 'OWNER') {
@@ -46,6 +47,7 @@ export async function POST(req: NextRequest) {
         name,
         description,
         thumbnail,
+        customText,
         htmlContent,
         createdBy: userId,
       },

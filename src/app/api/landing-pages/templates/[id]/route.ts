@@ -52,7 +52,7 @@ export async function PUT(
       )
     }
 
-    const { name, description, thumbnail, htmlContent, userId, userRole } = await req.json()
+    const { name, description, thumbnail, customText, htmlContent, userId, userRole } = await req.json()
 
     // Only OWNER can update templates
     if (userRole !== 'OWNER') {
@@ -87,6 +87,7 @@ export async function PUT(
         name,
         description,
         thumbnail,
+        customText,
         htmlContent,
       },
     })

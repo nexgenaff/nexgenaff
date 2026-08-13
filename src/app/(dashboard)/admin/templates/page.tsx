@@ -8,6 +8,7 @@ interface Template {
   name: string
   description?: string
   thumbnail?: string
+  customText?: string
   htmlContent: string
   isActive: boolean
   createdAt: string
@@ -29,6 +30,7 @@ export default function TemplateManager() {
     name: '',
     description: '',
     thumbnail: '',
+    customText: '',
     htmlContent: '',
   })
 
@@ -114,6 +116,7 @@ export default function TemplateManager() {
         name: '',
         description: '',
         thumbnail: '',
+        customText: '',
         htmlContent: '',
       })
       setShowForm(false)
@@ -164,6 +167,7 @@ export default function TemplateManager() {
       name: template.name,
       description: template.description || '',
       thumbnail: template.thumbnail || '',
+      customText: template.customText || '',
       htmlContent: template.htmlContent,
     })
     setEditingId(template.id)
@@ -177,6 +181,7 @@ export default function TemplateManager() {
       name: '',
       description: '',
       thumbnail: '',
+      customText: '',
       htmlContent: '',
     })
   }
@@ -262,8 +267,7 @@ export default function TemplateManager() {
                   type="text"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  placeholder="e.g., Modern Offer"
-                  className="w-full px-3 py-2 sm:py-3 bg-slate-700 border border-slate-600 rounded-lg text-slate-100 text-sm sm:text-base placeholder-slate-500 focus:outline-none focus:border-cyan-400 hover:border-slate-500 transition-colors"
+                  className="w-full px-3 py-1.5 bg-slate-700 border border-slate-600 rounded text-slate-100 text-sm placeholder-slate-500 focus:outline-none focus:border-cyan-400 hover:border-slate-500 transition-colors"
                 />
               </div>
 
@@ -272,9 +276,8 @@ export default function TemplateManager() {
                 <textarea
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  placeholder="Describe this template..."
-                  rows={3}
-                  className="w-full px-3 py-2 sm:py-3 bg-slate-700 border border-slate-600 rounded-lg text-slate-100 text-sm sm:text-base placeholder-slate-500 focus:outline-none focus:border-cyan-400 hover:border-slate-500 transition-colors"
+                  rows={2}
+                  className="w-full px-3 py-1.5 bg-slate-700 border border-slate-600 rounded text-slate-100 text-sm placeholder-slate-500 focus:outline-none focus:border-cyan-400 hover:border-slate-500 transition-colors"
                 />
               </div>
 
@@ -284,9 +287,19 @@ export default function TemplateManager() {
                   type="url"
                   value={formData.thumbnail}
                   onChange={(e) => setFormData({ ...formData, thumbnail: e.target.value })}
-                  placeholder="https://example.com/thumb.jpg"
-                  className="w-full px-3 py-2 sm:py-3 bg-slate-700 border border-slate-600 rounded-lg text-slate-100 text-sm sm:text-base placeholder-slate-500 focus:outline-none focus:border-cyan-400 hover:border-slate-500 transition-colors"
+                  className="w-full px-3 py-1.5 bg-slate-700 border border-slate-600 rounded text-slate-100 text-sm placeholder-slate-500 focus:outline-none focus:border-cyan-400 hover:border-slate-500 transition-colors"
                 />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-slate-200 mb-2">Text</label>
+                <textarea
+                  value={formData.customText}
+                  onChange={(e) => setFormData({ ...formData, customText: e.target.value })}
+                  rows={1}
+                  className="w-full px-3 py-1.5 bg-slate-700 border border-slate-600 rounded text-slate-100 text-sm placeholder-slate-500 focus:outline-none focus:border-cyan-400 hover:border-slate-500 transition-colors"
+                />
+                <p className="text-xs text-slate-400 mt-2">Use <code className="bg-slate-900 px-1.5 py-0.5 rounded">{`{link}`}</code> as a placeholder for the landing page URL. When copied, it will be replaced with the actual link.</p>
               </div>
 
               <div>
@@ -294,12 +307,10 @@ export default function TemplateManager() {
                 <textarea
                   value={formData.htmlContent}
                   onChange={(e) => setFormData({ ...formData, htmlContent: e.target.value })}
-                  placeholder="<div>Your HTML...</div>"
-                  rows={8}
-                  className="w-full px-3 py-2 sm:py-3 bg-slate-700 border border-slate-600 rounded-lg text-slate-100 text-xs sm:text-sm placeholder-slate-500 focus:outline-none focus:border-cyan-400 hover:border-slate-500 transition-colors font-mono"
+                  rows={6}
+                  className="w-full px-3 py-1.5 bg-slate-700 border border-slate-600 rounded text-slate-100 text-xs placeholder-slate-500 focus:outline-none focus:border-cyan-400 hover:border-slate-500 transition-colors font-mono"
                 />
                 <div className="text-xs text-slate-400 mt-3 space-y-2">
-                  <p><span className="font-semibold text-slate-300">Variables:</span> {'{headline}'}, {'{description}'}, {'{imageUrl}'}, {'{buttonText}'}, {'{link.url}'}</p>
                   <p><span className="font-semibold text-slate-300">Link Function:</span> <code className="bg-slate-900 px-1.5 py-0.5 rounded">{'{link.url}'}</code> will be replaced with the tracking URL. Use it in <code className="bg-slate-900 px-1.5 py-0.5 rounded">href</code> attributes to redirect users: <code className="bg-slate-900 px-1.5 py-0.5 rounded text-cyan-300">&lt;a href=&quot;{'{link.url}'}&quot;&gt;</code></p>
                 </div>
               </div>
@@ -349,6 +360,9 @@ export default function TemplateManager() {
                   <p className="text-xs sm:text-sm text-slate-400 mb-3 line-clamp-2">{template.description}</p>
                 )}
                 <p className="text-xs text-slate-500 mb-3">HTML: {template.htmlContent.length} chars</p>
+                {template.customText && (
+                  <p className="text-xs text-slate-400 mb-3 italic truncate">Copy text: {template.customText}</p>
+                )}
                 <div className="flex gap-2">
                   <button
                     onClick={() => editTemplate(template)}

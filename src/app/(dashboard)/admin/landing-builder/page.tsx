@@ -8,6 +8,7 @@ interface Template {
   name: string
   description?: string
   thumbnail?: string
+  customText?: string
   htmlContent: string
 }
 
@@ -193,6 +194,26 @@ export default function LandingPageBuilder() {
     }
   }
 
+  const copyLandingPageLink = async (page: LandingPage) => {
+    const url = `https://${page.subdomain}.${landingPageDomain}`
+    let textToCopy = url
+
+    // If template has custom text, use it and replace placeholder with actual link
+    if (page.template?.customText) {
+      textToCopy = page.template.customText.replace('{link}', url)
+    }
+
+    try {
+      await navigator.clipboard.writeText(textToCopy)
+      setSuccess(`Copied: ${textToCopy}`)
+      setTimeout(() => setSuccess(''), 3000)
+    } catch (err) {
+      console.error('Copy failed:', err)
+      setError('Failed to copy link')
+      setTimeout(() => setError(''), 2000)
+    }
+  }
+
   const deleteLandingPage = async (id: string) => {
     if (!confirm('Are you sure you want to delete this landing page?')) return
     if (!userId) return
@@ -281,14 +302,18 @@ export default function LandingPageBuilder() {
                       <div className="min-w-0 flex-1">
                         <p className="text-xs text-slate-500 uppercase tracking-wide mb-1 font-medium">Subdomain</p>
                         <h3 className="text-sm sm:text-base font-semibold text-slate-100 truncate">
-                          {page.subdomain}.{landingPageDomain}
+                          https://{page.subdomain}.{landingPageDomain}
                         </h3>
                       </div>
-                      {page.isPublished && (
-                        <span className="flex-shrink-0 px-2 py-1 bg-green-900 text-green-300 text-xs font-medium rounded whitespace-nowrap">
-                          Live
-                        </span>
-                      )}
+                      <button
+                        type="button"
+                        onClick={() => copyLandingPageLink(page)}
+                        title="Copy landing page link"
+                        className="flex-shrink-0 inline-flex items-center justify-center w-8 h-8 rounded-md bg-cyan-900/60 text-cyan-300 hover:bg-cyan-800 transition-colors"
+                        aria-label={`Copy link for ${page.subdomain}`}
+                      >
+                        <Copy className="w-4 h-4" />
+                      </button>
                     </div>
                     
                     <div className="mb-4 space-y-2 pb-4 border-t border-slate-700">
