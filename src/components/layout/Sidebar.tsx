@@ -96,13 +96,6 @@ export default function Sidebar() {
       <div className="pointer-events-none absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-transparent via-cyan-400/70 to-transparent" />
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.2),transparent_36%),radial-gradient(circle_at_bottom_right,rgba(244,114,182,0.16),transparent_38%),linear-gradient(135deg,rgba(34,211,238,0.08),transparent_40%,rgba(129,140,248,0.08))]" />
       <div className="relative flex items-center justify-start p-0 w-full gap-2">
-        <button
-          onClick={handleLogout}
-          aria-label="Logout"
-          className="flex h-6 w-6 items-center justify-center rounded-lg border border-transparent bg-white/5 text-red-400/90 transition hover:border-red-400/20 hover:bg-red-500/10 hover:text-red-300"
-        >
-          <LogOut className="w-3 h-3" />
-        </button>
         {!collapsed && (
           <div className="relative h-12 flex-1 overflow-hidden">
             <Image
@@ -150,7 +143,17 @@ export default function Sidebar() {
         })}
       </nav>
 
-      <div className="relative z-10 px-3 py-3 border-t border-white/10" />
+      <div className="relative z-10 px-2.5 py-2.5 border-t border-white/10 space-y-1">
+        <button
+          onClick={handleLogout}
+          className={`w-full group flex items-center ${collapsed && !isMobile ? 'justify-center' : 'gap-2.5'} px-2.5 py-2.5 rounded-2xl border border-transparent transition-all duration-300 text-red-400/80 hover:text-red-300 hover:bg-red-500/10 hover:border-red-400/20 hover:-translate-y-0.5`}
+          aria-label="Logout"
+          title="Logout"
+        >
+          <LogOut className={`${collapsed && !isMobile ? 'w-5 h-5' : 'w-4 h-4'} transition-transform duration-200 group-hover:scale-110`} />
+          {(!collapsed || isMobile) && <span className="text-[13px] tracking-[0.01em]">Logout</span>}
+        </button>
+      </div>
     </>
   )
 
