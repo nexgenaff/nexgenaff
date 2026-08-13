@@ -198,9 +198,10 @@ export default function LandingPageBuilder() {
     const url = `https://${page.subdomain}.${landingPageDomain}`
     let textToCopy = url
 
-    // If template has custom text, use it and replace placeholder with actual link
+    // If template has custom text, use it and replace the placeholder with the actual link.
+    // Support multiple occurrences and case variations like {Link} or {LINK}.
     if (page.template?.customText) {
-      textToCopy = page.template.customText.replace('{link}', url)
+      textToCopy = page.template.customText.replace(/\{link\}/gi, url)
     }
 
     try {
