@@ -13,9 +13,15 @@ export async function GET(
     const { subdomain } = await params
     const normalizedSubdomain = subdomain.toLowerCase()
 
-    // Find the landing page
-    const landingPage = await prisma.landingPage.findUnique({
-      where: { subdomain: normalizedSubdomain },
+    // Find the landing page in a case-insensitive way to avoid mismatches
+    // between host-derived subdomains and DB records.
+    const landingPage = await prisma.landingPage.findFirst({
+      where: {
+        subdomain: {
+          equals: normalizedSubdomain,
+          mode: 'insensitive',
+        },
+      },
       include: { template: true },
     })
 
