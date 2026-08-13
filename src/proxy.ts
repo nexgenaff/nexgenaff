@@ -8,7 +8,8 @@ export function proxy(request: NextRequest) {
   const host = request.headers.get('host')
   const subdomain = getLandingPageSubdomainFromHost(host)
 
-  if (subdomain && path === '/') {
+  // If subdomain is detected and root path, route to landing page
+  if (subdomain && (path === '/' || path === '')) {
     const landingPageUrl = new URL(`/lp/${encodeURIComponent(subdomain)}${request.nextUrl.search}`, request.url)
     return NextResponse.rewrite(landingPageUrl)
   }
