@@ -319,17 +319,11 @@ export default function LandingPageBuilder() {
                     </div>
                     
                     {/* Metrics Section */}
-                    <div className="grid grid-cols-2 gap-2 mb-3 pb-3 border-t border-slate-700/50">
-                      <div>
-                        <p className="text-[10px] text-slate-500 uppercase tracking-widest font-bold mb-0.5">Template</p>
-                        <p className="text-xs text-slate-300 truncate font-medium">{page.template?.name || '—'}</p>
-                      </div>
-                      <div>
-                        <p className="text-[10px] text-slate-500 uppercase tracking-widest font-bold mb-0.5">Clicks</p>
-                        <p className={`text-xs font-bold ${page.totalClicks > 0 ? 'text-cyan-400' : 'text-slate-400'}`}>
-                          {page.totalClicks}
-                        </p>
-                      </div>
+                    <div className="mb-3 pb-3 border-t border-slate-700/50">
+                      <p className="text-[10px] text-slate-500 uppercase tracking-widest font-bold mb-0.5">Clicks</p>
+                      <p className={`text-sm font-bold ${page.totalClicks > 0 ? 'text-cyan-400' : 'text-slate-400'}`}>
+                        {page.totalClicks}
+                      </p>
                     </div>
 
                     {/* Actions */}
