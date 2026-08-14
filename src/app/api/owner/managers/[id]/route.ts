@@ -110,6 +110,8 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
       prisma.linkAccount.deleteMany({ where: { id: { in: linkAccountIds } } }),
       prisma.customDomain.deleteMany({ where: { userId: id } }),
       prisma.offerVault.deleteMany({ where: { userId: id } }),
+      prisma.landingPage.deleteMany({ where: { userId: id } }),
+      prisma.landingPageTemplate.deleteMany({ where: { createdBy: id } }),
       prisma.user.delete({ where: { id } }),
     ])
 
