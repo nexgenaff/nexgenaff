@@ -92,14 +92,14 @@ export default function Sidebar() {
   }
 
   const sidebarContent = (
-    <>
+    <div className="flex flex-col h-full">
       <div className="pointer-events-none absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-transparent via-cyan-400/70 to-transparent" />
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.2),transparent_36%),radial-gradient(circle_at_bottom_right,rgba(244,114,182,0.16),transparent_38%),linear-gradient(135deg,rgba(34,211,238,0.08),transparent_40%,rgba(129,140,248,0.08))]" />
-      <div className="relative flex items-center justify-start p-0 w-full gap-2">
+      <div className="relative flex items-center justify-start p-0 w-full gap-2 flex-shrink-0">
         {!collapsed && (
           <div className="relative h-12 flex-1 overflow-hidden">
             <Image
-              src="/afficixo.png"
+              src="/AFFICIXO.png"
               alt="Afficixo logo"
               fill
               className="object-contain"
@@ -112,7 +112,7 @@ export default function Sidebar() {
       {!isMobile && (
         <button
           onClick={() => setCollapsed(!collapsed)}
-          className="relative z-10 hidden lg:flex items-center justify-center p-1.5 mx-3 mt-2 rounded-lg border border-white/10 bg-white/[0.04] text-slate-400 transition-all duration-200 hover:-translate-y-0.5 hover:border-cyan-400/20 hover:bg-cyan-400/10 hover:text-cyan-200"
+          className="relative z-10 hidden lg:flex items-center justify-center p-1.5 mx-3 mt-2 rounded-lg border border-white/10 bg-white/[0.04] text-slate-400 transition-all duration-200 hover:-translate-y-0.5 hover:border-cyan-400/20 hover:bg-cyan-400/10 hover:text-cyan-200 flex-shrink-0"
         >
           {collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
         </button>
@@ -143,7 +143,7 @@ export default function Sidebar() {
         })}
       </nav>
 
-      <div className="relative z-10 px-2.5 py-2.5 border-t border-white/10 space-y-1">
+      <div className="relative z-10 px-2.5 py-2.5 border-t border-white/10 space-y-1 flex-shrink-0">
         <button
           onClick={handleLogout}
           className={`w-full group flex items-center ${collapsed && !isMobile ? 'justify-center' : 'gap-2.5'} px-2.5 py-2.5 rounded-2xl border border-transparent transition-all duration-300 text-red-400/80 hover:text-red-300 hover:bg-red-500/10 hover:border-red-400/20 hover:-translate-y-0.5`}
@@ -154,7 +154,7 @@ export default function Sidebar() {
           {(!collapsed || isMobile) && <span className="text-[13px] tracking-[0.01em]">Logout</span>}
         </button>
       </div>
-    </>
+    </div>
   )
 
   if (isMobile) {

@@ -257,7 +257,7 @@ export default function DashboardPage() {
       <div className="flex min-h-screen items-center justify-center bg-[#07090e] text-center">
         <div className="flex flex-col items-center justify-center gap-4">
           <Image
-            src="/afficixo.png"
+            src="/AFFICIXO.png"
             alt="Afficixo logo"
             width={200}
             height={200}
@@ -292,7 +292,7 @@ export default function DashboardPage() {
           <div className="flex items-center gap-3">
             <div className="flex-shrink-0">
               <Image
-                src="/afficixo.png"
+                src="/AFFICIXO.png"
                 alt="Afficixo logo"
                 width={64}
                 height={64}

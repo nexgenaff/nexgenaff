@@ -40,7 +40,7 @@ const structuredData = [
     "@type": "Organization",
     name: "Afficixo",
     url: "https://www.weebly.pro",
-    logo: "https://www.weebly.pro/afficixo.png",
+    logo: "https://www.weebly.pro/AFFICIXO.png",
     description:
       "Afficixo is a modern pay-per-click affiliate marketplace built for publishers who want to monetize traffic through CPC offers.",
   },

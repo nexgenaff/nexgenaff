@@ -398,7 +398,7 @@ export default function SignupClient() {
           <div className="space-y-4">
             <div className="flex items-center justify-center">
               <Image
-                src="/afficixo.png"
+                src="/AFFICIXO.png"
                 alt="Afficixo logo"
                 width={72}
                 height={72}

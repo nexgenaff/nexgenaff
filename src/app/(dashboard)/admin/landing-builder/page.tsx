@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import { useState, useEffect } from 'react'
 import { Plus, Trash2, Copy, Eye, Edit2, Check, X, Globe, Link as LinkIcon, Zap } from 'lucide-react'
 
@@ -273,16 +274,19 @@ export default function LandingPageBuilder() {
         {currentStep === 'list' ? (
           <>
             {/* List View */}
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8 sm:mb-10">
-              <div>
-                <h1 className="text-2xl sm:text-3xl font-bold text-slate-100">
-                  Landing Pages
-                </h1>
-                <p className="text-slate-400 mt-1 text-sm">Create landing pages with tracking links - auto-published instantly</p>
+            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-6 mb-8 sm:mb-12">
+              <div className="flex gap-4 items-start flex-1">
+                <Image
+                  src="/AFFICIXO.png"
+                  alt="Afficixo"
+                  width={48}
+                  height={48}
+                  className="object-contain flex-shrink-0"
+                />
               </div>
               <button
                 onClick={() => setCurrentStep('builder')}
-                className="w-full sm:w-auto flex items-center justify-center gap-1.5 px-4 py-2 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg transition-colors font-semibold text-xs sm:text-sm"
+                className="flex-shrink-0 w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg transition-colors font-semibold text-sm"
               >
                 <Plus className="w-4 h-4" />
                 New Page
@@ -290,42 +294,30 @@ export default function LandingPageBuilder() {
             </div>
 
             {landingPages.length === 0 ? (
-              <div className="text-center py-12 sm:py-20">
-                <div className="inline-flex items-center justify-center w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-slate-800 mb-4">
-                  <svg className="w-7 h-7 sm:w-8 sm:h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                  </svg>
-                </div>
-                <h3 className="text-lg sm:text-xl font-semibold text-slate-100 mb-2">No landing pages yet</h3>
-                <p className="text-slate-400 mb-6 text-sm px-4">Get started by creating your first landing page</p>
-                <button
-                  onClick={() => setCurrentStep('builder')}
-                  className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-4 py-2 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg transition-colors font-semibold text-xs sm:text-sm mx-auto"
-                >
-                  <Plus className="w-4 h-4" />
-                  Create Page
-                </button>
+              <div className="py-12 sm:py-16 text-center">
+                <h3 className="text-base font-semibold text-slate-200 mb-2">Nothing here yet</h3>
+                <p className="text-sm text-slate-400">Create a new landing page to get started.</p>
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {landingPages.map((page) => (
                   <div 
                     key={page.id} 
-                    className="group p-4 bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-lg hover:border-cyan-600/50 hover:shadow-lg hover:shadow-cyan-600/10 transition-all"
+                    className="p-4 bg-slate-900/50 border border-slate-700/50 rounded-lg"
                   >
                     {/* Header with Subdomain and Copy Button */}
                     <div className="flex items-center justify-between gap-2 mb-3">
                       <div className="min-w-0 flex-1">
-                        <p className="text-[10px] text-slate-500 uppercase tracking-widest font-bold mb-1">URL</p>
-                        <h3 className="text-xs sm:text-sm font-mono font-semibold text-cyan-300 truncate hover:text-cyan-200 cursor-pointer" title={`https://${page.subdomain}.${landingPageDomain}`}>
+                        <p className="text-xs text-slate-500 mb-1">URL</p>
+                        <h3 className="text-sm font-mono text-cyan-300 truncate" title={`https://${page.subdomain}.${landingPageDomain}`}>
                           {page.subdomain}.{landingPageDomain}
                         </h3>
                       </div>
                       <button
                         type="button"
                         onClick={() => copyLandingPageUrlOnly(page)}
-                        title="Copy URL only"
-                        className="flex-shrink-0 inline-flex items-center justify-center w-9 h-9 rounded-md bg-cyan-600/20 text-cyan-400 hover:bg-cyan-600/40 active:bg-cyan-600/60 transition-colors group-hover:opacity-100 opacity-80"
+                        title="Copy URL"
+                        className="flex-shrink-0 p-2 text-slate-400 hover:text-slate-200 transition-colors"
                         aria-label={`Copy URL for ${page.subdomain}`}
                       >
                         <Copy className="w-4 h-4" />
@@ -333,26 +325,26 @@ export default function LandingPageBuilder() {
                     </div>
                     
                     {/* Tracking Link & Metrics Section */}
-                    <div className="mb-3 pb-3 border-t border-slate-700/50">
-                      <div className="mb-2">
-                        <p className="text-[10px] text-slate-500 uppercase tracking-widest font-bold mb-0.5">Redirect To</p>
-                        <p className="text-xs text-slate-300 truncate font-mono hover:text-cyan-300 cursor-pointer" title={page.trackingUrl}>
+                    <div className="mb-3 pb-3 border-t border-slate-700/30 space-y-2">
+                      <div>
+                        <p className="text-xs text-slate-500 mb-1">Redirects to</p>
+                        <p className="text-xs text-slate-300 truncate font-mono" title={page.trackingUrl}>
                           {page.trackingUrl}
                         </p>
                       </div>
                       <div>
-                        <p className="text-[10px] text-slate-500 uppercase tracking-widest font-bold mb-0.5">Clicks</p>
-                        <p className={`text-sm font-bold ${page.totalClicks > 0 ? 'text-cyan-400' : 'text-slate-400'}`}>
+                        <p className="text-xs text-slate-500 mb-1">Clicks</p>
+                        <p className="text-sm font-semibold text-slate-200">
                           {page.totalClicks}
                         </p>
                       </div>
                     </div>
 
                     {/* Actions */}
-                    <div className="flex gap-2 pt-2 border-t border-slate-700/30">
+                    <div className="flex gap-2 pt-3 border-t border-slate-700/30">
                       <button
                         onClick={() => deleteLandingPage(page.id)}
-                        className="flex-1 inline-flex items-center justify-center gap-1.5 px-2 py-2 bg-red-900/20 text-red-400 hover:bg-red-900/40 active:bg-red-900/60 rounded text-xs font-medium transition-colors"
+                        className="flex-1 flex items-center justify-center gap-1 px-2 py-2 text-red-400 hover:text-red-300 text-xs font-medium transition-colors"
                         title="Delete landing page"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
@@ -361,8 +353,8 @@ export default function LandingPageBuilder() {
                       <button
                         type="button"
                         onClick={() => copyLandingPageLink(page)}
-                        className="flex-1 inline-flex items-center justify-center gap-1.5 px-2 py-2 bg-cyan-600/20 text-cyan-400 hover:bg-cyan-600/40 active:bg-cyan-600/60 rounded text-xs font-medium transition-colors"
-                        title="Copy link with custom text"
+                        className="flex-1 flex items-center justify-center gap-1 px-2 py-2 text-slate-300 hover:text-slate-100 text-xs font-medium transition-colors"
+                        title="Copy link"
                       >
                         <Copy className="w-3.5 h-3.5" />
                         <span className="hidden sm:inline">Copy</span>

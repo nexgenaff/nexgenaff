@@ -579,7 +579,7 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
               '@type': 'Organization',
               name: 'Afficixo',
               url: 'https://weebly.pro',
-              logo: 'https://weebly.pro/afficixo.png',
+              logo: 'https://weebly.pro/AFFICIXO.png',
             },
             dateModified: new Date().toISOString(),
             identifier: publicId,

@@ -1,20 +1,16 @@
 "use client";
 
-import Image from "next/image";
 import { useCallback, useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { motion } from "framer-motion";
+import Image from "next/image";
 import {
-  FileDown,
   RefreshCw,
-  Clock,
   Calendar,
   Filter,
   X,
   CalendarRange,
   Download,
-  Award,
   ChevronDown,
 } from "lucide-react";
 import StatsCards from "@/components/dashboard/StatsCards";
@@ -74,17 +70,6 @@ interface FilterParams {
   clickType?: string;
 }
 
-// Animation variants
-const cardVariants = {
-  hidden: { opacity: 0, y: 30, scale: 0.97 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    scale: 1,
-    transition: { duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] },
-  },
-};
-
 const datePresets = [
   { label: "Today", value: "today" },
   { label: "Last 7d", value: "last7" },
@@ -102,7 +87,6 @@ export default function AnalyticsPage() {
   });
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [currentTime, setCurrentTime] = useState(() => new Date());
 
   const [filters, setFilters] = useState({
     startDate: "",
@@ -116,10 +100,11 @@ export default function AnalyticsPage() {
     key: string;
     direction: "ascending" | "descending";
   } | null>(null);
+  const [period, setPeriod] = useState<'week' | 'month' | 'year'>('week');
 
-  useEffect(() => {
-    const interval = setInterval(() => setCurrentTime(new Date()), 1000);
-    return () => clearInterval(interval);
+  const handlePeriodChange = useCallback((newPeriod: 'week' | 'month' | 'year') => {
+    setPeriod(newPeriod);
+    // Optionally: you can add logic here to adjust the date range based on period
   }, []);
 
   const fetchStats = useCallback(
@@ -300,7 +285,7 @@ export default function AnalyticsPage() {
       <div className="flex min-h-screen items-center justify-center bg-[#05070b]">
         <div className="flex flex-col items-center justify-center gap-4">
           <Image
-            src="/afficixo.png"
+            src="/AFFICIXO.png"
             alt="Afficixo logo"
             width={200}
             height={200}
@@ -309,10 +294,8 @@ export default function AnalyticsPage() {
             priority
           />
           <div className="h-1.5 w-28 overflow-hidden rounded-full bg-white/10">
-            <motion.div
+            <div
               className="h-full w-1/2 rounded-full bg-gradient-to-r from-indigo-400 via-violet-400 to-cyan-400"
-              animate={{ x: ["-80%", "180%"] }}
-              transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut" }}
             />
           </div>
         </div>
@@ -321,84 +304,27 @@ export default function AnalyticsPage() {
   }
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.5 }}
+    <div
       className="min-h-screen bg-[#05070b] text-white overflow-x-hidden"
     >
-      {/* Background */}
-      <div className="fixed inset-0 z-0 pointer-events-none">
-        <div className="absolute inset-0 bg-gradient-to-br from-[#05070b] via-[#0d1724] to-[#101827]" />
-        <motion.div
-          className="absolute top-0 left-1/4 w-[800px] h-[800px] bg-gradient-radial from-indigo-900/25 via-transparent to-transparent blur-3xl"
-          animate={{
-            x: [0, 60, -30, 0],
-            y: [0, -40, 20, 0],
-            opacity: [0.4, 0.8, 0.4],
-          }}
-          transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }}
-        />
-        <motion.div
-          className="absolute bottom-0 right-1/3 w-[600px] h-[600px] bg-gradient-radial from-purple-900/20 via-transparent to-transparent blur-3xl"
-          animate={{
-            x: [0, -40, 30, 0],
-            y: [0, 30, -20, 0],
-            opacity: [0.3, 0.7, 0.3],
-          }}
-          transition={{ duration: 20, repeat: Infinity, ease: "easeInOut", delay: 2 }}
-        />
-        <div className="absolute inset-0 opacity-[0.02] [background-image:linear-gradient(rgba(255,255,255,0.5)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.5)_1px,transparent_1px)] [background-size:60px_60px]" />
-      </div>
+
 
       <div className="relative z-10 w-full px-0 py-0">
         {/* ===== TOP BAR ===== */}
-        <motion.div
-          variants={cardVariants}
-          initial="hidden"
-          animate="visible"
-          className="mb-8 px-4 sm:px-6 lg:px-8 py-4"
-        >
+        <div className="mb-8 px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div className="flex items-center gap-4">
-              <motion.div
-                whileHover={{ scale: 1.05 }}
-                className="relative h-12 w-12 overflow-hidden flex-shrink-0"
-              >
-                <Image
-                  src="/afficixo.png"
-                  alt="Afficixo logo"
-                  fill
-                  className="object-contain"
-                  priority
-                />
-              </motion.div>
-              <div>
-                <h1 className="text-xl sm:text-2xl font-bold text-white">Analytics Dashboard</h1>
-                <div className="flex items-center gap-3 text-xs sm:text-sm text-slate-400 mt-1">
-                  <span className="flex items-center gap-1">
-                    <Calendar className="w-3.5 h-3.5" />
-                    {currentTime.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" })}
-                  </span>
-                  <span className="hidden sm:block w-1 h-1 rounded-full bg-slate-600" />
-                  <span className="flex items-center gap-1">
-                    <Clock className="w-3.5 h-3.5" />
-                    {currentTime.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-                  </span>
-                </div>
-              </div>
+            <div>
+              <h1 className="text-2xl font-bold text-white">Analytics</h1>
             </div>
 
             <div className="flex items-center gap-2">
-              <motion.button
+              <button
                 onClick={() => fetchStats(true, filters)}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
                 className="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-slate-300 hover:text-white hover:bg-white/5 transition-all duration-200"
               >
                 <RefreshCw className={`w-4 h-4 ${refreshing ? "animate-spin" : ""}`} />
                 <span className="hidden sm:inline">Refresh</span>
-              </motion.button>
+              </button>
               <Link
                 href="/admin/links/create"
                 className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 px-4 py-2 text-sm font-medium text-white transition-colors duration-200"
@@ -407,29 +333,21 @@ export default function AnalyticsPage() {
               </Link>
             </div>
           </div>
-        </motion.div>
+        </div>
 
         {/* ===== STATS CARDS ===== */}
-        <motion.div
-          variants={cardVariants}
-          initial="hidden"
-          animate="visible"
-          className="mb-8 px-4 sm:px-6 lg:px-8"
-        >
+        <div className="mb-8 px-4 sm:px-6 lg:px-8">
           <StatsCards
             stats={stats}
             chartData={stats.chartData}
             hourlyChartData={stats.hourlyChartData}
+            period={period}
+            onPeriodChange={handlePeriodChange}
           />
-        </motion.div>
+        </div>
 
         {/* ===== GEO BREAKDOWN ===== */}
-        <motion.div
-          variants={cardVariants}
-          initial="hidden"
-          animate="visible"
-          className="overflow-hidden px-4 sm:px-6 lg:px-8"
-        >
+        <div className="overflow-hidden px-4 sm:px-6 lg:px-8">
           {/* Header */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-6 mb-6 border-b border-white/5">
             <div>
@@ -460,15 +378,9 @@ export default function AnalyticsPage() {
             </div>
           </div>
 
-          {/* ===== FILTER BAR – NOW FULLY READABLE ===== */}
+          {/* ===== FILTER BAR ===== */}
           {showFilters && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              exit={{ opacity: 0, height: 0 }}
-              transition={{ duration: 0.3 }}
-              className="border-b border-white/10 bg-slate-900/50 p-4 sm:p-6"
-            >
+            <div className="border-b border-white/10 bg-slate-900/50 p-4 sm:p-6">
               {/* Quick presets */}
               <div className="flex flex-wrap items-center gap-2 mb-4">
                 <span className="text-xs font-medium text-slate-300 mr-1">Quick:</span>
@@ -476,9 +388,9 @@ export default function AnalyticsPage() {
                   <button
                     key={preset.value}
                     onClick={() => applyPreset(preset.value)}
-                    className={`px-3 py-1 rounded-full text-xs font-medium transition-all duration-200 ${
+                    className={`px-3 py-1 rounded-full text-xs font-medium transition-all ${
                       activePreset === preset.value
-                        ? "bg-gradient-to-r from-indigo-500/30 to-purple-500/30 text-white border border-indigo-400/30 shadow-lg shadow-indigo-500/10"
+                        ? "bg-indigo-500/30 text-white border border-indigo-400/30"
                         : "text-slate-300 hover:text-white hover:bg-white/10 border border-transparent"
                     }`}
                   >
@@ -487,8 +399,8 @@ export default function AnalyticsPage() {
                 ))}
               </div>
 
-              {/* Filter inputs – DARK backgrounds with LIGHT text for readability */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
+              {/* Filter inputs */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-end mb-4">
                 <div>
                   <label className="block text-xs font-medium text-slate-300 mb-1.5">Start Date</label>
                   <input
@@ -498,7 +410,7 @@ export default function AnalyticsPage() {
                       setFilters({ ...filters, startDate: e.target.value });
                       setActivePreset(null);
                     }}
-                    className="w-full rounded-xl border border-white/20 bg-slate-800/80 px-3 py-2.5 text-sm text-white placeholder-slate-400 focus:border-indigo-400/60 focus:outline-none focus:ring-2 focus:ring-indigo-400/30 transition-all"
+                    className="w-full rounded-lg border border-white/20 bg-slate-800/80 px-3 py-2 text-sm text-white placeholder-slate-400 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-400/30"
                   />
                 </div>
 
@@ -511,7 +423,7 @@ export default function AnalyticsPage() {
                       setFilters({ ...filters, endDate: e.target.value });
                       setActivePreset(null);
                     }}
-                    className="w-full rounded-xl border border-white/20 bg-slate-800/80 px-3 py-2.5 text-sm text-white placeholder-slate-400 focus:border-indigo-400/60 focus:outline-none focus:ring-2 focus:ring-indigo-400/30 transition-all"
+                    className="w-full rounded-lg border border-white/20 bg-slate-800/80 px-3 py-2 text-sm text-white placeholder-slate-400 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-400/30"
                   />
                 </div>
 
@@ -523,7 +435,7 @@ export default function AnalyticsPage() {
                       setFilters({ ...filters, granularity: e.target.value });
                       setActivePreset(null);
                     }}
-                    className="w-full rounded-xl border border-white/20 bg-slate-800/80 px-3 py-2.5 text-sm text-white focus:border-indigo-400/60 focus:outline-none focus:ring-2 focus:ring-indigo-400/30 transition-all"
+                    className="w-full rounded-lg border border-white/20 bg-slate-800/80 px-3 py-2 text-sm text-white focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-400/30"
                   >
                     <option value="daily">Daily</option>
                     <option value="weekly">Weekly</option>
@@ -539,7 +451,7 @@ export default function AnalyticsPage() {
                       setFilters({ ...filters, clickType: e.target.value });
                       setActivePreset(null);
                     }}
-                    className="w-full rounded-xl border border-white/20 bg-slate-800/80 px-3 py-2.5 text-sm text-white focus:border-indigo-400/60 focus:outline-none focus:ring-2 focus:ring-indigo-400/30 transition-all"
+                    className="w-full rounded-lg border border-white/20 bg-slate-800/80 px-3 py-2 text-sm text-white focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-400/30"
                   >
                     <option value="all">All Clicks</option>
                     <option value="unique">Unique Clicks</option>
@@ -551,43 +463,34 @@ export default function AnalyticsPage() {
               </div>
 
               {/* Action buttons */}
-              <div className="flex flex-wrap items-center gap-3 mt-4">
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.95 }}
+              <div className="flex flex-wrap items-center gap-3">
+                <button
                   onClick={applyFilters}
-                  className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 px-4 py-2.5 text-sm font-semibold text-white hover:shadow-lg hover:shadow-purple-500/30 transition-all duration-300"
+                  className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 px-4 py-2 text-sm font-medium text-white transition-colors"
                 >
                   <CalendarRange className="w-4 h-4" />
                   Apply Filters
-                </motion.button>
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.95 }}
+                </button>
+                <button
                   onClick={clearFilters}
-                  className="inline-flex items-center gap-2 rounded-xl border border-white/20 bg-slate-800/50 px-4 py-2.5 text-sm font-medium text-slate-300 hover:text-white hover:border-white/40 transition-all duration-300"
+                  className="inline-flex items-center gap-2 rounded-lg border border-white/20 bg-slate-800/50 px-4 py-2 text-sm font-medium text-slate-300 hover:text-white transition-colors"
                 >
                   <X className="w-4 h-4" />
                   Clear
-                </motion.button>
+                </button>
                 {(filters.startDate || filters.endDate || filters.clickType !== "all" || filters.granularity !== "daily") && (
                   <span className="text-xs text-emerald-400 flex items-center gap-1">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
                     Filters active
                   </span>
                 )}
               </div>
-            </motion.div>
+            </div>
           )}
 
           {/* ===== TABLE ===== */}
           {report?.datasets?.length ? (
-            <motion.div
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.35 }}
-              className="overflow-x-auto"
-            >
+            <div className="overflow-x-auto">
               <table className="min-w-full border-collapse text-left text-sm text-slate-300">
                 <thead className="bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-pink-500/10 text-[11px] uppercase tracking-[0.24em] text-slate-400">
                   <tr>
@@ -620,21 +523,12 @@ export default function AnalyticsPage() {
                 </thead>
                 <tbody>
                   {sortedRows.map((account, index) => (
-                    <motion.tr
+                    <tr
                       key={account.accountName}
-                      initial={{ opacity: 0, y: 8 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: index * 0.04, duration: 0.2 }}
                       className={`border-b border-white/5 ${index % 2 === 0 ? "bg-white/5" : "bg-white/[0.02]"}`}
                     >
-                      <td className="whitespace-nowrap px-4 py-3 font-medium text-white flex items-center gap-2">
+                      <td className="whitespace-nowrap px-4 py-3 font-medium text-white">
                         {account.accountName}
-                        {index === 0 && (
-                          <span className="inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-amber-500/20 to-orange-500/20 px-2 py-0.5 text-[10px] font-semibold text-amber-300">
-                            <Award className="w-3 h-3" />
-                            Top
-                          </span>
-                        )}
                       </td>
                       {reportLabels.map((country) => {
                         const countryValue = account.countries.find((item) => item.country === country);
@@ -652,7 +546,7 @@ export default function AnalyticsPage() {
                           </td>
                         );
                       })}
-                    </motion.tr>
+                    </tr>
                   ))}
                   {/* Totals row */}
                   {totals.some((t) => t > 0) && (
@@ -669,40 +563,15 @@ export default function AnalyticsPage() {
                   )}
                 </tbody>
               </table>
-            </motion.div>
-          ) : (
-            <div className="p-8 text-center">
-              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl border border-white/10 bg-white/5 text-slate-400">
-                <FileDown className="h-5 w-5" />
-              </div>
-              <h3 className="mt-4 text-sm font-semibold text-slate-200">No account to country report available yet</h3>
-              <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-slate-500">
-                Publish links and collect traffic so this board can render account-level country performance.
-              </p>
             </div>
-          )}
-        </motion.div>
+          ) : null}
+        </div>
 
         {/* ===== FOOTER ===== */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.8 }}
-          className="mt-8 text-center text-xs text-slate-500 border-t border-white/5 pt-4 flex flex-col sm:flex-row items-center justify-between gap-2"
-        >
-          <span>© 2026 Afficixo. All rights reserved.</span>
-          <div className="flex items-center gap-4">
-            <span className="flex items-center gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-              System Online
-            </span>
-            <span className="flex items-center gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-indigo-400" />
-              v2.0.1
-            </span>
-          </div>
-        </motion.div>
+        <div className="mt-8 text-center text-xs text-slate-500 border-t border-white/5 pt-4">
+          <span>© 2026 Afficixo</span>
+        </div>
       </div>
-    </motion.div>
+    </div>
   );
 }

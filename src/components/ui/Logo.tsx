@@ -85,7 +85,7 @@ export function Logo({
           )}
         >
           <Image
-            src="/afficixo.png"
+            src="/AFFICIXO.png"
             alt="Afficixo logo"
             width={logoDimensions[size]}
             height={logoDimensions[size]}

@@ -47,8 +47,8 @@ export const metadata: Metadata = {
     },
   },
   icons: {
-    icon: '/afficixo.png',
-    apple: '/afficixo.png',
+    icon: '/AFFICIXO.png',
+    apple: '/AFFICIXO.png',
   },
   openGraph: {
     title: 'Afficixo — Pay Per Click Affiliate Marketplace',
