@@ -1,5 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { randomInt } from 'crypto';
+import { promises as fs } from 'fs';
+import path from 'path';
 import { prisma } from '@/lib/db/prisma';
 import { BotDetectionService } from '@/lib/services/bot-detection';
 import { buildClickFingerprint, getClickDedupeWindowMs, isDuplicateClickEvent } from '@/lib/services/click-detection';
@@ -313,16 +315,48 @@ const buildRedirectResponse = (
 
 // ========== MAIN HANDLER ==========
 
+const staticAssetMimeTypes: Record<string, string> = {
+  '.png': 'image/png',
+  '.jpg': 'image/jpeg',
+  '.jpeg': 'image/jpeg',
+  '.gif': 'image/gif',
+  '.svg': 'image/svg+xml',
+  '.webp': 'image/webp',
+  '.ico': 'image/x-icon',
+  '.css': 'text/css; charset=utf-8',
+  '.js': 'application/javascript; charset=utf-8',
+  '.json': 'application/json; charset=utf-8',
+  '.txt': 'text/plain; charset=utf-8',
+  '.xml': 'application/xml; charset=utf-8',
+};
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
     const { slug } = await params;
+    const pathname = request.nextUrl.pathname;
 
-    // Extra safety: block internal routes (should be caught by middleware)
+    // Extra safety: block internal routes (should be caught by proxy middleware)
     if (slug === '_next' || slug.startsWith('_next')) {
       return new NextResponse('Not Found', { status: 404 });
+    }
+
+    if (path.extname(pathname) && !pathname.startsWith('/api') && !pathname.startsWith('/_next')) {
+      const publicFilePath = path.join(process.cwd(), 'public', pathname.replace(/^\/+/, ''));
+      try {
+        const fileContents = await fs.readFile(publicFilePath);
+        const extension = path.extname(publicFilePath).toLowerCase();
+        return new NextResponse(fileContents, {
+          headers: {
+            'Content-Type': staticAssetMimeTypes[extension] || 'application/octet-stream',
+            'Cache-Control': 'public, max-age=31536000, immutable',
+          },
+        });
+      } catch {
+        // fall through to normal slug handling if this is not a real public asset
+      }
     }
 
     const headers = request.headers;
