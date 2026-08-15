@@ -319,10 +319,9 @@ export async function GET(
 ) {
   try {
     const { slug } = await params;
-    const pathname = request.nextUrl.pathname;
 
-    // Block internal and static asset paths
-    if (slug === '_next' || pathname.startsWith('/_next/') || /\.(png|jpg|jpeg|gif|ico|svg|webp|css|js)$/i.test(pathname)) {
+    // Extra safety: block internal routes (should be caught by middleware)
+    if (slug === '_next' || slug.startsWith('_next')) {
       return new NextResponse('Not Found', { status: 404 });
     }
 

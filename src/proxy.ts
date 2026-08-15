@@ -3,7 +3,7 @@ import type { NextRequest } from 'next/server'
 import { getCookieValue } from '@/lib/utils/helpers'
 import { getLandingPageSubdomainFromHost } from '@/lib/utils/landing-page-host'
 
-export function proxy(request: NextRequest) {
+export function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname
   const host = request.headers.get('host')
   const subdomain = getLandingPageSubdomainFromHost(host)
@@ -46,6 +46,10 @@ export function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
-    '/((?!_next/static|_next/image|favicon\\.(?:ico|png)|AFFICIXO\\.png|og-image\\.png|robots\\.txt|sitemap\\.xml|api/auth).*)',
+    // Match all paths except:
+    // - _next internals (static, image optimization)
+    // - Static files and assets (all common file extensions)
+    // - API auth endpoints
+    '/((?!_next|favicon|robots\\.txt|sitemap\\.xml|api/auth|.*\\.(?:png|jpg|jpeg|gif|ico|svg|webp|css|js|json|woff|woff2|ttf|eot|txt|xml|map)).*)',
   ],
 }
