@@ -172,7 +172,7 @@ const Header = () => {
         >
           <div className="relative h-16 w-16 md:h-28 md:w-28 rounded-lg overflow-hidden">
             <Image
-              src="/afficixo.png"
+              src="/AFFICIXO.png"
               alt="Afficixo logo"
               fill
               className="object-contain"
