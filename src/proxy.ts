@@ -3,7 +3,7 @@ import type { NextRequest } from 'next/server'
 import { getCookieValue } from '@/lib/utils/helpers'
 import { getLandingPageSubdomainFromHost } from '@/lib/utils/landing-page-host'
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const path = request.nextUrl.pathname
   const host = request.headers.get('host')
   const subdomain = getLandingPageSubdomainFromHost(host)
