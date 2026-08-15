@@ -47,7 +47,7 @@ export const metadata: Metadata = {
     },
   },
   icons: {
-    icon: '/AFFICIXO.png',
+    icon: '/favicon.png',
     apple: '/AFFICIXO.png',
   },
   openGraph: {
