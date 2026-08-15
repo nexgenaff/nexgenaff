@@ -2,7 +2,17 @@
 
 import Image from 'next/image'
 import { useState, useEffect } from 'react'
-import { Plus, Trash2, Copy, Eye, Edit2, Check, X, Globe, Link as LinkIcon, Zap } from 'lucide-react'
+import {
+  Plus,
+  Trash2,
+  Copy,
+  Check,
+  X,
+  Globe,
+  Link as LinkIcon,
+  Zap,
+  ArrowLeft,
+} from 'lucide-react'
 
 interface Template {
   id: string
@@ -29,21 +39,16 @@ interface LandingPage {
   createdAt: string
 }
 
-// Get the domain dynamically based on the current host
 const getDomain = (): string => {
   if (typeof window !== 'undefined') {
     const host = window.location.hostname
-    // For localhost, use the env variable or default
     if (host === 'localhost' || host.startsWith('127.')) {
       return process.env.NEXT_PUBLIC_LANDING_PAGE_DOMAIN || 'localhost:3000'
     }
-    // For production, detect if it's a subdomain and extract the main domain
     const parts = host.split('.')
     if (parts.length > 2) {
-      // It's a subdomain like admin.afficixo.com, return afficixo.com
       return parts.slice(-2).join('.')
     }
-    // It's already the main domain
     return host
   }
   return process.env.NEXT_PUBLIC_LANDING_PAGE_DOMAIN || 'afficixo.com'
@@ -65,7 +70,6 @@ export default function LandingPageBuilder() {
   const [selectedTemplate, setSelectedTemplate] = useState<Template | null>(null)
   const [subdomainError, setSubdomainError] = useState('')
 
-  // Fetch current user ID
   const fetchCurrentUser = async () => {
     try {
       const response = await fetch('/api/auth/me', { credentials: 'include' })
@@ -128,7 +132,6 @@ export default function LandingPageBuilder() {
       return
     }
 
-    // Check if subdomain is already taken
     if (landingPages.some(page => page.subdomain === value)) {
       setSubdomainError('This subdomain is already taken')
     } else if (!/^[a-z0-9-]+$/.test(value)) {
@@ -178,12 +181,10 @@ export default function LandingPageBuilder() {
       setSuccess('Landing page created successfully!')
       setCurrentStep('list')
       
-      // Reset form
       setSubdomain('')
       setTrackingUrl('')
       setSelectedTemplate(null)
       
-      // Refresh list
       setTimeout(() => {
         fetchLandingPages()
         setSuccess('')
@@ -199,8 +200,6 @@ export default function LandingPageBuilder() {
     const url = `https://${page.subdomain}.${landingPageDomain}`
     let textToCopy = url
 
-    // If template has custom text, use it and replace the placeholder with the actual link.
-    // Support multiple occurrences and case variations like {Link} or {LINK}.
     if (page.template?.customText) {
       textToCopy = page.template.customText.replace(/\{link\}/gi, `${url}_`)
     }
@@ -250,66 +249,94 @@ export default function LandingPageBuilder() {
     }
   }
 
+  if (loading && currentStep === 'list') {
+    return (
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <Image
+            src="/afficixo-logo.png"
+            alt="Afficixo"
+            width={96}
+            height={96}
+            className="opacity-80"
+          />
+          <div className="h-1 w-24 overflow-hidden rounded bg-slate-800">
+            <div className="h-full w-1/3 animate-pulse rounded bg-indigo-500" />
+          </div>
+          <p className="text-xs text-slate-400">Loading…</p>
+        </div>
+      </div>
+    )
+  }
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="min-h-screen bg-slate-950 px-4 py-6 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-7xl">
         {/* Alerts */}
         {error && (
-          <div className="mb-6 p-4 bg-red-500/10 border border-red-500/50 rounded-lg text-red-400 flex items-center justify-between">
+          <div className="mb-4 flex items-center justify-between rounded-lg border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-200">
             <span>{error}</span>
             <button onClick={() => setError('')} className="text-red-400 hover:text-red-300">
-              <X className="w-4 h-4" />
+              <X className="h-4 w-4" />
             </button>
           </div>
         )}
         {success && (
-          <div className="mb-6 p-4 bg-green-500/10 border border-green-500/50 rounded-lg text-green-400 flex items-center justify-between">
+          <div className="mb-4 flex items-center justify-between rounded-lg border border-emerald-500/20 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200">
             <span>{success}</span>
-            <button onClick={() => setSuccess('')} className="text-green-400 hover:text-green-300">
-              <Check className="w-4 h-4" />
+            <button onClick={() => setSuccess('')} className="text-emerald-400 hover:text-emerald-300">
+              <X className="h-4 w-4" />
             </button>
           </div>
         )}
 
         {currentStep === 'list' ? (
           <>
-            {/* List View */}
-            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-6 mb-8 sm:mb-12">
-              <div className="flex gap-4 items-start flex-1">
+            {/* List View Header */}
+            <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-center gap-3">
                 <Image
                   src="/afficixo-logo.png"
                   alt="Afficixo"
-                  width={48}
-                  height={48}
-                  className="object-contain flex-shrink-0"
+                  width={40}
+                  height={40}
+                  className="object-contain"
                 />
+                <div>
+                  <h1 className="text-2xl font-bold text-white">Landing Pages</h1>
+                  <p className="text-sm text-slate-400">Create and manage your landing pages</p>
+                </div>
               </div>
               <button
                 onClick={() => setCurrentStep('builder')}
-                className="flex-shrink-0 w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg transition-colors font-semibold text-sm"
+                className="inline-flex items-center justify-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500 transition-colors"
               >
-                <Plus className="w-4 h-4" />
+                <Plus className="h-4 w-4" />
                 New Page
               </button>
             </div>
 
+            {/* Landing Pages Grid */}
             {landingPages.length === 0 ? (
-              <div className="py-12 sm:py-16 text-center">
-                <h3 className="text-base font-semibold text-slate-200 mb-2">Nothing here yet</h3>
-                <p className="text-sm text-slate-400">Create a new landing page to get started.</p>
+              <div className="rounded-xl border border-slate-800 bg-slate-900/40 py-12 text-center">
+                <p className="text-sm font-medium text-slate-400">No landing pages yet</p>
+                <p className="mt-1 text-xs text-slate-500">Create your first landing page to get started.</p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {landingPages.map((page) => (
-                  <div 
-                    key={page.id} 
-                    className="p-4 bg-slate-900/50 border border-slate-700/50 rounded-lg"
+                  <div
+                    key={page.id}
+                    className="rounded-xl border border-slate-800 bg-slate-900/60 p-4"
                   >
-                    {/* Header with Subdomain and Copy Button */}
-                    <div className="flex items-center justify-between gap-2 mb-3">
-                      <div className="min-w-0 flex-1">
-                        <p className="text-xs text-slate-500 mb-1">URL</p>
-                        <h3 className="text-sm font-mono text-cyan-300 truncate" title={`https://${page.subdomain}.${landingPageDomain}`}>
+                    {/* Subdomain & Copy URL */}
+                    <div className="mb-3 flex items-center justify-between gap-2">
+                      <div className="min-w-0">
+                        <p className="text-xs text-slate-500 mb-0.5">URL</p>
+                        <h3
+                          className="truncate font-mono text-sm text-indigo-400"
+                          title={`https://${page.subdomain}.${landingPageDomain}`}
+                        >
                           {page.subdomain}.{landingPageDomain}
                         </h3>
                       </div>
@@ -317,46 +344,44 @@ export default function LandingPageBuilder() {
                         type="button"
                         onClick={() => copyLandingPageUrlOnly(page)}
                         title="Copy URL"
-                        className="flex-shrink-0 p-2 text-slate-400 hover:text-slate-200 transition-colors"
+                        className="rounded-md p-1.5 text-slate-400 hover:bg-white/10 hover:text-white transition-colors"
                         aria-label={`Copy URL for ${page.subdomain}`}
                       >
-                        <Copy className="w-4 h-4" />
+                        <Copy className="h-4 w-4" />
                       </button>
                     </div>
-                    
-                    {/* Tracking Link & Metrics Section */}
-                    <div className="mb-3 pb-3 border-t border-slate-700/30 space-y-2">
+
+                    {/* Tracking & Clicks */}
+                    <div className="mb-3 space-y-2 border-t border-slate-800 pt-3">
                       <div>
-                        <p className="text-xs text-slate-500 mb-1">Redirects to</p>
-                        <p className="text-xs text-slate-300 truncate font-mono" title={page.trackingUrl}>
+                        <p className="mb-0.5 text-xs text-slate-500">Redirects to</p>
+                        <p className="truncate font-mono text-xs text-slate-300" title={page.trackingUrl}>
                           {page.trackingUrl}
                         </p>
                       </div>
                       <div>
-                        <p className="text-xs text-slate-500 mb-1">Clicks</p>
-                        <p className="text-sm font-semibold text-slate-200">
-                          {page.totalClicks}
-                        </p>
+                        <p className="mb-0.5 text-xs text-slate-500">Clicks</p>
+                        <p className="text-sm font-semibold text-white">{page.totalClicks}</p>
                       </div>
                     </div>
 
                     {/* Actions */}
-                    <div className="flex gap-2 pt-3 border-t border-slate-700/30">
+                    <div className="flex gap-2 border-t border-slate-800 pt-3">
                       <button
                         onClick={() => deleteLandingPage(page.id)}
-                        className="flex-1 flex items-center justify-center gap-1 px-2 py-2 text-red-400 hover:text-red-300 text-xs font-medium transition-colors"
+                        className="flex flex-1 items-center justify-center gap-1 rounded-md px-2 py-2 text-xs font-medium text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-colors"
                         title="Delete landing page"
                       >
-                        <Trash2 className="w-3.5 h-3.5" />
+                        <Trash2 className="h-3.5 w-3.5" />
                         <span className="hidden sm:inline">Delete</span>
                       </button>
                       <button
                         type="button"
                         onClick={() => copyLandingPageLink(page)}
-                        className="flex-1 flex items-center justify-center gap-1 px-2 py-2 text-slate-300 hover:text-slate-100 text-xs font-medium transition-colors"
+                        className="flex flex-1 items-center justify-center gap-1 rounded-md px-2 py-2 text-xs font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition-colors"
                         title="Copy link"
                       >
-                        <Copy className="w-3.5 h-3.5" />
+                        <Copy className="h-3.5 w-3.5" />
                         <span className="hidden sm:inline">Copy</span>
                       </button>
                     </div>
@@ -368,157 +393,142 @@ export default function LandingPageBuilder() {
         ) : (
           <>
             {/* Builder View */}
-            <button
-              onClick={() => setCurrentStep('list')}
-              className="mb-6 sm:mb-8 text-cyan-400 hover:text-cyan-300 flex items-center gap-2 transition-colors text-sm sm:text-base"
-            >
-              ← Back to Landing Pages
-            </button>
+            <div className="mb-6 flex items-center gap-3">
+              <button
+                onClick={() => setCurrentStep('list')}
+                className="inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm text-slate-400 hover:bg-slate-800 hover:text-white transition-colors"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                Back
+              </button>
+              <h1 className="text-2xl font-bold text-white">Create Landing Page</h1>
+            </div>
 
-            <div className="max-w-4xl mx-auto px-0">
-              <div className="mb-8">
-                <h2 className="text-2xl sm:text-3xl font-bold text-slate-100 mb-2">
-                  Create Landing Page
-                </h2>
-                <p className="text-slate-400 text-sm">2 simple steps to set up your landing page</p>
-              </div>
+            <div className="mx-auto max-w-3xl">
+              <form onSubmit={createLandingPage} className="space-y-6">
+                {/* Step 1 */}
+                <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-5 sm:p-6">
+                  <div className="mb-4 flex items-center gap-2">
+                    <Globe className="h-4 w-4 text-indigo-400" />
+                    <h3 className="text-lg font-semibold text-white">Basic Information</h3>
+                  </div>
 
-              {/* Progress Steps */}
-              <div className="mb-8 flex items-center gap-2 sm:gap-4 text-xs sm:text-sm">
-                <div className="flex items-center gap-2 flex-1 min-w-0">
-                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-cyan-600 flex items-center justify-center text-white text-xs sm:text-sm font-bold flex-shrink-0">1</div>
-                  <div className="min-w-0">
-                    <p className="font-semibold text-slate-100 text-xs sm:text-sm">Basic Info</p>
-                    <p className="text-slate-500 text-xs hidden sm:inline">Subdomain & link</p>
-                  </div>
-                </div>
-                <div className="w-3 h-0.5 sm:w-6 bg-slate-600 flex-shrink-0"></div>
-                <div className="flex items-center gap-2 flex-1 min-w-0">
-                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-slate-600 flex items-center justify-center text-slate-300 text-xs sm:text-sm font-bold flex-shrink-0">2</div>
-                  <div className="min-w-0">
-                    <p className="font-semibold text-slate-100 text-xs sm:text-sm">Template</p>
-                    <p className="text-slate-500 text-xs hidden sm:inline">Choose design</p>
-                  </div>
-                </div>
-              </div>
-
-              <form onSubmit={createLandingPage} className="space-y-5 sm:space-y-6">
-                {/* Step 1: Basic Info */}
-                <div className="p-4 sm:p-5 bg-slate-800/50 border border-slate-700 rounded-lg">
-                  <div className="flex items-center gap-2 mb-4">
-                    <Globe className="w-4 h-4 text-cyan-400" />
-                    <h3 className="text-base sm:text-lg font-semibold text-slate-100">Step 1: Basic Information</h3>
-                  </div>
-                  
-                  <div className="space-y-3">
+                  <div className="space-y-4">
                     <div>
-                      <label className="block text-sm font-semibold text-slate-200 mb-1.5">Subdomain *</label>
-                      <p className="text-[11px] text-slate-400 mb-1.5">Unique URL for your page</p>
-                      <div className="flex items-center gap-2 rounded-lg bg-slate-700 border border-slate-600 px-3 py-2 hover:border-slate-500 transition-colors focus-within:border-cyan-400">
+                      <label className="mb-1.5 block text-xs font-medium text-slate-300">Subdomain *</label>
+                      <div className="flex items-center gap-2 rounded-lg border border-slate-700 bg-slate-800 px-3 py-2.5">
                         <input
                           type="text"
                           value={subdomain}
                           onChange={(e) => validateSubdomain(e.target.value)}
                           placeholder="myoffer"
-                          className={`flex-1 px-0 py-1 bg-transparent text-slate-100 text-sm placeholder-slate-500 focus:outline-none`}
+                          className="w-full bg-transparent text-sm text-white placeholder-slate-500 focus:outline-none"
                         />
-                        <span className="text-slate-400 font-medium text-xs flex-shrink-0">.{landingPageDomain}</span>
+                        <span className="shrink-0 text-sm text-slate-500">.{landingPageDomain}</span>
                       </div>
-                      {subdomainError && <p className="text-red-400 text-[11px] mt-1.5 flex items-center gap-1"><X className="w-3 h-3" /> {subdomainError}</p>}
-                      {!subdomainError && subdomain && <p className="text-green-400 text-[11px] mt-1.5 flex items-center gap-1"><Check className="w-3 h-3" /> Looks good!</p>}
+                      {subdomainError && (
+                        <p className="mt-1.5 flex items-center gap-1 text-xs text-red-400">
+                          <X className="h-3 w-3" /> {subdomainError}
+                        </p>
+                      )}
+                      {!subdomainError && subdomain && (
+                        <p className="mt-1.5 flex items-center gap-1 text-xs text-emerald-400">
+                          <Check className="h-3 w-3" /> Looks good!
+                        </p>
+                      )}
                     </div>
 
                     <div>
-                      <label className="block text-sm font-semibold text-slate-200 mb-1.5">Tracking Link *</label>
-                      <p className="text-[11px] text-slate-400 mb-1.5">Where visitors get redirected after landing</p>
-                      <div className="flex items-center gap-2 rounded-lg bg-slate-700 border border-slate-600 px-3 py-2 hover:border-slate-500 transition-colors focus-within:border-cyan-400">
-                        <LinkIcon className="w-4 h-4 text-slate-400 flex-shrink-0" />
+                      <label className="mb-1.5 block text-xs font-medium text-slate-300">Tracking Link *</label>
+                      <div className="flex items-center gap-2 rounded-lg border border-slate-700 bg-slate-800 px-3 py-2.5">
+                        <LinkIcon className="h-4 w-4 shrink-0 text-slate-500" />
                         <input
                           type="url"
                           value={trackingUrl}
                           onChange={(e) => setTrackingUrl(e.target.value)}
                           placeholder="https://example.com/offer"
                           required
-                          className="flex-1 px-0 py-1 bg-transparent text-slate-100 text-sm placeholder-slate-500 focus:outline-none"
+                          className="w-full bg-transparent text-sm text-white placeholder-slate-500 focus:outline-none"
                         />
                       </div>
                     </div>
                   </div>
                 </div>
 
-                {/* Step 2: Template Selection */}
-                <div className="p-5 sm:p-6 bg-slate-800/50 border border-slate-700 rounded-lg">
-                  <div className="flex items-center gap-2 mb-5">
-                    <Zap className="w-5 h-5 text-cyan-400" />
-                    <h3 className="text-lg sm:text-xl font-semibold text-slate-100">Step 2: Select Template</h3>
+                {/* Step 2 */}
+                <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-5 sm:p-6">
+                  <div className="mb-4 flex items-center gap-2">
+                    <Zap className="h-4 w-4 text-indigo-400" />
+                    <h3 className="text-lg font-semibold text-white">Select Template</h3>
                   </div>
-                  
+
                   {templates.length === 0 ? (
-                    <p className="text-slate-400 text-center py-6 text-sm">No templates available. Contact your administrator.</p>
+                    <p className="py-6 text-center text-sm text-slate-400">
+                      No templates available. Contact your administrator.
+                    </p>
                   ) : (
-                    <>
-                      <p className="text-xs text-slate-400 mb-4">Choose a template</p>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        {templates.map((template) => (
-                          <button
-                            key={template.id}
-                            type="button"
-                            onClick={() => setSelectedTemplate(template)}
-                            className={`relative overflow-hidden rounded-lg transition-all text-left ${
-                              selectedTemplate?.id === template.id
-                                ? 'ring-2 ring-cyan-400 bg-slate-700'
-                                : 'bg-slate-700 hover:bg-slate-600'
-                            }`}
-                          >
-                            <div className="p-3">
-                              {template.thumbnail && (
-                                <img 
-                                  src={template.thumbnail} 
-                                  alt={template.name} 
-                                  className="w-full h-28 sm:h-32 object-cover rounded mb-2" 
-                                />
+                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                      {templates.map((template) => (
+                        <button
+                          key={template.id}
+                          type="button"
+                          onClick={() => setSelectedTemplate(template)}
+                          className={`rounded-lg border p-3 text-left transition-colors ${
+                            selectedTemplate?.id === template.id
+                              ? 'border-indigo-500 bg-indigo-500/10'
+                              : 'border-slate-700 bg-slate-800 hover:bg-slate-700'
+                          }`}
+                        >
+                          {template.thumbnail && (
+                            <img
+                              src={template.thumbnail}
+                              alt={template.name}
+                              className="mb-2 h-24 w-full rounded object-cover"
+                            />
+                          )}
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="min-w-0">
+                              <h4 className="truncate text-sm font-medium text-white">{template.name}</h4>
+                              {template.description && (
+                                <p className="mt-0.5 line-clamp-2 text-xs text-slate-400">
+                                  {template.description}
+                                </p>
                               )}
-                              <div className="flex items-start justify-between gap-2">
-                                <div className="flex-1 min-w-0">
-                                  <h4 className="font-semibold text-slate-100 text-sm">{template.name}</h4>
-                                  {template.description && <p className="text-xs text-slate-400 mt-1 line-clamp-2">{template.description}</p>}
-                                </div>
-                                {selectedTemplate?.id === template.id && (
-                                  <div className="flex-shrink-0 w-5 h-5 rounded-full bg-cyan-400 flex items-center justify-center">
-                                    <Check className="w-3 h-3 text-cyan-900" />
-                                  </div>
-                                )}
-                              </div>
                             </div>
-                          </button>
-                        ))}
-                      </div>
-                    </>
+                            {selectedTemplate?.id === template.id && (
+                              <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-indigo-500">
+                                <Check className="h-3 w-3 text-white" />
+                              </div>
+                            )}
+                          </div>
+                        </button>
+                      ))}
+                    </div>
                   )}
                 </div>
 
-                {/* Submit Section */}
-                <div className="flex flex-col-reverse sm:flex-row gap-3 pt-4">
+                {/* Submit */}
+                <div className="flex flex-col-reverse gap-3 sm:flex-row">
                   <button
                     type="button"
                     onClick={() => setCurrentStep('list')}
-                    className="w-full sm:flex-1 px-6 py-3 bg-slate-700 text-slate-100 rounded-lg hover:bg-slate-600 transition-colors font-semibold text-sm sm:text-base"
+                    className="rounded-lg border border-slate-700 bg-slate-800 px-5 py-2.5 text-sm font-medium text-slate-300 hover:bg-slate-700 transition-colors"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={loading || !selectedTemplate}
-                    className="w-full sm:flex-1 px-6 py-3 bg-cyan-600 hover:bg-cyan-700 disabled:bg-cyan-600/50 disabled:cursor-not-allowed text-white rounded-lg transition-colors font-semibold flex items-center justify-center gap-2 text-sm sm:text-base"
+                    className="inline-flex items-center justify-center gap-2 rounded-lg bg-indigo-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-indigo-500 disabled:cursor-not-allowed disabled:opacity-60 transition-colors"
                   >
                     {loading ? (
                       <>
-                        <span className="inline-block w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+                        <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
                         Creating...
                       </>
                     ) : (
                       <>
-                        <Plus className="w-4 h-4" />
+                        <Plus className="h-4 w-4" />
                         Create
                       </>
                     )}
@@ -532,4 +542,3 @@ export default function LandingPageBuilder() {
     </div>
   )
 }
-
