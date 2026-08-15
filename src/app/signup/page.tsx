@@ -25,8 +25,8 @@ export const metadata: Metadata = {
     siteName: 'Afficixo',
     images: [
       {
-        url: 'https://www.weebly.pro/og-image.png',
-        secureUrl: 'https://www.weebly.pro/og-image.png',
+        url: 'https://www.weebly.pro/og.png',
+        secureUrl: 'https://www.weebly.pro/og.png',
         width: 1200,
         height: 630,
         alt: 'Afficixo Pay Per Click Affiliate Marketplace',
