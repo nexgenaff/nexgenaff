@@ -330,6 +330,29 @@ const staticAssetMimeTypes: Record<string, string> = {
   '.xml': 'application/xml; charset=utf-8',
 };
 
+const findExistingPublicAsset = async (pathname: string) => {
+  const normalized = pathname.replace(/^\/+/, '');
+  if (!normalized || !path.extname(normalized)) return null;
+
+  const candidates = Array.from(new Set([
+    normalized,
+    normalized.toLowerCase(),
+    normalized.toUpperCase(),
+  ])).filter(Boolean);
+
+  for (const candidate of candidates) {
+    const candidatePath = path.join(process.cwd(), 'public', candidate);
+    try {
+      await fs.access(candidatePath);
+      return `/${candidate}`;
+    } catch {
+      // continue to next candidate
+    }
+  }
+
+  return null;
+};
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ slug: string }> }
@@ -344,18 +367,9 @@ export async function GET(
     }
 
     if (path.extname(pathname) && !pathname.startsWith('/api') && !pathname.startsWith('/_next')) {
-      const publicFilePath = path.join(process.cwd(), 'public', pathname.replace(/^\/+/, ''));
-      try {
-        const fileContents = await fs.readFile(publicFilePath);
-        const extension = path.extname(publicFilePath).toLowerCase();
-        return new NextResponse(fileContents, {
-          headers: {
-            'Content-Type': staticAssetMimeTypes[extension] || 'application/octet-stream',
-            'Cache-Control': 'public, max-age=31536000, immutable',
-          },
-        });
-      } catch {
-        // fall through to normal slug handling if this is not a real public asset
+      const publicAssetPath = await findExistingPublicAsset(pathname);
+      if (publicAssetPath) {
+        return NextResponse.rewrite(new URL(publicAssetPath, request.url));
       }
     }
 
