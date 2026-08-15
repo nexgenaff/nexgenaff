@@ -36,7 +36,14 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
           <nav className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
             <Link href="/" className="flex items-center shrink-0" onClick={() => setMobileMenuOpen(false)}>
               <div className="relative h-12 w-12 overflow-hidden rounded-lg md:h-14 md:w-14">
-                <Image src="/AFFICIXO.png" alt="Afficixo logo" fill className="object-contain" priority />
+                <Image
+                  src="/AFFICIXO.png"
+                  alt="Afficixo logo"
+                  fill
+                  sizes="(max-width: 768px) 48px, 56px"
+                  className="h-full w-full object-contain"
+                  priority
+                />
               </div>
             </Link>
 
@@ -107,7 +114,14 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
           <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-5 px-4 sm:px-6 lg:flex-row lg:px-8">
             <div className="flex items-center gap-3">
               <div className="relative h-10 w-10 overflow-hidden rounded-lg">
-                <Image src="/AFFICIXO.png" alt="Afficixo logo" fill className="object-contain" priority />
+                <Image
+                  src="/AFFICIXO.png"
+                  alt="Afficixo logo"
+                  fill
+                  sizes="40px"
+                  className="h-full w-full object-contain"
+                  priority
+                />
               </div>
             </div>
 

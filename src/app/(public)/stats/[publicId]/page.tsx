@@ -602,7 +602,7 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
           <div className="flex items-center gap-4">
               <div className="relative w-16 h-16 shrink-0 rounded-2xl overflow-hidden border border-transparent bg-transparent">
                 <Image
-                  src="/afficixo.png"
+                  src="/AFFICIXO.png"
                   alt="Afficixo logo"
                   width={64}
                   height={64}
