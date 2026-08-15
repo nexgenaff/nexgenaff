@@ -319,6 +319,11 @@ export async function GET(
 ) {
   try {
     const { slug } = await params;
+
+    if (slug === '_next' || request.nextUrl.pathname.startsWith('/_next/')) {
+      return new NextResponse('Not Found', { status: 404 });
+    }
+
     const headers = request.headers;
     const ip = getClientIp(headers);
     const userAgent = headers.get('user-agent') || '';
