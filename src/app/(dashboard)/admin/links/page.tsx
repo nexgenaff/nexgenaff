@@ -1,10 +1,10 @@
 "use client";
 
 import Image from "next/image";
+import { motion } from "framer-motion";
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { motion, AnimatePresence } from "framer-motion";
 import {
   Search,
   Plus,
@@ -22,7 +22,6 @@ import {
   X,
   AlertTriangle,
   Zap,
-  Calendar,
   ArrowUpRight,
   Rocket,
   Layers,
@@ -73,88 +72,9 @@ const getBaseUrl = () => {
   return (process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000").replace(/\/$/, "");
 };
 
-// ===== SMOOTH ANIMATION VARIANTS =====
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.04,
-      delayChildren: 0.08,
-      ease: "easeOut",
-    },
-  },
-};
-
-const itemVariants = {
-  hidden: { opacity: 0, y: 12 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: { type: "spring", damping: 22, stiffness: 300, mass: 0.8 },
-  },
-};
-
-const cardVariants = {
-  hidden: { opacity: 0, y: 15 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: { type: "spring", damping: 25, stiffness: 350, mass: 0.9 },
-  },
-};
-
-const modalVariants = {
-  hidden: { opacity: 0, scale: 0.96, y: 20 },
-  visible: {
-    opacity: 1,
-    scale: 1,
-    y: 0,
-    transition: { type: "spring", damping: 30, stiffness: 400, mass: 0.7 },
-  },
-  exit: {
-    opacity: 0,
-    scale: 0.96,
-    y: 20,
-    transition: { duration: 0.2, ease: "easeIn" },
-  },
-};
-
-// ===== FAT FILTER ANIMATION =====
-const filterVariants = {
-  hidden: { opacity: 0, height: 0, marginTop: 0 },
-  visible: {
-    opacity: 1,
-    height: "auto",
-    marginTop: 12,
-    transition: { type: "spring", damping: 25, stiffness: 300, mass: 0.5 },
-  },
-  exit: {
-    opacity: 0,
-    height: 0,
-    marginTop: 0,
-    transition: { duration: 0.25, ease: "easeIn" },
-  },
-};
-
-const messageVariants = {
-  hidden: { opacity: 0, y: -10 },
-  visible: { opacity: 1, y: 0, transition: { type: "spring", damping: 30, stiffness: 400 } },
-  exit: { opacity: 0, y: -10, transition: { duration: 0.15 } },
-};
-
-// ===== COPY BUTTON =====
-const CopyIcon = ({
-  text,
-  label,
-  onCopy,
-}: {
-  text: string;
-  label: string;
-  onCopy: () => void;
-}) => {
+// ===== COPY BUTTON (simplified, no tooltip) =====
+const CopyIcon = ({ text, onCopy }: { text: string; onCopy: () => void }) => {
   const [copied, setCopied] = useState(false);
-  const [showTooltip, setShowTooltip] = useState(false);
 
   const handleCopy = async () => {
     try {
@@ -168,22 +88,13 @@ const CopyIcon = ({
   };
 
   return (
-    <div className="relative inline-flex items-center">
-      <button
-        onClick={handleCopy}
-        onMouseEnter={() => setShowTooltip(true)}
-        onMouseLeave={() => setShowTooltip(false)}
-        className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 transition-all text-slate-400 hover:text-white border border-white/5"
-        aria-label={`Copy ${label}`}
-      >
-        {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
-      </button>
-      {showTooltip && !copied && (
-        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 rounded-lg bg-slate-900 border border-white/10 text-[10px] text-slate-300 whitespace-nowrap shadow-xl pointer-events-none z-10">
-          {text.length > 50 ? text.slice(0, 50) + "…" : text}
-        </div>
-      )}
-    </div>
+    <button
+      onClick={handleCopy}
+      className="p-1 rounded-md text-slate-400 hover:text-white hover:bg-white/10 transition-colors"
+      aria-label="Copy link"
+    >
+      {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+    </button>
   );
 };
 
@@ -214,9 +125,7 @@ export default function LinksPage() {
   const [confirmInline, setConfirmInline] = useState<ConfirmInlineState | null>(null);
 
   // ===== SORT & FILTER =====
-  const [sortBy, setSortBy] = useState<"createdAt" | "totalClicks" | "uniqueClicks" | "accountName">(
-    "createdAt"
-  );
+  const [sortBy, setSortBy] = useState<"createdAt" | "totalClicks" | "uniqueClicks" | "accountName">("createdAt");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const [filterStatus, setFilterStatus] = useState<"all" | "active" | "paused">("all");
   const [filterOfferGroup, setFilterOfferGroup] = useState<string>("all");
@@ -280,14 +189,14 @@ export default function LinksPage() {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const response = await fetch('/api/auth/me', { credentials: 'include' })
-        if (!response.ok) return
-        const data = await response.json()
-        setUserRole(data?.role ?? null)
+        const response = await fetch('/api/auth/me', { credentials: 'include' });
+        if (!response.ok) return;
+        const data = await response.json();
+        setUserRole(data?.role ?? null);
       } catch {
-        setUserRole(null)
+        setUserRole(null);
       }
-    }
+    };
 
     void (async () => {
       await Promise.all([fetchUser(), fetchLinks(), fetchDomains(), fetchOfferGroups()]);
@@ -387,8 +296,8 @@ export default function LinksPage() {
     setEditingIsActive(true);
   };
 
-  const isManager = userRole === 'MANAGER'
-  const isOwner = userRole === 'OWNER'
+  const isManager = userRole === 'MANAGER';
+  const isOwner = userRole === 'OWNER';
 
   const handleSaveEdit = async () => {
     if (!editingLinkId) return;
@@ -428,7 +337,7 @@ export default function LinksPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (isManager) return
+    if (isManager) return;
 
     setConfirmInline({
       id,
@@ -464,7 +373,7 @@ export default function LinksPage() {
   };
 
   const handleReset = async (id: string) => {
-    if (isManager) return
+    if (isManager) return;
 
     setConfirmInline({
       id,
@@ -638,23 +547,56 @@ export default function LinksPage() {
 
   if (loading) {
     return (
-      <div className="flex h-64 items-center justify-center text-center">
-        <div className="flex flex-col items-center justify-center gap-4">
-          <Image
-            src="/afficixo-logo.png"
-            alt="Afficixo logo"
-            width={200}
-            height={200}
-            sizes="(max-width: 768px) 200px, 240px"
-            className="mx-auto object-cover"
-            priority
-          />
-          <div className="h-1.5 w-28 overflow-hidden rounded-full bg-white/10">
-            <motion.div
-              className="h-full w-1/2 rounded-full bg-gradient-to-r from-indigo-400 via-violet-400 to-cyan-400"
-              animate={{ x: ["-80%", "180%"] }}
-              transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut" }}
+      <div className="flex h-64 items-center justify-center">
+        <div className="flex flex-col items-center justify-center gap-8">
+          <motion.div
+            animate={{ scale: [1, 1.05, 1] }}
+            transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+            className="relative"
+          >
+            <Image
+              src="/afficixo-logo.png"
+              alt="Afficixo logo"
+              width={200}
+              height={200}
+              sizes="(max-width: 768px) 200px, 240px"
+              className="mx-auto object-cover"
+              priority
             />
+            <motion.div
+              className="absolute inset-0 rounded-lg bg-gradient-to-r from-indigo-500/30 via-violet-500/20 to-transparent blur-xl"
+              animate={{ opacity: [0.3, 0.6, 0.3] }}
+              transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+            />
+          </motion.div>
+          
+          <div className="flex flex-col items-center gap-3">
+            <div className="relative h-1.5 w-32 overflow-hidden rounded-full bg-white/5 border border-white/10">
+              <motion.div
+                className="absolute inset-0 bg-gradient-to-r from-transparent via-indigo-400 to-transparent opacity-0"
+                animate={{ x: ["-100%", "100%"], opacity: [0, 1, 0] }}
+                transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+              />
+              <motion.div
+                className="h-full w-1/3 rounded-full bg-gradient-to-r from-indigo-500 via-violet-500 to-cyan-500"
+                animate={{ 
+                  x: ["-100%", "300%"],
+                  width: ["25%", "50%", "25%"]
+                }}
+                transition={{ 
+                  duration: 2.5, 
+                  repeat: Infinity, 
+                  ease: [0.43, 0.13, 0.23, 0.96]
+                }}
+              />
+            </div>
+            <motion.p
+              className="text-xs text-slate-400"
+              animate={{ opacity: [0.5, 1, 0.5] }}
+              transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+            >
+              Loading...
+            </motion.p>
           </div>
         </div>
       </div>
@@ -667,40 +609,32 @@ export default function LinksPage() {
       label: "Active Links",
       value: activeLinks,
       sub: "Live campaigns",
-      gradient: "from-indigo-500/20 to-purple-500/20",
-      border: "border-indigo-400/20",
-      iconColor: "text-indigo-400",
-      shadow: "shadow-indigo-500/10",
+      color: "text-indigo-400",
+      bg: "bg-indigo-500/10",
     },
     {
       icon: MousePointerClick,
       label: "Total Clicks",
       value: formatNumber(totalClicks),
       sub: "All recorded traffic",
-      gradient: "from-emerald-500/20 to-teal-500/20",
-      border: "border-emerald-400/20",
-      iconColor: "text-emerald-400",
-      shadow: "shadow-emerald-500/10",
+      color: "text-emerald-400",
+      bg: "bg-emerald-500/10",
     },
     {
       icon: Users,
       label: "Unique Visitors",
       value: formatNumber(uniqueClicks),
       sub: "Real audience reach",
-      gradient: "from-amber-500/20 to-orange-500/20",
-      border: "border-amber-400/20",
-      iconColor: "text-amber-400",
-      shadow: "shadow-amber-500/10",
+      color: "text-amber-400",
+      bg: "bg-amber-500/10",
     },
     {
       icon: Bot,
       label: "Bot Traffic",
       value: formatNumber(botClicks),
       sub: "Filtered & posted",
-      gradient: "from-rose-500/20 to-pink-500/20",
-      border: "border-rose-400/20",
-      iconColor: "text-rose-400",
-      shadow: "shadow-rose-500/10",
+      color: "text-rose-400",
+      bg: "bg-rose-500/10",
     },
   ];
 
@@ -731,117 +665,92 @@ export default function LinksPage() {
   return (
     <div className="space-y-6">
       {/* ===== MESSAGES ===== */}
-      <AnimatePresence mode="wait">
-        {(actionError || actionMessage) && (
-          <motion.div
-            key="message"
-            variants={messageVariants}
-            initial="hidden"
-            animate="visible"
-            exit="exit"
-            className={`rounded-xl border p-4 text-sm ${
-              actionError
-                ? "border-red-500/30 bg-red-500/10 text-red-200"
-                : "border-emerald-500/30 bg-emerald-500/10 text-emerald-200"
-            }`}
-          >
-            {actionError || actionMessage}
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {(actionError || actionMessage) && (
+        <div
+          className={`rounded-lg px-4 py-3 text-sm ${
+            actionError
+              ? "bg-red-500/10 text-red-200 border border-red-500/20"
+              : "bg-emerald-500/10 text-emerald-200 border border-emerald-500/20"
+          }`}
+        >
+          {actionError || actionMessage}
+        </div>
+      )}
 
       {/* ===== HEADER ===== */}
-      <motion.div
-        variants={cardVariants}
-        initial="hidden"
-        animate="visible"
-        className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl p-6 shadow-xl shadow-indigo-500/5"
-      >
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-5 sm:p-6">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <div className="flex items-center gap-2 text-indigo-300">
-              <Sparkles className="w-4 h-4" />
-              <span className="text-[10px] font-semibold uppercase tracking-[0.25em]">Link Control Center</span>
+            <div className="flex items-center gap-2 text-indigo-400">
+              <Sparkles className="h-4 w-4" />
+              <span className="text-xs font-medium uppercase tracking-wider">Link Control Center</span>
             </div>
-            <h1 className="text-2xl font-bold text-white mt-1">All Link Accounts</h1>
-            <p className="text-sm text-slate-400 mt-0.5">Monitor and manage every smart tracking link from one workspace.</p>
+            <h1 className="mt-1 text-2xl font-bold text-white">All Link Accounts</h1>
+            <p className="mt-0.5 text-sm text-slate-400">
+              Monitor and manage every smart tracking link from one workspace.
+            </p>
           </div>
           <Link
             href="/admin/links/create"
-            className="group relative inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 px-5 py-2.5 text-sm font-semibold text-white hover:shadow-xl hover:shadow-purple-500/30 transition-all duration-300 hover:scale-[1.02] flex-shrink-0 overflow-hidden"
+            className="inline-flex items-center justify-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-indigo-500 whitespace-nowrap"
           >
-            <span className="relative z-10 flex items-center gap-2">
-              <Plus className="w-4 h-4" />
-              Create New Link
-            </span>
-            <div className="absolute inset-0 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 opacity-0 group-hover:opacity-100 transition duration-300" />
+            <Plus className="h-4 w-4" />
+            Create New Link
           </Link>
         </div>
-      </motion.div>
+      </div>
 
       {/* ===== STATS ===== */}
-      <motion.div
-        variants={containerVariants}
-        initial="hidden"
-        animate="visible"
-        className="grid grid-cols-2 md:grid-cols-4 gap-4"
-      >
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         {stats.map((stat, idx) => (
-          <motion.div
+          <div
             key={idx}
-            variants={itemVariants}
-            whileHover={{ y: -3, scale: 1.01 }}
-            transition={{ type: "spring", damping: 30, stiffness: 400 }}
-            className={`rounded-xl border ${stat.border} bg-gradient-to-br ${stat.gradient} backdrop-blur-xl p-4 shadow-lg ${stat.shadow}`}
+            className="rounded-xl border border-slate-800 bg-slate-900/60 p-4"
           >
             <div className="flex items-start justify-between">
               <div>
-                <p className="text-[10px] font-medium text-slate-400 uppercase tracking-wider">{stat.label}</p>
-                <p className="text-xl font-bold text-white mt-1">{stat.value}</p>
+                <p className="text-xs font-medium text-slate-400">{stat.label}</p>
+                <p className="mt-1 text-xl font-bold text-white">{stat.value}</p>
+                <p className="mt-0.5 text-[10px] text-slate-500">{stat.sub}</p>
               </div>
-              <div className={`p-2 rounded-lg bg-white/5 ${stat.iconColor}`}>
-                <stat.icon className="w-4 h-4" />
+              <div className={`rounded-md ${stat.bg} p-1.5`}>
+                <stat.icon className={`h-4 w-4 ${stat.color}`} />
               </div>
             </div>
-          </motion.div>
+          </div>
         ))}
-      </motion.div>
+      </div>
 
-      {/* ===== SEARCH, SORT & FILTER (FAT) ===== */}
-      <motion.div
-        variants={cardVariants}
-        initial="hidden"
-        animate="visible"
-        className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl p-4 shadow-xl shadow-indigo-500/5"
-      >
+      {/* ===== SEARCH, SORT & FILTER ===== */}
+      <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-4">
         <div className="flex flex-col gap-3">
           {/* Row 1: Search + Actions */}
-          <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
             <div className="relative flex-1">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
               <input
                 type="text"
                 placeholder="Search by name, slug, or pool…"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full rounded-xl border border-white/10 bg-white/5 pl-11 pr-4 py-3 text-sm text-white placeholder-slate-500 focus:border-indigo-400/50 focus:outline-none focus:ring-2 focus:ring-indigo-400/15 transition"
+                className="w-full rounded-lg border border-slate-700 bg-slate-800 py-2.5 pl-9 pr-4 text-sm text-white placeholder-slate-500 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
               />
             </div>
-            <div className="flex items-center gap-2 flex-shrink-0">
+            <div className="flex items-center gap-2">
               <button
                 onClick={() => setShowFilters(!showFilters)}
-                className={`px-4 py-2.5 rounded-xl border text-sm font-medium transition ${
+                className={`inline-flex items-center gap-1 rounded-lg border px-3 py-2 text-sm font-medium transition ${
                   showFilters
-                    ? "border-indigo-400/40 bg-indigo-500/20 text-indigo-300"
-                    : "border-white/10 bg-white/5 text-slate-300 hover:text-white hover:bg-white/10"
+                    ? "border-indigo-500 bg-indigo-500/20 text-indigo-300"
+                    : "border-slate-700 bg-slate-800 text-slate-300 hover:bg-slate-700"
                 }`}
               >
-                <Filter className="w-4 h-4 inline mr-1.5" />
+                <Filter className="h-4 w-4" />
                 Filters
               </button>
               <button
                 onClick={toggleSelectAllVisible}
-                className="px-4 py-2.5 rounded-xl border border-white/10 bg-white/5 text-sm font-medium text-slate-300 hover:text-white hover:bg-white/10 transition"
+                className="rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm font-medium text-slate-300 hover:bg-slate-700"
               >
                 {filteredLinks.length > 0 && filteredLinks.every((l) => selectedIds.includes(l.id))
                   ? "Clear"
@@ -850,140 +759,121 @@ export default function LinksPage() {
               {hasActiveFilters && (
                 <button
                   onClick={clearFilters}
-                  className="px-4 py-2.5 rounded-xl border border-rose-400/30 bg-rose-500/10 text-sm font-medium text-rose-300 hover:bg-rose-500/20 transition"
+                  className="inline-flex items-center gap-1 rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm font-medium text-red-300 hover:bg-red-500/20"
                 >
-                  <X className="w-4 h-4 inline mr-1.5" />
+                  <X className="h-4 w-4" />
                   Clear
                 </button>
               )}
             </div>
           </div>
 
-          {/* Row 2: Filters (Fat) */}
-          <AnimatePresence>
-            {showFilters && (
-              <motion.div
-                key="filters"
-                variants={filterVariants}
-                initial="hidden"
-                animate="visible"
-                exit="exit"
-                className="flex flex-wrap items-center gap-3 pt-2 border-t border-white/10"
-              >
-                {/* Sort */}
-                <div className="flex items-center gap-2 bg-white/5 px-3 py-1.5 rounded-lg border border-white/10">
-                  <ArrowUpDown className="w-4 h-4 text-slate-400" />
-                  <select
-                    value={sortBy}
-                    onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
-                    className="bg-transparent text-sm text-slate-300 border-0 focus:ring-0 focus:outline-none py-1"
-                  >
-                    {sortOptions.map((opt) => (
-                      <option key={opt.value} value={opt.value} className="bg-slate-800 text-white">
-                        {opt.label}
-                      </option>
-                    ))}
-                  </select>
-                  <button
-                    onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
-                    className="text-sm text-slate-400 hover:text-white transition px-2 py-1"
-                  >
-                    {sortOrder === "asc" ? "↑" : "↓"}
-                  </button>
-                </div>
-
-                <span className="w-px h-6 bg-slate-700" />
-
-                {/* Status */}
-                <div className="flex items-center gap-1.5 bg-white/5 px-3 py-1.5 rounded-lg border border-white/10">
-                  <span className="text-sm text-slate-400">Status:</span>
-                  {["all", "active", "paused"].map((status) => (
-                    <button
-                      key={status}
-                      onClick={() => setFilterStatus(status as typeof filterStatus)}
-                      className={`px-3 py-1 rounded-full text-xs font-medium transition ${
-                        filterStatus === status
-                          ? status === "all"
-                            ? "bg-indigo-500/20 text-indigo-300 border border-indigo-400/30"
-                            : status === "active"
-                            ? "bg-emerald-500/20 text-emerald-300 border border-emerald-400/30"
-                            : "bg-amber-500/20 text-amber-300 border border-amber-400/30"
-                          : "text-slate-400 hover:text-white hover:bg-white/10"
-                      }`}
-                    >
-                      {status === "all" ? "All" : status === "active" ? "Active" : "Paused"}
-                    </button>
+          {/* Row 2: Filters */}
+          {showFilters && (
+            <div className="flex flex-wrap items-center gap-3 border-t border-slate-800 pt-3">
+              {/* Sort */}
+              <div className="flex items-center gap-2">
+                <ArrowUpDown className="h-4 w-4 text-slate-400" />
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
+                  className="rounded-md border border-slate-700 bg-slate-800 px-2 py-1 text-sm text-slate-300 focus:border-indigo-500 focus:outline-none"
+                >
+                  {sortOptions.map((opt) => (
+                    <option key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </option>
                   ))}
-                </div>
+                </select>
+                <button
+                  onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
+                  className="rounded-md px-2 py-1 text-sm text-slate-400 hover:bg-slate-800 hover:text-white"
+                >
+                  {sortOrder === "asc" ? "↑" : "↓"}
+                </button>
+              </div>
 
-                <span className="w-px h-6 bg-slate-700" />
+              <div className="h-6 w-px bg-slate-700" />
 
-                {/* Offer Group Filter */}
-                <div className="flex items-center gap-1.5 bg-white/5 px-3 py-1.5 rounded-lg border border-white/10">
-                  <Layers className="w-4 h-4 text-slate-400" />
-                  <span className="text-sm text-slate-400">Group:</span>
-                  <select
-                    value={filterOfferGroup}
-                    onChange={(e) => setFilterOfferGroup(e.target.value)}
-                    className="bg-transparent text-sm text-slate-300 border-0 focus:ring-0 focus:outline-none py-1"
+              {/* Status */}
+              <div className="flex items-center gap-1.5">
+                <span className="text-sm text-slate-400">Status:</span>
+                {["all", "active", "paused"].map((status) => (
+                  <button
+                    key={status}
+                    onClick={() => setFilterStatus(status as typeof filterStatus)}
+                    className={`rounded-md px-2.5 py-1 text-xs font-medium transition ${
+                      filterStatus === status
+                        ? status === "all"
+                          ? "bg-indigo-500/20 text-indigo-300"
+                          : status === "active"
+                          ? "bg-emerald-500/20 text-emerald-300"
+                          : "bg-amber-500/20 text-amber-300"
+                        : "bg-slate-800 text-slate-400 hover:bg-slate-700"
+                    }`}
                   >
-                    {offerGroupFilterOptions.map((group) => (
-                      <option key={group} value={group} className="bg-slate-800 text-white">
-                        {group === "all" ? "All" : group}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                    {status === "all" ? "All" : status === "active" ? "Active" : "Paused"}
+                  </button>
+                ))}
+              </div>
 
-                <span className="w-px h-6 bg-slate-700" />
+              <div className="h-6 w-px bg-slate-700" />
 
-                <span className="text-sm text-slate-500 font-medium">
+              {/* Offer Group Filter */}
+              <div className="flex items-center gap-1.5">
+                <Layers className="h-4 w-4 text-slate-400" />
+                <span className="text-sm text-slate-400">Group:</span>
+                <select
+                  value={filterOfferGroup}
+                  onChange={(e) => setFilterOfferGroup(e.target.value)}
+                  className="rounded-md border border-slate-700 bg-slate-800 px-2 py-1 text-sm text-slate-300 focus:border-indigo-500 focus:outline-none"
+                >
+                  {offerGroupFilterOptions.map((group) => (
+                    <option key={group} value={group}>
+                      {group === "all" ? "All" : group}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="ml-auto flex items-center gap-3">
+                <span className="text-sm text-slate-500">
                   {filteredLinks.length} of {links.length}
                 </span>
-
-                <span className="ml-auto text-xs text-slate-500 flex items-center gap-1.5">
-                  <RefreshCw className="w-3 h-3" />
-                  Updated {lastUpdated.toLocaleTimeString()}
+                <span className="flex items-center gap-1.5 text-xs text-slate-500">
+                  <RefreshCw className="h-3 w-3" />
+                  {lastUpdated.toLocaleTimeString()}
                 </span>
-              </motion.div>
-            )}
-          </AnimatePresence>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* ===== BULK ACTIONS ===== */}
         {selectedIds.length > 0 && !isManager && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ type: "spring", damping: 30, stiffness: 400 }}
-            className="mt-3 pt-3 border-t border-white/10 rounded-xl bg-gradient-to-r from-indigo-500/10 to-purple-500/10 p-3"
-          >
+          <div className="mt-3 border-t border-slate-800 pt-3">
             <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-              <span className="text-sm font-medium text-white flex items-center gap-2">
-                <span className="px-2.5 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 text-xs font-bold">
-                  {selectedIds.length}
-                </span>
-                link{selectedIds.length > 1 ? "s" : ""} selected
+              <span className="text-sm font-medium text-white">
+                {selectedIds.length} link{selectedIds.length > 1 ? "s" : ""} selected
               </span>
               <div className="flex flex-wrap gap-2">
                 <button
                   onClick={() => setShowBulkEditor(!showBulkEditor)}
-                  className="px-3 py-1.5 rounded-xl border border-cyan-400/30 bg-cyan-500/10 text-xs font-medium text-cyan-300 hover:bg-cyan-500/20 hover:border-cyan-400/50 transition"
+                  className="rounded-md border border-slate-700 bg-slate-800 px-3 py-1.5 text-xs font-medium text-slate-300 hover:bg-slate-700"
                 >
                   {showBulkEditor ? "Hide" : "Bulk Edit"}
                 </button>
                 <button
                   onClick={handleBulkReset}
                   disabled={busyLinkId === "bulk-reset"}
-                  className="px-3 py-1.5 rounded-xl border border-amber-400/30 bg-amber-500/10 text-xs font-medium text-amber-300 hover:bg-amber-500/20 hover:border-amber-400/50 transition disabled:opacity-60"
+                  className="rounded-md border border-amber-500/30 bg-amber-500/10 px-3 py-1.5 text-xs font-medium text-amber-300 hover:bg-amber-500/20 disabled:opacity-60"
                 >
                   {busyLinkId === "bulk-reset" ? "…" : "Reset"}
                 </button>
                 <button
                   onClick={handleBulkDelete}
                   disabled={busyLinkId === "bulk-delete"}
-                  className="px-3 py-1.5 rounded-xl border border-rose-400/30 bg-rose-500/10 text-xs font-medium text-rose-300 hover:bg-rose-500/20 hover:border-rose-400/50 transition disabled:opacity-60"
+                  className="rounded-md border border-red-500/30 bg-red-500/10 px-3 py-1.5 text-xs font-medium text-red-300 hover:bg-red-500/20 disabled:opacity-60"
                 >
                   {busyLinkId === "bulk-delete" ? "…" : "Delete"}
                 </button>
@@ -991,18 +881,13 @@ export default function LinksPage() {
             </div>
 
             {showBulkEditor && (
-              <motion.div
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ type: "spring", damping: 30, stiffness: 400 }}
-                className="mt-3 grid gap-3 md:grid-cols-3"
-              >
+              <div className="mt-3 grid gap-3 md:grid-cols-3">
                 <div>
-                  <label className="block text-xs font-medium text-slate-300 mb-1">Custom Domain</label>
+                  <label className="mb-1 block text-xs font-medium text-slate-300">Custom Domain</label>
                   <select
                     value={bulkCustomDomainId}
                     onChange={(e) => setBulkCustomDomainId(e.target.value)}
-                    className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white focus:border-indigo-400/50 focus:outline-none focus:ring-2 focus:ring-indigo-400/15 transition"
+                    className="w-full rounded-md border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-white focus:border-indigo-500 focus:outline-none"
                   >
                     <option value="">Keep current</option>
                     {selectableDomains.map((d) => (
@@ -1013,11 +898,11 @@ export default function LinksPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-slate-300 mb-1">Offer Group</label>
+                  <label className="mb-1 block text-xs font-medium text-slate-300">Offer Group</label>
                   <select
                     value={bulkOfferGroupName}
                     onChange={(e) => setBulkOfferGroupName(e.target.value)}
-                    className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white focus:border-indigo-400/50 focus:outline-none focus:ring-2 focus:ring-indigo-400/15 transition"
+                    className="w-full rounded-md border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-white focus:border-indigo-500 focus:outline-none"
                   >
                     <option value="">Keep current</option>
                     {offerGroups.map((g) => (
@@ -1028,11 +913,11 @@ export default function LinksPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-slate-300 mb-1">Status</label>
+                  <label className="mb-1 block text-xs font-medium text-slate-300">Status</label>
                   <select
                     value={bulkIsActive ? "active" : "paused"}
                     onChange={(e) => setBulkIsActive(e.target.value === "active")}
-                    className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white focus:border-indigo-400/50 focus:outline-none focus:ring-2 focus:ring-indigo-400/15 transition"
+                    className="w-full rounded-md border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-white focus:border-indigo-500 focus:outline-none"
                   >
                     <option value="active">Active</option>
                     <option value="paused">Paused</option>
@@ -1042,70 +927,56 @@ export default function LinksPage() {
                   <button
                     onClick={handleBulkUpdate}
                     disabled={busyLinkId === "bulk-update"}
-                    className="px-4 py-2 rounded-lg bg-gradient-to-r from-indigo-500 to-purple-500 text-sm font-semibold text-white hover:shadow-lg hover:shadow-purple-500/30 transition disabled:opacity-60"
+                    className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500 disabled:opacity-60"
                   >
                     {busyLinkId === "bulk-update" ? "Applying…" : "Apply Update"}
                   </button>
                 </div>
-              </motion.div>
+              </div>
             )}
-          </motion.div>
+          </div>
         )}
-      </motion.div>
+      </div>
 
-      {/* ===== CONFIRMATION ===== */}
-      <AnimatePresence>
-        {confirmInline && (confirmInline.id === "bulk-reset" || confirmInline.id === "bulk-delete") && (
-          <motion.div
-            key="confirm"
-            variants={messageVariants}
-            initial="hidden"
-            animate="visible"
-            exit="exit"
-            className={`rounded-xl border p-4 text-sm ${
-              confirmInline.tone === "danger"
-                ? "border-rose-500/30 bg-rose-500/10 text-rose-200"
-                : "border-amber-500/30 bg-amber-500/10 text-amber-200"
-            }`}
-          >
-            <div className="flex flex-wrap items-center gap-3">
-              <AlertTriangle className="w-4 h-4 flex-shrink-0" />
-              <span>{confirmInline.message}</span>
-              <button
-                onClick={() => setConfirmInline(null)}
-                className="px-3 py-1 rounded-lg border border-white/10 bg-white/5 text-xs font-medium text-white/80 hover:bg-white/10 transition"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={() => {
-                  setConfirmInline(null);
-                  void confirmInline.onConfirm();
-                }}
-                className={`px-3 py-1 rounded-lg text-xs font-semibold text-white shadow-lg transition hover:brightness-110 ${
-                  confirmInline.tone === "danger"
-                    ? "bg-gradient-to-r from-rose-500 to-red-600"
-                    : "bg-gradient-to-r from-amber-500 to-orange-600"
-                }`}
-              >
-                {confirmInline.confirmLabel}
-              </button>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* ===== CONFIRMATION (INLINE) ===== */}
+      {confirmInline && (confirmInline.id === "bulk-reset" || confirmInline.id === "bulk-delete") && (
+        <div
+          className={`rounded-lg px-4 py-3 text-sm ${
+            confirmInline.tone === "danger"
+              ? "bg-red-500/10 text-red-200 border border-red-500/20"
+              : "bg-amber-500/10 text-amber-200 border border-amber-500/20"
+          }`}
+        >
+          <div className="flex flex-wrap items-center gap-3">
+            <AlertTriangle className="h-4 w-4 flex-shrink-0" />
+            <span>{confirmInline.message}</span>
+            <button
+              onClick={() => setConfirmInline(null)}
+              className="rounded-md border border-slate-700 bg-slate-800 px-3 py-1 text-xs font-medium text-slate-300 hover:bg-slate-700"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={() => {
+                setConfirmInline(null);
+                void confirmInline.onConfirm();
+              }}
+              className={`rounded-md px-3 py-1 text-xs font-medium text-white ${
+                confirmInline.tone === "danger" ? "bg-red-600 hover:bg-red-500" : "bg-amber-600 hover:bg-amber-500"
+              }`}
+            >
+              {confirmInline.confirmLabel}
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* ===== LINK LIST ===== */}
       {filteredLinks.length === 0 ? (
-        <motion.div
-          initial={{ opacity: 0, scale: 0.96 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ type: "spring", damping: 30, stiffness: 350 }}
-          className="rounded-2xl border border-dashed border-white/10 bg-white/5 p-12 text-center"
-        >
-          <div className="text-5xl mb-4">📭</div>
-          <h3 className="text-xl font-semibold text-white">No links found</h3>
-          <p className="mt-2 text-sm text-slate-400">
+        <div className="rounded-xl border border-dashed border-slate-700 bg-slate-900/40 p-10 text-center">
+          <p className="text-4xl">📭</p>
+          <h3 className="mt-2 text-lg font-semibold text-white">No links found</h3>
+          <p className="mt-1 text-sm text-slate-400">
             {links.length === 0
               ? "Create your first smart tracking link to get started."
               : "Try adjusting your search or filters."}
@@ -1113,122 +984,95 @@ export default function LinksPage() {
           {links.length === 0 && (
             <Link
               href="/admin/links/create"
-              className="mt-5 inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium text-slate-300 hover:text-white hover:bg-white/10 transition"
+              className="mt-4 inline-flex items-center gap-2 rounded-lg border border-slate-700 bg-slate-800 px-4 py-2 text-sm font-medium text-slate-300 hover:bg-slate-700"
             >
               Create your first link →
             </Link>
           )}
-        </motion.div>
+        </div>
       ) : (
-        <motion.div
-          variants={containerVariants}
-          initial="hidden"
-          animate="visible"
-          className="space-y-3"
-        >
+        <div className="space-y-3">
           {filteredLinks.map((link) => (
-            <motion.article
+            <article
               key={link.id}
-              variants={itemVariants}
-              whileHover={{ y: -2 }}
-              transition={{ type: "spring", damping: 30, stiffness: 400 }}
-              className={`rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl p-2 shadow-lg shadow-indigo-500/5 transition hover:border-white/20 hover:shadow-xl hover:shadow-indigo-500/10 ${
-                link.isActive ? "border-l-4 border-l-emerald-400" : "border-l-4 border-l-amber-400"
+              className={`rounded-xl border border-slate-800 bg-slate-900/60 p-4 transition hover:border-slate-700 ${
+                link.isActive ? "border-l-2 border-l-emerald-500" : "border-l-2 border-l-amber-500"
               }`}
             >
-              <div className="flex flex-row flex-wrap items-start gap-1">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
                 {/* LEFT: INFO */}
-                <div className="flex-1 min-w-0">
-                  <div className="flex flex-wrap items-center gap-1 mb-1.5">
-                    <label className="flex items-center gap-1 rounded-full border border-white/10 bg-white/5 px-1.5 py-0.5 text-[9px] font-medium text-slate-300 cursor-pointer hover:bg-white/10 transition">
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <label className="flex items-center gap-1.5 rounded-md border border-slate-700 bg-slate-800 px-2 py-0.5 text-[10px] font-medium text-slate-300 cursor-pointer hover:bg-slate-700">
                       <input
                         type="checkbox"
                         checked={selectedIds.includes(link.id)}
                         onChange={() => toggleSelectedId(link.id)}
                         disabled={isManager}
-                        className="h-3.5 w-3.5 accent-indigo-400 cursor-pointer disabled:cursor-not-allowed disabled:opacity-40"
+                        className="h-3.5 w-3.5 accent-indigo-500 disabled:opacity-40"
                       />
-                      <span>Mark</span>
+                      Select
                     </label>
                     <span
-                      className={`inline-flex items-center justify-center rounded-full p-0.5 border ${
+                      className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium ${
                         link.isActive
-                          ? "border-emerald-400/40 bg-emerald-500/20"
-                          : "border-rose-400/40 bg-rose-500/20"
+                          ? "bg-emerald-500/10 text-emerald-400"
+                          : "bg-amber-500/10 text-amber-400"
                       }`}
                     >
                       <span
-                        className={`w-1.5 h-1.5 rounded-full ${
-                          link.isActive ? "bg-emerald-400 animate-pulse" : "bg-rose-400"
+                        className={`h-1.5 w-1.5 rounded-full ${
+                          link.isActive ? "bg-emerald-400" : "bg-amber-400"
                         }`}
                       />
+                      {link.isActive ? "Active" : "Paused"}
                     </span>
-                    <span
-                      className={`rounded-full border px-1.5 py-0.5 text-[9px] font-medium ${
-                        link.customDomain?.domain
-                          ? "border-cyan-400/40 bg-cyan-500/20 text-cyan-300"
-                          : "border-slate-400/40 bg-slate-500/20 text-slate-300"
-                      }`}
-                    >
-                      {link.customDomain?.domain ? "Custom" : "Default"}
-                    </span>
+                    {link.customDomain?.domain && (
+                      <span className="rounded-full bg-cyan-500/10 px-2 py-0.5 text-[10px] font-medium text-cyan-400">
+                        Custom
+                      </span>
+                    )}
                     {link.offerGroupName && (
-                      <span className="rounded-full border border-violet-400/40 bg-violet-500/20 px-1.5 py-0.5 text-[9px] font-medium text-violet-300">
+                      <span className="rounded-full bg-violet-500/10 px-2 py-0.5 text-[10px] font-medium text-violet-400">
                         {link.offerGroupName}
                       </span>
                     )}
                   </div>
 
-                  <h3 className="text-sm font-semibold text-white tracking-tight">
-                    {link.accountName}
-                  </h3>
-
-                  <div className="mt-1 flex flex-wrap items-center gap-1 text-[10px] text-slate-500">
-                    <span className="flex items-center gap-1">
-                      /{link.slug}
-                    </span>
-                  </div>
+                  <h3 className="mt-1.5 font-semibold text-white">{link.accountName}</h3>
+                  <div className="text-sm text-slate-400">/{link.slug}</div>
 
                   {isOwner && link.user?.username && (
-                    <div className="mt-1 text-[10px] text-slate-400">
-                      Created by <span className="font-semibold text-slate-100">{link.user.username}</span>
+                    <div className="mt-1 text-xs text-slate-500">
+                      Created by <span className="font-medium text-slate-300">{link.user.username}</span>
                     </div>
                   )}
 
-                  <div className="mt-1 flex flex-wrap items-center gap-1">
-                    <div className="flex items-center gap-1.5">
-                      <Link2 className="w-3.5 h-3.5 text-indigo-400" />
-                      <span className="text-[10px] font-medium text-indigo-400">Tracking</span>
-                      <CopyIcon
-                        text={getPreviewUrl(link)}
-                        label="tracking link"
-                        onCopy={() => setCopiedKey(`tracking-${link.id}`)}
-                      />
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                      <Globe2 className="w-3.5 h-3.5 text-emerald-400" />
-                      <span className="text-[10px] font-medium text-emerald-400">Stats</span>
+                  <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
+                    <span className="flex items-center gap-1 text-slate-400">
+                      <Link2 className="h-3.5 w-3.5 text-indigo-400" />
+                      <span className="truncate">{getPreviewUrl(link)}</span>
+                      <CopyIcon text={getPreviewUrl(link)} onCopy={() => setCopiedKey(`tracking-${link.id}`)} />
+                    </span>
+                    <span className="flex items-center gap-1 text-slate-400">
+                      <Globe2 className="h-3.5 w-3.5 text-emerald-400" />
                       <a
                         href={getPublicStatsUrl(link)}
                         target="_blank"
                         rel="noreferrer"
+                        className="hover:text-emerald-400"
                         aria-label="Open public stats"
-                        className="inline-flex items-center justify-center rounded-lg border border-white/5 bg-white/5 p-1.5 text-emerald-300 transition hover:border-emerald-400/40 hover:bg-emerald-500/10 hover:text-emerald-200"
                       >
                         <ArrowUpRight className="h-3.5 w-3.5" />
                       </a>
-                      <CopyIcon
-                        text={getPublicStatsUrl(link)}
-                        label="public stats link"
-                        onCopy={() => setCopiedKey(`stats-${link.id}`)}
-                      />
-                    </div>
+                      <CopyIcon text={getPublicStatsUrl(link)} onCopy={() => setCopiedKey(`stats-${link.id}`)} />
+                    </span>
                   </div>
                 </div>
 
                 {/* RIGHT: STATS + ACTIONS */}
-                <div className="flex items-center justify-end gap-0.5 self-start mt-0.5 w-full md:w-auto">
-                  <div className="flex items-center gap-1">
+                <div className="flex flex-col items-end gap-2 sm:flex-row sm:items-start sm:justify-end">
+                  <div className="flex gap-1.5">
                     {[
                       { label: "Clicks", value: formatNumber(link.totalClicks), color: "text-indigo-400" },
                       { label: "Unique", value: formatNumber(link.uniqueClicks), color: "text-emerald-400" },
@@ -1236,57 +1080,52 @@ export default function LinksPage() {
                     ].map((stat) => (
                       <div
                         key={stat.label}
-                        className="rounded-lg border border-white/10 bg-white/5 px-1.5 py-0.5 text-center min-w-[42px] hover:bg-white/10 transition"
+                        className="min-w-[48px] rounded-md border border-slate-800 bg-slate-800/50 px-2 py-1 text-center"
                       >
-                        <div className="text-[8px] uppercase tracking-wider text-slate-500">{stat.label}</div>
+                        <div className="text-[9px] uppercase tracking-wider text-slate-500">{stat.label}</div>
                         <div className={`text-xs font-bold ${stat.color}`}>{stat.value}</div>
                       </div>
                     ))}
                   </div>
 
                   {!isManager ? (
-                    <div className="flex items-center gap-1 p-1 rounded-lg bg-white/5 border border-white/5">
+                    <div className="flex gap-1">
                       <button
                         onClick={() => openEdit(link)}
-                        className="p-1.5 rounded-lg text-indigo-300 hover:bg-indigo-500/20 hover:text-indigo-200 transition"
+                        className="rounded-md p-1.5 text-indigo-400 hover:bg-indigo-500/10 hover:text-indigo-300"
                       >
-                        <Pencil className="w-3.5 h-3.5" />
+                        <Pencil className="h-3.5 w-3.5" />
                       </button>
                       <button
                         onClick={() => handleReset(link.id)}
                         disabled={busyLinkId === link.id}
-                        className="p-1.5 rounded-lg text-amber-300 hover:bg-amber-500/20 hover:text-amber-200 transition disabled:opacity-60"
+                        className="rounded-md p-1.5 text-amber-400 hover:bg-amber-500/10 hover:text-amber-300 disabled:opacity-60"
                       >
-                        <RotateCcw className="w-3.5 h-3.5" />
+                        <RotateCcw className="h-3.5 w-3.5" />
                       </button>
                       <button
                         onClick={() => handleDelete(link.id)}
                         disabled={busyLinkId === link.id}
-                        className="p-1.5 rounded-lg text-rose-300 hover:bg-rose-500/20 hover:text-rose-200 transition disabled:opacity-60"
+                        className="rounded-md p-1.5 text-red-400 hover:bg-red-500/10 hover:text-red-300 disabled:opacity-60"
                       >
-                        <Trash2 className="w-3.5 h-3.5" />
+                        <Trash2 className="h-3.5 w-3.5" />
                       </button>
                     </div>
                   ) : (
-                    <div className="flex items-center gap-1 p-1 rounded-lg bg-white/5 border border-white/5 text-xs uppercase tracking-[0.2em] text-slate-500">
+                    <div className="rounded-md bg-slate-800 px-2 py-1 text-xs uppercase tracking-wider text-slate-500">
                       read-only
                     </div>
                   )}
                 </div>
               </div>
 
-              {/* Inline confirmation */}
+              {/* Inline confirmation for single item */}
               {confirmInline && confirmInline.id === link.id && (
-                <motion.div
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ type: "spring", damping: 30, stiffness: 400 }}
-                  className="mt-3 pt-3 border-t border-white/10 flex flex-wrap items-center gap-2 text-sm"
-                >
+                <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-slate-800 pt-3 text-sm">
                   <span className="text-slate-300">{confirmInline.message}</span>
                   <button
                     onClick={() => setConfirmInline(null)}
-                    className="px-3 py-1 rounded-lg border border-white/10 bg-white/5 text-xs font-medium text-slate-400 hover:text-white hover:bg-white/10 transition"
+                    className="rounded-md border border-slate-700 bg-slate-800 px-3 py-1 text-xs font-medium text-slate-300 hover:bg-slate-700"
                   >
                     Cancel
                   </button>
@@ -1295,230 +1134,160 @@ export default function LinksPage() {
                       setConfirmInline(null);
                       void confirmInline.onConfirm();
                     }}
-                    className={`px-3 py-1 rounded-lg text-xs font-semibold text-white shadow-lg transition hover:brightness-110 ${
-                      confirmInline.tone === "danger"
-                        ? "bg-gradient-to-r from-rose-500 to-red-600"
-                        : "bg-gradient-to-r from-amber-500 to-orange-600"
+                    className={`rounded-md px-3 py-1 text-xs font-medium text-white ${
+                      confirmInline.tone === "danger" ? "bg-red-600 hover:bg-red-500" : "bg-amber-600 hover:bg-amber-500"
                     }`}
                   >
                     {confirmInline.confirmLabel}
                   </button>
-                </motion.div>
+                </div>
               )}
-            </motion.article>
+            </article>
           ))}
-        </motion.div>
+        </div>
       )}
 
       {/* ===== EDIT MODAL ===== */}
-      <AnimatePresence>
-        {editingLinkId && (
-          <motion.div
-            key="modal"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm overflow-y-auto"
-            onClick={(e) => {
-              if (e.target === e.currentTarget) closeEdit();
-            }}
+      {editingLinkId && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) closeEdit();
+          }}
+        >
+          <div
+            className="w-full max-w-3xl rounded-xl border border-slate-700 bg-slate-900 p-5 sm:p-6"
+            onClick={(e) => e.stopPropagation()}
           >
-            <motion.div
-              variants={modalVariants}
-              initial="hidden"
-              animate="visible"
-              exit="exit"
-              className="w-full max-w-3xl rounded-2xl border border-white/10 bg-[#0d1724] backdrop-blur-xl p-6 md:p-8 shadow-2xl shadow-indigo-500/20"
-              onClick={(e) => e.stopPropagation()}
-            >
-              {/* Modal Header */}
-              <div className="flex items-center justify-between gap-3 mb-6">
-                <div>
-                  <div className="flex items-center gap-2">
-                    <div className="p-1.5 rounded-lg bg-gradient-to-br from-indigo-500/20 to-purple-500/20">
-                      <Sparkles className="w-3.5 h-3.5 text-indigo-300" />
-                    </div>
-                    <span className="text-[10px] font-semibold uppercase tracking-[0.25em] text-indigo-300">
-                      Edit Link Account
-                    </span>
-                  </div>
-                  <h2 className="mt-1.5 text-xl font-bold text-white">Update routing details</h2>
-                  <p className="text-sm text-slate-400 mt-0.5">Modify the configuration for this tracking link.</p>
+            {/* Modal Header */}
+            <div className="mb-5 flex items-center justify-between">
+              <div>
+                <div className="flex items-center gap-2 text-indigo-400">
+                  <Sparkles className="h-3.5 w-3.5" />
+                  <span className="text-xs font-medium uppercase tracking-wider">Edit Link Account</span>
                 </div>
-                <button
-                  onClick={closeEdit}
-                  className="p-2 rounded-xl hover:bg-white/5 transition text-slate-400 hover:text-white border border-white/5"
-                >
-                  <X className="w-4 h-4" />
-                </button>
+                <h2 className="mt-1 text-xl font-bold text-white">Update routing details</h2>
+              </div>
+              <button
+                onClick={closeEdit}
+                className="rounded-md p-1.5 text-slate-400 hover:bg-slate-800 hover:text-white"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <form onSubmit={(e) => { e.preventDefault(); handleSaveEdit(); }} className="space-y-5">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <label className="mb-1.5 block text-xs font-medium text-slate-300">Account Name</label>
+                  <input
+                    value={editingAccountName}
+                    onChange={(e) => setEditingAccountName(e.target.value)}
+                    className="w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-white placeholder-slate-500 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                    placeholder="e.g., iPhone Campaign"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="mb-1.5 block text-xs font-medium text-slate-300">Slug</label>
+                  <input
+                    value={editingSlug}
+                    onChange={(e) => setEditingSlug(e.target.value.toLowerCase().replace(/\s/g, "-"))}
+                    className="w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-white placeholder-slate-500 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                    placeholder="e.g., iphone-offer"
+                    required
+                  />
+                  <p className="mt-1 text-xs text-slate-500">Letters, numbers, and hyphens only</p>
+                </div>
+
+                <div>
+                  <label className="mb-1.5 block text-xs font-medium text-slate-300">Custom Domain</label>
+                  <select
+                    value={editingCustomDomainId}
+                    onChange={(e) => setEditingCustomDomainId(e.target.value)}
+                    className="w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-white focus:border-indigo-500 focus:outline-none"
+                  >
+                    {domainOptions.map((opt) => (
+                      <option key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </option>
+                    ))}
+                  </select>
+                  <p className="mt-1 text-xs text-slate-500">Only verified domains are eligible</p>
+                </div>
+
+                <div>
+                  <label className="mb-1.5 block text-xs font-medium text-slate-300">Offer Group</label>
+                  <select
+                    value={editingOfferGroupName}
+                    onChange={(e) => setEditingOfferGroupName(e.target.value)}
+                    className="w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-white focus:border-indigo-500 focus:outline-none"
+                  >
+                    {groupOptions.map((opt) => (
+                      <option key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </option>
+                    ))}
+                  </select>
+                  <p className="mt-1 text-xs text-slate-500">Optional. Overrides default geo routing</p>
+                </div>
+
+                <div className="sm:col-span-2">
+                  <label className="mb-1.5 block text-xs font-medium text-slate-300">Status</label>
+                  <select
+                    value={editingIsActive ? "active" : "paused"}
+                    onChange={(e) => setEditingIsActive(e.target.value === "active")}
+                    className="w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-white focus:border-indigo-500 focus:outline-none"
+                  >
+                    <option value="active">Active</option>
+                    <option value="paused">Paused</option>
+                  </select>
+                </div>
               </div>
 
-              {/* Form */}
-              <form onSubmit={(e) => { e.preventDefault(); handleSaveEdit(); }} className="space-y-5">
-                <div className="grid gap-4 md:grid-cols-2">
-                  <div>
-                    <label className="block text-xs font-medium text-slate-300 mb-1.5 tracking-wide">
-                      Account Name
-                    </label>
-                    <input
-                      value={editingAccountName}
-                      onChange={(e) => setEditingAccountName(e.target.value)}
-                      className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-white placeholder-slate-500 focus:border-indigo-400/50 focus:outline-none focus:ring-2 focus:ring-indigo-400/30 transition hover:border-white/20"
-                      placeholder="e.g., iPhone Campaign"
-                      required
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-medium text-slate-300 mb-1.5 tracking-wide">
-                      Slug
-                    </label>
-                    <input
-                      value={editingSlug}
-                      onChange={(e) => setEditingSlug(e.target.value.toLowerCase().replace(/\s/g, "-"))}
-                      className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-white placeholder-slate-500 focus:border-indigo-400/50 focus:outline-none focus:ring-2 focus:ring-indigo-400/30 transition hover:border-white/20"
-                      placeholder="e.g., iphone-offer"
-                      required
-                    />
-                    <p className="mt-1.5 text-xs text-slate-500">Letters, numbers, and hyphens only</p>
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-medium text-slate-300 mb-1.5 tracking-wide">
-                      Custom Domain
-                    </label>
-                    <div className="relative">
-                      <select
-                        value={editingCustomDomainId}
-                        onChange={(e) => setEditingCustomDomainId(e.target.value)}
-                        className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 pr-10 text-sm text-white appearance-none focus:border-indigo-400/50 focus:outline-none focus:ring-2 focus:ring-indigo-400/30 transition hover:border-white/20"
-                        style={{
-                          backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E")`,
-                          backgroundRepeat: 'no-repeat',
-                          backgroundPosition: 'right 14px center',
-                          backgroundSize: '12px',
-                        }}
-                      >
-                        {domainOptions.map((opt) => (
-                          <option key={opt.value} value={opt.value} className="bg-slate-800 text-white">
-                            {opt.label}
-                          </option>
-                        ))}
-                      </select>
-                      <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                    </div>
-                    <p className="mt-1.5 text-xs text-slate-500">Only verified domains are eligible</p>
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-medium text-slate-300 mb-1.5 tracking-wide">
-                      Offer Group
-                    </label>
-                    <div className="relative">
-                      <select
-                        value={editingOfferGroupName}
-                        onChange={(e) => setEditingOfferGroupName(e.target.value)}
-                        className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 pr-10 text-sm text-white appearance-none focus:border-indigo-400/50 focus:outline-none focus:ring-2 focus:ring-indigo-400/30 transition hover:border-white/20"
-                        style={{
-                          backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E")`,
-                          backgroundRepeat: 'no-repeat',
-                          backgroundPosition: 'right 14px center',
-                          backgroundSize: '12px',
-                        }}
-                      >
-                        {groupOptions.map((opt) => (
-                          <option key={opt.value} value={opt.value} className="bg-slate-800 text-white">
-                            {opt.label}
-                          </option>
-                        ))}
-                      </select>
-                      <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                    </div>
-                    <p className="mt-1.5 text-xs text-slate-500">Optional. Overrides default geo routing</p>
-                  </div>
-
-                  <div className="md:col-span-2">
-                    <label className="block text-xs font-medium text-slate-300 mb-1.5 tracking-wide">
-                      Status
-                    </label>
-                    <div className="relative">
-                      <select
-                        value={editingIsActive ? "active" : "paused"}
-                        onChange={(e) => setEditingIsActive(e.target.value === "active")}
-                        className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 pr-10 text-sm text-white appearance-none focus:border-indigo-400/50 focus:outline-none focus:ring-2 focus:ring-indigo-400/30 transition hover:border-white/20"
-                        style={{
-                          backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E")`,
-                          backgroundRepeat: 'no-repeat',
-                          backgroundPosition: 'right 14px center',
-                          backgroundSize: '12px',
-                        }}
-                      >
-                        <option value="active" className="bg-slate-800 text-white">Active</option>
-                        <option value="paused" className="bg-slate-800 text-white">Paused</option>
-                      </select>
-                      <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                    </div>
-                  </div>
+              {/* Preview */}
+              <div className="rounded-lg border border-slate-800 bg-slate-800/50 p-4">
+                <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-wider text-slate-400">
+                  <Link2 className="h-3.5 w-3.5 text-indigo-400" />
+                  Preview
                 </div>
-
-                {/* Preview */}
-                <div className="rounded-xl border border-indigo-500/15 bg-gradient-to-br from-indigo-500/10 to-purple-500/10 p-4 mt-2">
-                  <div className="flex items-center gap-2 text-xs font-medium text-slate-400 uppercase tracking-wider mb-2.5">
-                    <Link2 className="w-3.5 h-3.5 text-indigo-300" />
-                    <span>Preview</span>
-                  </div>
-                  <div className="rounded-xl border border-white/10 bg-slate-900/60 px-4 py-3 font-mono text-sm text-indigo-300/90 break-all">
-                    {editPreviewUrl}
-                  </div>
-                  <div className="flex items-center gap-3 mt-2.5 text-[10px] text-slate-500">
-                    <span className="flex items-center gap-1">
-                      <Globe2 className="w-3 h-3" />
-                      {editingCustomDomainId ? "Custom domain" : "Default domain"}
-                    </span>
-                    <span className="w-px h-3 bg-slate-700" />
-                    <span className="flex items-center gap-1">
-                      <Layers className="w-3 h-3" />
-                      {editingOfferGroupName || "Default routing"}
-                    </span>
-                  </div>
+                <div className="mt-2 break-all rounded-md bg-slate-900 px-3 py-2 font-mono text-sm text-indigo-300">
+                  {editPreviewUrl}
                 </div>
+              </div>
 
-                {/* Buttons */}
-                <div className="flex flex-wrap gap-3 pt-2">
-                  <button
-                    type="submit"
-                    disabled={savingLinkId === editingLinkId}
-                    className="group relative inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 px-6 py-2.5 text-sm font-semibold text-white hover:shadow-lg hover:shadow-purple-500/40 transition-all duration-300 hover:scale-[1.02] overflow-hidden disabled:opacity-60 disabled:cursor-not-allowed"
-                  >
-                    <span className="relative z-10 flex items-center gap-2">
-                      {savingLinkId === editingLinkId ? (
-                        <>
-                          <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                          Saving…
-                        </>
-                      ) : (
-                        <>
-                          <Rocket className="w-4 h-4" />
-                          Save Changes
-                        </>
-                      )}
-                    </span>
-                    <div className="absolute inset-0 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={closeEdit}
-                    className="px-6 py-2.5 rounded-xl border border-white/10 bg-white/5 text-sm font-medium text-slate-300 hover:text-white hover:bg-white/10 transition"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </form>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+              {/* Buttons */}
+              <div className="flex flex-wrap gap-3">
+                <button
+                  type="submit"
+                  disabled={savingLinkId === editingLinkId}
+                  className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-5 py-2 text-sm font-medium text-white hover:bg-indigo-500 disabled:opacity-60"
+                >
+                  {savingLinkId === editingLinkId ? (
+                    <>
+                      <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                      Saving…
+                    </>
+                  ) : (
+                    <>
+                      <Rocket className="h-4 w-4" />
+                      Save Changes
+                    </>
+                  )}
+                </button>
+                <button
+                  type="button"
+                  onClick={closeEdit}
+                  className="rounded-lg border border-slate-700 bg-slate-800 px-5 py-2 text-sm font-medium text-slate-300 hover:bg-slate-700"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

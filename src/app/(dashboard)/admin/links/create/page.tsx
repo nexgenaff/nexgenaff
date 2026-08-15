@@ -1,21 +1,16 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowLeft,
-  Sparkles,
   CheckCircle2,
   Copy,
   Check,
-  Zap,
   Globe,
   Layers,
   Rocket,
-  ChevronDown,
-  Search,
 } from "lucide-react";
 import { buildOfferGroupList } from "@/lib/utils/offer-groups";
 import { coerceArray } from "@/lib/utils/array-response";
@@ -36,245 +31,8 @@ interface CreatedAccount {
   publicStatsUrl: string;
 }
 
-// ========== ANIMATIONS ==========
-const fadeUp = {
-  hidden: { opacity: 0, y: 16 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] } },
-};
-
-const scaleIn = {
-  hidden: { opacity: 0, scale: 0.96 },
-  visible: { opacity: 1, scale: 1, transition: { duration: 0.35, ease: "easeOut" } },
-};
-
-const slideInRight = {
-  hidden: { opacity: 0, x: 30 },
-  visible: { opacity: 1, x: 0, transition: { duration: 0.4, ease: "easeOut" } },
-};
-
-// ========== DROPDOWN ==========
-interface DropdownOption {
-  value: string;
-  label: string;
-  icon?: React.ReactNode;
-  badge?: string;
-}
-
-interface CustomDropdownProps {
-  label: string;
-  value: string;
-  onChange: (value: string) => void;
-  options: DropdownOption[];
-  disabled?: boolean;
-  helper?: string;
-  placeholder?: string;
-}
-
-const CustomDropdown = ({
-  label,
-  value,
-  onChange,
-  options,
-  disabled = false,
-  helper,
-  placeholder = "Select an option",
-}: CustomDropdownProps) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
-  const dropdownRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  const selectedOption = options.find((opt) => opt.value === value);
-  const filteredOptions = options.filter((opt) =>
-    opt.label.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setIsOpen(false);
-        setSearchTerm("");
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
-  useEffect(() => {
-    if (isOpen && inputRef.current) {
-      setTimeout(() => inputRef.current?.focus(), 50);
-    }
-  }, [isOpen]);
-
-  const handleSelect = (optValue: string) => {
-    onChange(optValue);
-    setIsOpen(false);
-    setSearchTerm("");
-  };
-
-  return (
-    <div className="relative" ref={dropdownRef}>
-      <label className="block text-xs font-medium text-slate-300 mb-1.5 tracking-wide">
-        {label}
-      </label>
-
-      <button
-        type="button"
-        onClick={() => !disabled && setIsOpen(!isOpen)}
-        disabled={disabled}
-        className={`
-          w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 sm:px-4 sm:py-3 text-sm text-white
-          flex items-center justify-between gap-2
-          transition-all duration-200
-          ${isOpen ? "border-indigo-400/50 ring-2 ring-indigo-400/15" : "hover:border-white/20"}
-          ${disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}
-          min-h-[42px] sm:min-h-[44px]
-        `}
-      >
-        <span className="flex items-center gap-2.5 truncate">
-          {selectedOption?.icon && (
-            <span className="flex-shrink-0">{selectedOption.icon}</span>
-          )}
-          <span className={selectedOption ? "text-white" : "text-slate-500"}>
-            {selectedOption?.label || placeholder}
-          </span>
-          {selectedOption?.badge && (
-            <span className="ml-auto text-[10px] font-medium text-emerald-400 bg-emerald-500/15 px-2 py-0.5 rounded-full flex-shrink-0">
-              {selectedOption.badge}
-            </span>
-          )}
-        </span>
-        <motion.div
-          animate={{ rotate: isOpen ? 180 : 0 }}
-          transition={{ duration: 0.2 }}
-          className="flex-shrink-0 text-slate-400"
-        >
-          <ChevronDown className="w-4 h-4" />
-        </motion.div>
-      </button>
-
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div
-            initial={{ opacity: 0, y: -8, scale: 0.97 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -8, scale: 0.97 }}
-            transition={{ duration: 0.15 }}
-            className="absolute z-50 w-full mt-1.5 rounded-xl border border-white/10 bg-slate-900/95 backdrop-blur-xl shadow-2xl shadow-indigo-500/10 overflow-hidden"
-          >
-            <div className="p-2 border-b border-white/5">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-500" />
-                <input
-                  ref={inputRef}
-                  type="text"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  placeholder="Search options..."
-                  className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 pl-8 text-sm text-white placeholder-slate-500 focus:border-indigo-400/50 focus:outline-none focus:ring-1 focus:ring-indigo-400/30"
-                />
-              </div>
-            </div>
-
-            <div className="max-h-52 overflow-y-auto py-1 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
-              {filteredOptions.length === 0 ? (
-                <div className="px-4 py-3 text-sm text-slate-500 text-center">
-                  No options found
-                </div>
-              ) : (
-                filteredOptions.map((opt, idx) => (
-                  <motion.button
-                    key={opt.value}
-                    type="button"
-                    initial={{ opacity: 0, y: 4 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: idx * 0.025 }}
-                    onClick={() => handleSelect(opt.value)}
-                    className={`
-                      w-full px-4 py-2.5 text-sm text-left flex items-center gap-2.5
-                      transition-all duration-150
-                      ${
-                        opt.value === value
-                          ? "bg-indigo-500/15 text-indigo-200"
-                          : "text-slate-300 hover:bg-white/5 hover:text-white"
-                      }
-                      ${opt.value === value ? "border-l-2 border-indigo-400" : ""}
-                    `}
-                  >
-                    {opt.icon && <span className="flex-shrink-0">{opt.icon}</span>}
-                    <span className="flex-1 truncate">{opt.label}</span>
-                    {opt.badge && (
-                      <span className="text-[10px] font-medium text-emerald-400 bg-emerald-500/15 px-2 py-0.5 rounded-full flex-shrink-0">
-                        {opt.badge}
-                      </span>
-                    )}
-                    {opt.value === value && (
-                      <Check className="w-3.5 h-3.5 text-indigo-400 flex-shrink-0" />
-                    )}
-                  </motion.button>
-                ))
-              )}
-            </div>
-
-            <div className="px-4 py-1.5 border-t border-white/5 text-[10px] text-slate-500 text-center">
-              {filteredOptions.length} options
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {helper && <p className="mt-1.5 text-[11px] sm:text-xs text-slate-400">{helper}</p>}
-    </div>
-  );
-};
-
-// ========== INPUT FIELD ==========
-const InputField = ({
-  label,
-  value,
-  onChange,
-  placeholder,
-  type = "text",
-  required = false,
-  disabled = false,
-  helper,
-}: {
-  label: string;
-  value: string;
-  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  placeholder: string;
-  type?: string;
-  required?: boolean;
-  disabled?: boolean;
-  helper?: string;
-}) => (
-  <div className="group">
-    <label className="mb-1.5 block text-[11px] font-medium tracking-[0.12em] text-slate-300 uppercase sm:text-xs sm:tracking-wide">
-      {label}
-    </label>
-    <input
-      type={type}
-      value={value}
-      onChange={onChange}
-      className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-white placeholder-slate-500 transition-all duration-200 focus:border-indigo-400/50 focus:outline-none focus:ring-2 focus:ring-indigo-400/15 hover:border-white/20 min-h-[42px] sm:min-h-[44px] sm:px-4 sm:py-3"
-      placeholder={placeholder}
-      required={required}
-      disabled={disabled}
-    />
-    {helper && <p className="mt-1.5 text-[11px] text-slate-400 sm:text-xs">{helper}</p>}
-  </div>
-);
-
-// ========== COPY BUTTON ==========
-const CopyButton = ({
-  text,
-  label,
-  onCopy,
-}: {
-  text: string;
-  label: string;
-  onCopy: () => void;
-}) => {
+// ========== SIMPLE COPY BUTTON ==========
+const CopyButton = ({ text, onCopy }: { text: string; onCopy: () => void }) => {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = async () => {
@@ -291,14 +49,10 @@ const CopyButton = ({
   return (
     <button
       onClick={handleCopy}
-      className="p-2 rounded-lg hover:bg-white/5 transition-colors text-slate-400 hover:text-white group relative min-h-[44px] min-w-[44px] flex items-center justify-center"
-      aria-label={`Copy ${label}`}
+      className="rounded-md p-1.5 text-slate-400 hover:bg-white/10 hover:text-white transition-colors"
+      aria-label="Copy"
     >
-      {copied ? (
-        <Check className="w-4 h-4 text-emerald-400" />
-      ) : (
-        <Copy className="w-4 h-4 group-hover:scale-105 transition-transform" />
-      )}
+      {copied ? <Check className="h-4 w-4 text-emerald-400" /> : <Copy className="h-4 w-4" />}
     </button>
   );
 };
@@ -316,16 +70,6 @@ export default function CreateLinkPage() {
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
   const [createdAccount, setCreatedAccount] = useState<CreatedAccount | null>(null);
-  const [isMobile, setIsMobile] = useState(false);
-
-  useEffect(() => {
-    const mediaQuery = window.matchMedia("(max-width: 768px)");
-    const handleChange = () => setIsMobile(mediaQuery.matches);
-    handleChange();
-
-    mediaQuery.addEventListener?.("change", handleChange);
-    return () => mediaQuery.removeEventListener?.("change", handleChange);
-  }, []);
 
   const fetchDomains = useCallback(async () => {
     try {
@@ -432,352 +176,247 @@ export default function CreateLinkPage() {
     }
   };
 
-  const domainOptions: DropdownOption[] = [
-    { value: "", label: "Default domain", icon: <Globe className="w-4 h-4 text-slate-400" /> },
-    ...selectableDomains.map((d) => ({
-      value: d.id,
-      label: d.domain,
-      icon: <Globe className="w-4 h-4 text-indigo-400" />,
-      badge: "Verified",
-    })),
-  ];
-
-  const groupOptions: DropdownOption[] = [
-    { value: "", label: "Default routing", icon: <Layers className="w-4 h-4 text-slate-400" /> },
-    ...offerGroups.map((g) => ({
-      value: g,
-      label: g,
-      icon: <Layers className="w-4 h-4 text-purple-400" />,
-    })),
-  ];
-
-  const hasCustomizations = customDomainId || offerGroupName;
-
   const templateText = createdAccount
     ? `🆔 𝗣𝘂𝗯𝗹𝗶𝘀𝗵𝗲𝗿 𝗜𝗗\n\`${createdAccount.accountName}\`\n\n📊 𝗣𝘂𝗯𝗹𝗶𝗰 𝗔𝗻𝗮𝗹𝘆𝘁𝗶𝗰𝘀\n${createdAccount.publicStatsUrl}\n\n🔗 𝗧𝗿𝗮𝗰𝗸𝗶𝗻𝗴 𝗨𝗥𝗟\n\`${createdAccount.trackingUrl}\``
     : "";
 
-  return (
-    <div className="min-h-screen bg-[#05070b] text-white overflow-x-hidden">
-      {/* Reduced motion on mobile for smoother performance */}
-      <div className="fixed inset-0 z-0 pointer-events-none">
-        <div className="absolute inset-0 bg-gradient-to-br from-[#05070b] via-[#0d1724] to-[#101827]" />
-        <motion.div
-          className="absolute -top-40 -left-40 w-[600px] h-[600px] bg-gradient-radial from-indigo-900/25 via-transparent to-transparent blur-3xl"
-          animate={
-            isMobile
-              ? { opacity: 0.18 }
-              : { x: [0, 80, -40, 0], y: [0, -60, 30, 0], opacity: [0.3, 0.6, 0.3] }
-          }
-          transition={isMobile ? { duration: 0.6 } : { duration: 25, repeat: Infinity, ease: "easeInOut" }}
-        />
-        <motion.div
-          className="absolute -bottom-40 -right-40 w-[600px] h-[600px] bg-gradient-radial from-purple-900/20 via-transparent to-transparent blur-3xl"
-          animate={
-            isMobile
-              ? { opacity: 0.12 }
-              : { x: [0, -70, 50, 0], y: [0, 50, -30, 0], opacity: [0.2, 0.5, 0.2] }
-          }
-          transition={
-            isMobile
-              ? { duration: 0.6 }
-              : { duration: 30, repeat: Infinity, ease: "easeInOut", delay: 3 }
-          }
-        />
-        {/* Reduced opacity grid on mobile for performance */}
-        <div className="absolute inset-0 opacity-[0.015] [background-image:linear-gradient(rgba(255,255,255,0.5)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.5)_1px,transparent_1px)] [background-size:80px_80px] hidden sm:block" />
-      </div>
+  const hasCustomizations = customDomainId || offerGroupName;
 
-      <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 md:py-12">
-        {/* ===== HEADER ===== */}
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4 }}
-          className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6 sm:mb-10"
-        >
+  return (
+    <div className="min-h-screen bg-slate-950 px-4 py-6 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-6xl">
+        {/* Header */}
+        <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-3">
-            <motion.button
+            <button
               onClick={handleBack}
-              whileHover={{ x: -2 }}
-              whileTap={{ scale: 0.95 }}
-              className="p-2.5 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 transition-all duration-200 text-slate-400 hover:text-white group min-h-[44px] min-w-[44px] flex items-center justify-center"
+              className="rounded-lg p-2 text-slate-400 hover:bg-slate-800 hover:text-white transition-colors"
               aria-label="Go back"
             >
-              <ArrowLeft className="w-4 h-4" />
-            </motion.button>
+              <ArrowLeft className="h-5 w-5" />
+            </button>
             <div>
-              <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-white tracking-tight">
-                Create Link
-              </h1>
-              <p className="text-xs sm:text-sm text-slate-400 mt-0.5">
-                Launch a new branded tracking link
-              </p>
+              <h1 className="text-2xl font-bold text-white">Create Link</h1>
+              <p className="text-sm text-slate-400">Launch a new branded tracking link</p>
             </div>
           </div>
           <Link
             href="/admin/links"
-            className="text-sm font-medium text-slate-400 hover:text-white transition-colors px-4 py-2 rounded-xl hover:bg-white/5 self-start sm:self-center"
+            className="text-sm font-medium text-slate-400 hover:text-white transition-colors px-4 py-2 rounded-lg hover:bg-slate-800 self-start sm:self-center"
           >
             Cancel
           </Link>
-        </motion.div>
+        </div>
 
-        {/* ===== MAIN GRID ===== */}
-        <div className="grid w-full max-w-full grid-cols-1 gap-6 lg:grid-cols-[1.3fr_0.7fr] items-start">
-          {/* ===== FORM ===== */}
-          <motion.div
-            variants={scaleIn}
-            initial="hidden"
-            animate="visible"
-            className="w-full max-w-full overflow-hidden rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl p-4 sm:p-6 md:p-8 shadow-xl shadow-indigo-500/5"
-          >
-            <div className="flex items-center gap-2.5 mb-5 sm:mb-7">
-              <div className="p-1.5 rounded-lg bg-gradient-to-br from-indigo-500/20 to-purple-500/20">
-                <Sparkles className="w-3.5 h-3.5 text-indigo-300" />
+        {/* Main Grid */}
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1.3fr_0.7fr] items-start">
+          {/* Form Card */}
+          <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-5 sm:p-6">
+            <div className="mb-5 flex items-center gap-2">
+              <div className="rounded-md bg-indigo-500/10 p-1.5">
+                <Rocket className="h-4 w-4 text-indigo-400" />
               </div>
-              <span className="text-[10px] font-semibold uppercase tracking-[0.25em] text-indigo-300/80">
+              <span className="text-xs font-medium uppercase tracking-wider text-indigo-400">
                 Campaign Builder
               </span>
               {hasCustomizations && (
-                <span className="ml-auto text-[10px] text-emerald-400 flex items-center gap-1.5">
-                  <span className="w-1 h-1 rounded-full bg-emerald-400" />
+                <span className="ml-auto flex items-center gap-1.5 text-xs text-emerald-400">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
                   Customized
                 </span>
               )}
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-5">
-              <AnimatePresence mode="wait">
-                {error && (
-                  <motion.div
-                    key="error"
-                    initial={{ opacity: 0, y: -8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -8 }}
-                    className="rounded-xl border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-200"
-                  >
-                    {error}
-                  </motion.div>
-                )}
-              </AnimatePresence>
+            {error && (
+              <div className="mb-4 rounded-lg border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+                {error}
+              </div>
+            )}
 
-              <AnimatePresence mode="wait">
-                {success && (
-                  <motion.div
-                    key="success"
-                    initial={{ opacity: 0, y: -8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -8 }}
-                    className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-3 text-sm text-emerald-200"
-                  >
-                    <div className="flex items-start gap-2.5">
-                      <CheckCircle2 className="mt-0.5 h-4 w-4 flex-shrink-0" />
-                      <span>{success}</span>
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-
-              <InputField
-                label="Account Name"
-                value={accountName}
-                onChange={(e) => setAccountName(e.target.value)}
-                placeholder=""
-                required
-                disabled={loading}
-              />
-
-              <InputField
-                label="Sub_ID"
-                value={slug}
-                onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/\s/g, "-"))}
-                placeholder="use random words"
-                helper="Letters, numbers, and hyphens only"
-                required
-                disabled={loading}
-              />
-
-              <CustomDropdown
-                label="Custom Domain"
-                value={customDomainId}
-                onChange={setCustomDomainId}
-                options={domainOptions}
-                disabled={loading || selectableDomains.length === 0}
-                helper="Only verified domains are eligible"
-                placeholder="Select a domain"
-              />
-
-              <CustomDropdown
-                label="Offer Group"
-                value={offerGroupName}
-                onChange={setOfferGroupName}
-                options={groupOptions}
-                disabled={loading}
-                helper="Optional. Overrides default geo routing"
-                placeholder="Select an offer group"
-              />
-
-              <motion.div
-                animate={
-                  isMobile
-                    ? { boxShadow: "0 0 20px rgba(129, 140, 248, 0.04)" }
-                    : {
-                        boxShadow: [
-                          "0 0 20px rgba(129, 140, 248, 0)",
-                          "0 0 40px rgba(129, 140, 248, 0.08)",
-                          "0 0 20px rgba(129, 140, 248, 0)",
-                        ],
-                      }
-                }
-                transition={
-                  isMobile ? { duration: 0.6 } : { duration: 3, repeat: Infinity, ease: "easeInOut" }
-                }
-                className="rounded-xl border border-indigo-500/15 bg-gradient-to-br from-indigo-500/5 to-purple-500/5 p-3 sm:p-4 mt-2"
-              >
-                <div className="flex items-center gap-2 text-xs font-medium text-slate-400 uppercase tracking-wider mb-2.5">
-                  <Globe className="w-3.5 h-3.5 text-indigo-300" />
-                  <span>Preview</span>
+            {success && (
+              <div className="mb-4 rounded-lg border border-emerald-500/20 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200">
+                <div className="flex items-start gap-2">
+                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" />
+                  <span>{success}</span>
                 </div>
-                <div className="rounded-xl border border-white/10 bg-slate-900/60 px-3 py-2.5 font-mono text-xs sm:text-sm text-indigo-300/90 break-all">
+              </div>
+            )}
+
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label className="mb-1.5 block text-xs font-medium text-slate-300">Account Name</label>
+                <input
+                  type="text"
+                  value={accountName}
+                  onChange={(e) => setAccountName(e.target.value)}
+                  placeholder="e.g., iPhone Campaign"
+                  required
+                  disabled={loading}
+                  className="w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2.5 text-sm text-white placeholder-slate-500 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                />
+              </div>
+
+              <div>
+                <label className="mb-1.5 block text-xs font-medium text-slate-300">Sub_ID</label>
+                <input
+                  type="text"
+                  value={slug}
+                  onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/\s/g, "-"))}
+                  placeholder="use random words"
+                  required
+                  disabled={loading}
+                  className="w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2.5 text-sm text-white placeholder-slate-500 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                />
+                <p className="mt-1 text-xs text-slate-500">Letters, numbers, and hyphens only</p>
+              </div>
+
+              <div>
+                <label className="mb-1.5 block text-xs font-medium text-slate-300">Custom Domain</label>
+                <select
+                  value={customDomainId}
+                  onChange={(e) => setCustomDomainId(e.target.value)}
+                  disabled={loading || selectableDomains.length === 0}
+                  className="w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2.5 text-sm text-white focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 disabled:opacity-60"
+                >
+                  <option value="">Default domain</option>
+                  {selectableDomains.map((d) => (
+                    <option key={d.id} value={d.id}>
+                      {d.domain}
+                    </option>
+                  ))}
+                </select>
+                <p className="mt-1 text-xs text-slate-500">Only verified domains are eligible</p>
+              </div>
+
+              <div>
+                <label className="mb-1.5 block text-xs font-medium text-slate-300">Offer Group</label>
+                <select
+                  value={offerGroupName}
+                  onChange={(e) => setOfferGroupName(e.target.value)}
+                  disabled={loading}
+                  className="w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2.5 text-sm text-white focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                >
+                  <option value="">Default routing</option>
+                  {offerGroups.map((g) => (
+                    <option key={g} value={g}>
+                      {g}
+                    </option>
+                  ))}
+                </select>
+                <p className="mt-1 text-xs text-slate-500">Optional. Overrides default geo routing</p>
+              </div>
+
+              {/* Preview */}
+              <div className="rounded-lg border border-slate-800 bg-slate-800/50 p-3">
+                <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-wider text-slate-400">
+                  <Globe className="h-3.5 w-3.5 text-indigo-400" />
+                  Preview
+                </div>
+                <div className="mt-2 break-all rounded-md bg-slate-900 px-3 py-2 font-mono text-sm text-indigo-300">
                   {previewUrl}
                 </div>
-                <div className="flex flex-wrap items-center gap-2 mt-2.5 text-[10px] text-slate-500">
+                <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-slate-500">
                   <span className="flex items-center gap-1">
-                    <Globe className="w-3 h-3" />
+                    <Globe className="h-3 w-3" />
                     {selectedDomain ? "Custom domain" : "Default domain"}
                   </span>
-                  <span className="hidden sm:inline w-px h-3 bg-slate-700" />
+                  <span className="h-3 w-px bg-slate-700" />
                   <span className="flex items-center gap-1">
-                    <Layers className="w-3 h-3" />
+                    <Layers className="h-3 w-3" />
                     {offerGroupName || "Default routing"}
                   </span>
                 </div>
-              </motion.div>
+              </div>
 
-              <motion.button
+              <button
                 type="submit"
                 disabled={loading}
-                whileHover={{ scale: loading ? 1 : 1.01 }}
-                whileTap={{ scale: loading ? 1 : 0.98 }}
-                className="relative w-full overflow-hidden rounded-xl bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 px-6 py-3.5 text-sm font-semibold text-white shadow-lg shadow-purple-500/15 hover:shadow-xl hover:shadow-purple-500/30 transition-all duration-300 disabled:opacity-60 disabled:cursor-not-allowed min-h-[48px]"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-indigo-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-indigo-500 disabled:cursor-not-allowed disabled:opacity-60"
               >
-                <div className="absolute inset-0 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 opacity-0 hover:opacity-100 transition-opacity duration-300" />
-                <span className="relative z-10 flex items-center justify-center gap-2.5">
-                  {loading ? (
-                    <>
-                      <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                      Creating...
-                    </>
-                  ) : (
-                    <>
-                      <Rocket className="w-4 h-4" />
-                      Create Link Account
-                    </>
-                  )}
-                </span>
-              </motion.button>
+                {loading ? (
+                  <>
+                    <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                    Creating…
+                  </>
+                ) : (
+                  <>
+                    <Rocket className="h-4 w-4" />
+                    Create Link Account
+                  </>
+                )}
+              </button>
             </form>
-          </motion.div>
+          </div>
 
-          {/* ===== SIDEBAR ===== */}
-          <AnimatePresence mode="wait">
-            {createdAccount ? (
-              <motion.div
-                key="created"
-                variants={slideInRight}
-                initial="hidden"
-                animate="visible"
-                exit={{ opacity: 0, x: 20 }}
-                className="rounded-2xl border border-emerald-500/20 bg-gradient-to-br from-emerald-500/5 to-emerald-500/[0.02] backdrop-blur-xl p-3 sm:p-6 shadow-xl shadow-emerald-500/5"
-              >
-                <div className="flex items-center justify-between pb-3 sm:pb-4 border-b border-white/5">
-                  <div className="flex items-center gap-2.5">
-                    <div className="p-1.5 rounded-lg bg-emerald-500/20">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-300" />
-                    </div>
-                    <span className="text-[10px] font-semibold uppercase tracking-[0.25em] text-emerald-300">
-                      Ready to share with your employees
-                    </span>
-                  </div>
-                  <CopyButton
-                    text={templateText}
-                    label="copy all"
-                    onCopy={() => {}}
-                  />
+          {/* Sidebar / Result */}
+          {createdAccount ? (
+            <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-5 sm:p-6">
+              <div className="flex items-center justify-between pb-4 border-b border-slate-800">
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+                  <span className="text-xs font-medium uppercase tracking-wider text-emerald-400">
+                    Ready to share
+                  </span>
                 </div>
+                <CopyButton text={templateText} onCopy={() => {}} />
+              </div>
 
-                <div className="pt-3 sm:pt-4 space-y-4 text-sm">
-                  {/* Publisher ID */}
-                  <div>
-                    <div className="text-xs font-medium text-slate-400">Publisher ID</div>
-                    <div className="mt-1 flex items-center justify-between gap-3 rounded-xl border border-white/5 bg-slate-900/50 px-3 py-2 font-mono text-sm break-all text-slate-100">
-                      <code>{createdAccount.accountName}</code>
-                    </div>
-                  </div>
-
-                  {/* Public Analytics */}
-                  <div>
-                    <div className="text-xs font-medium text-slate-400">Public analytics</div>
-                    <div className="mt-1 flex items-center justify-between gap-3 rounded-xl border border-white/5 bg-slate-900/30 px-3 py-2">
-                      <span className="break-all text-xs text-slate-300 sm:text-sm">{createdAccount.publicStatsUrl}</span>
-                      <a
-                        href={createdAccount.publicStatsUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="shrink-0 rounded-lg border border-white/10 bg-white/5 px-2 py-1 text-[10px] font-medium text-slate-200 transition hover:border-emerald-400/40 hover:text-emerald-200"
-                      >
-                        Open
-                      </a>
-                    </div>
-                  </div>
-
-                  {/* Tracking URL */}
-                  <div>
-                    <div className="text-xs font-medium text-slate-400">Tracking URL</div>
-                    <div className="mt-1 flex items-center justify-between gap-3 rounded-xl border border-white/5 bg-slate-900/50 px-3 py-2 font-mono text-xs break-all text-slate-100 sm:text-sm">
-                      <code>{createdAccount.trackingUrl}</code>
-                      <a
-                        href={createdAccount.trackingUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="shrink-0 rounded-lg border border-white/10 bg-white/5 px-2 py-1 text-[10px] font-medium text-slate-200 transition hover:border-indigo-400/40 hover:text-indigo-200"
-                      >
-                        Open
-                      </a>
-                    </div>
+              <div className="pt-4 space-y-4 text-sm">
+                <div>
+                  <div className="text-xs font-medium text-slate-400">Publisher ID</div>
+                  <div className="mt-1 flex items-center justify-between gap-2 rounded-md bg-slate-800/50 px-3 py-2 font-mono text-sm break-all text-slate-100">
+                    <code>{createdAccount.accountName}</code>
                   </div>
                 </div>
 
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.3 }}
-                  className="mt-4 flex items-center gap-2 border-t border-white/5 pt-4 text-[10px] font-medium text-emerald-300"
-                >
-                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                  Your link is live and ready to share
-                </motion.div>
-              </motion.div>
-            ) : (
-              <motion.div
-                key="empty"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="rounded-2xl border border-white/5 bg-gradient-to-br from-white/[0.02] to-transparent backdrop-blur-xl p-6 text-center"
-              >
-                <div className="flex flex-col items-center justify-center py-6">
-                  <div className="p-3 rounded-2xl bg-white/5 border border-white/5 mb-4">
-                    <Zap className="w-6 h-6 text-slate-500" />
+                <div>
+                  <div className="text-xs font-medium text-slate-400">Public analytics</div>
+                  <div className="mt-1 flex items-center justify-between gap-2 rounded-md bg-slate-800/50 px-3 py-2">
+                    <span className="break-all text-xs text-slate-300 sm:text-sm">{createdAccount.publicStatsUrl}</span>
+                    <a
+                      href={createdAccount.publicStatsUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="shrink-0 rounded-md border border-slate-700 bg-slate-800 px-2 py-1 text-[10px] font-medium text-slate-300 hover:bg-slate-700"
+                    >
+                      Open
+                    </a>
                   </div>
-                  <p className="text-sm text-slate-400">Your link will appear here</p>
-                  <p className="text-xs text-slate-500 mt-1">Complete the form to create one</p>
                 </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+
+                <div>
+                  <div className="text-xs font-medium text-slate-400">Tracking URL</div>
+                  <div className="mt-1 flex items-center justify-between gap-2 rounded-md bg-slate-800/50 px-3 py-2 font-mono text-xs sm:text-sm break-all text-slate-100">
+                    <code>{createdAccount.trackingUrl}</code>
+                    <a
+                      href={createdAccount.trackingUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="shrink-0 rounded-md border border-slate-700 bg-slate-800 px-2 py-1 text-[10px] font-medium text-slate-300 hover:bg-slate-700"
+                    >
+                      Open
+                    </a>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-4 flex items-center gap-2 border-t border-slate-800 pt-4 text-xs font-medium text-emerald-400">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+                Your link is live and ready to share
+              </div>
+            </div>
+          ) : (
+            <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-6 text-center">
+              <div className="flex flex-col items-center justify-center py-8">
+                <div className="rounded-lg bg-slate-800 p-3 mb-3">
+                  <Rocket className="h-6 w-6 text-slate-500" />
+                </div>
+                <p className="text-sm text-slate-400">Your link will appear here</p>
+                <p className="mt-1 text-xs text-slate-500">Complete the form to create one</p>
+              </div>
+            </div>
+          )}
         </div>
-
       </div>
     </div>
   );

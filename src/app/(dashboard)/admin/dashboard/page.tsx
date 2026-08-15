@@ -255,22 +255,55 @@ export default function DashboardPage() {
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#07090e] text-center">
-        <div className="flex flex-col items-center justify-center gap-4">
-          <Image
-            src="/afficixo-logo.png"
-            alt="Afficixo logo"
-            width={200}
-            height={200}
-            sizes="(max-width: 768px) 200px, 240px"
-            className="mx-auto object-cover"
-            priority
-          />
-          <div className="h-1.5 w-28 overflow-hidden rounded-full bg-white/10">
-            <motion.div
-              className="h-full w-1/2 rounded-full bg-gradient-to-r from-indigo-400 via-violet-400 to-cyan-400"
-              animate={{ x: ["-80%", "180%"] }}
-              transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut" }}
+        <div className="flex flex-col items-center justify-center gap-8">
+          <motion.div
+            animate={{ scale: [1, 1.05, 1] }}
+            transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+            className="relative"
+          >
+            <Image
+              src="/afficixo-logo.png"
+              alt="Afficixo logo"
+              width={200}
+              height={200}
+              sizes="(max-width: 768px) 200px, 240px"
+              className="mx-auto object-cover"
+              priority
             />
+            <motion.div
+              className="absolute inset-0 rounded-lg bg-gradient-to-r from-indigo-500/30 via-violet-500/20 to-transparent blur-xl"
+              animate={{ opacity: [0.3, 0.6, 0.3] }}
+              transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+            />
+          </motion.div>
+          
+          <div className="flex flex-col items-center gap-3">
+            <div className="relative h-1.5 w-32 overflow-hidden rounded-full bg-white/5 border border-white/10">
+              <motion.div
+                className="absolute inset-0 bg-gradient-to-r from-transparent via-indigo-400 to-transparent opacity-0"
+                animate={{ x: ["-100%", "100%"], opacity: [0, 1, 0] }}
+                transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+              />
+              <motion.div
+                className="h-full w-1/3 rounded-full bg-gradient-to-r from-indigo-500 via-violet-500 to-cyan-500"
+                animate={{ 
+                  x: ["-100%", "300%"],
+                  width: ["25%", "50%", "25%"]
+                }}
+                transition={{ 
+                  duration: 2.5, 
+                  repeat: Infinity, 
+                  ease: [0.43, 0.13, 0.23, 0.96]
+                }}
+              />
+            </div>
+            <motion.p
+              className="text-xs text-slate-400"
+              animate={{ opacity: [0.5, 1, 0.5] }}
+              transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+            >
+              Loading...
+            </motion.p>
           </div>
         </div>
       </div>

@@ -1,8 +1,19 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { AlertTriangle, CheckCircle2, ShieldCheck, Search, UserX, Trash2 } from 'lucide-react'
+import {
+  AlertTriangle,
+  CheckCircle2,
+  ShieldCheck,
+  Search,
+  UserX,
+  Trash2,
+  Loader2,
+  X,
+  RefreshCw,
+  Inbox,
+} from 'lucide-react'
 
 type ManagerUser = {
   id: string
@@ -27,11 +38,17 @@ type ConfirmDialogState = {
   confirmLabel: string
 }
 
+type Toast = {
+  id: number
+  type: 'success' | 'error'
+  message: string
+}
+
 const statusStyles: Record<ManagerUser['status'], string> = {
-  PENDING: 'bg-amber-500/10 text-amber-300 border border-amber-400/20',
-  ACTIVE: 'bg-emerald-500/10 text-emerald-300 border border-emerald-400/20',
-  DISABLED: 'bg-slate-500/10 text-slate-300 border border-slate-400/20',
-  REJECTED: 'bg-red-500/10 text-red-300 border border-red-400/20',
+  PENDING: 'bg-amber-500/10 text-amber-400 ring-1 ring-amber-500/20',
+  ACTIVE: 'bg-emerald-500/10 text-emerald-400 ring-1 ring-emerald-500/20',
+  DISABLED: 'bg-slate-500/10 text-slate-400 ring-1 ring-slate-500/20',
+  REJECTED: 'bg-red-500/10 text-red-400 ring-1 ring-red-500/20',
 }
 
 const statusLabels: Record<ManagerUser['status'], string> = {
@@ -49,12 +66,11 @@ const statusFilters: Array<{ label: string; value: 'ALL' | ManagerUser['status']
   { label: 'Rejected', value: 'REJECTED' },
 ]
 
-
 function InfoItem({ label, value }: { label: string; value: string }) {
   return (
-    <div className="min-w-0 rounded-xl border border-white/[0.06] bg-slate-950/30 px-3 py-2.5">
-      <div className="text-[9px] font-semibold uppercase tracking-[0.15em] text-slate-600">{label}</div>
-      <div className="mt-1 truncate text-xs font-medium text-slate-300">{value}</div>
+    <div className="rounded-lg bg-slate-800/50 px-3 py-2">
+      <div className="text-[10px] font-medium uppercase tracking-wider text-slate-500">{label}</div>
+      <div className="mt-1 truncate text-sm font-medium text-slate-200">{value}</div>
     </div>
   )
 }
@@ -73,8 +89,8 @@ function ActionButtons({
   mobile?: boolean
 }) {
   const buttonBase = mobile
-    ? 'min-h-10 rounded-xl px-3 text-xs'
-    : 'rounded-xl px-2.5 py-1.5 text-xs'
+    ? 'min-h-10 rounded-lg px-3 text-xs'
+    : 'rounded-lg px-2.5 py-1.5 text-xs'
 
   return (
     <div className={`flex flex-wrap gap-2 ${mobile ? 'sm:grid sm:grid-cols-2' : 'justify-end'}`}>
@@ -83,9 +99,9 @@ function ActionButtons({
           type="button"
           disabled={isActionLoading}
           onClick={() => updateStatus(manager.id, 'ACTIVE')}
-          className={`inline-flex flex-1 items-center justify-center gap-1.5 border border-emerald-400/20 bg-emerald-500/10 font-semibold text-emerald-200 transition hover:bg-emerald-500/20 disabled:cursor-wait disabled:opacity-60 ${buttonBase}`}
+          className={`inline-flex flex-1 items-center justify-center gap-1.5 bg-emerald-600 font-medium text-white transition hover:bg-emerald-500 disabled:cursor-wait disabled:opacity-60 ${buttonBase}`}
         >
-          <CheckCircle2 className="h-3.5 w-3.5" />
+          {isActionLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <CheckCircle2 className="h-3.5 w-3.5" />}
           Approve
         </button>
       )}
@@ -95,9 +111,9 @@ function ActionButtons({
           type="button"
           disabled={isActionLoading}
           onClick={() => updateStatus(manager.id, 'DISABLED')}
-          className={`inline-flex flex-1 items-center justify-center gap-1.5 border border-slate-400/20 bg-slate-500/10 font-semibold text-slate-200 transition hover:bg-slate-500/20 disabled:cursor-wait disabled:opacity-60 ${buttonBase}`}
+          className={`inline-flex flex-1 items-center justify-center gap-1.5 bg-slate-600 font-medium text-white transition hover:bg-slate-500 disabled:cursor-wait disabled:opacity-60 ${buttonBase}`}
         >
-          <UserX className="h-3.5 w-3.5" />
+          {isActionLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <UserX className="h-3.5 w-3.5" />}
           Disable
         </button>
       )}
@@ -107,9 +123,9 @@ function ActionButtons({
           type="button"
           disabled={isActionLoading}
           onClick={() => updateStatus(manager.id, 'PENDING')}
-          className={`inline-flex flex-1 items-center justify-center gap-1.5 border border-amber-400/20 bg-amber-500/10 font-semibold text-amber-200 transition hover:bg-amber-500/20 disabled:cursor-wait disabled:opacity-60 ${buttonBase}`}
+          className={`inline-flex flex-1 items-center justify-center gap-1.5 bg-amber-500 font-medium text-white transition hover:bg-amber-400 disabled:cursor-wait disabled:opacity-60 ${buttonBase}`}
         >
-          <AlertTriangle className="h-3.5 w-3.5" />
+          {isActionLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <AlertTriangle className="h-3.5 w-3.5" />}
           Pending
         </button>
       )}
@@ -119,9 +135,9 @@ function ActionButtons({
           type="button"
           disabled={isActionLoading}
           onClick={() => updateStatus(manager.id, 'REJECTED')}
-          className={`inline-flex flex-1 items-center justify-center gap-1.5 border border-red-400/20 bg-red-500/10 font-semibold text-red-200 transition hover:bg-red-500/20 disabled:cursor-wait disabled:opacity-60 ${buttonBase}`}
+          className={`inline-flex flex-1 items-center justify-center gap-1.5 bg-red-600 font-medium text-white transition hover:bg-red-500 disabled:cursor-wait disabled:opacity-60 ${buttonBase}`}
         >
-          <AlertTriangle className="h-3.5 w-3.5" />
+          {isActionLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <AlertTriangle className="h-3.5 w-3.5" />}
           Reject
         </button>
       )}
@@ -130,9 +146,9 @@ function ActionButtons({
         type="button"
         disabled={isActionLoading}
         onClick={() => openDeleteConfirm(manager)}
-        className={`inline-flex flex-1 items-center justify-center gap-1.5 border border-red-400/15 bg-red-500/[0.06] font-semibold text-red-300 transition hover:bg-red-500/15 disabled:cursor-wait disabled:opacity-60 ${buttonBase}`}
+        className={`inline-flex flex-1 items-center justify-center gap-1.5 border border-red-500/20 bg-red-500/5 font-medium text-red-400 transition hover:bg-red-500/10 disabled:cursor-wait disabled:opacity-60 ${buttonBase}`}
       >
-        <Trash2 className="h-3.5 w-3.5" />
+        {isActionLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
         Delete
       </button>
     </div>
@@ -145,83 +161,104 @@ export default function OwnerManagersPage() {
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState<'ALL' | ManagerUser['status']>('ALL')
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
-  const [success, setSuccess] = useState('')
+  const [refreshing, setRefreshing] = useState(false)
   const [confirmDialog, setConfirmDialog] = useState<ConfirmDialogState | null>(null)
   const [actionLoadingId, setActionLoadingId] = useState<string | null>(null)
+  const [toasts, setToasts] = useState<Toast[]>([])
 
-  const summary = useMemo(() => ({
-    total: managers.length,
-    pending: managers.filter((manager) => manager.status === 'PENDING').length,
-    active: managers.filter((manager) => manager.status === 'ACTIVE').length,
-    disabled: managers.filter((manager) => manager.status === 'DISABLED').length,
-    rejected: managers.filter((manager) => manager.status === 'REJECTED').length,
-  }), [managers])
+  const toastIdRef = useRef(0)
+
+  const pushToast = useCallback((type: Toast['type'], message: string) => {
+    const id = ++toastIdRef.current
+    setToasts((prev) => [...prev, { id, type, message }])
+  }, [])
+
+  const dismissToast = useCallback((id: number) => {
+    setToasts((prev) => prev.filter((toast) => toast.id !== id))
+  }, [])
+
+  useEffect(() => {
+    if (toasts.length === 0) return
+    const timers = toasts.map((toast) => setTimeout(() => dismissToast(toast.id), 4000))
+    return () => timers.forEach(clearTimeout)
+  }, [toasts, dismissToast])
+
+  const summary = useMemo(
+    () => ({
+      total: managers.length,
+      pending: managers.filter((manager) => manager.status === 'PENDING').length,
+      active: managers.filter((manager) => manager.status === 'ACTIVE').length,
+      disabled: managers.filter((manager) => manager.status === 'DISABLED').length,
+      rejected: managers.filter((manager) => manager.status === 'REJECTED').length,
+    }),
+    [managers],
+  )
 
   const filteredManagers = useMemo(() => {
     const term = search.trim().toLowerCase()
-    const filteredByStatus = statusFilter === 'ALL'
-      ? managers
-      : managers.filter((manager) => manager.status === statusFilter)
+    const filteredByStatus =
+      statusFilter === 'ALL' ? managers : managers.filter((manager) => manager.status === statusFilter)
 
     if (!term) return filteredByStatus
 
-    return filteredByStatus.filter((manager) =>
-      manager.username.toLowerCase().includes(term) ||
-      manager.email.toLowerCase().includes(term) ||
-      (manager.fullName?.toLowerCase().includes(term) ?? false) ||
-      (manager.source?.toLowerCase().includes(term) ?? false) ||
-      (manager.contractNumber?.toLowerCase().includes(term) ?? false) ||
-      (manager.telegramUsername?.toLowerCase().includes(term) ?? false) ||
-      (manager.bkashNumber?.toLowerCase().includes(term) ?? false)
+    return filteredByStatus.filter(
+      (manager) =>
+        manager.username.toLowerCase().includes(term) ||
+        manager.email.toLowerCase().includes(term) ||
+        (manager.fullName?.toLowerCase().includes(term) ?? false) ||
+        (manager.source?.toLowerCase().includes(term) ?? false) ||
+        (manager.contractNumber?.toLowerCase().includes(term) ?? false) ||
+        (manager.telegramUsername?.toLowerCase().includes(term) ?? false) ||
+        (manager.bkashNumber?.toLowerCase().includes(term) ?? false),
     )
   }, [managers, search, statusFilter])
 
-  const loadManagers = useCallback(async () => {
-    try {
-      setLoading(true)
-      setError('')
-      setSuccess('')
+  const loadManagers = useCallback(
+    async (silent = false) => {
+      try {
+        if (silent) setRefreshing(true)
+        else setLoading(true)
 
-      const response = await fetch('/api/owner/managers', { credentials: 'include' })
+        const response = await fetch('/api/owner/managers', { credentials: 'include' })
 
-      if (response.status === 401 || response.status === 403) {
-        router.push('/login')
-        return
-      }
-
-      if (!response.ok) {
-        const text = await response.text().catch(() => '')
-        let data: { error?: string } = {}
-
-        try {
-          data = JSON.parse(text)
-        } catch {
-          // ignore invalid JSON body
+        if (response.status === 401 || response.status === 403) {
+          router.push('/login')
+          return
         }
 
-        setError(data.error || text || 'Unable to load manager accounts. Please refresh.')
-        return
-      }
+        if (!response.ok) {
+          const text = await response.text().catch(() => '')
+          let data: { error?: string } = {}
 
-      const data = await response.json()
-      setManagers(data.managers || [])
-    } catch {
-      setError('Unable to load manager accounts. Please refresh or check your access.')
-    } finally {
-      setLoading(false)
-    }
-  }, [router])
+          try {
+            data = JSON.parse(text)
+          } catch {
+            // ignore invalid JSON body
+          }
+
+          pushToast('error', data.error || text || 'Unable to load manager accounts.')
+          return
+        }
+
+        const data = await response.json()
+        setManagers(data.managers || [])
+      } catch {
+        pushToast('error', 'Unable to load manager accounts. Please check your connection.')
+      } finally {
+        setLoading(false)
+        setRefreshing(false)
+      }
+    },
+    [router, pushToast],
+  )
 
   useEffect(() => {
-    void loadManagers()
+    void loadManagers(false)
   }, [loadManagers])
 
   const updateStatus = async (id: string, status: ManagerUser['status']) => {
     try {
       setActionLoadingId(id)
-      setError('')
-      setSuccess('')
 
       const response = await fetch(`/api/owner/managers/${id}`, {
         method: 'PATCH',
@@ -242,12 +279,12 @@ export default function OwnerManagersPage() {
 
       setManagers((current) =>
         current.map((manager) =>
-          manager.id === id ? { ...manager, status, updatedAt: new Date().toISOString() } : manager
-        )
+          manager.id === id ? { ...manager, status, updatedAt: new Date().toISOString() } : manager,
+        ),
       )
-      setSuccess(`Manager status updated to ${statusLabels[status]}.`)
+      pushToast('success', `Manager status updated to ${statusLabels[status]}.`)
     } catch (err: any) {
-      setError(err.message || 'Failed to update manager status.')
+      pushToast('error', err.message || 'Failed to update manager status.')
     } finally {
       setActionLoadingId(null)
     }
@@ -256,8 +293,6 @@ export default function OwnerManagersPage() {
   const performDelete = async (id: string) => {
     try {
       setActionLoadingId(id)
-      setError('')
-      setSuccess('')
 
       const response = await fetch(`/api/owner/managers/${id}`, {
         method: 'DELETE',
@@ -275,9 +310,9 @@ export default function OwnerManagersPage() {
       }
 
       setManagers((current) => current.filter((manager) => manager.id !== id))
-      setSuccess('Manager account deleted successfully.')
+      pushToast('success', 'Manager account deleted successfully.')
     } catch (err: any) {
-      setError(err.message || 'Failed to delete manager account.')
+      pushToast('error', err.message || 'Failed to delete manager account.')
     } finally {
       setActionLoadingId(null)
       setConfirmDialog(null)
@@ -294,240 +329,236 @@ export default function OwnerManagersPage() {
   }
 
   const handleRefresh = () => {
-    void loadManagers()
+    void loadManagers(true)
   }
+
+  const statCards = [
+    {
+      label: 'Total managers',
+      value: summary.total,
+      icon: ShieldCheck,
+      color: 'text-indigo-400',
+      bg: 'bg-indigo-500/10',
+    },
+    {
+      label: 'Pending review',
+      value: summary.pending,
+      icon: AlertTriangle,
+      color: 'text-amber-400',
+      bg: 'bg-amber-500/10',
+    },
+    {
+      label: 'Active',
+      value: summary.active,
+      icon: CheckCircle2,
+      color: 'text-emerald-400',
+      bg: 'bg-emerald-500/10',
+    },
+    {
+      label: 'Inactive',
+      value: summary.disabled + summary.rejected,
+      icon: UserX,
+      color: 'text-slate-400',
+      bg: 'bg-slate-500/10',
+    },
+  ]
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#05080d] px-3 py-4 text-white sm:px-5 sm:py-6">
-        <div className="mx-auto max-w-7xl">
-          <div className="overflow-hidden rounded-3xl border border-white/[0.08] bg-white/[0.035] shadow-2xl shadow-black/20 backdrop-blur-xl">
-            <div className="h-1 w-full bg-gradient-to-r from-indigo-500 via-violet-500 to-cyan-400" />
-            <div className="space-y-5 p-5 sm:p-8">
-              <div className="h-6 w-40 animate-pulse rounded-lg bg-white/[0.08]" />
-              <div className="h-10 w-72 max-w-full animate-pulse rounded-xl bg-white/[0.08]" />
-              <div className="h-4 w-full max-w-xl animate-pulse rounded bg-white/[0.06]" />
-              <div className="grid grid-cols-2 gap-3 pt-2 sm:grid-cols-4">
-                {Array.from({ length: 4 }).map((_, index) => (
-                  <div key={index} className="h-24 animate-pulse rounded-2xl bg-white/[0.05]" />
-                ))}
-              </div>
-            </div>
+      <div className="min-h-screen bg-slate-950 px-4 py-6 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-7xl space-y-6">
+          <div className="h-8 w-40 animate-pulse rounded bg-slate-800" />
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="h-24 animate-pulse rounded-xl bg-slate-800" />
+            ))}
           </div>
+          <div className="h-64 animate-pulse rounded-xl bg-slate-800" />
         </div>
       </div>
     )
   }
 
-  const statCards = [
-    { label: 'Total managers', value: summary.total, icon: ShieldCheck, accent: 'text-indigo-300', iconBg: 'bg-indigo-500/10 border-indigo-400/15' },
-    { label: 'Pending review', value: summary.pending, icon: AlertTriangle, accent: 'text-amber-300', iconBg: 'bg-amber-500/10 border-amber-400/15' },
-    { label: 'Active', value: summary.active, icon: CheckCircle2, accent: 'text-emerald-300', iconBg: 'bg-emerald-500/10 border-emerald-400/15' },
-    { label: 'Disabled', value: summary.disabled + summary.rejected, icon: UserX, accent: 'text-slate-300', iconBg: 'bg-slate-500/10 border-slate-400/15' },
-  ]
-
   return (
-    <div className="min-h-screen bg-[#05080d] px-3 py-4 text-white sm:px-5 sm:py-6 lg:px-8">
-      <div className="mx-auto max-w-7xl space-y-4 sm:space-y-5">
+    <div className="min-h-screen bg-slate-950 px-4 py-6 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-7xl space-y-6">
         {/* Header */}
-        <section className="relative overflow-hidden rounded-3xl border border-white/[0.08] bg-white/[0.035] shadow-2xl shadow-black/20 backdrop-blur-xl">
-          <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-indigo-400/70 to-transparent" />
-          <div className="absolute -right-24 -top-28 h-72 w-72 rounded-full bg-indigo-500/10 blur-3xl" />
-          <div className="absolute -bottom-32 left-1/3 h-64 w-64 rounded-full bg-violet-500/[0.06] blur-3xl" />
-
-          <div className="relative p-5 sm:p-7 lg:p-8">
-            <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
-              <div className="min-w-0">
-                <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-indigo-400/20 bg-indigo-500/[0.08] px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.22em] text-indigo-200 sm:text-xs">
-                  <ShieldCheck className="h-3.5 w-3.5" />
-                  Owner control center
-                </div>
-
-                <h1 className="text-2xl font-bold tracking-tight sm:text-3xl lg:text-4xl">
-                  Manager approvals
-                </h1>
-                <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-400">
-                  Review registrations, approve access, and manage the status of your manager accounts.
-                </p>
-              </div>
-
-              <div className="grid grid-cols-2 gap-2 sm:flex sm:items-center">
-                <div className="rounded-2xl border border-amber-400/15 bg-amber-500/[0.07] px-3 py-2.5 sm:min-w-[150px] sm:px-4">
-                  <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-amber-300/80">Needs review</div>
-                  <div className="mt-1 text-lg font-bold text-white">{summary.pending}</div>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={handleRefresh}
-                  className="inline-flex min-h-11 items-center justify-center rounded-2xl border border-white/10 bg-slate-950/60 px-4 text-sm font-semibold text-slate-200 transition hover:border-indigo-400/30 hover:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-400/30 active:scale-[0.98]"
-                >
-                  Refresh list
-                </button>
-              </div>
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <div className="flex items-center gap-2">
+              <ShieldCheck className="h-5 w-5 text-indigo-400" />
+              <span className="text-sm font-semibold text-indigo-400">Owner Control Center</span>
             </div>
+            <h1 className="mt-2 text-2xl font-bold tracking-tight text-white sm:text-3xl">
+              Manager Approvals
+            </h1>
+            <p className="mt-1 text-sm text-slate-400">
+              Oversee registrations, approve access, and manage manager status.
+            </p>
           </div>
-        </section>
+          <div className="flex items-center gap-3">
+            <div
+              className={`rounded-lg px-4 py-2 text-sm font-medium ${
+                summary.pending > 0 ? 'bg-amber-500/10 text-amber-400' : 'bg-slate-800 text-slate-400'
+              }`}
+            >
+              {summary.pending > 0 ? `⚠ ${summary.pending} pending` : '✓ All clear'}
+            </div>
+            <button
+              type="button"
+              onClick={handleRefresh}
+              disabled={refreshing}
+              className="inline-flex items-center gap-2 rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-slate-300 ring-1 ring-slate-800 transition hover:bg-slate-800 disabled:cursor-wait disabled:opacity-60"
+            >
+              {refreshing ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <RefreshCw className="h-4 w-4" />
+              )}
+              Refresh
+            </button>
+          </div>
+        </div>
 
         {/* Stats */}
-        <section className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
           {statCards.map((item) => {
             const Icon = item.icon
             return (
-              <div
-                key={item.label}
-                className="rounded-2xl border border-white/[0.08] bg-white/[0.035] p-4 shadow-lg shadow-black/10 backdrop-blur-xl sm:rounded-3xl sm:p-5"
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <p className="truncate text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500 sm:text-xs sm:tracking-[0.2em]">
-                      {item.label}
-                    </p>
-                    <p className="mt-2 text-2xl font-bold tracking-tight sm:text-3xl">{item.value}</p>
+              <div key={item.label} className="rounded-xl bg-slate-900 p-4 ring-1 ring-slate-800">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <p className="text-xs font-medium text-slate-400">{item.label}</p>
+                    <p className="mt-2 text-2xl font-bold text-white">{item.value}</p>
                   </div>
-                  <div className={`rounded-xl border p-2 ${item.iconBg}`}>
-                    <Icon className={`h-4 w-4 ${item.accent}`} />
+                  <div className={`rounded-lg ${item.bg} p-2`}>
+                    <Icon className={`h-5 w-5 ${item.color}`} />
                   </div>
                 </div>
               </div>
             )
           })}
-        </section>
+        </div>
 
-        {/* Search + filters */}
-        <section className="rounded-3xl border border-white/[0.08] bg-white/[0.035] p-3 shadow-xl shadow-black/10 backdrop-blur-xl sm:p-4">
-          <div className="flex flex-col gap-3">
+        {/* Search & Filters */}
+        <div className="rounded-xl bg-slate-900 p-4 ring-1 ring-slate-800 sm:p-5">
+          <div className="flex flex-col gap-4">
             <div className="relative">
-              <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
               <input
                 type="text"
                 value={search}
-                onChange={(event) => setSearch(event.target.value)}
-                placeholder="Search username, email, Telegram..."
-                aria-label="Search managers"
-                className="min-h-11 w-full rounded-2xl border border-white/10 bg-slate-950/60 pl-10 pr-4 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-indigo-400/40 focus:ring-2 focus:ring-indigo-500/10"
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search by username, email, or Telegram..."
+                className="w-full rounded-lg border-0 bg-slate-800 py-2.5 pl-10 pr-10 text-sm text-white placeholder:text-slate-500 focus:ring-2 focus:ring-indigo-500"
               />
+              {search && (
+                <button
+                  type="button"
+                  onClick={() => setSearch('')}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 rounded p-1 text-slate-400 hover:bg-slate-700 hover:text-white"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              )}
             </div>
 
-            <div className="flex items-center gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            <div className="flex flex-wrap items-center gap-2">
               {statusFilters.map((filter) => {
-                const count = filter.value === 'ALL'
-                  ? summary.total
-                  : summary[filter.value.toLowerCase() as 'pending' | 'active' | 'disabled' | 'rejected']
-
+                const count =
+                  filter.value === 'ALL'
+                    ? summary.total
+                    : summary[filter.value.toLowerCase() as 'pending' | 'active' | 'disabled' | 'rejected']
+                const isActive = statusFilter === filter.value
                 return (
                   <button
                     key={filter.value}
                     type="button"
                     onClick={() => setStatusFilter(filter.value)}
-                    className={`inline-flex min-h-10 shrink-0 items-center gap-1.5 rounded-xl border px-3 text-xs font-semibold transition focus:outline-none focus:ring-2 focus:ring-indigo-400/20 sm:text-sm ${
-                      statusFilter === filter.value
-                        ? 'border-indigo-400/30 bg-indigo-500/15 text-white shadow-sm shadow-indigo-950/40'
-                        : 'border-white/10 bg-slate-950/50 text-slate-400 hover:border-white/15 hover:text-slate-200'
+                    className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition ${
+                      isActive
+                        ? 'bg-indigo-600 text-white'
+                        : 'bg-slate-800 text-slate-400 hover:bg-slate-700'
                     }`}
                   >
                     {filter.label}
-                    <span className={`rounded-md px-1.5 py-0.5 text-[10px] ${
-                      statusFilter === filter.value ? 'bg-white/10 text-white' : 'bg-white/[0.05] text-slate-500'
-                    }`}>
-                      {count}
-                    </span>
+                    <span className="rounded bg-white/20 px-1.5 py-0.5 text-[10px] font-bold">{count}</span>
                   </button>
                 )
               })}
             </div>
 
-            <div className="flex items-center justify-between border-t border-white/[0.06] pt-3 text-xs text-slate-500">
-              <span>Manager accounts</span>
-              <span className="font-medium text-slate-300">
-                {filteredManagers.length} <span className="text-slate-600">/</span> {managers.length}
-              </span>
+            <div className="flex items-center justify-between border-t border-slate-800 pt-3 text-sm">
+              <span className="text-slate-400">Showing {filteredManagers.length} of {managers.length}</span>
             </div>
           </div>
-        </section>
+        </div>
 
-        {error && (
-          <div role="alert" className="flex items-start gap-3 rounded-2xl border border-red-500/20 bg-red-500/[0.08] p-4 text-sm text-red-200">
-            <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
-            <span>{error}</span>
-          </div>
-        )}
-
-        {success && (
-          <div role="status" className="flex items-start gap-3 rounded-2xl border border-emerald-500/20 bg-emerald-500/[0.08] p-4 text-sm text-emerald-200">
-            <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" />
-            <span>{success}</span>
-          </div>
-        )}
-
-        {/* Desktop table */}
-        <section className="hidden overflow-hidden rounded-3xl border border-white/[0.08] bg-white/[0.035] shadow-xl shadow-black/10 backdrop-blur-xl md:block">
-          <div className="overflow-x-auto">
-            <table className="min-w-[1100px] w-full text-left text-sm">
-              <thead className="border-b border-white/[0.07] bg-slate-950/50 text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500">
+        {/* Desktop Table */}
+        <div className="hidden overflow-hidden rounded-xl bg-slate-900 ring-1 ring-slate-800 md:block">
+          <div className="overflow-x-auto max-h-[70vh]">
+            <table className="min-w-[1000px] w-full text-left text-sm">
+              <thead className="bg-slate-800/50 text-xs font-medium uppercase tracking-wider text-slate-400">
                 <tr>
-                  <th className="px-5 py-4">Manager</th>
-                  <th className="px-5 py-4">Email</th>
-                  <th className="px-5 py-4">Details</th>
-                  <th className="px-5 py-4">Payment</th>
-                  <th className="px-5 py-4">Status</th>
-                  <th className="px-5 py-4 text-right">Actions</th>
+                  <th className="px-4 py-3">Manager</th>
+                  <th className="px-4 py-3">Email</th>
+                  <th className="px-4 py-3">Details</th>
+                  <th className="px-4 py-3">Payment</th>
+                  <th className="px-4 py-3">Status</th>
+                  <th className="px-4 py-3 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredManagers.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="px-5 py-16 text-center">
-                      <div className="mx-auto flex max-w-sm flex-col items-center">
-                        <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-3">
-                          <Search className="h-5 w-5 text-slate-500" />
-                        </div>
-                        <p className="mt-3 font-semibold text-slate-200">No managers found</p>
-                        <p className="mt-1 text-sm text-slate-500">Try another search term or status filter.</p>
+                    <td colSpan={6} className="px-4 py-12 text-center">
+                      <div className="flex flex-col items-center">
+                        <Inbox className="h-8 w-8 text-slate-600" />
+                        <p className="mt-2 text-sm font-medium text-slate-300">No managers found</p>
+                        <p className="text-xs text-slate-500">
+                          {search ? `No results for "${search}"` : 'No managers in this category'}
+                        </p>
                       </div>
                     </td>
                   </tr>
                 ) : (
                   filteredManagers.map((manager) => {
                     const isActionLoading = actionLoadingId === manager.id
-
                     return (
-                      <tr key={manager.id} className="border-b border-white/[0.05] last:border-0 hover:bg-white/[0.02]">
-                        <td className="px-5 py-4">
+                      <tr key={manager.id} className="border-t border-slate-800 hover:bg-slate-800/30">
+                        <td className="px-4 py-3">
                           <div className="flex items-center gap-3">
-                            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-indigo-400/15 bg-indigo-500/10 text-sm font-bold text-indigo-200">
+                            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-indigo-500/10 text-xs font-bold text-indigo-400">
                               {manager.username.slice(0, 1).toUpperCase()}
                             </div>
-                            <div className="min-w-0">
-                              <div className="font-semibold text-white">{manager.username}</div>
-                              <div className="mt-0.5 text-xs text-slate-500">{manager.fullName ?? 'No name provided'}</div>
+                            <div>
+                              <div className="font-medium text-white">{manager.username}</div>
+                              <div className="text-xs text-slate-500">{manager.fullName ?? 'No name'}</div>
                             </div>
                           </div>
                         </td>
-
-                        <td className="max-w-[240px] px-5 py-4 text-slate-300">
-                          <div className="truncate">{manager.email}</div>
-                          <div className="mt-1 text-xs text-slate-500">{manager.source ?? 'No source'}</div>
+                        <td className="max-w-[200px] px-4 py-3">
+                          <div className="truncate text-slate-300">{manager.email}</div>
+                          <div className="text-xs text-slate-500">{manager.source ?? 'Unknown'}</div>
                         </td>
-
-                        <td className="px-5 py-4">
-                          <div className="space-y-1 text-xs text-slate-400">
-                            <div><span className="text-slate-600">Contract:</span> {manager.contractNumber ?? '-'}</div>
-                            <div><span className="text-slate-600">Telegram:</span> {manager.telegramUsername ? `@${manager.telegramUsername.replace(/^@/, '')}` : '-'}</div>
+                        <td className="px-4 py-3">
+                          <div className="space-y-0.5 text-xs">
+                            <div><span className="text-slate-500">Contract:</span> <span className="text-slate-300">{manager.contractNumber ?? '-'}</span></div>
+                            <div>
+                              <span className="text-slate-500">Telegram:</span>{' '}
+                              <span className="text-slate-300">{manager.telegramUsername ? `@${manager.telegramUsername.replace(/^@/, '')}` : '-'}</span>
+                            </div>
                           </div>
                         </td>
-
-                        <td className="px-5 py-4 text-sm text-slate-300">
-                          {manager.bkashNumber ?? <span className="text-slate-600">Not added</span>}
+                        <td className="px-4 py-3 text-sm text-slate-300">
+                          {manager.bkashNumber ?? '—'}
                         </td>
-
-                        <td className="px-5 py-4">
-                          <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${statusStyles[manager.status]}`}>
+                        <td className="px-4 py-3">
+                          <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${statusStyles[manager.status]}`}>
                             {statusLabels[manager.status]}
                           </span>
                         </td>
-
-                        <td className="px-5 py-4">
+                        <td className="px-4 py-3">
                           <ActionButtons
                             manager={manager}
                             isActionLoading={isActionLoading}
@@ -542,115 +573,131 @@ export default function OwnerManagersPage() {
               </tbody>
             </table>
           </div>
-        </section>
+        </div>
 
-        {/* Mobile cards */}
-        <section className="space-y-3 md:hidden">
+        {/* Mobile Cards */}
+        <div className="space-y-4 md:hidden">
           {filteredManagers.length === 0 ? (
-            <div className="rounded-3xl border border-white/[0.08] bg-white/[0.035] p-10 text-center">
-              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.04]">
-                <Search className="h-5 w-5 text-slate-500" />
-              </div>
-              <p className="mt-3 font-semibold text-slate-200">No managers found</p>
-              <p className="mt-1 text-sm text-slate-500">Try another search or filter.</p>
+            <div className="rounded-xl bg-slate-900 p-8 text-center ring-1 ring-slate-800">
+              <Inbox className="mx-auto h-8 w-8 text-slate-600" />
+              <p className="mt-2 font-medium text-slate-300">No managers found</p>
+              <p className="text-sm text-slate-500">
+                {search ? `No results for "${search}"` : 'No managers to display'}
+              </p>
             </div>
           ) : (
             filteredManagers.map((manager) => {
               const isActionLoading = actionLoadingId === manager.id
-
               return (
-                <article
-                  key={manager.id}
-                  className="overflow-hidden rounded-3xl border border-white/[0.08] bg-white/[0.035] shadow-xl shadow-black/10"
-                >
-                  <div className="p-4">
-                    <div className="flex items-start gap-3">
-                      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-indigo-400/15 bg-indigo-500/10 font-bold text-indigo-200">
-                        {manager.username.slice(0, 1).toUpperCase()}
-                      </div>
-
-                      <div className="min-w-0 flex-1">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <h2 className="truncate font-semibold text-white">{manager.username}</h2>
-                          <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${statusStyles[manager.status]}`}>
-                            {statusLabels[manager.status]}
-                          </span>
-                        </div>
-                        <p className="mt-1 truncate text-xs text-slate-500">{manager.email}</p>
-                      </div>
+                <div key={manager.id} className="rounded-xl bg-slate-900 p-4 ring-1 ring-slate-800">
+                  <div className="flex items-start gap-3">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-indigo-500/10 text-sm font-bold text-indigo-400">
+                      {manager.username.slice(0, 1).toUpperCase()}
                     </div>
-
-                    <div className="mt-4 grid grid-cols-2 gap-2">
-                      <InfoItem label="Full name" value={manager.fullName ?? '-'} />
-                      <InfoItem label="Source" value={manager.source ?? '-'} />
-                      <InfoItem label="Contract" value={manager.contractNumber ?? '-'} />
-                      <InfoItem
-                        label="Telegram"
-                        value={manager.telegramUsername ? `@${manager.telegramUsername.replace(/^@/, '')}` : '-'}
-                      />
-                      <InfoItem label="bKash" value={manager.bkashNumber ?? '-'} />
-                      <InfoItem label="Created" value={new Date(manager.createdAt).toLocaleDateString()} />
-                    </div>
-
-                    <div className="mt-4 border-t border-white/[0.06] pt-3">
-                      <ActionButtons
-                        manager={manager}
-                        isActionLoading={isActionLoading}
-                        updateStatus={updateStatus}
-                        openDeleteConfirm={openDeleteConfirm}
-                        mobile
-                      />
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center justify-between gap-2">
+                        <h3 className="font-medium text-white">{manager.username}</h3>
+                        <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${statusStyles[manager.status]}`}>
+                          {statusLabels[manager.status]}
+                        </span>
+                      </div>
+                      <p className="text-sm text-slate-400">{manager.email}</p>
                     </div>
                   </div>
-                </article>
+
+                  <div className="mt-3 grid grid-cols-2 gap-2">
+                    <InfoItem label="Full name" value={manager.fullName ?? '—'} />
+                    <InfoItem label="Source" value={manager.source ?? '—'} />
+                    <InfoItem label="Contract" value={manager.contractNumber ?? '—'} />
+                    <InfoItem
+                      label="Telegram"
+                      value={manager.telegramUsername ? `@${manager.telegramUsername.replace(/^@/, '')}` : '—'}
+                    />
+                    <InfoItem label="bKash" value={manager.bkashNumber ?? '—'} />
+                    <InfoItem label="Created" value={new Date(manager.createdAt).toLocaleDateString()} />
+                  </div>
+
+                  <div className="mt-3 border-t border-slate-800 pt-3">
+                    <ActionButtons
+                      manager={manager}
+                      isActionLoading={isActionLoading}
+                      updateStatus={updateStatus}
+                      openDeleteConfirm={openDeleteConfirm}
+                      mobile
+                    />
+                  </div>
+                </div>
               )
             })
           )}
-        </section>
+        </div>
       </div>
 
+      {/* Toast Notifications */}
+      <div className="fixed bottom-4 right-4 z-50 flex w-full max-w-sm flex-col gap-2">
+        {toasts.map((toast) => (
+          <div
+            key={toast.id}
+            className={`flex items-start gap-2 rounded-lg px-4 py-3 shadow-lg ring-1 ${
+              toast.type === 'success'
+                ? 'bg-emerald-950 text-emerald-400 ring-emerald-500/30'
+                : 'bg-red-950 text-red-400 ring-red-500/30'
+            }`}
+          >
+            {toast.type === 'success' ? (
+              <CheckCircle2 className="h-5 w-5 shrink-0" />
+            ) : (
+              <AlertTriangle className="h-5 w-5 shrink-0" />
+            )}
+            <p className="flex-1 text-sm font-medium">{toast.message}</p>
+            <button
+              onClick={() => dismissToast(toast.id)}
+              className="rounded p-1 hover:bg-white/5"
+              aria-label="Dismiss"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+        ))}
+      </div>
+
+      {/* Confirm Dialog */}
       {confirmDialog && (
-        <div
-          className="fixed inset-0 z-50 flex items-end justify-center bg-black/70 p-3 backdrop-blur-sm sm:items-center sm:p-5"
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="confirm-dialog-title"
-        >
-          <div className="w-full max-w-lg rounded-3xl border border-white/10 bg-[#090d14] p-5 shadow-2xl shadow-black/60 sm:p-6">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
+          <div className="w-full max-w-md rounded-xl bg-slate-900 p-5 shadow-xl ring-1 ring-slate-800">
             <div className="flex items-start gap-3">
-              <div className="rounded-xl border border-red-400/15 bg-red-500/10 p-2.5">
-                <Trash2 className="h-5 w-5 text-red-300" />
+              <div className="rounded-full bg-red-500/10 p-2">
+                <Trash2 className="h-5 w-5 text-red-400" />
               </div>
-              <div className="min-w-0 flex-1">
-                <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-red-300">Permanent action</p>
-                <h2 id="confirm-dialog-title" className="mt-1 text-xl font-bold text-white">{confirmDialog.title}</h2>
+              <div className="flex-1">
+                <h3 className="text-lg font-semibold text-white">{confirmDialog.title}</h3>
+                <p className="mt-1 text-sm text-slate-400">{confirmDialog.message}</p>
               </div>
               <button
-                type="button"
                 onClick={() => setConfirmDialog(null)}
-                className="rounded-xl border border-white/10 px-3 py-2 text-xs font-medium text-slate-400 transition hover:bg-white/5 hover:text-white"
+                className="rounded p-1 text-slate-400 hover:bg-slate-800 hover:text-white"
+                aria-label="Close"
               >
-                Close
+                <X className="h-5 w-5" />
               </button>
             </div>
-
-            <p className="mt-4 text-sm leading-6 text-slate-400">{confirmDialog.message}</p>
-
-            <div className="mt-6 grid grid-cols-2 gap-2 sm:flex sm:justify-end">
+            <div className="mt-5 flex justify-end gap-2">
               <button
-                type="button"
                 onClick={() => setConfirmDialog(null)}
-                className="min-h-11 rounded-xl border border-white/10 bg-white/[0.04] px-4 text-sm font-semibold text-slate-300 transition hover:bg-white/[0.07]"
+                className="rounded-lg px-4 py-2 text-sm font-medium text-slate-300 hover:bg-slate-800"
               >
                 Cancel
               </button>
               <button
-                type="button"
                 onClick={() => performDelete(confirmDialog.id)}
                 disabled={actionLoadingId === confirmDialog.id}
-                className="min-h-11 rounded-xl bg-red-500 px-4 text-sm font-semibold text-white transition hover:bg-red-400 disabled:cursor-wait disabled:opacity-60"
+                className="inline-flex items-center rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-500 disabled:cursor-wait disabled:opacity-60"
               >
-                {actionLoadingId === confirmDialog.id ? 'Deleting…' : confirmDialog.confirmLabel}
+                {actionLoadingId === confirmDialog.id ? (
+                  <Loader2 className="mr-1 h-4 w-4 animate-spin" />
+                ) : (
+                  confirmDialog.confirmLabel
+                )}
               </button>
             </div>
           </div>

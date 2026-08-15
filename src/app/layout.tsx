@@ -47,9 +47,14 @@ export const metadata: Metadata = {
     },
   },
   icons: {
-    icon: '/favicon.png',
-    apple: '/afficixo-logo.png',
+    icon: [
+      { url: '/favicon.ico' },
+      { url: '/favicon-96x96.png', sizes: '96x96', type: 'image/png' },
+      { url: '/favicon.svg', type: 'image/svg+xml' },
+    ],
+    apple: '/apple-touch-icon.png',
   },
+  manifest: '/site.webmanifest',
   openGraph: {
     title: 'Afficixo — Pay Per Click Affiliate Marketplace',
     description:
@@ -59,8 +64,8 @@ export const metadata: Metadata = {
     siteName: 'Afficixo',
     images: [
       {
-        url: 'https://www.weebly.pro/og-image.png',
-        secureUrl: 'https://www.weebly.pro/og-image.png',
+        url: 'https://www.weebly.pro/og.png',
+        secureUrl: 'https://www.weebly.pro/og.png',
         width: 1200,
         height: 630,
         alt: 'Afficixo Pay Per Click Affiliate Marketplace',
@@ -73,7 +78,7 @@ export const metadata: Metadata = {
     title: 'Afficixo — CPC Affiliate Marketplace',
     description:
       'Discover CPC offers, promote campaigns, track valid clicks, and monetize your traffic with Afficixo.',
-    images: ['https://www.weebly.pro/og-image.png'],
+    images: ['https://www.weebly.pro/og.png'],
     site: '@afficixo',
     creator: 'Afficixo',
   },
