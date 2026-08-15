@@ -40,7 +40,7 @@ const structuredData = [
     "@type": "Organization",
     name: "Afficixo",
     url: "https://www.weebly.pro",
-    logo: "https://www.weebly.pro/AFFICIXO.png",
+    logo: "https://www.weebly.pro/afficixo-logo.png",
     description:
       "Afficixo is a modern pay-per-click affiliate marketplace built for publishers who want to monetize traffic through CPC offers.",
   },
@@ -172,7 +172,7 @@ const Header = () => {
         >
           <div className="relative h-16 w-16 md:h-28 md:w-28 rounded-lg overflow-hidden">
             <Image
-              src="/AFFICIXO.png"
+              src="/afficixo-logo.png"
               alt="Afficixo logo"
               fill
               className="object-contain"

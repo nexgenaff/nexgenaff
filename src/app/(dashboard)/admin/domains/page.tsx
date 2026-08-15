@@ -279,7 +279,7 @@ export default function DomainsPage() {
       <div className="flex h-64 items-center justify-center text-center">
         <div className="flex flex-col items-center justify-center gap-4">
           <Image
-            src="/AFFICIXO.png"
+            src="/afficixo-logo.png"
             alt="Afficixo logo"
             width={200}
             height={200}

@@ -579,7 +579,7 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
               '@type': 'Organization',
               name: 'Afficixo',
               url: 'https://weebly.pro',
-              logo: 'https://weebly.pro/AFFICIXO.png',
+              logo: 'https://weebly.pro/afficixo-logo.png',
             },
             dateModified: new Date().toISOString(),
             identifier: publicId,
@@ -602,7 +602,7 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
           <div className="flex items-center gap-4">
               <div className="relative w-16 h-16 shrink-0 rounded-2xl overflow-hidden border border-transparent bg-transparent">
                 <Image
-                  src="/AFFICIXO.png"
+                  src="/afficixo-logo.png"
                   alt="Afficixo logo"
                   width={64}
                   height={64}

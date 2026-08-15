@@ -99,7 +99,7 @@ export default function Sidebar() {
         {!collapsed && (
           <div className="relative h-12 flex-1 overflow-hidden">
             <Image
-              src="/AFFICIXO.png"
+              src="/afficixo-logo.png"
               alt="Afficixo logo"
               fill
               className="object-contain"

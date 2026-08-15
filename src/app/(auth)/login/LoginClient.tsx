@@ -338,7 +338,7 @@ export default function LoginClient() {
                 className="flex items-center justify-center"
               >
                 <Image
-                  src="/AFFICIXO.png"
+                  src="/afficixo-logo.png"
                   alt="Afficixo logo"
                   width={128}
                   height={128}

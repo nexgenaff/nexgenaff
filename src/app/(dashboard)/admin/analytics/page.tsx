@@ -285,7 +285,7 @@ export default function AnalyticsPage() {
       <div className="flex min-h-screen items-center justify-center bg-[#05070b]">
         <div className="flex flex-col items-center justify-center gap-4">
           <Image
-            src="/AFFICIXO.png"
+            src="/afficixo-logo.png"
             alt="Afficixo logo"
             width={200}
             height={200}

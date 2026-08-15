@@ -277,7 +277,7 @@ export default function LandingPageBuilder() {
             <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-6 mb-8 sm:mb-12">
               <div className="flex gap-4 items-start flex-1">
                 <Image
-                  src="/AFFICIXO.png"
+                  src="/afficixo-logo.png"
                   alt="Afficixo"
                   width={48}
                   height={48}

@@ -37,7 +37,7 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
             <Link href="/" className="flex items-center shrink-0" onClick={() => setMobileMenuOpen(false)}>
               <div className="relative h-12 w-12 overflow-hidden rounded-lg md:h-14 md:w-14">
                 <Image
-                  src="/AFFICIXO.png"
+                  src="/afficixo-logo.png"
                   alt="Afficixo logo"
                   fill
                   sizes="(max-width: 768px) 48px, 56px"
@@ -115,7 +115,7 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
             <div className="flex items-center gap-3">
               <div className="relative h-10 w-10 overflow-hidden rounded-lg">
                 <Image
-                  src="/AFFICIXO.png"
+                  src="/afficixo-logo.png"
                   alt="Afficixo logo"
                   fill
                   sizes="40px"
