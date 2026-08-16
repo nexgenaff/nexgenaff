@@ -5,6 +5,9 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+  // Use pgBouncer in transaction mode for connection pooling with Vercel/serverless
+  // Alternative: Use direct connection string and configure connection pool in PrismaClient
+  directUrl = env("DIRECT_DATABASE_URL")
 }
 
 model User {
