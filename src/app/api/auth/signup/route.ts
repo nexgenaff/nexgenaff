@@ -39,7 +39,10 @@ export async function POST(request: Request) {
       .map((part: string) => Number(part.trim()))
       .reduce((sum: number, value: number) => sum + value, 0)
 
-    if (!Number.isInteger(captchaAnswer) || captchaAnswer !== expectedValue) {
+    // Use Math.round to handle floating-point precision errors
+    const roundedExpected = Math.round(expectedValue)
+
+    if (!Number.isInteger(captchaAnswer) || captchaAnswer !== roundedExpected) {
       return NextResponse.json(
         { error: 'Please solve the captcha correctly before signing up' },
         { status: 400, headers: getCorsHeaders(origin) }

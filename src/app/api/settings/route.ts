@@ -59,14 +59,13 @@ export async function POST(request: Request) {
       }
 
       if (user.id.startsWith('local-')) {
-        const isValidBootstrap = currentPassword === ADMIN_PASSWORD || currentPassword === 'admin123'
-        if (!isValidBootstrap) {
+        if (process.env.NODE_ENV === 'production') {
           return NextResponse.json(
-            { error: 'Current password is incorrect.' },
-            { status: 400, headers: getCorsHeaders(origin) }
+            { error: 'Demo accounts are not supported in production' },
+            { status: 403, headers: getCorsHeaders(origin) }
           )
         }
-
+        
         return NextResponse.json(
           {
             success: true,

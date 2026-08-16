@@ -305,7 +305,13 @@ export async function GET(
       return new NextResponse('Failed to process link', { status: 500 });
     }
 
-    const offer = await selectOfferFromVault(prisma as any, offerUserIds, country, link.offerGroupName);
+    let offer;
+    try {
+      offer = await selectOfferFromVault(prisma as any, offerUserIds, country, link.offerGroupName);
+    } catch (error) {
+      console.error('[API REDIRECT] Failed to select offer:', error);
+      return new NextResponse('Failed to select offer', { status: 500 });
+    }
     
     if (!offer) {
       return new NextResponse('No owner offer found', { status: 404 });
@@ -362,7 +368,7 @@ export async function GET(
         0,
         Math.min(100, (offer as any).usaSecretRedirectPercentage ?? 50)
       );
-      const isSecretRedirect = isUsaSecretMode && randomInt(1, 101) <= percentage;
+      const isSecretRedirect = isUsaSecretMode && randomInt(0, 100) < percentage;
 
       if (isSecretRedirect) {
         // Secret mode: no click logged

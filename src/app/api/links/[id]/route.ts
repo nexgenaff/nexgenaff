@@ -155,27 +155,44 @@ export async function PUT(
       )
     }
 
-    const updatedLink = await prisma.linkAccount.update({
-      where: { id },
-      data: {
-        accountName,
-        slug,
-        customDomainId,
-        offerGroupName,
-        isActive,
-      },
-      include: {
-        customDomain: true,
-        publicDashboard: true,
-      },
+    // Use transaction to prevent race condition on slug uniqueness
+    const updatedLink = await prisma.$transaction(async (tx) => {
+      // Re-check slug under transaction lock
+      const slugCheck = await tx.linkAccount.findUnique({
+        where: { slug },
+      })
+
+      if (slugCheck && slugCheck.id !== id) {
+        throw new Error('Slug already taken')
+      }
+
+      return tx.linkAccount.update({
+        where: { id },
+        data: {
+          accountName,
+          slug,
+          customDomainId,
+          offerGroupName,
+          isActive,
+        },
+        include: {
+          customDomain: true,
+          publicDashboard: true,
+        },
+      })
+    }, {
+      maxWait: 5000,
+      timeout: 10000,
     })
 
     return NextResponse.json(updatedLink, { headers: getCorsHeaders(origin) })
   } catch (error) {
     console.error('Error updating link:', error)
+    const message = error instanceof Error ? error.message : 'Failed to update link'
+    const status = message === 'Slug already taken' ? 400 : 500
     return NextResponse.json(
-      { error: 'Failed to update link' },
-      { status: 500 }
+      { error: message },
+      { status, headers: getCorsHeaders(origin) }
     )
   }
 }

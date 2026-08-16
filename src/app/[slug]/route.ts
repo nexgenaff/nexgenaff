@@ -452,8 +452,22 @@ export async function GET(
 
     const dedupeWindowMs = getClickDedupeWindowMs();
 
-    const offerUserIds = await getOfferSelectionUserIds(link.userId);
-    const offer = await selectOfferFromVault(prisma as any, offerUserIds, country, link.offerGroupName);
+    let offerUserIds: string[] = [];
+    try {
+      offerUserIds = await getOfferSelectionUserIds(link.userId);
+    } catch (error) {
+      console.error('[REDIRECT] Failed to get offer selection user IDs:', error);
+      return new NextResponse('Failed to process link', { status: 500 });
+    }
+
+    let offer;
+    try {
+      offer = await selectOfferFromVault(prisma as any, offerUserIds, country, link.offerGroupName);
+    } catch (error) {
+      console.error('[REDIRECT] Failed to select offer:', error);
+      return new NextResponse('Failed to select offer', { status: 500 });
+    }
+
     if (!offer) {
       return new NextResponse('No owner offer found', { status: 404 });
     }

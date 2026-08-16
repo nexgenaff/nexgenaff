@@ -26,10 +26,13 @@ export function isOriginAllowed(origin: string): boolean {
     return true
   }
 
-  // Check wildcard patterns
+  // Check wildcard patterns with proper regex escaping
   return corsConfig.allowedOrigins.some(allowed => {
     if (!allowed.includes('*')) return false
-    const pattern = allowed.replace(/\*/g, '.*')
+    // Escape special regex characters first, then replace * with .*
+    const pattern = allowed
+      .replace(/[.+^${}()|[\]\\]/g, '\\$&') // Escape regex special chars
+      .replace(/\\\*/g, '.*') // Replace escaped * with .*
     const regex = new RegExp(`^${pattern}$`)
     return regex.test(origin)
   })

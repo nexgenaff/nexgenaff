@@ -73,6 +73,11 @@ export async function resolveUserIdForRecord(
   if (!user) return ''
 
   if (typeof user.id === 'string' && user.id.startsWith('local-')) {
+    // Reject local-* tokens in production
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error('Demo accounts are not supported in production')
+    }
+
     const username = user.id.replace(/^local-/, '')
     const existing = await prisma.user.findUnique({
       where: { username },

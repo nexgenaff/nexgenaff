@@ -61,8 +61,8 @@ export async function PUT(
 
       // Managers can only manage owner's offers
       try {
-        const managerOwnerId = await getOwnerUserId(user.id)
-        if (!managerOwnerId || offer.userId !== managerOwnerId) {
+        const ownerUserId = await getOwnerUserId()
+        if (!ownerUserId || offer.userId !== ownerUserId) {
           return NextResponse.json(
             { error: 'Forbidden' },
             { status: 403, headers: getCorsHeaders(origin) }
