@@ -173,7 +173,7 @@ export default function CreateLinkTurboPage() {
     : "";
 
   return (
-    <div className="min-h-screen bg-slate-950 px-4 py-6 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-white px-4 py-6 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-6xl">
         {/* Header */}
         <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -203,7 +203,7 @@ export default function CreateLinkTurboPage() {
         {/* Main Grid */}
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1.4fr_0.6fr] items-start">
           {/* Form Card */}
-          <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-5 sm:p-6">
+          <div className="rounded-xl border border-gray-200 bg-white p-5 sm:p-6">
             <div className="mb-5 flex items-center gap-2">
               <div className="rounded-md bg-indigo-500/10 p-1.5">
                 <Rocket className="h-4 w-4 text-indigo-400" />
@@ -342,7 +342,7 @@ export default function CreateLinkTurboPage() {
                 {createdLinks.map((link, index) => (
                   <div
                     key={`${link.accountName}-${index}`}
-                    className="rounded-lg border border-slate-800 bg-slate-900/50 p-3"
+                    className="rounded-lg border border-gray-200 bg-gray-50 p-3"
                   >
                     <div className="flex items-start justify-between gap-2">
                       <div>

@@ -705,7 +705,7 @@ export default function LinksPage() {
         {stats.map((stat, idx) => (
           <div
             key={idx}
-            className="rounded-xl border border-slate-800 bg-slate-900/60 p-4"
+            className="rounded-xl border border-gray-200 bg-white p-4"
           >
             <div className="flex items-start justify-between">
               <div>
@@ -722,7 +722,7 @@ export default function LinksPage() {
       </div>
 
       {/* ===== SEARCH, SORT & FILTER ===== */}
-      <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-4">
+      <div className="rounded-xl border border-gray-200 bg-white p-4">
         <div className="flex flex-col gap-3">
           {/* Row 1: Search + Actions */}
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
@@ -995,7 +995,7 @@ export default function LinksPage() {
           {filteredLinks.map((link) => (
             <article
               key={link.id}
-              className={`rounded-xl border border-slate-800 bg-slate-900/60 p-4 transition hover:border-slate-700 ${
+              className={`rounded-xl border border-gray-200 bg-white p-4 transition hover:border-gray-300 ${
                 link.isActive ? "border-l-2 border-l-emerald-500" : "border-l-2 border-l-amber-500"
               }`}
             >
@@ -1150,13 +1150,13 @@ export default function LinksPage() {
       {/* ===== EDIT MODAL ===== */}
       {editingLinkId && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-white/70 p-4 backdrop-blur-sm"
           onClick={(e) => {
             if (e.target === e.currentTarget) closeEdit();
           }}
         >
           <div
-            className="w-full max-w-3xl rounded-xl border border-slate-700 bg-slate-900 p-5 sm:p-6"
+            className="w-full max-w-3xl rounded-xl border border-gray-200 bg-white p-5 sm:p-6"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Modal Header */}

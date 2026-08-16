@@ -15,8 +15,8 @@ export default function GlobalError({
   }, [error])
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white flex items-center justify-center px-4 py-8">
-      <div className="w-full max-w-2xl rounded-3xl border border-white/10 bg-slate-900/95 p-8 shadow-2xl shadow-indigo-500/10 backdrop-blur-xl">
+    <div className="min-h-screen bg-white text-slate-900 flex items-center justify-center px-4 py-8">
+      <div className="w-full max-w-2xl rounded-3xl border border-gray-200 bg-white p-8 shadow-sm">
         <h1 className="text-2xl font-semibold text-white">Something went wrong</h1>
         <p className="mt-3 text-sm leading-6 text-slate-300">
           We encountered an unexpected problem while loading this page. You can try again or return home.

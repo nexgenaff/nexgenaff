@@ -225,11 +225,11 @@ export default function DomainsPage() {
       {/* Confirmation Modal */}
       {confirmDialog && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-white/70 p-4 backdrop-blur-sm"
           onClick={() => setConfirmDialog(null)}
         >
           <div
-            className="w-full max-w-md rounded-xl border border-slate-700 bg-slate-900 p-5"
+            className="w-full max-w-md rounded-xl border border-gray-200 bg-white p-5"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="mb-4 flex items-start gap-3">
@@ -282,7 +282,7 @@ export default function DomainsPage() {
       )}
 
       {/* Header */}
-      <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-5 sm:p-6">
+      <div className="rounded-xl border border-gray-200 bg-white p-5 sm:p-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <div className="flex items-center gap-2 text-indigo-400">
@@ -326,7 +326,7 @@ export default function DomainsPage() {
           ].map((stat, idx) => (
             <div
               key={idx}
-              className="rounded-xl border border-slate-800 bg-slate-900/60 p-4"
+              className="rounded-xl border border-gray-200 bg-white p-4"
             >
               <div className="flex items-start justify-between">
                 <div>
@@ -344,7 +344,7 @@ export default function DomainsPage() {
 
       {/* Form */}
       {showForm && (
-        <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-5">
+        <div className="rounded-xl border border-gray-200 bg-white p-5">
           <form onSubmit={handleSubmit} className="space-y-4">
             {formError && (
               <div className="rounded-lg border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-200">

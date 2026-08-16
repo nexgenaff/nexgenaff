@@ -537,7 +537,7 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
     datasets: computedStats.clickTrend.datasets,
   }), [computedStats.clickTrend])
 
-  if (!themeLoaded) return <div className="min-h-screen bg-slate-950" />
+  if (!themeLoaded) return <div className="min-h-screen bg-white" />
   if (loading) return <SkeletonLoader isDark={isDark} />
 
   if (error) {

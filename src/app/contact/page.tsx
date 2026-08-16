@@ -47,7 +47,7 @@ export default function ContactPage() {
   return (
     <PublicLayout>
       <main className="relative mx-auto flex min-h-screen max-w-6xl flex-col px-4 pb-20 pt-28 sm:px-6 lg:px-8">
-        <div className="rounded-[2rem] border border-white/10 bg-slate-950/40 backdrop-blur-xl shadow-[0_40px_120px_-40px_rgba(15,23,42,0.8)]">
+        <div className="rounded-[2rem] border border-gray-200 bg-white/95 backdrop-blur-xl shadow-sm">
           <div className="border-b border-white/10 px-6 py-10 sm:px-10">
             <p className="text-sm uppercase tracking-[0.24em] text-cyan-300">Contact</p>
             <h1 className="mt-4 text-4xl font-semibold tracking-tight text-white sm:text-5xl">Contact Afficixo</h1>

@@ -255,7 +255,7 @@ export default function LandingPageBuilder() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 px-4 py-6 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-white px-4 py-6 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-7xl">
         {/* Alerts */}
         {error && (
@@ -312,7 +312,7 @@ export default function LandingPageBuilder() {
                 {landingPages.map((page) => (
                   <div
                     key={page.id}
-                    className="rounded-xl border border-slate-800 bg-slate-900/60 p-4"
+                    className="rounded-xl border border-gray-200 bg-white p-4"
                   >
                     {/* Subdomain & Copy URL */}
                     <div className="mb-3 flex items-center justify-between gap-2">
