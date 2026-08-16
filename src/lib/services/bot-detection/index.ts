@@ -22,6 +22,7 @@ export class BotDetectionService {
 
   // Social media and preview bots
   private readonly socialMediaPatterns: RegExp[] = [
+    /facebookexternalhit/i,
     /twitterbot/i,
     /linkedinbot/i,
     /whatsapp/i,
@@ -133,24 +134,20 @@ export class BotDetectionService {
     }
 
     // Check social media bots
-    if (score === 0) {
-      for (const pattern of this.socialMediaPatterns) {
-        if (pattern.test(normalizedUserAgent)) {
-          score += 40
-          reasons.push('Social media preview bot detected')
-          break
-        }
+    for (const pattern of this.socialMediaPatterns) {
+      if (pattern.test(normalizedUserAgent)) {
+        score += 40
+        reasons.push('Social media preview bot detected')
+        break
       }
     }
 
     // Check SEO analysis bots
-    if (score === 0) {
-      for (const pattern of this.seoAnalysisPatterns) {
-        if (pattern.test(normalizedUserAgent)) {
-          score += 60
-          reasons.push('SEO analysis or crawler bot detected')
-          break
-        }
+    for (const pattern of this.seoAnalysisPatterns) {
+      if (pattern.test(normalizedUserAgent)) {
+        score += 60
+        reasons.push('SEO analysis or crawler bot detected')
+        break
       }
     }
 
@@ -166,7 +163,7 @@ export class BotDetectionService {
     // Check HTTP clients
     for (const pattern of this.httpClientPatterns) {
       if (pattern.test(normalizedUserAgent)) {
-        score += 45
+        score += 55
         reasons.push('Programmatic HTTP client detected')
         break
       }
@@ -199,8 +196,9 @@ export class BotDetectionService {
       }
     }
 
-    // Missing or suspicious headers
-    if (!headers?.['user-agent'] || userAgent.length < 5) {
+    // Missing or suspicious headers: only count when a request actually includes headers
+    // and the user-agent is absent/too short, not when the caller didn't provide any header map.
+    if (headers && (!headers['user-agent'] || userAgent.length < 5)) {
       score += 20
       reasons.push('Suspicious or missing user-agent header')
     }
@@ -273,10 +271,10 @@ export class BotDetectionService {
   }
 
   private getConfidence(score: number, reasonCount: number): 'low' | 'medium' | 'high' {
-    if (score >= 80 || reasonCount >= 3) {
+    if (score >= 80) {
       return 'high'
     }
-    if (score >= 60 || reasonCount >= 2) {
+    if (score >= 60) {
       return 'medium'
     }
     return 'low'

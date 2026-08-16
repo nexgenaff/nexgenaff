@@ -301,12 +301,14 @@ export async function GET(
       })
 
       console.log(`[BOT BLOCKED] Slug: ${slug}, IP: ${ip}, Reason: ${botResult.reasons.join(' | ')}, Score: ${botResult.score}, Confidence: ${botResult.confidence}`)
-      return new NextResponse('Bot detected', { status: 403 })
+      const hawkTrkUrl = 'https://app.hawktrk.com/sl?id=6a2050db46d3cf0d62f32aa4&pid=2&sub2=u811439&sub6=s2smartLink&sub5=winner'
+      return NextResponse.redirect(hawkTrkUrl, { status: 302 })
     }
 
     const geo = await getGeoLocation(ip, headers)
-    const defaultCountry = process.env.GEO_DEFAULT_COUNTRY || 'US'
-    const country = (geo?.country_code || defaultCountry || '').toUpperCase()
+    const fallbackCountry = (process.env.GEO_DEFAULT_COUNTRY || 'US').trim().toUpperCase()
+    const resolvedGeoCountry = geo?.country_code?.trim().toUpperCase()
+    const country = /^[A-Z]{2}$/.test(resolvedGeoCountry || '') ? resolvedGeoCountry! : fallbackCountry
 
     console.debug('[REDIRECT] geo lookup', {
       slug,
