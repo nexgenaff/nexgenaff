@@ -6,7 +6,13 @@ import { getLinkAccountVisibilityWhereClause } from '@/lib/utils/link-account-ac
 import { prisma } from '@/lib/db/prisma'
 
 const ADMIN_USERNAME = process.env.ADMIN_USERNAME?.trim() || 'admin'
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD?.trim() || 'admin123'
+const ADMIN_PASSWORD: string = (() => {
+  const password = process.env.ADMIN_PASSWORD?.trim()
+  if (!password) {
+    throw new Error('ADMIN_PASSWORD environment variable is required for security')
+  }
+  return password
+})()
 
 export async function POST(request: Request) {
   const origin = request.headers.get('origin') || null

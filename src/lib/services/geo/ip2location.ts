@@ -251,6 +251,11 @@ export async function getGeoLocation(ip: string, headers?: Headers): Promise<Geo
     }
 
     if (isLocalDevelopmentIp(normalizedIp)) {
+      // In production, don't return fake dev data
+      if (process.env.NODE_ENV === 'production') {
+        console.warn('Local IP detected in production:', normalizedIp);
+        return null; // Let caller handle missing geo data
+      }
       return LOCAL_DEV_GEO_FALLBACK
     }
 
