@@ -116,9 +116,43 @@ export async function POST(request: Request) {
       )
     }
 
-    // Validate offer URL format
+    // Validate offer URL format and domain
     try {
-      new URL(offerUrl)
+      const url = new URL(offerUrl)
+      const hostname = url.hostname.toLowerCase()
+      
+      // Reject dangerous domains (localhost, IPs, etc.)
+      const BLOCKED_DOMAINS = new Set([
+        'localhost',
+        '127.0.0.1',
+        '0.0.0.0',
+        '::1',
+        'example.com',
+        'example.org',
+      ])
+
+      const BLOCKED_PATTERNS = [
+        /^192\.168\./, // Private network
+        /^10\./, // Private network
+        /^172\.(1[6-9]|2[0-9]|3[01])\./, // Private network
+        /^169\.254\./, // Link-local
+        /^127\./, // Loopback
+        /^255\./, // Broadcast
+      ]
+
+      if (BLOCKED_DOMAINS.has(hostname)) {
+        return NextResponse.json(
+          { error: 'Offer URL domain is not allowed' },
+          { status: 400, headers: getCorsHeaders(origin) }
+        )
+      }
+
+      if (BLOCKED_PATTERNS.some(pattern => pattern.test(hostname))) {
+        return NextResponse.json(
+          { error: 'Offer URL uses an invalid or private domain' },
+          { status: 400, headers: getCorsHeaders(origin) }
+        )
+      }
     } catch {
       return NextResponse.json(
         { error: 'Invalid offer URL format' },

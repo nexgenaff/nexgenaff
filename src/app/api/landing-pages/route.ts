@@ -2,8 +2,24 @@ import { PrismaClient } from '@prisma/client'
 import { NextRequest, NextResponse } from 'next/server'
 import { getUserFromToken, getTokenFromCookie } from '@/lib/auth'
 import { getCorsHeaders } from '@/config/cors'
+import { z } from 'zod'
 
 const prisma = new PrismaClient()
+
+// Zod schema for landing page creation
+const landingPageSchema = z.object({
+  subdomain: z
+    .string()
+    .min(1, 'Subdomain is required')
+    .max(63, 'Subdomain must be 63 characters or less')
+    .regex(/^[a-z0-9]([a-z0-9-]*[a-z0-9])?$/i, 'Subdomain can only contain letters, numbers, and hyphens'),
+  trackingUrl: z.string().url('Tracking URL must be a valid URL'),
+  templateId: z.string().min(1, 'Template ID is required'),
+  headline: z.string().optional(),
+  description: z.string().optional(),
+  imageUrl: z.string().url('Image URL must be a valid URL').optional().or(z.literal('')),
+  buttonText: z.string().optional(),
+})
 
 // GET all landing pages for user
 export async function GET(req: NextRequest) {
@@ -65,7 +81,19 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    const { subdomain, trackingUrl, templateId, headline, description, imageUrl, buttonText } = await req.json()
+    // Parse and validate input
+    const body = await req.json()
+    const validationResult = landingPageSchema.safeParse(body)
+
+    if (!validationResult.success) {
+      const errors = validationResult.error.flatten().fieldErrors
+      return NextResponse.json(
+        { error: 'Validation failed', errors },
+        { status: 400, headers: getCorsHeaders(origin) }
+      )
+    }
+
+    const { subdomain, trackingUrl, templateId, headline, description, imageUrl, buttonText } = validationResult.data
 
     // Use transaction to prevent race condition on subdomain uniqueness
     const landingPage = await prisma.$transaction(async (tx) => {

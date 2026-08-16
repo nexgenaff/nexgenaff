@@ -212,16 +212,22 @@ export function buildOfferSelectionUserIds(
 
 export async function getOfferSelectionUserIds(userId: string): Promise<string[]> {
   const ownerUserId = await getOwnerUserId()
+  
+  // Verify user exists in database
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { id: true, role: true },
+  })
+
+  if (!user) {
+    throw new Error(`User not found: ${userId}`)
+  }
+
   if (!ownerUserId) {
     return [userId]
   }
 
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-    select: { role: true },
-  })
-
-  return buildOfferSelectionUserIds(userId, user?.role, ownerUserId)
+  return buildOfferSelectionUserIds(userId, user.role, ownerUserId)
 }
 
 export async function verifyCredentials(username: string, password: string) {

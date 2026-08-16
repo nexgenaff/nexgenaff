@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import type { User } from '@/types'
 
@@ -19,7 +19,7 @@ export function useAuth(): UseAuthReturn {
   const [loading, setLoading] = useState(true)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
 
-  const fetchUser = async () => {
+  const fetchUser = useCallback(async () => {
     try {
       const response = await fetch('/api/auth/me', { credentials: 'include' })
       if (response.ok) {
@@ -37,11 +37,11 @@ export function useAuth(): UseAuthReturn {
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
 
   useEffect(() => {
     fetchUser()
-  }, [])
+  }, [fetchUser])
 
   const login = async (username: string, password: string): Promise<{ success: boolean; error?: string }> => {
     try {

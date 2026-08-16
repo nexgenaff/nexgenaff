@@ -335,7 +335,7 @@ export async function GET(
           linkAccountId: link.id,
           OR: [
             { clickSignature: clickFingerprint },
-            ...(ip && ip !== 'unknown' ? [{ ipAddress: ip }] : []),
+            ...(ip ? [{ ipAddress: ip }] : []),
             ...(userAgent ? [{ userAgent }] : []),
           ],
           createdAt: {
