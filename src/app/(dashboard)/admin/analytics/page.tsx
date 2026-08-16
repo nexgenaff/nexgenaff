@@ -557,6 +557,13 @@ export default function AnalyticsPage() {
                         </div>
                       </th>
                     ))}
+                    {/* Blank column headers */}
+                    {Array.from({ length: 5 }).map((_, i) => (
+                      <th
+                        key={`blank-col-${i}`}
+                        className="px-2 py-1.5 border-r border-slate-700/30 last:border-r-0"
+                      />
+                    ))}
                   </tr>
                 </thead>
                 <tbody>
@@ -585,6 +592,10 @@ export default function AnalyticsPage() {
                           </td>
                         );
                       })}
+                      {/* Blank cells */}
+                      {Array.from({ length: 5 }).map((_, i) => (
+                        <td key={`blank-${account.accountName}-${i}`} className="px-2 py-1.5 border-r border-slate-700/30" />
+                      ))}
                     </tr>
                   ))}
                   {/* Totals row */}
@@ -596,17 +607,12 @@ export default function AnalyticsPage() {
                           {total}
                         </td>
                       ))}
-                    </tr>
-                  )}
-                  {/* Blank rows to fill space */}
-                  {Array.from({ length: 8 }).map((_, i) => (
-                    <tr key={`blank-${i}`} className="border-b border-slate-800/20 hover:bg-slate-900/20">
-                      <td className="px-2.5 py-1.5 border-r border-slate-700/30"></td>
-                      {reportLabels.map((country) => (
-                        <td key={`blank-${i}-${country}`} className="px-2 py-1.5 border-r border-slate-700/30 last:border-r-0"></td>
+                      {/* Blank cells */}
+                      {Array.from({ length: 5 }).map((_, i) => (
+                        <td key={`total-blank-${i}`} className="px-2 py-1.5 border-r border-slate-700/30" />
                       ))}
                     </tr>
-                  ))}
+                  )}
                 </tbody>
               </table>
             </div>
