@@ -2,6 +2,7 @@
 
 import Image from 'next/image'
 import { useState, useEffect } from 'react'
+import AfficixoLoading from '@/components/ui/AfficixoLoading'
 import {
   Plus,
   Trash2,
@@ -250,23 +251,7 @@ export default function LandingPageBuilder() {
   }
 
   if (loading && currentStep === 'list') {
-    return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
-        <div className="flex flex-col items-center gap-4">
-          <Image
-            src="/afficixo-logo.png"
-            alt="Afficixo"
-            width={96}
-            height={96}
-            className="opacity-80"
-          />
-          <div className="h-1 w-24 overflow-hidden rounded bg-slate-800">
-            <div className="h-full w-1/3 animate-pulse rounded bg-indigo-500" />
-          </div>
-          <p className="text-xs text-slate-400">Loading…</p>
-        </div>
-      </div>
-    )
+    return <AfficixoLoading compact />
   }
 
   return (

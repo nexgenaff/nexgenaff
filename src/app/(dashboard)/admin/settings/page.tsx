@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { useEffect, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
+import AfficixoLoading from "@/components/ui/AfficixoLoading";
 import {
   Sun,
   Moon,
@@ -17,42 +17,12 @@ import {
   CheckCircle2,
   XCircle,
   Settings,
-  Shield,
-  Sparkles,
-  ChevronRight,
 } from "lucide-react";
 
 interface FeedbackState {
   type: "success" | "error";
   message: string;
 }
-
-// Animation variants
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.06,
-      delayChildren: 0.08,
-    },
-  },
-};
-
-const cardVariants = {
-  hidden: { opacity: 0, y: 15 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: { type: "spring", damping: 26, stiffness: 340, mass: 0.8 },
-  },
-};
-
-const slideDown = {
-  hidden: { opacity: 0, height: 0 },
-  visible: { opacity: 1, height: "auto", transition: { duration: 0.25 } },
-  exit: { opacity: 0, height: 0, transition: { duration: 0.2 } },
-};
 
 export default function SettingsPage() {
   const router = useRouter();
@@ -203,88 +173,30 @@ export default function SettingsPage() {
   };
 
   if (loading) {
-    return (
-      <div className="flex h-64 items-center justify-center text-center">
-        <div className="flex flex-col items-center justify-center gap-8">
-          <motion.div
-            animate={{ scale: [1, 1.05, 1] }}
-            transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-            className="relative"
-          >
-            <Image
-              src="/afficixo-logo.png"
-              alt="Afficixo logo"
-              width={200}
-              height={200}
-              sizes="(max-width: 768px) 200px, 240px"
-              className="mx-auto object-cover"
-              priority
-            />
-            <motion.div
-              className="absolute inset-0 rounded-lg bg-gradient-to-r from-indigo-500/30 via-violet-500/20 to-transparent blur-xl"
-              animate={{ opacity: [0.3, 0.6, 0.3] }}
-              transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-            />
-          </motion.div>
-          
-          <div className="flex flex-col items-center gap-3">
-            <div className="relative h-1.5 w-32 overflow-hidden rounded-full bg-white/5 border border-white/10">
-              <motion.div
-                className="absolute inset-0 bg-gradient-to-r from-transparent via-indigo-400 to-transparent opacity-0"
-                animate={{ x: ["-100%", "100%"], opacity: [0, 1, 0] }}
-                transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
-              />
-              <motion.div
-                className="h-full w-1/3 rounded-full bg-gradient-to-r from-indigo-500 via-violet-500 to-cyan-500"
-                animate={{ 
-                  x: ["-100%", "300%"],
-                  width: ["25%", "50%", "25%"]
-                }}
-                transition={{ 
-                  duration: 2.5, 
-                  repeat: Infinity, 
-                  ease: [0.43, 0.13, 0.23, 0.96]
-                }}
-              />
-            </div>
-            <motion.p
-              className="text-xs text-slate-400"
-              animate={{ opacity: [0.5, 1, 0.5] }}
-              transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-            >
-              Loading...
-            </motion.p>
-          </div>
-        </div>
-      </div>
-    );
+    return <AfficixoLoading compact />;
   }
 
-  // Get initials for avatar
   const initials = userInfo?.username
     ? userInfo.username.slice(0, 2).toUpperCase()
     : "AD";
 
   return (
     <div className="space-y-6 pb-8 md:space-y-8">
-      {/* ===== HEADER ===== */}
-      <motion.div
-        variants={cardVariants}
-        initial="hidden"
-        animate="visible"
-        className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl p-6 shadow-xl shadow-indigo-500/5"
-      >
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      {/* Header */}
+      <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-5 sm:p-6">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <div className="flex items-center gap-2.5 text-indigo-300">
-              <Settings className="w-4 h-4" />
-              <span className="text-[10px] font-semibold uppercase tracking-[0.25em]">Preferences</span>
+            <div className="flex items-center gap-2 text-indigo-400">
+              <Settings className="h-4 w-4" />
+              <span className="text-xs font-medium uppercase tracking-wider">Preferences</span>
             </div>
-            <h1 className="text-2xl font-bold text-white tracking-tight mt-0.5">Workspace Settings</h1>
-            <p className="text-sm text-slate-400 mt-0.5">Manage your account, appearance, and workspace preferences.</p>
+            <h1 className="mt-1 text-2xl font-bold text-white">Workspace Settings</h1>
+            <p className="mt-0.5 text-sm text-slate-400">
+              Manage your account, appearance, and workspace preferences.
+            </p>
           </div>
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 text-sm font-bold text-white">
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-indigo-500 text-sm font-bold text-white">
               {initials}
             </div>
             <div className="hidden sm:block">
@@ -293,385 +205,321 @@ export default function SettingsPage() {
             </div>
           </div>
         </div>
-      </motion.div>
+      </div>
 
-      {/* ===== FEEDBACK ===== */}
-      <AnimatePresence>
-        {feedback && (
-          <motion.div
-            initial={{ opacity: 0, y: -8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            className={`rounded-xl border p-4 text-sm ${
-              feedback.type === "success"
-                ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-200"
-                : "border-rose-500/30 bg-rose-500/10 text-rose-200"
-            }`}
-          >
-            <div className="flex items-center gap-2.5">
-              {feedback.type === "success" ? (
-                <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
-              ) : (
-                <XCircle className="w-4 h-4 flex-shrink-0" />
-              )}
-              <span>{feedback.message}</span>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* Feedback */}
+      {feedback && (
+        <div
+          className={`flex items-center justify-between rounded-lg border px-4 py-3 text-sm ${
+            feedback.type === "success"
+              ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-200"
+              : "border-red-500/20 bg-red-500/10 text-red-200"
+          }`}
+        >
+          <div className="flex items-center gap-2">
+            {feedback.type === "success" ? (
+              <CheckCircle2 className="h-4 w-4 shrink-0" />
+            ) : (
+              <XCircle className="h-4 w-4 shrink-0" />
+            )}
+            <span>{feedback.message}</span>
+          </div>
+          <button onClick={() => setFeedback(null)} className="hover:opacity-80">
+            <XCircle className="h-4 w-4" />
+          </button>
+        </div>
+      )}
 
-      {/* ===== MAIN CONTENT ===== */}
+      {/* Main Grid */}
       <div className="grid gap-6 lg:grid-cols-[1.3fr_0.7fr]">
         {/* Left Column */}
         <div className="space-y-6">
           {/* Appearance */}
-          <motion.div
-            variants={cardVariants}
-            initial="hidden"
-            animate="visible"
-            className="rounded-xl border border-white/10 bg-white/5 backdrop-blur-xl p-5 shadow-xl shadow-indigo-500/5"
-          >
-            <div className="flex items-center gap-2.5 mb-4">
-              <div className="p-1.5 rounded-lg bg-indigo-500/10">
-                {darkMode ? (
-                  <Moon className="w-4 h-4 text-indigo-300" />
-                ) : (
-                  <Sun className="w-4 h-4 text-indigo-300" />
-                )}
-              </div>
+          <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-5">
+            <div className="mb-4 flex items-center gap-2">
+              {darkMode ? (
+                <Moon className="h-4 w-4 text-indigo-400" />
+              ) : (
+                <Sun className="h-4 w-4 text-indigo-400" />
+              )}
               <h3 className="text-sm font-semibold text-white">Appearance</h3>
             </div>
 
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <p className="text-sm font-medium text-white">Dark mode</p>
                 <p className="text-xs text-slate-400">Switch between dark and light themes.</p>
               </div>
               <button
                 onClick={toggleTheme}
-                className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500/50 ${
-                  darkMode ? "bg-indigo-500" : "bg-white/10"
+                className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
+                  darkMode ? "bg-indigo-600" : "bg-slate-700"
                 }`}
               >
                 <span
-                  className={`inline-block h-5 w-5 transform rounded-full bg-white shadow-lg transition-transform ${
+                  className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform ${
                     darkMode ? "translate-x-6" : "translate-x-1"
                   }`}
                 />
               </button>
             </div>
-          </motion.div>
+          </div>
 
           {/* Account */}
-          <motion.div
-            variants={cardVariants}
-            initial="hidden"
-            animate="visible"
-            className="rounded-xl border border-white/10 bg-white/5 backdrop-blur-xl p-5 shadow-xl shadow-indigo-500/5"
-          >
-            <div className="flex items-center gap-2.5 mb-4">
-              <div className="p-1.5 rounded-lg bg-indigo-500/10">
-                <User className="w-4 h-4 text-indigo-300" />
-              </div>
+          <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-5">
+            <div className="mb-4 flex items-center gap-2">
+              <User className="h-4 w-4 text-indigo-400" />
               <h3 className="text-sm font-semibold text-white">Account</h3>
             </div>
 
             <div className="space-y-4">
               <div className="grid gap-3 sm:grid-cols-2">
-                <div className="rounded-lg border border-white/10 bg-white/5 px-4 py-3">
-                  <p className="flex items-center gap-1.5 text-xs text-slate-400">
-                    <User className="w-3.5 h-3.5" />
-                    Username
+                <div className="rounded-lg border border-slate-800 bg-slate-800/50 px-4 py-3">
+                  <p className="text-xs text-slate-400">Username</p>
+                  <p className="mt-1 text-sm font-medium text-white">
+                    {userInfo?.username || "admin"}
                   </p>
-                  <p className="mt-1 text-sm font-medium text-white">{userInfo?.username || "admin"}</p>
                 </div>
-                <div className="rounded-lg border border-white/10 bg-white/5 px-4 py-3">
-                  <p className="flex items-center gap-1.5 text-xs text-slate-400">
-                    <Mail className="w-3.5 h-3.5" />
-                    Email
+                <div className="rounded-lg border border-slate-800 bg-slate-800/50 px-4 py-3">
+                  <p className="text-xs text-slate-400">Email</p>
+                  <p className="mt-1 text-sm font-medium text-white">
+                    {userInfo?.email || "No email added yet"}
                   </p>
-                  <p className="mt-1 text-sm font-medium text-white">{userInfo?.email || "No email added yet"}</p>
                 </div>
               </div>
 
-              <div className="flex flex-wrap gap-2.5">
+              <div className="flex flex-wrap gap-2">
                 <button
                   onClick={() => setShowPasswordForm((prev) => !prev)}
-                  className="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg border border-white/10 bg-white/5 text-sm font-medium text-slate-300 hover:text-white hover:bg-white/10 transition"
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-xs font-medium text-slate-300 hover:bg-slate-700"
                 >
-                  <Key className="w-4 h-4" />
+                  <Key className="h-3.5 w-3.5" />
                   {showPasswordForm ? "Hide" : "Change password"}
                 </button>
                 <button
                   onClick={() => {
-                    setShowEmailForm((prev) => !prev)
-                    if (!showEmailForm) {
-                      setEmailDraft(userInfo?.email || "")
-                    }
+                    setShowEmailForm((prev) => !prev);
+                    if (!showEmailForm) setEmailDraft(userInfo?.email || "");
                   }}
-                  className="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg border border-white/10 bg-white/5 text-sm font-medium text-slate-300 hover:text-white hover:bg-white/10 transition"
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-xs font-medium text-slate-300 hover:bg-slate-700"
                 >
-                  <Mail className="w-4 h-4" />
+                  <Mail className="h-3.5 w-3.5" />
                   {userInfo?.email ? "Update email" : "Add email"}
                 </button>
                 <button
                   onClick={() => setShowDangerZone((prev) => !prev)}
-                  className="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg border border-white/10 bg-white/5 text-sm font-medium text-slate-300 hover:text-white hover:bg-white/10 transition"
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-xs font-medium text-slate-300 hover:bg-slate-700"
                 >
-                  <AlertTriangle className="w-4 h-4" />
+                  <AlertTriangle className="h-3.5 w-3.5" />
                   {showDangerZone ? "Hide danger zone" : "Danger zone"}
                 </button>
                 <button
                   onClick={handleLogout}
-                  className="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg border border-rose-400/30 bg-rose-500/10 text-sm font-medium text-rose-300 hover:bg-rose-500/20 transition"
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-red-500/20 bg-red-500/10 px-3 py-2 text-xs font-medium text-red-400 hover:bg-red-500/20"
                 >
-                  <LogOut className="w-4 h-4" />
+                  <LogOut className="h-3.5 w-3.5" />
                   Logout
                 </button>
               </div>
 
               {/* Email Form */}
-              <AnimatePresence>
-                {showEmailForm && (
-                  <motion.div
-                    variants={slideDown}
-                    initial="hidden"
-                    animate="visible"
-                    exit="exit"
-                    className="overflow-hidden"
-                  >
-                    <form
-                      onSubmit={async (event) => {
-                        event.preventDefault();
-                        setIsSubmitting(true);
-                        setFeedback(null);
+              {showEmailForm && (
+                <form
+                  onSubmit={async (event) => {
+                    event.preventDefault();
+                    setIsSubmitting(true);
+                    setFeedback(null);
 
-                        try {
-                          const response = await fetch("/api/settings", {
-                            method: "POST",
-                            credentials: "include",
-                            headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify({ action: "update-email", email: emailDraft.trim() }),
-                          });
+                    try {
+                      const response = await fetch("/api/settings", {
+                        method: "POST",
+                        credentials: "include",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ action: "update-email", email: emailDraft.trim() }),
+                      });
 
-                          const data = await response.json().catch(() => ({ message: "Email updated" }));
-                          if (!response.ok) {
-                            throw new Error(data.error || "Unable to update email");
-                          }
+                      const data = await response.json().catch(() => ({ message: "Email updated" }));
+                      if (!response.ok) {
+                        throw new Error(data.error || "Unable to update email");
+                      }
 
-                          const nextEmail = emailDraft.trim();
-                          setUserInfo((prev) => (prev ? { ...prev, email: nextEmail } : prev));
-                          setFeedback({ type: "success", message: data.message || "Email updated successfully." });
-                          setShowEmailForm(false);
-                        } catch (error) {
-                          setFeedback({
-                            type: "error",
-                            message: error instanceof Error ? error.message : "Unable to update email",
-                          });
-                        } finally {
-                          setIsSubmitting(false);
-                        }
-                      }}
-                      className="mt-3 rounded-lg border border-white/10 bg-white/5 p-4 space-y-3"
+                      setUserInfo((prev) => (prev ? { ...prev, email: emailDraft.trim() } : prev));
+                      setFeedback({ type: "success", message: data.message || "Email updated successfully." });
+                      setShowEmailForm(false);
+                    } catch (error) {
+                      setFeedback({
+                        type: "error",
+                        message: error instanceof Error ? error.message : "Unable to update email",
+                      });
+                    } finally {
+                      setIsSubmitting(false);
+                    }
+                  }}
+                  className="mt-3 space-y-3 rounded-lg border border-slate-800 bg-slate-800/30 p-4"
+                >
+                  <div>
+                    <label className="mb-1 block text-xs font-medium text-slate-400">Email address</label>
+                    <input
+                      type="email"
+                      value={emailDraft}
+                      onChange={(event) => setEmailDraft(event.target.value)}
+                      placeholder="you@example.com"
+                      required
+                      className="w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-white placeholder-slate-500 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                    />
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      type="submit"
+                      disabled={isSubmitting}
+                      className="rounded-lg bg-indigo-600 px-4 py-2 text-xs font-medium text-white hover:bg-indigo-500 disabled:cursor-not-allowed disabled:opacity-60"
                     >
-                      <div>
-                        <label className="block text-xs font-medium text-slate-400 mb-1">Email address</label>
-                        <input
-                          type="email"
-                          value={emailDraft}
-                          onChange={(event) => setEmailDraft(event.target.value)}
-                          className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder-slate-500 focus:border-indigo-400/50 focus:outline-none focus:ring-1 focus:ring-indigo-400/30 transition"
-                          placeholder="you@example.com"
-                          required
-                        />
-                      </div>
-                      <div className="flex flex-wrap gap-2.5 pt-1">
-                        <button
-                          type="submit"
-                          disabled={isSubmitting}
-                          className="px-4 py-2 rounded-lg bg-indigo-500 text-sm font-medium text-white hover:bg-indigo-600 transition disabled:opacity-60"
-                        >
-                          {isSubmitting ? "Saving…" : "Save email"}
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setShowEmailForm(false)}
-                          className="px-4 py-2 rounded-lg border border-white/10 text-sm font-medium text-slate-300 hover:bg-white/5 transition"
-                        >
-                          Cancel
-                        </button>
-                      </div>
-                    </form>
-                  </motion.div>
-                )}
-              </AnimatePresence>
+                      {isSubmitting ? "Saving…" : "Save email"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setShowEmailForm(false)}
+                      className="rounded-lg border border-slate-700 px-4 py-2 text-xs font-medium text-slate-300 hover:bg-slate-800"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </form>
+              )}
 
               {/* Password Form */}
-              <AnimatePresence>
-                {showPasswordForm && (
-                  <motion.div
-                    variants={slideDown}
-                    initial="hidden"
-                    animate="visible"
-                    exit="exit"
-                    className="overflow-hidden"
-                  >
-                    <form
-                      onSubmit={handlePasswordSubmit}
-                      className="mt-3 rounded-lg border border-white/10 bg-white/5 p-4 space-y-3"
+              {showPasswordForm && (
+                <form
+                  onSubmit={handlePasswordSubmit}
+                  className="mt-3 space-y-3 rounded-lg border border-slate-800 bg-slate-800/30 p-4"
+                >
+                  <div className="grid gap-3 md:grid-cols-2">
+                    <div>
+                      <label className="mb-1 block text-xs font-medium text-slate-400">
+                        Current password
+                      </label>
+                      <input
+                        type="password"
+                        value={passwordForm.currentPassword}
+                        onChange={(e) =>
+                          setPasswordForm((prev) => ({ ...prev, currentPassword: e.target.value }))
+                        }
+                        required
+                        className="w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-white placeholder-slate-500 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="mb-1 block text-xs font-medium text-slate-400">
+                        New password
+                      </label>
+                      <input
+                        type="password"
+                        value={passwordForm.newPassword}
+                        onChange={(e) =>
+                          setPasswordForm((prev) => ({ ...prev, newPassword: e.target.value }))
+                        }
+                        required
+                        minLength={8}
+                        className="w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-white placeholder-slate-500 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="mb-1 block text-xs font-medium text-slate-400">
+                      Confirm new password
+                    </label>
+                    <input
+                      type="password"
+                      value={passwordForm.confirmPassword}
+                      onChange={(e) =>
+                        setPasswordForm((prev) => ({ ...prev, confirmPassword: e.target.value }))
+                      }
+                      required
+                      minLength={8}
+                      className="w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-white placeholder-slate-500 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                    />
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      type="submit"
+                      disabled={isSubmitting}
+                      className="rounded-lg bg-indigo-600 px-4 py-2 text-xs font-medium text-white hover:bg-indigo-500 disabled:cursor-not-allowed disabled:opacity-60"
                     >
-                      <div className="grid gap-3 md:grid-cols-2">
-                        <div>
-                          <label className="block text-xs font-medium text-slate-400 mb-1">
-                            Current password
-                          </label>
-                          <input
-                            type="password"
-                            value={passwordForm.currentPassword}
-                            onChange={(e) =>
-                              setPasswordForm((prev) => ({ ...prev, currentPassword: e.target.value }))
-                            }
-                            className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder-slate-500 focus:border-indigo-400/50 focus:outline-none focus:ring-1 focus:ring-indigo-400/30 transition"
-                            required
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-xs font-medium text-slate-400 mb-1">
-                            New password
-                          </label>
-                          <input
-                            type="password"
-                            value={passwordForm.newPassword}
-                            onChange={(e) =>
-                              setPasswordForm((prev) => ({ ...prev, newPassword: e.target.value }))
-                            }
-                            className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder-slate-500 focus:border-indigo-400/50 focus:outline-none focus:ring-1 focus:ring-indigo-400/30 transition"
-                            required
-                            minLength={8}
-                          />
-                        </div>
-                      </div>
-                      <div>
-                        <label className="block text-xs font-medium text-slate-400 mb-1">
-                          Confirm new password
-                        </label>
-                        <input
-                          type="password"
-                          value={passwordForm.confirmPassword}
-                          onChange={(e) =>
-                            setPasswordForm((prev) => ({ ...prev, confirmPassword: e.target.value }))
-                          }
-                          className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder-slate-500 focus:border-indigo-400/50 focus:outline-none focus:ring-1 focus:ring-indigo-400/30 transition"
-                          required
-                          minLength={8}
-                        />
-                      </div>
-                      <div className="flex flex-wrap gap-2.5 pt-1">
-                        <button
-                          type="submit"
-                          disabled={isSubmitting}
-                          className="px-4 py-2 rounded-lg bg-indigo-500 text-sm font-medium text-white hover:bg-indigo-600 transition disabled:opacity-60"
-                        >
-                          {isSubmitting ? "Updating…" : "Save password"}
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setShowPasswordForm(false)}
-                          className="px-4 py-2 rounded-lg border border-white/10 text-sm font-medium text-slate-300 hover:bg-white/5 transition"
-                        >
-                          Cancel
-                        </button>
-                      </div>
-                    </form>
-                  </motion.div>
-                )}
-              </AnimatePresence>
+                      {isSubmitting ? "Updating…" : "Save password"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setShowPasswordForm(false)}
+                      className="rounded-lg border border-slate-700 px-4 py-2 text-xs font-medium text-slate-300 hover:bg-slate-800"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </form>
+              )}
             </div>
-          </motion.div>
+          </div>
         </div>
 
         {/* Right Column */}
         <div className="space-y-6">
           {/* Danger Zone */}
-          <AnimatePresence>
-            {showDangerZone && (
-              <motion.div
-                variants={cardVariants}
-                initial="hidden"
-                animate="visible"
-                exit={{ opacity: 0, y: 10 }}
-                className="rounded-xl border border-rose-400/30 bg-gradient-to-br from-rose-500/10 to-rose-600/5 backdrop-blur-xl p-5 shadow-xl shadow-rose-500/10"
-              >
-                <div className="flex items-center gap-2.5 mb-4">
-                  <div className="p-1.5 rounded-lg bg-rose-500/20">
-                    <AlertTriangle className="w-4 h-4 text-rose-300" />
-                  </div>
-                  <h3 className="text-sm font-semibold text-rose-200">Danger zone</h3>
-                </div>
-
-                <p className="text-sm text-slate-400 mb-4">
-                  These actions are irreversible. Please review them before proceeding.
-                </p>
-
-                <div className="flex flex-wrap gap-3">
-                  <button
-                    onClick={() => handleDangerAction("delete-data")}
-                    disabled={isSubmitting}
-                    className="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg bg-rose-600 text-sm font-medium text-white hover:bg-rose-700 transition disabled:opacity-60 shadow-lg shadow-rose-500/20"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                    Delete all data
-                  </button>
-                  <button
-                    onClick={() => handleDangerAction("reset-analytics")}
-                    disabled={isSubmitting}
-                    className="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg border border-rose-400/30 bg-rose-500/10 text-sm font-medium text-rose-300 hover:bg-rose-500/20 transition disabled:opacity-60"
-                  >
-                    <RefreshCw className="w-4 h-4" />
-                    Reset analytics
-                  </button>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          {/* Help / Quick Actions */}
-          <motion.div
-            variants={cardVariants}
-            initial="hidden"
-            animate="visible"
-            className="rounded-xl border border-white/10 bg-white/5 backdrop-blur-xl p-5 shadow-xl shadow-indigo-500/5"
-          >
-            <div className="flex items-center gap-2.5 mb-4">
-              <div className="p-1.5 rounded-lg bg-indigo-500/10">
-                <Sparkles className="w-4 h-4 text-indigo-300" />
+          {showDangerZone && (
+            <div className="rounded-xl border border-red-500/20 bg-red-500/5 p-5">
+              <div className="mb-4 flex items-center gap-2">
+                <AlertTriangle className="h-4 w-4 text-red-400" />
+                <h3 className="text-sm font-semibold text-red-300">Danger zone</h3>
               </div>
-              <h3 className="text-sm font-semibold text-white">Quick Actions</h3>
-            </div>
 
-            <div className="space-y-3">
+              <p className="mb-4 text-sm text-slate-400">
+                These actions are irreversible. Please review them before proceeding.
+              </p>
+
+              <div className="flex flex-wrap gap-3">
+                <button
+                  onClick={() => handleDangerAction("delete-data")}
+                  disabled={isSubmitting}
+                  className="inline-flex items-center gap-1.5 rounded-lg bg-red-600 px-3 py-2 text-xs font-medium text-white hover:bg-red-500 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                  Delete all data
+                </button>
+                <button
+                  onClick={() => handleDangerAction("reset-analytics")}
+                  disabled={isSubmitting}
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs font-medium text-red-400 hover:bg-red-500/20 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  <RefreshCw className="h-3.5 w-3.5" />
+                  Reset analytics
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Quick Actions */}
+          <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-5">
+            <h3 className="mb-4 text-sm font-semibold text-white">Quick Actions</h3>
+            <div className="space-y-2">
               <button
                 onClick={() => setShowDangerZone((prev) => !prev)}
-                className="flex w-full items-center justify-between rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-sm text-slate-300 hover:bg-white/10 transition"
+                className="flex w-full items-center justify-between rounded-lg border border-slate-700 bg-slate-800 px-4 py-2.5 text-sm text-slate-300 hover:bg-slate-700"
               >
-                <span className="flex items-center gap-2.5">
-                  <AlertTriangle className="w-4 h-4 text-rose-400" />
+                <span className="flex items-center gap-2">
+                  <AlertTriangle className="h-4 w-4 text-red-400" />
                   {showDangerZone ? "Hide" : "Show"} danger zone
                 </span>
-                <ChevronRight className="w-4 h-4 text-slate-500" />
               </button>
               <button
                 onClick={() => router.push("/admin/analytics")}
-                className="flex w-full items-center justify-between rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-sm text-slate-300 hover:bg-white/10 transition"
+                className="flex w-full items-center justify-between rounded-lg border border-slate-700 bg-slate-800 px-4 py-2.5 text-sm text-slate-300 hover:bg-slate-700"
               >
-                <span className="flex items-center gap-2.5">
-                  <Sparkles className="w-4 h-4 text-indigo-300" />
+                <span className="flex items-center gap-2">
+                  <Settings className="h-4 w-4 text-indigo-400" />
                   View analytics
                 </span>
-                <ChevronRight className="w-4 h-4 text-slate-500" />
               </button>
             </div>
-          </motion.div>
+          </div>
         </div>
       </div>
     </div>

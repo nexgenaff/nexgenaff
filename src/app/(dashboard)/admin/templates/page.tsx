@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Plus, Trash2, Edit2, Check, X } from 'lucide-react'
+import { Plus, Trash2, Edit2, Check, X, ArrowLeft } from 'lucide-react'
 
 interface Template {
   id: string
@@ -37,7 +37,6 @@ export default function TemplateManager() {
   useEffect(() => {
     checkUserRole()
     fetchTemplates()
-    // Clear any previous errors/success messages on mount
     setError('')
     setSuccess('')
   }, [])
@@ -50,13 +49,11 @@ export default function TemplateManager() {
         setUserRole(data.role || 'OWNER')
         setUserId(data.id || 'current-user')
       } else {
-        // If auth/me fails, assume OWNER for this admin page
         setUserRole('OWNER')
         setUserId('current-user')
       }
     } catch (err) {
       console.error('Auth check failed:', err)
-      // Default to OWNER if fetch fails
       setUserRole('OWNER')
       setUserId('current-user')
     } finally {
@@ -92,7 +89,7 @@ export default function TemplateManager() {
       setLoading(true)
       setError('')
 
-      const url = editingId 
+      const url = editingId
         ? `/api/landing-pages/templates/${editingId}`
         : '/api/landing-pages/templates'
 
@@ -187,20 +184,14 @@ export default function TemplateManager() {
   }
 
   if (authLoading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-slate-400">Loading...</p>
-        </div>
-      </div>
-    )
+    return <AfficixoLoading compact />
   }
 
   if (userRole !== 'OWNER') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black flex items-center justify-center">
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-slate-100 mb-2">Access Denied</h1>
+          <h1 className="text-2xl font-bold text-white mb-2">Access Denied</h1>
           <p className="text-slate-400">Only owners can manage templates</p>
         </div>
       </div>
@@ -208,48 +199,47 @@ export default function TemplateManager() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="min-h-screen bg-slate-950 px-4 py-6 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-7xl">
         {/* Back Button */}
         <button
           onClick={() => window.history.back()}
-          className="mb-6 text-cyan-400 hover:text-cyan-300 flex items-center gap-2 transition-colors text-sm sm:text-base"
+          className="mb-6 inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm text-slate-400 hover:bg-slate-800 hover:text-white transition-colors"
         >
-          ← Back
+          <ArrowLeft className="h-4 w-4" />
+          Back
         </button>
 
         {/* Alerts */}
         {error && (
-          <div className="mb-6 p-4 bg-red-500/10 border border-red-500/50 rounded-lg text-red-400 flex items-center justify-between">
+          <div className="mb-4 flex items-center justify-between rounded-lg border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-200">
             <span>{error}</span>
-            <button onClick={() => setError('')}>
-              <X className="w-4 h-4" />
+            <button onClick={() => setError('')} className="text-red-400 hover:text-red-300">
+              <X className="h-4 w-4" />
             </button>
           </div>
         )}
         {success && (
-          <div className="mb-6 p-4 bg-green-500/10 border border-green-500/50 rounded-lg text-green-400 flex items-center justify-between">
+          <div className="mb-4 flex items-center justify-between rounded-lg border border-emerald-500/20 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200">
             <span>{success}</span>
-            <button onClick={() => setSuccess('')}>
-              <Check className="w-4 h-4" />
+            <button onClick={() => setSuccess('')} className="text-emerald-400 hover:text-emerald-300">
+              <X className="h-4 w-4" />
             </button>
           </div>
         )}
 
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+        <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-slate-100">
-              Templates
-            </h1>
-            <p className="text-slate-400 mt-1 text-sm">Manage landing page templates</p>
+            <h1 className="text-2xl font-bold text-white">Templates</h1>
+            <p className="mt-1 text-sm text-slate-400">Manage landing page templates</p>
           </div>
           {!showForm && (
             <button
               onClick={() => setShowForm(true)}
-              className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg transition-colors font-semibold text-sm sm:text-base"
+              className="inline-flex items-center justify-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500 transition-colors"
             >
-              <Plus className="w-5 h-5" />
+              <Plus className="h-4 w-4" />
               New Template
             </button>
           )}
@@ -257,78 +247,86 @@ export default function TemplateManager() {
 
         {/* Form */}
         {showForm && (
-          <div className="mb-8 p-5 sm:p-6 bg-slate-800/50 border border-slate-700 rounded-lg">
-            <h2 className="text-xl sm:text-2xl font-bold text-slate-100 mb-5">{editingId ? 'Edit Template' : 'New Template'}</h2>
+          <div className="mb-8 rounded-xl border border-slate-800 bg-slate-900/60 p-5 sm:p-6">
+            <h2 className="text-lg font-semibold text-white mb-5">
+              {editingId ? 'Edit Template' : 'New Template'}
+            </h2>
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-sm font-semibold text-slate-200 mb-2">Template Name *</label>
+                <label className="mb-1.5 block text-xs font-medium text-slate-300">
+                  Template Name *
+                </label>
                 <input
                   type="text"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full px-3 py-1.5 bg-slate-700 border border-slate-600 rounded text-slate-100 text-sm placeholder-slate-500 focus:outline-none focus:border-cyan-400 hover:border-slate-500 transition-colors"
+                  className="w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2.5 text-sm text-white placeholder-slate-500 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                  placeholder="e.g., Clean Offer"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-slate-200 mb-2">Description</label>
+                <label className="mb-1.5 block text-xs font-medium text-slate-300">Description</label>
                 <textarea
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  rows={4}
-                  className="w-full px-3 py-1.5 bg-slate-700 border border-slate-600 rounded text-slate-100 text-sm placeholder-slate-500 focus:outline-none focus:border-cyan-400 hover:border-slate-500 transition-colors"
+                  rows={3}
+                  className="w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2.5 text-sm text-white placeholder-slate-500 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-slate-200 mb-2">Thumbnail URL</label>
+                <label className="mb-1.5 block text-xs font-medium text-slate-300">Thumbnail URL</label>
                 <input
                   type="url"
                   value={formData.thumbnail}
                   onChange={(e) => setFormData({ ...formData, thumbnail: e.target.value })}
-                  className="w-full px-3 py-1.5 bg-slate-700 border border-slate-600 rounded text-slate-100 text-sm placeholder-slate-500 focus:outline-none focus:border-cyan-400 hover:border-slate-500 transition-colors"
+                  className="w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2.5 text-sm text-white placeholder-slate-500 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                  placeholder="https://example.com/thumb.png"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-slate-200 mb-2">Text</label>
+                <label className="mb-1.5 block text-xs font-medium text-slate-300">Copy Text</label>
                 <textarea
                   value={formData.customText}
                   onChange={(e) => setFormData({ ...formData, customText: e.target.value })}
                   rows={3}
-                  className="w-full px-3 py-1.5 bg-slate-700 border border-slate-600 rounded text-slate-100 text-sm placeholder-slate-500 focus:outline-none focus:border-cyan-400 hover:border-slate-500 transition-colors"
+                  className="w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2.5 text-sm text-white placeholder-slate-500 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
                 />
-                <p className="text-xs text-slate-400 mt-2">Use <code className="bg-slate-900 px-1.5 py-0.5 rounded">{`{link}`}</code> as a placeholder for the landing page URL. When copied, it will be replaced with the actual link.</p>
+                <p className="mt-1 text-xs text-slate-500">
+                  Use <code className="rounded bg-slate-800 px-1.5 py-0.5">{`{link}`}</code> as a placeholder for the landing page URL.
+                </p>
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-slate-200 mb-2">HTML Content *</label>
+                <label className="mb-1.5 block text-xs font-medium text-slate-300">HTML Content *</label>
                 <textarea
                   value={formData.htmlContent}
                   onChange={(e) => setFormData({ ...formData, htmlContent: e.target.value })}
                   rows={10}
-                  className="w-full px-3 py-1.5 bg-slate-700 border border-slate-600 rounded text-slate-100 text-xs placeholder-slate-500 focus:outline-none focus:border-cyan-400 hover:border-slate-500 transition-colors font-mono"
+                  className="w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2.5 font-mono text-xs text-white placeholder-slate-500 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
                 />
-                <div className="text-xs text-slate-400 mt-3 space-y-2">
-                  <p><span className="font-semibold text-slate-300">Link Function:</span> <code className="bg-slate-900 px-1.5 py-0.5 rounded">{'{link.url}'}</code> will be replaced with the tracking URL. Use it in <code className="bg-slate-900 px-1.5 py-0.5 rounded">href</code> attributes to redirect users: <code className="bg-slate-900 px-1.5 py-0.5 rounded text-cyan-300">&lt;a href=&quot;{'{link.url}'}&quot;&gt;</code></p>
-                </div>
+                <p className="mt-2 text-xs text-slate-500">
+                  Use <code className="rounded bg-slate-800 px-1.5 py-0.5">{'{link.url}'}</code> where the tracking URL should appear, e.g. in <code className="rounded bg-slate-800 px-1.5 py-0.5">&lt;a href=&quot;{'{link.url}'}&quot;&gt;</code>.
+                </p>
               </div>
 
-              <div className="flex flex-col-reverse sm:flex-row gap-3 pt-4">
+              <div className="flex flex-col-reverse gap-3 sm:flex-row">
                 <button
                   type="button"
                   onClick={cancelEdit}
-                  className="w-full sm:flex-1 px-6 py-3 bg-slate-700 text-slate-100 rounded-lg hover:bg-slate-600 transition-colors font-semibold text-sm sm:text-base"
+                  className="rounded-lg border border-slate-700 bg-slate-800 px-5 py-2.5 text-sm font-medium text-slate-300 hover:bg-slate-700 transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full sm:flex-1 px-6 py-3 bg-cyan-600 hover:bg-cyan-700 disabled:bg-cyan-600/50 disabled:cursor-not-allowed text-white rounded-lg transition-colors font-semibold text-sm sm:text-base"
+                  className="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-indigo-500 disabled:cursor-not-allowed disabled:opacity-60 transition-colors"
                 >
-                  {loading ? 'Saving...' : (editingId ? 'Update' : 'Create')}
+                  {loading ? 'Saving…' : editingId ? 'Update' : 'Create'}
                 </button>
               </div>
             </form>
@@ -337,46 +335,50 @@ export default function TemplateManager() {
 
         {/* Templates Grid */}
         {templates.length === 0 ? (
-          <div className="text-center py-12 sm:py-16">
-            <svg className="w-12 h-12 sm:w-16 sm:h-16 text-slate-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
-            </svg>
-            <h3 className="text-lg sm:text-xl font-semibold text-slate-100 mb-2">No templates yet</h3>
-            <p className="text-slate-400 text-sm mb-4">Create your first template to get started</p>
+          <div className="rounded-xl border border-slate-800 bg-slate-900/40 py-12 text-center">
+            <p className="text-sm font-medium text-slate-400">No templates yet</p>
+            <p className="mt-1 text-xs text-slate-500">Create your first template to get started</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {templates.map((template) => (
-              <div key={template.id} className="p-4 sm:p-5 bg-slate-800 border border-slate-700 rounded-lg hover:border-slate-600 transition-colors">
+              <div
+                key={template.id}
+                className="rounded-xl border border-slate-800 bg-slate-900/60 p-4 transition hover:border-slate-700"
+              >
                 {template.thumbnail && (
                   <img
                     src={template.thumbnail}
                     alt={template.name}
-                    className="w-full h-28 sm:h-32 object-cover rounded mb-3"
+                    className="mb-3 h-28 w-full rounded object-cover sm:h-32"
                   />
                 )}
-                <h3 className="text-base sm:text-lg font-semibold text-slate-100 mb-1">{template.name}</h3>
+                <h3 className="text-base font-semibold text-white">{template.name}</h3>
                 {template.description && (
-                  <p className="text-xs sm:text-sm text-slate-400 mb-3 line-clamp-2">{template.description}</p>
+                  <p className="mt-1 line-clamp-2 text-sm text-slate-400">{template.description}</p>
                 )}
-                <p className="text-xs text-slate-500 mb-3">HTML: {template.htmlContent.length} chars</p>
+                <p className="mt-2 text-xs text-slate-500">
+                  HTML: {template.htmlContent.length} chars
+                </p>
                 {template.customText && (
-                  <p className="text-xs text-slate-400 mb-3 italic truncate">Copy text: {template.customText}</p>
+                  <p className="mt-1 truncate text-xs italic text-slate-400">
+                    Copy text: {template.customText}
+                  </p>
                 )}
-                <div className="flex gap-2">
+                <div className="mt-3 flex gap-2">
                   <button
                     onClick={() => editTemplate(template)}
-                    className="flex-1 px-3 py-2 bg-blue-900 text-blue-300 hover:bg-blue-800 rounded text-xs sm:text-sm font-medium transition-colors flex items-center justify-center gap-1.5"
+                    className="flex flex-1 items-center justify-center gap-1.5 rounded-md bg-slate-800 px-3 py-2 text-xs font-medium text-slate-300 hover:bg-slate-700 transition-colors"
                   >
-                    <Edit2 className="w-4 h-4" />
+                    <Edit2 className="h-3.5 w-3.5" />
                     Edit
                   </button>
                   <button
                     onClick={() => deleteTemplate(template.id)}
                     disabled={loading}
-                    className="flex-1 px-3 py-2 bg-red-900 text-red-300 hover:bg-red-800 disabled:bg-red-900/50 disabled:cursor-not-allowed rounded text-xs sm:text-sm font-medium transition-colors flex items-center justify-center gap-1.5"
+                    className="flex flex-1 items-center justify-center gap-1.5 rounded-md bg-red-500/10 px-3 py-2 text-xs font-medium text-red-400 hover:bg-red-500/20 disabled:cursor-not-allowed disabled:opacity-60 transition-colors"
                   >
-                    <Trash2 className="w-4 h-4" />
+                    <Trash2 className="h-3.5 w-3.5" />
                     Delete
                   </button>
                 </div>
