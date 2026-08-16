@@ -305,7 +305,8 @@ export async function GET(
     }
 
     const geo = await getGeoLocation(ip, headers)
-    const country = (geo?.country_code || '').toUpperCase()
+    const defaultCountry = process.env.GEO_DEFAULT_COUNTRY || 'US'
+    const country = (geo?.country_code || defaultCountry || '').toUpperCase()
 
     console.debug('[REDIRECT] geo lookup', {
       slug,
