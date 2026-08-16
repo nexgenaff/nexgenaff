@@ -298,16 +298,18 @@ export async function GET(
 
     const offerUserIds = await getOfferSelectionUserIds(link.userId);
     const offer = await selectOfferFromVault(prisma as any, offerUserIds, country, link.offerGroupName);
-    console.debug('[API REDIRECT] offer selection', {
-      slug,
-      offerUserIds: offerUserIds.slice(0, 10),
-      selectedOfferId: offer?.id,
-      selectedOfferCountry: offer?.country,
-      selectedOfferUrl: offer?.offerUrl,
-    });
+    
     if (!offer) {
       return new NextResponse('No owner offer found', { status: 404 });
     }
+    
+    console.debug('[API REDIRECT] offer selection', {
+      slug,
+      offerUserIds: offerUserIds.slice(0, 10),
+      selectedOfferId: offer.id,
+      selectedOfferCountry: offer.country,
+      selectedOfferUrl: offer.offerUrl,
+    });
 
     // ── 6. Main transaction: click logging ────
     const result = await prisma.$transaction(async (tx) => {

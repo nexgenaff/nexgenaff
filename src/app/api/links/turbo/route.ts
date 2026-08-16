@@ -39,7 +39,18 @@ export async function POST(request: Request) {
     }
 
     const ownerUserId = await getOwnerUserId()
-    const body = await request.json()
+    
+    let body: any = {}
+    try {
+      const text = await request.text()
+      body = text ? JSON.parse(text) : {}
+    } catch (parseError) {
+      return NextResponse.json(
+        { error: 'Invalid JSON in request body' },
+        { status: 400, headers: getCorsHeaders(origin) }
+      )
+    }
+    
     const baseName = normalizeBaseName(body.baseName)
     const start = Number(body.start)
     const end = Number(body.end)

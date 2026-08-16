@@ -116,6 +116,16 @@ export async function POST(request: Request) {
       )
     }
 
+    // Validate offer URL format
+    try {
+      new URL(offerUrl)
+    } catch {
+      return NextResponse.json(
+        { error: 'Invalid offer URL format' },
+        { status: 400, headers: getCorsHeaders(origin) }
+      )
+    }
+
     // Resolve a database-backed userId for the offer.
     // Local/dev tokens may contain `local-<name>` ids that do not exist in the
     // database, and managers should resolve to the owner-backed account when

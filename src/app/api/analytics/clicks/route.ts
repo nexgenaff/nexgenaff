@@ -134,8 +134,26 @@ export async function GET(request: Request) {
 
     if (params.startDate || params.endDate) {
       where.createdAt = {};
-      if (params.startDate) where.createdAt.gte = new Date(params.startDate);
-      if (params.endDate) where.createdAt.lte = new Date(params.endDate + 'T23:59:59');
+      if (params.startDate) {
+        const startDate = new Date(params.startDate);
+        if (isNaN(startDate.getTime())) {
+          return NextResponse.json(
+            { error: 'Invalid startDate format. Use YYYY-MM-DD' },
+            { status: 400, headers: getCorsHeaders(origin) }
+          );
+        }
+        where.createdAt.gte = startDate;
+      }
+      if (params.endDate) {
+        const endDate = new Date(params.endDate + 'T23:59:59');
+        if (isNaN(endDate.getTime())) {
+          return NextResponse.json(
+            { error: 'Invalid endDate format. Use YYYY-MM-DD' },
+            { status: 400, headers: getCorsHeaders(origin) }
+          );
+        }
+        where.createdAt.lte = endDate;
+      }
     }
 
     if (params.search) {

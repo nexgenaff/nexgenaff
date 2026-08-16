@@ -75,7 +75,18 @@ export async function POST(request: Request) {
     }
 
     const ownerUserId = await getOwnerUserId()
-    const body = await request.json()
+    
+    let body: any = {}
+    try {
+      const text = await request.text()
+      body = text ? JSON.parse(text) : {}
+    } catch (parseError) {
+      return NextResponse.json(
+        { error: 'Invalid JSON in request body' },
+        { status: 400, headers: getCorsHeaders(origin) }
+      )
+    }
+    
     const { accountName, slug, customDomainId, offerGroupName } = body
 
     let finalUserId: string = user.id
