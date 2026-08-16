@@ -253,6 +253,9 @@ export default function AnalyticsPage() {
     });
   }, [reportLabels, reportRows]);
 
+  const MAX_COLUMNS = 12;
+  const blankColumns = Math.max(0, MAX_COLUMNS - 1 - reportLabels.length);
+
   const sortedRows = useMemo(() => {
     if (!sortConfig) return reportRows;
     const sorted = [...reportRows];
@@ -558,7 +561,7 @@ export default function AnalyticsPage() {
                       </th>
                     ))}
                     {/* Blank column headers */}
-                    {Array.from({ length: 10 }).map((_, i) => (
+                    {Array.from({ length: blankColumns }).map((_, i) => (
                       <th
                         key={`blank-col-${i}`}
                         className="px-2 py-1.5 border-r border-slate-700/30 last:border-r-0 min-w-[80px]"
@@ -593,7 +596,7 @@ export default function AnalyticsPage() {
                         );
                       })}
                       {/* Blank cells */}
-                      {Array.from({ length: 10 }).map((_, i) => (
+                      {Array.from({ length: blankColumns }).map((_, i) => (
                         <td key={`blank-${account.accountName}-${i}`} className="px-2 py-1.5 border-r border-slate-700/30 min-w-[80px]" />
                       ))}
                     </tr>
@@ -608,7 +611,7 @@ export default function AnalyticsPage() {
                         </td>
                       ))}
                       {/* Blank cells */}
-                      {Array.from({ length: 10 }).map((_, i) => (
+                      {Array.from({ length: blankColumns }).map((_, i) => (
                         <td key={`total-blank-${i}`} className="px-2 py-1.5 border-r border-slate-700/30 min-w-[80px]" />
                       ))}
                     </tr>
