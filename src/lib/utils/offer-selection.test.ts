@@ -2,6 +2,125 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 import { selectOffer } from './offer-selection'
 
+test('prefers the same-country group offer before falling back to a global one', async () => {
+  const tx = {
+    offerVault: {
+      findMany: async ({ where }: { where: Record<string, unknown> }) => {
+        const userIds = Array.isArray((where as any).userId?.in)
+          ? (where as any).userId.in
+          : [ (where as any).userId ]
+
+        if (userIds.includes('owner-1') && where.groupName === 'smoke' && where.isActive === true && where.country === 'US' && where.isGlobal === false) {
+          return [{
+            id: 'owner-offer-us',
+            offerUrl: 'https://owner.example/us-offer',
+            priority: 200,
+            rotationMode: 'PRIORITY',
+            country: 'US',
+            isGlobal: false,
+            isContentLocker: false,
+            isActive: true,
+            createdAt: new Date('2024-01-01T00:00:00.000Z'),
+            groupName: 'smoke',
+            usaSecretRedirectEnabled: false,
+          }]
+        }
+
+        if (
+          userIds.includes('owner-1') &&
+          where.groupName === 'smoke' &&
+          where.isActive === true &&
+          Array.isArray(where.OR) &&
+          where.OR.some((condition: any) => condition.isGlobal === true || condition.isContentLocker === true)
+        ) {
+          return [{
+            id: 'owner-offer-global',
+            offerUrl: 'https://owner.example/global-offer',
+            priority: 100,
+            rotationMode: 'PRIORITY',
+            country: 'GLOBAL',
+            isGlobal: true,
+            isContentLocker: false,
+            isActive: true,
+            createdAt: new Date('2024-01-04T00:00:00.000Z'),
+            groupName: 'smoke',
+            usaSecretRedirectEnabled: false,
+          }]
+        }
+
+        return []
+      },
+    },
+  }
+
+  const offer = await selectOffer(tx as any, ['owner-1'], 'US', 'smoke')
+
+  assert.ok(offer)
+  assert.equal(offer.offerUrl, 'https://owner.example/us-offer')
+})
+
+test('prefers a direct country offer over a global group fallback when the link has a group name', async () => {
+  const tx = {
+    offerVault: {
+      findMany: async ({ where }: { where: Record<string, unknown> }) => {
+        const userIds = Array.isArray((where as any).userId?.in)
+          ? (where as any).userId.in
+          : [(where as any).userId]
+
+        if (
+          userIds.includes('owner-1') &&
+          where.country === 'US' &&
+          where.isActive === true &&
+          where.isGlobal === false
+        ) {
+          return [{
+            id: 'owner-offer-direct',
+            offerUrl: 'https://owner.example/direct-country-offer',
+            priority: 200,
+            rotationMode: 'PRIORITY',
+            country: 'US',
+            isGlobal: false,
+            isContentLocker: false,
+            isActive: true,
+            createdAt: new Date('2024-01-01T00:00:00.000Z'),
+            groupName: null,
+            usaSecretRedirectEnabled: false,
+          }]
+        }
+
+        if (
+          userIds.includes('owner-1') &&
+          where.groupName === 'smoke' &&
+          where.isActive === true &&
+          Array.isArray(where.OR) &&
+          where.OR.some((condition: any) => condition.isGlobal === true || condition.isContentLocker === true)
+        ) {
+          return [{
+            id: 'owner-offer-global',
+            offerUrl: 'https://owner.example/global-offer',
+            priority: 100,
+            rotationMode: 'PRIORITY',
+            country: 'GLOBAL',
+            isGlobal: true,
+            isContentLocker: false,
+            isActive: true,
+            createdAt: new Date('2024-01-04T00:00:00.000Z'),
+            groupName: 'smoke',
+            usaSecretRedirectEnabled: false,
+          }]
+        }
+
+        return []
+      },
+    },
+  }
+
+  const offer = await selectOffer(tx as any, ['owner-1'], 'US', 'smoke')
+
+  assert.ok(offer)
+  assert.equal(offer.offerUrl, 'https://owner.example/direct-country-offer')
+})
+
 test('falls back to a group GLOBAL offer when the country does not match', async () => {
   const tx = {
     offerVault: {

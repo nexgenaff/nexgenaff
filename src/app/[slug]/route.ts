@@ -159,25 +159,7 @@ const selectGroupOffer = async (
     orderBy: [{ priority: 'desc' }, { createdAt: 'asc' }],
   });
 
-  let offer = selectRotatingOffer(regionalGroupCandidates);
-
-  if (!offer) {
-    const globalGroupCandidates = await tx.offerVault.findMany({
-      where: {
-        userId,
-        groupName,
-        isActive: true,
-        OR: [
-          { isGlobal: true },
-          { isContentLocker: true },
-        ],
-      },
-      orderBy: [{ priority: 'desc' }, { createdAt: 'asc' }],
-    });
-    offer = selectRotatingOffer(globalGroupCandidates);
-  }
-
-  return offer;
+  return selectRotatingOffer(regionalGroupCandidates);
 };
 
 const selectOffer = async (
@@ -204,13 +186,33 @@ const selectOffer = async (
       orderBy: [{ priority: 'desc' }, { createdAt: 'asc' }],
     });
 
-    const namedGroupCandidates = countryCandidates.filter((c: any) => normalizeGroupName(c.groupName));
+    const namedGroupCandidates = countryCandidates.filter(
+      (c: any) => normalizeGroupName(c.groupName) && (!linkGroupName || normalizeGroupName(c.groupName) === linkGroupName)
+    );
     const directCountryCandidates = countryCandidates.filter((c: any) => !normalizeGroupName(c.groupName));
 
     offer = selectRotatingOffer(
       namedGroupCandidates.length ? namedGroupCandidates : directCountryCandidates
     );
     if (offer) return offer;
+
+    if (linkGroupName) {
+      const globalGroupCandidates = await tx.offerVault.findMany({
+        where: {
+          userId,
+          groupName: linkGroupName,
+          isActive: true,
+          OR: [
+            { isGlobal: true },
+            { isContentLocker: true },
+          ],
+        },
+        orderBy: [{ priority: 'desc' }, { createdAt: 'asc' }],
+      });
+
+      offer = selectRotatingOffer(globalGroupCandidates);
+      if (offer) return offer;
+    }
 
     const globalCandidates = await tx.offerVault.findMany({
       where: {

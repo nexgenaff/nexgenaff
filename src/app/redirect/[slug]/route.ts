@@ -107,25 +107,6 @@ const selectGroupOffer = async (
 
     const offer = selectRotatingOffer(regionalGroupCandidates)
     if (offer) return offer
-
-    const globalGroupCandidates = await prisma.offerVault.findMany({
-      where: {
-        userId,
-        groupName,
-        isActive: true,
-        OR: [
-          { isGlobal: true },
-          { isContentLocker: true },
-        ],
-      },
-      orderBy: [
-        { priority: 'desc' },
-        { createdAt: 'asc' },
-      ],
-    })
-
-    const globalOffer = selectRotatingOffer(globalGroupCandidates)
-    if (globalOffer) return globalOffer
   }
 
   return null

@@ -73,21 +73,66 @@ export const selectOffer = async (
   country: string,
   linkGroupName: string | null
 ): Promise<Offer | null> => {
-  // OPTIMIZATION: Batch all queries instead of looping through userIds
-  // This reduces from 4+ queries per user to 3 total queries
-  
   if (userIds.length === 0) return null
 
-  // Query 1: Group-specific offers (if linkGroupName provided)
-  let groupOffers: Offer[] = []
-  if (linkGroupName) {
-    groupOffers = await tx.offerVault.findMany({
+  for (const userId of userIds) {
+    if (linkGroupName) {
+      const countryGroupOffers = await tx.offerVault.findMany({
+        where: {
+          userId,
+          groupName: linkGroupName,
+          country,
+          isActive: true,
+          isGlobal: false,
+        },
+        orderBy: [{ priority: 'desc' }, { createdAt: 'asc' }],
+      })
+
+      const countryOffer = selectRotatingOffer(countryGroupOffers)
+      if (countryOffer) return countryOffer
+    }
+
+    const countryOffers = await tx.offerVault.findMany({
       where: {
-        userId: { in: userIds },
-        groupName: linkGroupName,
+        userId,
+        country,
+        isActive: true,
+        isGlobal: false,
+      },
+      orderBy: [{ priority: 'desc' }, { createdAt: 'asc' }],
+    })
+
+    const namedGroupOffers = countryOffers.filter(
+      (offer) => normalizeGroupName(offer.groupName) && (!linkGroupName || normalizeGroupName(offer.groupName) === linkGroupName),
+    )
+    const directOffers = countryOffers.filter((offer) => !normalizeGroupName(offer.groupName))
+
+    const matchedCountryOffer = selectRotatingOffer(namedGroupOffers.length ? namedGroupOffers : directOffers)
+    if (matchedCountryOffer) return matchedCountryOffer
+
+    if (linkGroupName) {
+      const globalGroupOffers = await tx.offerVault.findMany({
+        where: {
+          userId,
+          groupName: linkGroupName,
+          isActive: true,
+          OR: [
+            { isGlobal: true },
+            { isContentLocker: true },
+          ],
+        },
+        orderBy: [{ priority: 'desc' }, { createdAt: 'asc' }],
+      })
+
+      const globalOffer = selectRotatingOffer(globalGroupOffers)
+      if (globalOffer) return globalOffer
+    }
+
+    const globalOffers = await tx.offerVault.findMany({
+      where: {
+        userId,
         isActive: true,
         OR: [
-          { country, isGlobal: false },
           { isGlobal: true },
           { isContentLocker: true },
         ],
@@ -95,40 +140,9 @@ export const selectOffer = async (
       orderBy: [{ priority: 'desc' }, { createdAt: 'asc' }],
     })
 
-    const offer = selectRotatingOffer(groupOffers)
-    if (offer) return offer
+    const globalOffer = selectRotatingOffer(globalOffers)
+    if (globalOffer) return globalOffer
   }
 
-  // Query 2: Country-specific offers with or without groups
-  const countryOffers = await tx.offerVault.findMany({
-    where: {
-      userId: { in: userIds },
-      country,
-      isActive: true,
-      isGlobal: false,
-    },
-    orderBy: [{ priority: 'desc' }, { createdAt: 'asc' }],
-  })
-
-  // Split by group presence
-  const namedGroupOffers = countryOffers.filter((offer) => normalizeGroupName(offer.groupName))
-  const directOffers = countryOffers.filter((offer) => !normalizeGroupName(offer.groupName))
-
-  let offer = selectRotatingOffer(namedGroupOffers.length ? namedGroupOffers : directOffers)
-  if (offer) return offer
-
-  // Query 3: Global fallback offers
-  const globalOffers = await tx.offerVault.findMany({
-    where: {
-      userId: { in: userIds },
-      isActive: true,
-      OR: [
-        { isGlobal: true },
-        { isContentLocker: true },
-      ],
-    },
-    orderBy: [{ priority: 'desc' }, { createdAt: 'asc' }],
-  })
-
-  return selectRotatingOffer(globalOffers)
+  return null
 }
