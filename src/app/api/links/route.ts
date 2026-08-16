@@ -144,7 +144,9 @@ export async function POST(request: Request) {
       )
     }
 
-    const publicId = crypto.randomBytes(16).toString('hex')
+    // Use 32 bytes (256 bits) for public ID to prevent brute-force guessing
+    // 16 bytes = 128 bits = 32 hex chars, but 32 bytes = 256 bits = 64 hex chars
+    const publicId = crypto.randomBytes(32).toString('hex')
 
     const link = await prisma.linkAccount.create({
       data: {

@@ -152,7 +152,8 @@ export async function POST(request: Request) {
     const createdLinks = [] as any[]
 
     for (const item of generatedItems) {
-      const publicId = crypto.randomBytes(16).toString('hex')
+      // Use 32 bytes (256 bits) for public ID to prevent brute-force guessing
+      const publicId = crypto.randomBytes(32).toString('hex')
       const link = await prisma.linkAccount.create({
         data: {
           accountName: item.accountName,

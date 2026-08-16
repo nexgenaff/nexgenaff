@@ -50,10 +50,10 @@ model LinkAccount {
   accountName     String
   slug            String      @unique
   customDomainId  String?
-  customDomain    CustomDomain? @relation(fields: [customDomainId], references: [id])
+  customDomain    CustomDomain? @relation(fields: [customDomainId], references: [id], onDelete: SetNull)
   offerGroupName  String?
   userId          String
-  user            User        @relation(fields: [userId], references: [id])
+  user            User        @relation(fields: [userId], references: [id], onDelete: Cascade)
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt
   isActive        Boolean     @default(true)
@@ -83,7 +83,7 @@ model CustomDomain {
   id              String        @id @default(cuid())
   domain          String        @unique
   userId          String
-  user            User          @relation(fields: [userId], references: [id])
+  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   verified        Boolean       @default(false)
   verifiedAt      DateTime?
   sslEnabled      Boolean       @default(false)
@@ -114,7 +114,7 @@ model OfferVault {
   priority        Int                 @default(100)
   rotationMode    OfferRotationMode   @default(PRIORITY)
   userId          String
-  user            User                @relation(fields: [userId], references: [id])
+  user            User                @relation(fields: [userId], references: [id], onDelete: Cascade)
   createdAt       DateTime            @default(now())
   updatedAt       DateTime            @updatedAt
 
@@ -128,7 +128,7 @@ model PublicDashboard {
   id              String        @id @default(cuid())
   publicId        String        @unique
   linkAccountId   String        @unique
-  linkAccount     LinkAccount   @relation(fields: [linkAccountId], references: [id])
+  linkAccount     LinkAccount   @relation(fields: [linkAccountId], references: [id], onDelete: Cascade)
   isPrivate       Boolean       @default(false)
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
@@ -139,7 +139,7 @@ model PublicDashboard {
 model Click {
   id              String        @id @default(cuid())
   linkAccountId   String
-  linkAccount     LinkAccount   @relation(fields: [linkAccountId], references: [id])
+  linkAccount     LinkAccount   @relation(fields: [linkAccountId], references: [id], onDelete: Cascade)
   
   timestamp       DateTime      @default(now())
   clickSignature  String?
@@ -185,7 +185,7 @@ model Click {
 model GeoStat {
   id              String        @id @default(cuid())
   linkAccountId   String
-  linkAccount     LinkAccount   @relation(fields: [linkAccountId], references: [id])
+  linkAccount     LinkAccount   @relation(fields: [linkAccountId], references: [id], onDelete: Cascade)
   
   country         String
   countryCode     String
@@ -202,7 +202,7 @@ model GeoStat {
 model DailyAnalytics {
   id              String        @id @default(cuid())
   linkAccountId   String
-  linkAccount     LinkAccount   @relation(fields: [linkAccountId], references: [id])
+  linkAccount     LinkAccount   @relation(fields: [linkAccountId], references: [id], onDelete: Cascade)
   
   date            DateTime
   clicks          Int           @default(0)
@@ -216,7 +216,7 @@ model DailyAnalytics {
 model HourlyAnalytics {
   id              String        @id @default(cuid())
   linkAccountId   String
-  linkAccount     LinkAccount   @relation(fields: [linkAccountId], references: [id])
+  linkAccount     LinkAccount   @relation(fields: [linkAccountId], references: [id], onDelete: Cascade)
   
   hour            DateTime
   clicks          Int           @default(0)
@@ -230,7 +230,7 @@ model HourlyAnalytics {
 model BrowserStat {
   id              String        @id @default(cuid())
   linkAccountId   String
-  linkAccount     LinkAccount   @relation(fields: [linkAccountId], references: [id])
+  linkAccount     LinkAccount   @relation(fields: [linkAccountId], references: [id], onDelete: Cascade)
   
   browser         String
   clicks          Int           @default(0)
@@ -244,7 +244,7 @@ model BrowserStat {
 model OSStat {
   id              String        @id @default(cuid())
   linkAccountId   String
-  linkAccount     LinkAccount   @relation(fields: [linkAccountId], references: [id])
+  linkAccount     LinkAccount   @relation(fields: [linkAccountId], references: [id], onDelete: Cascade)
   
   os              String
   clicks          Int           @default(0)
@@ -258,7 +258,7 @@ model OSStat {
 model DeviceStat {
   id              String        @id @default(cuid())
   linkAccountId   String
-  linkAccount     LinkAccount   @relation(fields: [linkAccountId], references: [id])
+  linkAccount     LinkAccount   @relation(fields: [linkAccountId], references: [id], onDelete: Cascade)
   
   deviceType      String
   clicks          Int           @default(0)
@@ -272,7 +272,7 @@ model DeviceStat {
 model ReferrerStat {
   id              String        @id @default(cuid())
   linkAccountId   String
-  linkAccount     LinkAccount   @relation(fields: [linkAccountId], references: [id])
+  linkAccount     LinkAccount   @relation(fields: [linkAccountId], references: [id], onDelete: Cascade)
   
   referrer        String
   clicks          Int           @default(0)
@@ -294,7 +294,7 @@ model LandingPageTemplate {
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
   createdBy       String
-  user            User          @relation("TemplateCreatedBy", fields: [createdBy], references: [id])
+  user            User          @relation("TemplateCreatedBy", fields: [createdBy], references: [id], onDelete: Cascade)
   
   landingPages    LandingPage[]
   
@@ -307,9 +307,9 @@ model LandingPage {
   subdomain       String        @unique
   trackingUrl     String
   templateId      String
-  template        LandingPageTemplate @relation(fields: [templateId], references: [id])
+  template        LandingPageTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
   userId          String
-  user            User          @relation("LandingPagesCreatedBy", fields: [userId], references: [id])
+  user            User          @relation("LandingPagesCreatedBy", fields: [userId], references: [id], onDelete: Cascade)
   
   // Customization
   headline        String?

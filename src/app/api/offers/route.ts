@@ -119,25 +119,36 @@ export async function POST(request: Request) {
     // Validate offer URL format and domain
     try {
       const url = new URL(offerUrl)
-      const hostname = url.hostname.toLowerCase()
-      
+      let hostname = url.hostname.toLowerCase()
+
+      // Handle IPv6-mapped IPv4 addresses like ::ffff:192.168.1.1
+      if (hostname.startsWith('::ffff:')) {
+        hostname = hostname.substring(7) // Remove ::ffff: prefix
+      }
+
       // Reject dangerous domains (localhost, IPs, etc.)
       const BLOCKED_DOMAINS = new Set([
         'localhost',
         '127.0.0.1',
         '0.0.0.0',
         '::1',
+        '::',
         'example.com',
         'example.org',
       ])
 
       const BLOCKED_PATTERNS = [
-        /^192\.168\./, // Private network
-        /^10\./, // Private network
-        /^172\.(1[6-9]|2[0-9]|3[01])\./, // Private network
-        /^169\.254\./, // Link-local
-        /^127\./, // Loopback
-        /^255\./, // Broadcast
+        /^192\.168\./, // Private network (192.168.0.0/16)
+        /^10\./, // Private network (10.0.0.0/8)
+        /^172\.(1[6-9]|2[0-9]|3[01])\./, // Private network (172.16.0.0/12)
+        /^169\.254\./, // Link-local (169.254.0.0/16)
+        /^127\./, // Loopback (127.0.0.0/8)
+        /^255\./, // Broadcast (255.255.255.255)
+        /^100\.(6[4-9]|[7-9][0-9]|1[01][0-9]|12[0-7])\./, // Shared Address Space (100.64.0.0/10)
+        /^::ffff:/, // IPv6-mapped IPv4 (already stripped, but catch if not)
+        /^fe80:/, // IPv6 link-local
+        /^fc/, // IPv6 unique local (starts with fc)
+        /^fd/, // IPv6 unique local (starts with fd)
       ]
 
       if (BLOCKED_DOMAINS.has(hostname)) {
