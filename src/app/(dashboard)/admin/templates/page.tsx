@@ -190,7 +190,7 @@ export default function TemplateManager() {
 
   if (userRole !== 'OWNER') {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-white mb-2">Access Denied</h1>
           <p className="text-slate-400">Only owners can manage templates</p>
@@ -200,7 +200,7 @@ export default function TemplateManager() {
   }
 
   return (
-    <div className="min-h-screen bg-white px-4 py-6 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-slate-950 px-4 py-6 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-7xl">
         {/* Back Button */}
         <button
@@ -248,7 +248,7 @@ export default function TemplateManager() {
 
         {/* Form */}
         {showForm && (
-          <div className="mb-8 rounded-xl border border-gray-200 bg-white p-5 sm:p-6">
+          <div className="mb-8 rounded-xl border border-slate-800 bg-slate-900/60 p-5 sm:p-6">
             <h2 className="text-lg font-semibold text-white mb-5">
               {editingId ? 'Edit Template' : 'New Template'}
             </h2>

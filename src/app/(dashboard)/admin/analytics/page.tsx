@@ -416,7 +416,7 @@ export default function AnalyticsPage() {
 
           {/* ===== FILTER BAR ===== */}
           {showFilters && (
-            <div className="border-b border-gray-200 bg-white p-4 sm:p-6">
+            <div className="border-b border-white/10 bg-slate-900/50 p-4 sm:p-6">
               {/* Quick presets */}
               <div className="flex flex-wrap items-center gap-2 mb-4">
                 <span className="text-xs font-medium text-slate-300 mr-1">Quick:</span>

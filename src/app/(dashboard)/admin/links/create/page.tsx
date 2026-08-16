@@ -70,8 +70,6 @@ export default function CreateLinkPage() {
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
   const [createdAccount, setCreatedAccount] = useState<CreatedAccount | null>(null);
-  const [baseUrl, setBaseUrl] = useState<string>("");
-  const [isHydrated, setIsHydrated] = useState(false);
 
   const fetchDomains = useCallback(async () => {
     try {
@@ -105,15 +103,11 @@ export default function CreateLinkPage() {
   useEffect(() => {
     void fetchDomains();
     void fetchOfferGroups();
-    
-    // Set baseUrl after hydration
-    setBaseUrl(window.location.origin.replace(/\/$/, ""));
-    setIsHydrated(true);
   }, [fetchDomains, fetchOfferGroups]);
 
   const getBaseUrl = () => {
-    if (baseUrl) {
-      return baseUrl;
+    if (typeof window !== "undefined") {
+      return window.location.origin.replace(/\/$/, "");
     }
     return (process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000").replace(/\/$/, "");
   };
@@ -124,17 +118,8 @@ export default function CreateLinkPage() {
     ? `https://${selectedDomain.domain}/${slug || "your-slug"}`
     : `${getBaseUrl()}/${slug || "your-slug"}`;
 
-  // Prevent rendering mismatches by not rendering dynamic content until hydrated
-  if (!isHydrated) {
-    return (
-      <div className="min-h-screen bg-white px-4 py-6 sm:px-6 lg:px-8 flex items-center justify-center">
-        <div className="text-slate-600">Loading...</div>
-      </div>
-    );
-  }
-
   const handleBack = () => {
-    if (window.history.length > 1) {
+    if (typeof window !== "undefined" && window.history.length > 1) {
       router.back();
       return;
     }
@@ -198,7 +183,7 @@ export default function CreateLinkPage() {
   const hasCustomizations = customDomainId || offerGroupName;
 
   return (
-    <div className="min-h-screen bg-white px-4 py-6 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-slate-950 px-4 py-6 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-6xl">
         {/* Header */}
         <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -226,7 +211,7 @@ export default function CreateLinkPage() {
         {/* Main Grid */}
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1.3fr_0.7fr] items-start">
           {/* Form Card */}
-          <div className="rounded-xl border border-gray-200 bg-white p-5 sm:p-6">
+          <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-5 sm:p-6">
             <div className="mb-5 flex items-center gap-2">
               <div className="rounded-md bg-indigo-500/10 p-1.5">
                 <Rocket className="h-4 w-4 text-indigo-400" />
@@ -327,7 +312,7 @@ export default function CreateLinkPage() {
                   <Globe className="h-3.5 w-3.5 text-indigo-400" />
                   Preview
                 </div>
-                <div className="mt-2 break-all rounded-md bg-gray-50 px-3 py-2 font-mono text-sm text-indigo-700 border border-gray-200">
+                <div className="mt-2 break-all rounded-md bg-slate-900 px-3 py-2 font-mono text-sm text-indigo-300">
                   {previewUrl}
                 </div>
                 <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-slate-500">

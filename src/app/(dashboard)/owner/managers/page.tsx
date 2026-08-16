@@ -365,7 +365,7 @@ export default function OwnerManagersPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-white px-4 py-6 sm:px-6 lg:px-8">
+      <div className="min-h-screen bg-slate-950 px-4 py-6 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-7xl space-y-6">
           <div className="h-8 w-40 animate-pulse rounded bg-slate-800" />
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">

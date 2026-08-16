@@ -326,7 +326,7 @@ export default function ClickLogs({ filter }: ClickLogsProps) {
 
   if (loading) {
     return (
-      <div className="rounded-[24px] border border-gray-200 bg-white p-4 shadow-sm backdrop-blur-sm sm:p-6">
+      <div className="rounded-[24px] border border-slate-800 bg-slate-900/80 p-4 shadow-sm backdrop-blur-sm sm:p-6">
         <div className="space-y-4">
           {[...Array(5)].map((_, i) => (
             <div key={i} className="flex items-center gap-4">
@@ -344,7 +344,7 @@ export default function ClickLogs({ filter }: ClickLogsProps) {
   }
 
   return (
-    <div className="overflow-hidden rounded-[24px] bg-white shadow-sm backdrop-blur-sm border border-gray-200">
+    <div className="overflow-hidden rounded-[24px] bg-slate-900/80 shadow-sm backdrop-blur-sm">
       {confirmDialog && (
         <div
           className="fixed inset-0 z-[120] flex items-center justify-center bg-slate-950/90 px-4 py-6 backdrop-blur-sm"
@@ -356,10 +356,10 @@ export default function ClickLogs({ filter }: ClickLogsProps) {
             exit={{ opacity: 0, y: 10, scale: 0.985 }}
             transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
             onClick={(event) => event.stopPropagation()}
-            className="relative w-full max-w-md overflow-hidden rounded-[24px] border border-gray-200 bg-white shadow-lg"
+            className="relative w-full max-w-md overflow-hidden rounded-[24px] border border-slate-800 bg-slate-900/95 shadow-lg"
           >
-            <div className="pointer-events-none absolute inset-0 bg-white/30" />
-            <div className="relative border-b border-gray-200 bg-white px-5 py-4">
+            <div className="pointer-events-none absolute inset-0 bg-slate-900/50" />
+            <div className="relative border-b border-slate-800 bg-slate-950/70 px-5 py-4">
               <div className="flex items-start gap-3">
                 <div className={`mt-0.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border ${confirmDialog.tone === 'danger' ? 'border-rose-400/20 bg-rose-500/10 text-rose-300' : 'border-amber-400/20 bg-amber-500/10 text-amber-300'}`}>
                   <AlertTriangle className="h-5 w-5" />
@@ -398,7 +398,7 @@ export default function ClickLogs({ filter }: ClickLogsProps) {
           </motion.div>
         </div>
       )}
-      <div className="bg-white border border-gray-200/80 shadow-sm p-4 sm:p-6">
+      <div className="bg-slate-900/95 border border-slate-800/80 shadow-sm p-4 sm:p-6">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex flex-wrap gap-2">
             <button
