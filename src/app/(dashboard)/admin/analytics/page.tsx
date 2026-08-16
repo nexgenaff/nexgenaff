@@ -526,12 +526,12 @@ export default function AnalyticsPage() {
 
           {/* ===== TABLE ===== */}
           {report?.datasets?.length ? (
-            <div className="overflow-x-auto rounded-lg border border-white/10 bg-slate-950/40 w-fit">
-              <table className="table-auto border-collapse text-left text-xs whitespace-nowrap">
+            <div className="overflow-x-auto rounded-lg border border-white/10 bg-slate-950/40 w-full">
+              <table className="w-full border-collapse text-left text-xs whitespace-nowrap" style={{ tableLayout: "fixed" }}>
                 <thead className="sticky top-0 bg-slate-900/60">
                   <tr className="border-b border-slate-700/50">
                     <th
-                      className="px-2.5 py-1.5 font-medium text-slate-300 cursor-pointer hover:text-slate-200 border-r border-slate-700/30 select-none"
+                      className="px-2.5 py-1.5 font-medium text-slate-300 cursor-pointer hover:text-slate-200 border-r border-slate-700/30 select-none min-w-max"
                       onClick={() => requestSort("accountName")}
                       title="Click to sort"
                     >
@@ -545,7 +545,7 @@ export default function AnalyticsPage() {
                     {reportLabels.map((country) => (
                       <th
                         key={country}
-                        className="px-2 py-1.5 font-medium text-slate-300 cursor-pointer hover:text-slate-200 border-r border-slate-700/30 last:border-r-0 select-none text-center"
+                        className="px-2 py-1.5 font-medium text-slate-300 cursor-pointer hover:text-slate-200 border-r border-slate-700/30 last:border-r-0 select-none text-center min-w-[80px]"
                         onClick={() => requestSort(country)}
                         title="Click to sort"
                       >
@@ -558,10 +558,10 @@ export default function AnalyticsPage() {
                       </th>
                     ))}
                     {/* Blank column headers */}
-                    {Array.from({ length: 5 }).map((_, i) => (
+                    {Array.from({ length: 10 }).map((_, i) => (
                       <th
                         key={`blank-col-${i}`}
-                        className="px-2 py-1.5 border-r border-slate-700/30 last:border-r-0"
+                        className="px-2 py-1.5 border-r border-slate-700/30 last:border-r-0 min-w-[80px]"
                       />
                     ))}
                   </tr>
@@ -572,7 +572,7 @@ export default function AnalyticsPage() {
                       key={account.accountName}
                       className={`border-b border-slate-800/40 hover:bg-slate-900/30 transition-colors ${index % 2 === 0 ? "bg-slate-950/20" : ""}`}
                     >
-                      <td className="px-2.5 py-1.5 font-medium text-slate-200 border-r border-slate-700/30">
+                      <td className="px-2.5 py-1.5 font-medium text-slate-200 border-r border-slate-700/30 min-w-max">
                         {account.accountName}
                       </td>
                       {reportLabels.map((country) => {
@@ -580,7 +580,7 @@ export default function AnalyticsPage() {
                         return (
                           <td 
                             key={`${account.accountName}-${country}`} 
-                            className="px-2 py-1.5 border-r border-slate-700/30 last:border-r-0 text-center text-slate-300"
+                            className="px-2 py-1.5 border-r border-slate-700/30 last:border-r-0 text-center text-slate-300 min-w-[80px]"
                           >
                             {countryValue ? (
                               <span className="text-slate-100 font-medium">
@@ -593,23 +593,23 @@ export default function AnalyticsPage() {
                         );
                       })}
                       {/* Blank cells */}
-                      {Array.from({ length: 5 }).map((_, i) => (
-                        <td key={`blank-${account.accountName}-${i}`} className="px-2 py-1.5 border-r border-slate-700/30" />
+                      {Array.from({ length: 10 }).map((_, i) => (
+                        <td key={`blank-${account.accountName}-${i}`} className="px-2 py-1.5 border-r border-slate-700/30 min-w-[80px]" />
                       ))}
                     </tr>
                   ))}
                   {/* Totals row */}
                   {totals.some((t) => t > 0) && (
                     <tr className="border-t border-slate-700/50 bg-slate-900/40 font-semibold">
-                      <td className="px-2.5 py-1.5 text-slate-200 border-r border-slate-700/30 font-bold">TOTAL</td>
+                      <td className="px-2.5 py-1.5 text-slate-200 border-r border-slate-700/30 font-bold min-w-max">TOTAL</td>
                       {totals.map((total, idx) => (
-                        <td key={`total-${idx}`} className="px-2 py-1.5 text-center border-r border-slate-700/30 last:border-r-0 text-slate-100 font-bold">
+                        <td key={`total-${idx}`} className="px-2 py-1.5 text-center border-r border-slate-700/30 last:border-r-0 text-slate-100 font-bold min-w-[80px]">
                           {total}
                         </td>
                       ))}
                       {/* Blank cells */}
-                      {Array.from({ length: 5 }).map((_, i) => (
-                        <td key={`total-blank-${i}`} className="px-2 py-1.5 border-r border-slate-700/30" />
+                      {Array.from({ length: 10 }).map((_, i) => (
+                        <td key={`total-blank-${i}`} className="px-2 py-1.5 border-r border-slate-700/30 min-w-[80px]" />
                       ))}
                     </tr>
                   )}
