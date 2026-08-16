@@ -526,8 +526,8 @@ export default function AnalyticsPage() {
 
           {/* ===== TABLE ===== */}
           {report?.datasets?.length ? (
-            <div className="overflow-x-auto rounded-lg border border-white/10 bg-slate-950/40">
-              <table className="w-full border-collapse text-left text-xs">
+            <div className="overflow-x-auto rounded-lg border border-white/10 bg-slate-950/40 w-fit">
+              <table className="border-collapse text-left text-xs">
                 <thead className="sticky top-0 bg-slate-900/60">
                   <tr className="border-b border-slate-700/50">
                     <th
