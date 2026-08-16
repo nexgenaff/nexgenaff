@@ -35,7 +35,9 @@ function BreakdownSection({
   iconColor?: string
   valueColor?: string
 }) {
-  const maxValue = Math.max(...items.map(item => item.clicks), 1)
+  // Filter out items with empty or "Unknown" names
+  const filteredItems = items.filter(item => item.name && item.name.trim() !== '')
+  const maxValue = Math.max(...filteredItems.map(item => item.clicks), 1)
 
   return (
     <div className="rounded-lg border border-slate-800 bg-slate-950/70 p-2 sm:p-3">
@@ -44,16 +46,16 @@ function BreakdownSection({
         <h4 className={`text-xs font-semibold ${titleColor ?? 'text-white'}`}>{title}</h4>
       </div>
 
-      {items.length === 0 ? (
+      {filteredItems.length === 0 ? (
         <p className="text-xs text-slate-400">No breakdown data yet.</p>
       ) : (
         <div className="space-y-3">
-          {items.slice(0, 4).map((item, index) => {
-            const pct = Math.round((item.clicks / Math.max(...items.map(i => i.clicks), 1)) * 100)
+          {filteredItems.slice(0, 4).map((item, index) => {
+            const pct = Math.round((item.clicks / Math.max(...filteredItems.map(i => i.clicks), 1)) * 100)
             return (
               <div key={`${title}-${item.name}-${index}`}>
                 <div className="mb-1 flex items-center justify-between gap-2 text-xs">
-                  <span className="truncate text-slate-100">{item.name || 'Unknown'}</span>
+                  <span className="truncate text-slate-100">{item.name}</span>
                   <span className={`${valueColor ?? 'text-slate-400'}`}>{formatNumber(item.clicks)}</span>
                 </div>
 
