@@ -62,7 +62,7 @@ export async function POST(request: Request) {
       // Manager: can only access owner's links
       if (isManager(user)) {
         try {
-          const ownerUserId = await getOwnerUserId(user.id)
+          const ownerUserId = await getOwnerUserId()
           if (!ownerUserId) {
             return NextResponse.json(
               { error: 'You do not have access to any links' },
