@@ -98,12 +98,12 @@ export default function RecentClicks() {
                     {getCountryLabel(click.country)}
                   </p>
                   {click.isUnique ? (
-                    <span className="badge badge-success flex items-center gap-1">
-                      <CheckCircle className="w-3 h-3" /> Unique
+                    <span className="badge badge-success flex items-center gap-1" title="Unique">
+                      <CheckCircle className="w-3 h-3" />
                     </span>
                   ) : (
-                    <span className="badge badge-warning flex items-center gap-1">
-                      <XCircle className="w-3 h-3" /> Duplicate
+                    <span className="badge badge-warning flex items-center gap-1" title="Duplicate">
+                      <XCircle className="w-3 h-3" />
                     </span>
                   )}
                 </div>

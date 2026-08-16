@@ -104,7 +104,7 @@ export default function DashboardPage() {
     [now]
   );
   const timeStr = useMemo(
-    () => now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+    () => now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" }),
     [now]
   );
 
@@ -421,6 +421,7 @@ export default function DashboardPage() {
             referrerBreakdown={referrerBreakdown}
             browserBreakdown={browserBreakdown}
             deviceBreakdown={deviceBreakdown}
+            countryBreakdown={countryBreakdown}
           />
         </section>
 

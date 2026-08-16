@@ -13,9 +13,10 @@ interface TrafficBreakdownProps {
   referrerBreakdown?: BreakdownItem[]
   browserBreakdown?: BreakdownItem[]
   deviceBreakdown?: BreakdownItem[]
+  countryBreakdown?: BreakdownItem[]
 }
 
-const palette = ['bg-sky-400', 'bg-violet-400', 'bg-emerald-400']
+const palette = ['bg-sky-400', 'bg-violet-400', 'bg-emerald-400', 'bg-rose-400']
 
 function BreakdownSection({
   title,
@@ -77,12 +78,13 @@ export function TrafficBreakdown({
   referrerBreakdown = [],
   browserBreakdown = [],
   deviceBreakdown = [],
+  countryBreakdown = [],
 }: TrafficBreakdownProps) {
   return (
     <div className="rounded-lg bg-slate-900/80 p-3 shadow-sm sm:p-4">
       
 
-      <div className="grid gap-3">
+      <div className="grid gap-3 grid-cols-1 sm:grid-cols-2">
         <BreakdownSection
           title="Top Referrers"
           icon={Globe2}
@@ -99,6 +101,15 @@ export function TrafficBreakdown({
           accent={palette[1]}
           titleColor="text-violet-300"
           iconColor="text-violet-400"
+          valueColor="text-slate-300"
+        />
+        <BreakdownSection
+          title="Top Countries"
+          icon={Globe2}
+          items={countryBreakdown}
+          accent={palette[3]}
+          titleColor="text-amber-300"
+          iconColor="text-amber-400"
           valueColor="text-slate-300"
         />
         <BreakdownSection

@@ -55,8 +55,8 @@ export function StatsCard({
             </p>
           )}
         </div>
-        <div className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg ${colorClasses[color]}`}>
-          <Icon className="h-5 w-5" />
+        <div className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg ${colorClasses[color]}`}>
+          <Icon className="h-4 w-4" />
         </div>
       </div>
 

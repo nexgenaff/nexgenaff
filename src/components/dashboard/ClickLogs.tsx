@@ -97,6 +97,9 @@ export default function ClickLogs({ filter }: ClickLogsProps) {
   })
   const [showFilters, setShowFilters] = useState(false)
   const [confirmDialog, setConfirmDialog] = useState<ConfirmDialogState | null>(null)
+  const [showBrowserVersion, setShowBrowserVersion] = useState<string | null>(null)
+  const [showDeviceInfo, setShowDeviceInfo] = useState<string | null>(null)
+  const [showGeoInfo, setShowGeoInfo] = useState<string | null>(null)
 
   const [filters, setFilters] = useState<Filters>({
     country: '',
@@ -199,6 +202,13 @@ export default function ClickLogs({ filter }: ClickLogsProps) {
     })
   }
 
+  const formatDateTwoLines = (date: string) => {
+    const dateObj = new Date(date)
+    const dateStr = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+    const timeStr = dateObj.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+    return { date: dateStr, time: timeStr }
+  }
+
   const getReferrerInfo = (referrer: string | null) => {
     if (!referrer) return { hostname: 'Direct', href: null }
 
@@ -225,8 +235,11 @@ export default function ClickLogs({ filter }: ClickLogsProps) {
 
   const getBrowserLabel = (click: Click) => {
     const browser = click.browser || 'Unknown Browser'
-    const version = click.browserVersion
-    return version ? `${browser} ${version}` : browser
+    return browser
+  }
+
+  const getBrowserVersion = (click: Click) => {
+    return click.browserVersion || 'Version not available'
   }
 
   const getDeviceLabel = (click: Click) => {
@@ -243,19 +256,25 @@ export default function ClickLogs({ filter }: ClickLogsProps) {
     const locationText = locationParts.join(', ')
     const ispText = click.isp?.trim() && click.isp !== 'Unknown' && click.isp !== 'Proxy Geo Header' ? click.isp.trim() : null
 
-    return (
-      <div className="flex flex-col gap-0.5">
-        <div className="flex items-center gap-1.5">
-          <span>{getCountryFlag(click.country)}</span>
-          <span className="font-medium text-white/80">{countryLabel}</span>
-        </div>
-        {(locationText || ispText) && (
-          <div className="text-[11px] text-white/25">
-            {locationText}
-            {locationText && ispText ? ` • ${ispText}` : ispText}
+    if (showGeoInfo === click.id) {
+      return (
+        <div className="flex flex-col gap-0.5">
+          <div className="flex items-center gap-1.5">
+            <span>{getCountryFlag(click.country)}</span>
+            <span className="font-medium text-white/80">{countryLabel}</span>
           </div>
-        )}
-      </div>
+          {(locationText || ispText) && (
+            <div className="text-[11px] text-white/25">
+              {locationText}
+              {locationText && ispText ? ` • ${ispText}` : ispText}
+            </div>
+          )}
+        </div>
+      )
+    }
+
+    return (
+      <span>{getCountryFlag(click.country)}</span>
     )
   }
 
@@ -591,7 +610,17 @@ export default function ClickLogs({ filter }: ClickLogsProps) {
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
                     <div className="text-[10px] uppercase tracking-[0.32em] text-slate-500">Time</div>
-                    <div className="truncate text-sm font-semibold text-emerald-400">{formatDate(click.createdAt)}</div>
+                    <div className="flex flex-col gap-0.5">
+                      {(() => {
+                        const { date, time } = formatDateTwoLines(click.createdAt)
+                        return (
+                          <>
+                            <div className="text-xs font-semibold text-emerald-400">{date}</div>
+                            <div className="text-[10px] text-slate-400">{time}</div>
+                          </>
+                        )
+                      })()}
+                    </div>
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="shrink-0 rounded-full bg-slate-900/80 px-3 py-1 text-[10px] uppercase tracking-[0.32em] text-slate-300">
@@ -614,10 +643,14 @@ export default function ClickLogs({ filter }: ClickLogsProps) {
                   <div className="truncate text-cyan-300">{click.linkAccount.accountName}/{click.linkAccount.slug}</div>
 
                   <div className="text-[11px] uppercase tracking-[0.32em] text-slate-500">Device</div>
-                  <div className="truncate">{getDeviceLabel(click)}</div>
+                  <button onClick={() => setShowDeviceInfo(showDeviceInfo === click.id ? null : click.id)} className="truncate hover:text-slate-200 cursor-pointer transition" title="Click to see device info">
+                    {showDeviceInfo === click.id ? getDeviceLabel(click) : <>📱</>}
+                  </button>
 
                   <div className="text-[11px] uppercase tracking-[0.32em] text-slate-500">Browser</div>
-                  <div className="truncate text-violet-300">{getBrowserLabel(click)}</div>
+                  <button onClick={() => setShowBrowserVersion(showBrowserVersion === click.id ? null : click.id)} className="truncate text-violet-300 hover:text-violet-200 cursor-pointer transition" title="Click to see version">
+                    {showBrowserVersion === click.id ? getBrowserVersion(click) : getBrowserLabel(click)}
+                  </button>
 
                   <div className="text-[11px] uppercase tracking-[0.32em] text-slate-500">Referrer</div>
                   <div className="truncate text-slate-400">
@@ -625,12 +658,14 @@ export default function ClickLogs({ filter }: ClickLogsProps) {
                   </div>
 
                   <div className="text-[11px] uppercase tracking-[0.32em] text-slate-500">Location</div>
-                  <div className="min-w-0">
-                    <div className="flex flex-col gap-0.5">
-                      <div className="flex items-center gap-1.5"><span>{getCountryFlag(click.country)}</span><span className="font-medium text-white/80">{getCountryLabel(click.country)}</span></div>
-                      <div className="text-[11px] text-white/25">{click.city ? `${decodeURIComponent(click.city)}, ${decodeURIComponent(click.region || '')}` : 'Unknown location'}</div>
+                  <button onClick={() => setShowGeoInfo(showGeoInfo === click.id ? null : click.id)} className="hover:opacity-70 cursor-pointer transition text-left" title="Click to see geo details">
+                    <div className="min-w-0">
+                      <div className="flex flex-col gap-0.5">
+                        <div className="flex items-center gap-1.5"><span>{getCountryFlag(click.country)}</span>{showGeoInfo === click.id && <span className="font-medium text-white/80">{getCountryLabel(click.country)}</span>}</div>
+                        {showGeoInfo === click.id && <div className="text-[11px] text-white/25">{click.city ? `${decodeURIComponent(click.city)}, ${decodeURIComponent(click.region || '')}` : 'Unknown location'}</div>}
+                      </div>
                     </div>
-                  </div>
+                  </button>
                 </div>
 
                 
@@ -655,14 +690,14 @@ export default function ClickLogs({ filter }: ClickLogsProps) {
                   )}
                 </button>
               </th>
-              <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider whitespace-nowrap text-slate-500">IP Address</th>
-              <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider whitespace-nowrap text-slate-500">Campaign</th>
-              <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider whitespace-nowrap text-slate-500">Location</th>
-              <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider whitespace-nowrap text-slate-500">Device</th>
-              <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider whitespace-nowrap text-slate-500">Browser</th>
-              <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider whitespace-nowrap text-slate-500">Referrer</th>
-              <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider whitespace-nowrap text-slate-500">Status</th>
-              <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider whitespace-nowrap text-slate-500">Actions</th>
+              <th className="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider whitespace-nowrap text-slate-500">IP Address</th>
+              <th className="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider whitespace-nowrap text-slate-500">Campaign</th>
+              <th className="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider whitespace-nowrap text-slate-500">Location</th>
+              <th className="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider whitespace-nowrap text-slate-500">Time</th>
+              <th className="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider whitespace-nowrap text-slate-500">Browser</th>
+              <th className="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider whitespace-nowrap text-slate-500">Referrer</th>
+              <th className="px-4 py-2 text-center text-xs font-medium uppercase tracking-wider whitespace-nowrap text-slate-500">Status</th>
+              <th className="px-4 py-2 text-center text-xs font-medium uppercase tracking-wider whitespace-nowrap text-slate-500">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-800/80">
@@ -687,32 +722,48 @@ export default function ClickLogs({ filter }: ClickLogsProps) {
                   className={`transition-all duration-200 ${click.isUnique ? 'hover:bg-slate-800/60' : 'bg-amber-500/5 hover:bg-amber-500/10'}`}
                   style={{ animationDelay: `${index * 50}ms` }}
                 >
-                  <td className="px-4 py-3 text-sm whitespace-nowrap text-slate-300">
-                    <div className="flex items-center gap-1">
-                      <Clock className="h-3 w-3 text-slate-500" />
-                      {formatDate(click.createdAt)}
+                  <td className="px-4 py-2 text-xs whitespace-nowrap text-slate-300">
+                    <div className="flex flex-col items-start gap-0">
+                      {(() => {
+                        const { date, time } = formatDateTwoLines(click.createdAt)
+                        return (
+                          <>
+                            <div className="flex items-center gap-1">
+                              <Clock className="h-2.5 w-2.5 text-slate-500" />
+                              <span>{date}</span>
+                            </div>
+                            <span className="text-[10px] text-slate-400">{time}</span>
+                          </>
+                        )
+                      })()}
                     </div>
                   </td>
-                  <td className="px-4 py-3 text-sm font-mono text-slate-400">{click.ipAddress}</td>
-                  <td className="px-4 py-3 text-sm text-slate-300">
-                    <div className="flex flex-col gap-0.5">
+                  <td className="px-4 py-2 text-sm font-mono text-slate-400">{click.ipAddress}</td>
+                  <td className="px-4 py-2 text-sm text-slate-300">
+                    <div className="flex flex-col gap-0">
                       <span className="font-medium text-cyan-300">{click.linkAccount.accountName}</span>
                       <span className="text-[11px] text-slate-500">/{click.linkAccount.slug}</span>
                     </div>
                   </td>
-                  <td className="px-4 py-3 text-sm text-slate-300">{getLocationSummary(click)}</td>
-                  <td className="px-4 py-3 text-sm text-slate-300">
-                    <div className="flex items-center gap-1">
+                  <td className="px-4 py-2 text-sm text-slate-300">
+                    <button onClick={() => setShowGeoInfo(showGeoInfo === click.id ? null : click.id)} className="hover:opacity-70 cursor-pointer transition" title="Click to see geo details">
+                      {getLocationSummary(click)}
+                    </button>
+                  </td>
+                  <td className="px-4 py-2 text-sm text-slate-300">
+                    <button onClick={() => setShowDeviceInfo(showDeviceInfo === click.id ? null : click.id)} className="flex items-center gap-1 hover:text-slate-200 cursor-pointer transition" title="Click to see device info">
                       {getDeviceIcon(click.deviceType)}
-                      <span className="truncate max-w-[140px]">{getDeviceLabel(click)}</span>
+                      {showDeviceInfo === click.id && <span className="truncate max-w-[140px]">{getDeviceLabel(click)}</span>}
+                    </button>
+                  </td>
+                  <td className="px-4 py-2 text-sm text-slate-300">
+                    <div className="flex items-center gap-0.5">
+                      <button onClick={() => setShowBrowserVersion(showBrowserVersion === click.id ? null : click.id)} className="truncate max-w-[140px] text-violet-300 hover:text-violet-200 cursor-pointer transition" title="Click to see version">
+                        {showBrowserVersion === click.id ? getBrowserVersion(click) : getBrowserLabel(click)}
+                      </button>
                     </div>
                   </td>
-                  <td className="px-4 py-3 text-sm text-slate-300">
-                    <div className="flex items-center gap-1">
-                      <span className="truncate max-w-[140px] text-violet-300">{getBrowserLabel(click)}</span>
-                    </div>
-                  </td>
-                  <td className="px-4 py-3 text-sm max-w-[150px] truncate text-cyan-200">
+                  <td className="px-4 py-2 text-sm max-w-[150px] truncate text-cyan-200">
                     {click.referrer ? (() => {
                       const referrerInfo = getReferrerInfo(click.referrer)
                       return (
@@ -733,20 +784,20 @@ export default function ClickLogs({ filter }: ClickLogsProps) {
                       <span className="text-slate-500">Direct</span>
                     )}
                   </td>
-                  <td className="px-4 py-3 text-center">
-                    <div className="flex flex-wrap items-center justify-center gap-1">
+                  <td className="px-4 py-2 text-center">
+                    <div className="flex flex-wrap items-center justify-center gap-0.5">
                       {click.isUnique ? (
-                        <span className="badge badge-success flex items-center gap-1">
-                          <CheckCircle className="w-3 h-3" /> Unique
+                        <span className="badge badge-success flex items-center gap-1" title="Unique">
+                          <CheckCircle className="w-3 h-3" />
                         </span>
                       ) : (
-                        <span className="badge badge-warning flex items-center gap-1">
-                          <XCircle className="w-3 h-3" /> Duplicate
+                        <span className="badge badge-warning flex items-center gap-1" title="Duplicate">
+                          <XCircle className="w-3 h-3" />
                         </span>
                       )}
                     </div>
                   </td>
-                  <td className="px-4 py-3 text-center">
+                  <td className="px-4 py-2 text-center">
                     <button
                       onClick={() => handleDeleteClick(click.id)}
                       className="p-1 text-slate-500 transition-all duration-200 hover:scale-110 hover:text-rose-400"
