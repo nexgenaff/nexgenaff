@@ -90,3 +90,25 @@ test('marks a click as duplicate when the same user-agent is seen again inside t
     true,
   )
 })
+
+test('treats the same IP as duplicate even after many days have passed', () => {
+  const now = new Date('2026-07-20T10:00:00Z')
+  const lastSeenAt = new Date('2026-07-13T09:55:00Z')
+
+  assert.equal(
+    isDuplicateClickEvent(
+      lastSeenAt,
+      now,
+      {
+        clickSignature: 'link:link_123|ip:1.2.3.4|ua:Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
+        ipAddress: '1.2.3.4',
+        userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) 2',
+        lastClickSignature: 'link:link_123|ip:1.2.3.4|ua:Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
+        lastIpAddress: '1.2.3.4',
+        lastUserAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
+      },
+      10 * 60 * 1000,
+    ),
+    true,
+  )
+})

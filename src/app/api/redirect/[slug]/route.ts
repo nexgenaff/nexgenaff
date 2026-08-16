@@ -332,20 +332,31 @@ export async function GET(
       // ── 6a. Re‑check duplicate under lock ──
       // CRITICAL: Check for duplicate by IP first (same IP = same visitor)
       // Then fall back to fingerprint/UA matching
+      const recentWindowStart = new Date(Date.now() - dedupeWindowMs);
+
       const existing = await tx.click.findFirst({
         where: {
           linkAccountId: link.id,
           OR: [
-            // Primary: same IP (most reliable indicator of same visitor)
-            ...(ip ? [{ ipAddress: ip }] : []),
-            // Secondary: exact fingerprint match
-            { clickSignature: clickFingerprint },
-            // Tertiary: same user agent
-            ...(userAgent ? [{ userAgent }] : []),
+            // Same IP must always count as the same visitor, even across days.
+            ...(ip && ip !== 'unknown' ? [{ ipAddress: ip }] : []),
+            // Exact fingerprint within the short dedupe window.
+            {
+              AND: [
+                { clickSignature: clickFingerprint },
+                { createdAt: { gte: recentWindowStart } },
+              ],
+            },
+            // Same user-agent within the short dedupe window.
+            ...(userAgent
+              ? [{
+                  AND: [
+                    { userAgent },
+                    { createdAt: { gte: recentWindowStart } },
+                  ],
+                }]
+              : []),
           ],
-          createdAt: {
-            gte: new Date(Date.now() - dedupeWindowMs),
-          },
         },
         orderBy: { createdAt: 'desc' },
         select: { createdAt: true, clickSignature: true, ipAddress: true, userAgent: true },

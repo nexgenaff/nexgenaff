@@ -479,17 +479,29 @@ export async function GET(
       await acquireDedupeLocks(tx, clickFingerprint, ip, userAgent);
 
       // ── 6a. Re-check duplicate under lock ──
+      const recentWindowStart = new Date(Date.now() - dedupeWindowMs);
+
       const existing = await tx.click.findFirst({
         where: {
           linkAccountId: link.id,
           OR: [
-            { clickSignature: clickFingerprint },
+            // Same IP must always count as the same visitor, even across days.
             ...(ip && ip !== 'unknown' ? [{ ipAddress: ip }] : []),
-            ...(userAgent ? [{ userAgent }] : []),
+            {
+              AND: [
+                { clickSignature: clickFingerprint },
+                { createdAt: { gte: recentWindowStart } },
+              ],
+            },
+            ...(userAgent
+              ? [{
+                  AND: [
+                    { userAgent },
+                    { createdAt: { gte: recentWindowStart } },
+                  ],
+                }]
+              : []),
           ],
-          createdAt: {
-            gte: new Date(Date.now() - dedupeWindowMs),
-          },
         },
         orderBy: { createdAt: 'desc' },
         select: { createdAt: true, clickSignature: true, ipAddress: true, userAgent: true },

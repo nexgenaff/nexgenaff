@@ -80,12 +80,7 @@ export function isDuplicateClickEvent(
   context: DuplicateClickContext,
   windowMs = CLICK_DEDUPE_WINDOW_MS,
 ): boolean {
-  if (!isDuplicateVisit(lastSeenAt, now, windowMs)) {
-    return false
-  }
-
-  // CRITICAL: IP address is the primary identifier for uniqueness
-  // Same IP = same visitor = NOT unique (even if fingerprint/UA differs)
+  // Same IP must always be treated as the same visitor, even if it happens days later.
   const sameIpAddress = Boolean(
     hasMeaningfulMatchValue(context.ipAddress) &&
       hasMeaningfulMatchValue(context.lastIpAddress) &&
@@ -96,7 +91,10 @@ export function isDuplicateClickEvent(
     return true
   }
 
-  // Secondary: exact fingerprint match (same IP + UA + browser combo)
+  if (!isDuplicateVisit(lastSeenAt, now, windowMs)) {
+    return false
+  }
+
   const sameClickSignature = Boolean(
     context.clickSignature &&
       context.lastClickSignature &&
@@ -107,7 +105,6 @@ export function isDuplicateClickEvent(
     return true
   }
 
-  // Tertiary: same user agent (weak signal, requires other matching factors)
   const sameUserAgent = Boolean(
     hasMeaningfulMatchValue(context.userAgent) &&
       hasMeaningfulMatchValue(context.lastUserAgent) &&
