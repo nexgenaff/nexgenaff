@@ -12,6 +12,25 @@ import {
 import { getCorsHeaders } from '@/config/cors';
 import { z } from 'zod';
 
+// Blocked/dangerous domains and patterns
+const BLOCKED_DOMAINS = new Set([
+  'localhost',
+  '127.0.0.1',
+  '0.0.0.0',
+  '::1',
+  'example.com',
+  'example.org',
+]);
+
+const BLOCKED_DOMAIN_PATTERNS = [
+  /^192\.168\./, // Private network
+  /^10\./, // Private network
+  /^172\.(1[6-9]|2[0-9]|3[01])\./, // Private network
+  /^169\.254\./, // Link-local
+  /^127\./, // Loopback
+  /^255\./, // Broadcast
+];
+
 const domainSchema = z.object({
   domain: z
     .string()
@@ -28,6 +47,22 @@ const domainSchema = z.object({
   return labels.length >= 2
 }, {
   message: 'Please enter a valid domain (example.com or track.example.com).',
+  path: ['domain'],
+}).refine((result) => {
+  // Reject blocked domains
+  const domain = result.domain.toLowerCase();
+  if (BLOCKED_DOMAINS.has(domain)) {
+    return false;
+  }
+  
+  // Reject blocked patterns (IPs)
+  if (BLOCKED_DOMAIN_PATTERNS.some(pattern => pattern.test(domain))) {
+    return false;
+  }
+  
+  return true;
+}, {
+  message: 'This domain is not allowed for security reasons',
   path: ['domain'],
 });
 
