@@ -73,6 +73,12 @@ const getDateRange = (period: Period, filters: DashboardFilters = {}): DateRange
 
     const diffDays = Math.max(0, Math.floor((endDate.getTime() - startDate.getTime()) / 86400000));
 
+    // Prevent unbounded date ranges
+    const MAX_DATE_RANGE_DAYS = 1825; // ~5 years
+    if (diffDays > MAX_DATE_RANGE_DAYS) {
+      throw new Error(`Date range cannot exceed ${MAX_DATE_RANGE_DAYS} days (~5 years). Requested ${diffDays} days.`);
+    }
+
     if (groupByWeekly) {
       bucketCount = Math.max(1, Math.ceil((diffDays + 1) / 7));
       labels = Array.from({ length: bucketCount }, (_, i) => {

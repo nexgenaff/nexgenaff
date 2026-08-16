@@ -26,6 +26,11 @@ export function useAuth(): UseAuthReturn {
         const data = await response.json()
         setUser(data)
         setIsAuthenticated(true)
+      } else if (response.status === 401) {
+        // Token expired or invalid - clear auth state and cookie
+        document.cookie = 'auth-token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC'
+        setUser(null)
+        setIsAuthenticated(false)
       } else {
         setUser(null)
         setIsAuthenticated(false)
