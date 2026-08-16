@@ -254,7 +254,7 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#07090e] text-center">
+      <div className="flex min-h-screen items-center justify-center bg-white text-center">
         <div className="flex flex-col items-center justify-center gap-8">
           <motion.div
             animate={{ scale: [1, 1.05, 1] }}
@@ -312,16 +312,16 @@ export default function DashboardPage() {
 
   return (
     // ─── Main container with overflow protection ───
-    <div className="min-h-screen bg-[#07090e] text-slate-100 selection:bg-indigo-500 selection:text-white pb-20 overflow-x-hidden w-full max-w-full">
+    <div className="min-h-screen bg-white text-slate-900 selection:bg-indigo-500 selection:text-white pb-20 overflow-x-hidden w-full max-w-full">
       {/* Background Grid Texture */}
       <div className="fixed inset-0 pointer-events-none z-0">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(99,102,241,0.06),rgba(255,255,255,0))]" />
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#1e293b12_1px,transparent_1px),linear-gradient(to_bottom,#1e293b12_1px,transparent_1px)] bg-[size:3rem_3rem]" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(99,102,241,0.03),rgba(255,255,255,0))]" />
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#e5e7eb12_1px,transparent_1px),linear-gradient(to_bottom,#e5e7eb12_1px,transparent_1px)] bg-[size:3rem_3rem]" />
       </div>
 
       <div className="relative z-10 mx-auto w-full max-w-[1280px] px-2 pt-4 sm:px-3 sm:pt-6 lg:px-3">
         {/* ─── Header ─── */}
-        <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-[#0d111a]/95 rounded-2xl p-4 sm:p-5 backdrop-blur-md shadow-xl mb-4 sm:mb-6">
+        <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white/95 border border-gray-200 rounded-2xl p-4 sm:p-5 backdrop-blur-md shadow-sm mb-4 sm:mb-6">
           <div className="flex items-center gap-3">
             <div className="flex-shrink-0">
               <Image

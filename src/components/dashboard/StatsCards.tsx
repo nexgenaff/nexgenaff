@@ -103,7 +103,7 @@ export default function StatsCards({
         />
       </div>
 
-      <div className="w-full bg-slate-950/70 p-0">
+      <div className="w-full bg-white p-0">
         <div className="mb-4 flex flex-col gap-4 sm:mb-5 sm:flex-row sm:items-center sm:justify-between px-4 sm:px-6 pt-4">
           <div>
             <p className="text-[10px] font-semibold uppercase tracking-[0.32em] text-sky-300">Performance</p>
@@ -146,10 +146,10 @@ export default function StatsCards({
         />
 
         <div className="mt-4 grid grid-cols-1 gap-4 lg:mt-5 lg:grid-cols-[1.15fr_0.85fr]">
-          <div className="w-full bg-slate-950/70 p-4">
+          <div className="w-full bg-white p-4 border border-gray-200 rounded-lg">
             <div className="mb-3 flex items-center justify-between">
-              <h4 className="text-sm font-medium text-sky-200">Hourly distribution</h4>
-              <span className="text-[11px] uppercase tracking-[0.24em] text-slate-400">24h</span>
+              <h4 className="text-sm font-medium text-sky-700">Hourly distribution</h4>
+              <span className="text-[11px] uppercase tracking-[0.24em] text-gray-600">24h</span>
             </div>
             <Chart
               data={hourlyData}
@@ -164,30 +164,30 @@ export default function StatsCards({
             />
           </div>
 
-          <div className="w-full bg-slate-950/70 p-4">
+          <div className="w-full bg-white p-4 border border-gray-200 rounded-lg">
             <div className="mb-3 flex items-center justify-between">
-              <h4 className="text-sm font-medium text-indigo-200">Top countries</h4>
+              <h4 className="text-sm font-medium text-indigo-700">Top countries</h4>
             </div>
 
             <div className="space-y-2.5">
               {countryHighlights.length === 0 ? (
-                <p className="text-sm text-slate-400">No geo-click series available yet.</p>
+                <p className="text-sm text-gray-600">No geo-click series available yet.</p>
               ) : (
                 <div className="flex flex-col gap-2">
                   {countryHighlights.map((country, idx) => {
                     const colorClass = flagColors[idx % flagColors.length]
                     return (
-                      <div key={country.country} className="rounded-xl border border-slate-800/80 bg-slate-900/70 p-3 flex items-center justify-between">
+                      <div key={country.country} className="rounded-xl border border-gray-200 bg-gray-50 p-3 flex items-center justify-between">
                         <div className="flex items-center gap-3">
                           <div className={`w-8 h-8 rounded-full flex items-center justify-center ring-1 ${colorClass}`}>
                             {getCountryFlag(country.country)}
                           </div>
                           <div className="flex flex-col">
-                            <span className="text-sm font-medium text-slate-100">{country.country}</span>
-                            <span className="text-xs text-slate-400">{country.uniqueClicks} unique</span>
+                            <span className="text-sm font-medium text-slate-900">{country.country}</span>
+                            <span className="text-xs text-gray-600">{country.uniqueClicks} unique</span>
                           </div>
                         </div>
-                        <div className="text-sm font-semibold text-slate-50">{country.clicks} total</div>
+                        <div className="text-sm font-semibold text-slate-900">{country.clicks} total</div>
                       </div>
                     )
                   })}

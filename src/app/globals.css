@@ -6,8 +6,8 @@
    THEME VARIABLES (light / dark)
    ────────────────────────────────────────────── */
 :root {
-  /* Full page background (full black) */
-  --page-bg: #000000;
+  /* Full page background (light white) */
+  --page-bg: #FFFFFF;
   /* ─── Primary Palette ─── */
   --primary-50: #F5F3FF;
   --primary-100: #EDE9FE;
@@ -31,16 +31,16 @@
   --danger: #EF4444;
 
   /* ─── Surface ─── */
-  --surface-bg: #02030a;
-  --surface-card: rgba(14, 14, 26, 0.8);
-  --surface-elevated: #16162A;
-  --surface-border: rgba(255, 255, 255, 0.08);
+  --surface-bg: #F8FAFC;
+  --surface-card: rgba(255, 255, 255, 0.95);
+  --surface-elevated: #FFFFFF;
+  --surface-border: rgba(0, 0, 0, 0.08);
 
   /* ─── Text ─── */
-  --text-primary: #FFFFFF;
-  --text-secondary: rgba(255, 255, 255, 0.7);
-  --text-muted: rgba(255, 255, 255, 0.3);
-  --text-inverse: #02030a;
+  --text-primary: #0A0A0A;
+  --text-secondary: rgba(0, 0, 0, 0.7);
+  --text-muted: rgba(0, 0, 0, 0.4);
+  --text-inverse: #FFFFFF;
 
   /* ─── Shadows ─── */
   --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);

@@ -678,15 +678,15 @@ export default function LinksPage() {
       )}
 
       {/* ===== HEADER ===== */}
-      <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-5 sm:p-6">
+      <div className="rounded-xl border border-gray-200 bg-white p-5 sm:p-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <div className="flex items-center gap-2 text-indigo-400">
+            <div className="flex items-center gap-2 text-indigo-600">
               <Sparkles className="h-4 w-4" />
               <span className="text-xs font-medium uppercase tracking-wider">Link Control Center</span>
             </div>
-            <h1 className="mt-1 text-2xl font-bold text-white">All Link Accounts</h1>
-            <p className="mt-0.5 text-sm text-slate-400">
+            <h1 className="mt-1 text-2xl font-bold text-slate-900">All Link Accounts</h1>
+            <p className="mt-0.5 text-sm text-slate-600">
               Monitor and manage every smart tracking link from one workspace.
             </p>
           </div>
