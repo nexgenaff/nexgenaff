@@ -258,7 +258,24 @@ export default function AnalyticsPage() {
   const reportRows = report?.accountBreakdown ?? [];
 
   const MAX_COLUMNS = isMobile ? 8 : 12;
-  const visibleLabels = isMobile ? reportLabels.slice(0, 4) : reportLabels;
+  
+  // Mobile: prioritize major geo countries, then show others
+  const visibleLabels = useMemo(() => {
+    if (!isMobile) return reportLabels;
+    
+    const priorityCountries = ['US', 'GB', 'CA', 'AU'];
+    const maxCountries = MAX_COLUMNS - 1; // -1 for Account column
+    
+    // Start with priority countries that exist in the data
+    const priorityVisible = priorityCountries.filter(c => reportLabels.includes(c));
+    
+    // Add remaining countries that aren't in priority list
+    const otherCountries = reportLabels.filter(c => !priorityCountries.includes(c));
+    
+    // Combine: priority first, then others, up to maxCountries
+    return [...priorityVisible, ...otherCountries].slice(0, maxCountries);
+  }, [isMobile, reportLabels, MAX_COLUMNS]);
+
   const blankColumns = Math.max(0, MAX_COLUMNS - 1 - visibleLabels.length);
 
   const totals = useMemo(() => {
