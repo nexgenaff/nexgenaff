@@ -605,70 +605,71 @@ export default function ClickLogs({ filter }: ClickLogsProps) {
             return (
               <div
                 key={click.id}
-                className={`rounded-[20px] bg-slate-950/70 p-3 shadow-sm ${click.isUnique ? '' : 'bg-amber-500/5'}`}
+                className={`rounded-lg bg-slate-950/70 p-2 shadow-sm ${click.isUnique ? '' : 'bg-amber-500/5'}`}
               >
-                <div className="flex items-start justify-between gap-3">
+                <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">
-                    <div className="text-[10px] uppercase tracking-[0.32em] text-slate-500">Time</div>
-                    <div className="flex flex-col gap-0.5">
+                    <div className="text-[9px] uppercase tracking-[0.24em] text-slate-500">Time</div>
+                    <div className="flex flex-col gap-0">
                       {(() => {
                         const { date, time } = formatDateTwoLines(click.createdAt)
                         return (
                           <>
-                            <div className="text-xs font-semibold text-emerald-400">{date}</div>
-                            <div className="text-[10px] text-slate-400">{time}</div>
+                            <div className="text-[11px] font-semibold text-emerald-400">{date}</div>
+                            <div className="text-[9px] text-slate-400">{time}</div>
                           </>
                         )
                       })()}
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span className="shrink-0 rounded-full bg-slate-900/80 px-3 py-1 text-[10px] uppercase tracking-[0.32em] text-slate-300">
-                      {click.isUnique ? 'Unique' : 'Duplicate'}
+                  <div className="flex items-center gap-1">
+                    <span className="shrink-0 rounded-full bg-slate-900/80 px-2 py-0.5 text-[9px] uppercase tracking-[0.24em] text-slate-300">
+                      {click.isUnique ? 'Unique' : 'Dup'}
                     </span>
                     <button
                       onClick={() => handleDeleteClick(click.id)}
-                      className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-rose-500/10 text-rose-200 transition hover:bg-rose-500/20"
+                      className="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-rose-500/10 text-rose-200 transition hover:bg-rose-500/20"
                     >
-                      <Trash2 className="w-4 h-4" />
+                      <Trash2 className="w-3 h-3" />
                     </button>
                   </div>
                 </div>
 
-                <div className="mt-3 grid grid-cols-[88px_minmax(0,1fr)] gap-x-3 gap-y-1.5 text-sm leading-5 text-slate-300">
-                  <div className="text-[11px] uppercase tracking-[0.32em] text-slate-500">IP</div>
-                  <div className="truncate font-medium text-slate-100">{click.ipAddress}</div>
-
-                  <div className="text-[11px] uppercase tracking-[0.32em] text-slate-500">Campaign</div>
-                  <div className="truncate text-cyan-300">{click.linkAccount.accountName}/{click.linkAccount.slug}</div>
-
-                  <div className="text-[11px] uppercase tracking-[0.32em] text-slate-500">Device</div>
-                  <button onClick={() => setShowDeviceInfo(showDeviceInfo === click.id ? null : click.id)} className="truncate hover:text-slate-200 cursor-pointer transition" title="Click to see device info">
-                    {showDeviceInfo === click.id ? getDeviceLabel(click) : <>📱</>}
-                  </button>
-
-                  <div className="text-[11px] uppercase tracking-[0.32em] text-slate-500">Browser</div>
-                  <button onClick={() => setShowBrowserVersion(showBrowserVersion === click.id ? null : click.id)} className="truncate text-violet-300 hover:text-violet-200 cursor-pointer transition" title="Click to see version">
-                    {showBrowserVersion === click.id ? getBrowserVersion(click) : getBrowserLabel(click)}
-                  </button>
-
-                  <div className="text-[11px] uppercase tracking-[0.32em] text-slate-500">Referrer</div>
-                  <div className="truncate text-slate-400">
-                    {click.referrer ? referrerInfo.hostname : 'Direct'}
+                <div className="mt-2 space-y-1 text-xs text-slate-300">
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">IP:</span>
+                    <span className="font-medium text-slate-100">{click.ipAddress}</span>
                   </div>
-
-                  <div className="text-[11px] uppercase tracking-[0.32em] text-slate-500">Location</div>
-                  <button onClick={() => setShowGeoInfo(showGeoInfo === click.id ? null : click.id)} className="hover:opacity-70 cursor-pointer transition text-left" title="Click to see geo details">
-                    <div className="min-w-0">
-                      <div className="flex flex-col gap-0.5">
-                        <div className="flex items-center gap-1.5"><span>{getCountryFlag(click.country)}</span>{showGeoInfo === click.id && <span className="font-medium text-white/80">{getCountryLabel(click.country)}</span>}</div>
-                        {showGeoInfo === click.id && <div className="text-[11px] text-white/25">{click.city ? `${decodeURIComponent(click.city)}, ${decodeURIComponent(click.region || '')}` : 'Unknown location'}</div>}
-                      </div>
-                    </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">Campaign:</span>
+                    <span className="truncate text-cyan-300">{click.linkAccount.slug}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">Device:</span>
+                    <button onClick={() => setShowDeviceInfo(showDeviceInfo === click.id ? null : click.id)} className="truncate text-slate-300 hover:text-slate-200 cursor-pointer transition" title="More details">
+                      {getDeviceLabel(click)}
+                    </button>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">Browser:</span>
+                    <button onClick={() => setShowBrowserVersion(showBrowserVersion === click.id ? null : click.id)} className="text-violet-300 hover:text-violet-200 cursor-pointer transition" title="More details">
+                      {showBrowserVersion === click.id ? getBrowserVersion(click) : getBrowserLabel(click)}
+                    </button>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">Referrer:</span>
+                    <span className="truncate text-slate-400">
+                      {click.referrer ? referrerInfo.hostname : 'Direct'}
+                    </span>
+                  </div>
+                  <button onClick={() => setShowGeoInfo(showGeoInfo === click.id ? null : click.id)} className="flex justify-between w-full text-slate-300 hover:text-slate-200 cursor-pointer transition" title="More details">
+                    <span className="text-slate-500">Location:</span>
+                    <span className="flex items-center gap-1">
+                      {getCountryFlag(click.country)}
+                      {showGeoInfo === click.id && <span className="text-white/80">{getCountryLabel(click.country)}</span>}
+                    </span>
                   </button>
                 </div>
-
-                
               </div>
             )
           })
@@ -751,9 +752,9 @@ export default function ClickLogs({ filter }: ClickLogsProps) {
                     </button>
                   </td>
                   <td className="px-4 py-2 text-sm text-slate-300">
-                    <button onClick={() => setShowDeviceInfo(showDeviceInfo === click.id ? null : click.id)} className="flex items-center gap-1 hover:text-slate-200 cursor-pointer transition" title="Click to see device info">
+                    <button onClick={() => setShowDeviceInfo(showDeviceInfo === click.id ? null : click.id)} className="flex items-center gap-1 hover:text-slate-200 cursor-pointer transition" title="Click for more details">
                       {getDeviceIcon(click.deviceType)}
-                      {showDeviceInfo === click.id && <span className="truncate max-w-[140px]">{getDeviceLabel(click)}</span>}
+                      <span className="truncate max-w-[140px]">{getDeviceLabel(click)}</span>
                     </button>
                   </td>
                   <td className="px-4 py-2 text-sm text-slate-300">
