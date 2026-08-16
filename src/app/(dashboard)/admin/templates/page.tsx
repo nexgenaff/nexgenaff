@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { Plus, Trash2, Edit2, Check, X, ArrowLeft } from 'lucide-react'
+import AfficixoLoading from '@/components/ui/AfficixoLoading'
 
 interface Template {
   id: string
