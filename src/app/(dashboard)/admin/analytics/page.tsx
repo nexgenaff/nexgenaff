@@ -598,6 +598,15 @@ export default function AnalyticsPage() {
                       ))}
                     </tr>
                   )}
+                  {/* Blank rows to fill space */}
+                  {Array.from({ length: 8 }).map((_, i) => (
+                    <tr key={`blank-${i}`} className="border-b border-slate-800/20 hover:bg-slate-900/20">
+                      <td className="px-2.5 py-1.5 border-r border-slate-700/30"></td>
+                      {reportLabels.map((country) => (
+                        <td key={`blank-${i}-${country}`} className="px-2 py-1.5 border-r border-slate-700/30 last:border-r-0"></td>
+                      ))}
+                    </tr>
+                  ))}
                 </tbody>
               </table>
             </div>
