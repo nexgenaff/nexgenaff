@@ -526,79 +526,103 @@ export default function AnalyticsPage() {
 
           {/* ===== TABLE ===== */}
           {report?.datasets?.length ? (
-            <div className="overflow-x-auto">
-              <table className="min-w-full border-collapse text-left text-sm text-slate-300">
-                <thead className="bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-pink-500/10 text-[11px] uppercase tracking-[0.24em] text-slate-400">
-                  <tr>
-                    <th
-                      className="border-b border-white/10 px-4 py-3 font-semibold text-slate-300 cursor-pointer hover:text-white transition-colors"
-                      onClick={() => requestSort("accountName")}
-                    >
-                      <div className="flex items-center gap-1">
-                        Account
-                        {sortConfig?.key === "accountName" && (
-                          <span className="text-indigo-400">{sortConfig.direction === "ascending" ? "↑" : "↓"}</span>
-                        )}
-                      </div>
-                    </th>
-                    {reportLabels.map((country) => (
+            <div className="rounded-xl border border-white/10 bg-gradient-to-br from-slate-900/40 via-slate-800/30 to-slate-900/40 overflow-hidden backdrop-blur-sm shadow-lg">
+              <div className="overflow-x-auto">
+                <table className="min-w-full border-collapse text-left text-sm">
+                  <thead className="bg-gradient-to-r from-indigo-600/20 via-purple-600/20 to-pink-600/20 backdrop-blur-sm sticky top-0 z-10">
+                    <tr>
                       <th
-                        key={country}
-                        className="border-b border-white/10 px-3 py-3 font-semibold text-slate-400 cursor-pointer hover:text-white transition-colors"
-                        onClick={() => requestSort(country)}
+                        className="border-b border-white/10 px-5 py-4 font-semibold text-slate-200 cursor-pointer hover:text-white transition-colors"
+                        onClick={() => requestSort("accountName")}
                       >
-                        <div className="flex items-center gap-1">
-                          {country}
-                          {sortConfig?.key === country && (
-                            <span className="text-indigo-400">{sortConfig.direction === "ascending" ? "↑" : "↓"}</span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs uppercase tracking-wider text-slate-400">Account</span>
+                          {sortConfig?.key === "accountName" && (
+                            <span className="text-indigo-400 text-xs">{sortConfig.direction === "ascending" ? "↑" : "↓"}</span>
                           )}
                         </div>
                       </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {sortedRows.map((account, index) => (
-                    <tr
-                      key={account.accountName}
-                      className={`border-b border-white/5 ${index % 2 === 0 ? "bg-white/5" : "bg-white/[0.02]"}`}
-                    >
-                      <td className="whitespace-nowrap px-4 py-3 font-medium text-white">
-                        {account.accountName}
-                      </td>
-                      {reportLabels.map((country) => {
-                        const countryValue = account.countries.find((item) => item.country === country);
-                        return (
-                          <td key={`${account.accountName}-${country}`} className="px-3 py-3">
-                            {countryValue ? (
-                              <span className="inline-flex min-w-[54px] items-center justify-center rounded-md border border-white/10 bg-white/5 px-2.5 py-1 text-sm font-semibold text-white backdrop-blur-sm hover:bg-white/10 transition-colors">
-                                {countryValue.uniqueClicks}
-                              </span>
-                            ) : (
-                              <span className="inline-flex min-w-[54px] items-center justify-center rounded-md border border-white/5 bg-white/[0.02] px-2.5 py-1 text-sm text-slate-500">
-                                —
-                              </span>
+                      {reportLabels.map((country) => (
+                        <th
+                          key={country}
+                          className="border-b border-white/10 px-4 py-4 font-semibold text-slate-300 cursor-pointer hover:text-white transition-colors"
+                          onClick={() => requestSort(country)}
+                        >
+                          <div className="flex items-center gap-2 justify-center">
+                            <span className="text-xs uppercase tracking-wider text-slate-400">{country}</span>
+                            {sortConfig?.key === country && (
+                              <span className="text-indigo-400 text-xs">{sortConfig.direction === "ascending" ? "↑" : "↓"}</span>
                             )}
-                          </td>
-                        );
-                      })}
-                    </tr>
-                  ))}
-                  {/* Totals row */}
-                  {totals.some((t) => t > 0) && (
-                    <tr className="border-t-2 border-white/20 bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-pink-500/10 font-semibold">
-                      <td className="px-4 py-3 text-white">TOTAL</td>
-                      {totals.map((total, idx) => (
-                        <td key={`total-${idx}`} className="px-3 py-3 text-white">
-                          <span className="inline-flex min-w-[54px] items-center justify-center rounded-md bg-gradient-to-r from-indigo-500/30 to-purple-500/30 px-2.5 py-1 text-sm font-bold text-indigo-200">
-                            {total}
-                          </span>
-                        </td>
+                          </div>
+                        </th>
                       ))}
                     </tr>
-                  )}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {sortedRows.map((account, index) => (
+                      <tr
+                        key={account.accountName}
+                        className={`border-b border-white/5 transition-all hover:bg-white/8 ${
+                          index % 2 === 0 ? "bg-white/[0.02]" : "bg-white/[0.04]"
+                        }`}
+                      >
+                        <td className="whitespace-nowrap px-5 py-4 font-semibold text-white">
+                          <div className="flex items-center gap-3">
+                            <div className="w-2 h-2 rounded-full bg-gradient-to-r from-indigo-400 to-purple-400"></div>
+                            <span className="text-sm font-medium">{account.accountName}</span>
+                          </div>
+                        </td>
+                        {reportLabels.map((country) => {
+                          const countryValue = account.countries.find((item) => item.country === country);
+                          const maxValue = Math.max(...totals);
+                          const barWidth = countryValue ? Math.round((countryValue.uniqueClicks / Math.max(maxValue, 1)) * 100) : 0;
+                          return (
+                            <td key={`${account.accountName}-${country}`} className="px-4 py-4">
+                              <div className="flex flex-col items-center gap-2 min-h-[52px] justify-center">
+                                {countryValue ? (
+                                  <>
+                                    <div className="w-full max-w-[80px] h-1.5 rounded-full bg-white/5 overflow-hidden border border-white/10">
+                                      <div
+                                        className="h-full bg-gradient-to-r from-indigo-400 to-purple-400 rounded-full transition-all duration-300"
+                                        style={{ width: `${barWidth}%` }}
+                                      />
+                                    </div>
+                                    <span className="inline-flex items-center justify-center rounded-lg border border-indigo-400/30 bg-gradient-to-br from-indigo-500/20 to-purple-500/20 px-3 py-1 text-xs font-bold text-indigo-300 backdrop-blur-sm shadow-lg shadow-indigo-500/10">
+                                      {countryValue.uniqueClicks}
+                                    </span>
+                                  </>
+                                ) : (
+                                  <span className="text-xs text-slate-500 font-medium">—</span>
+                                )}
+                              </div>
+                            </td>
+                          );
+                        })}
+                      </tr>
+                    ))}
+                    {/* Totals row */}
+                    {totals.some((t) => t > 0) && (
+                      <tr className="border-t-2 border-indigo-500/30 bg-gradient-to-r from-indigo-600/15 via-purple-600/15 to-pink-600/15 backdrop-blur-sm font-semibold">
+                        <td className="px-5 py-4 text-white">
+                          <div className="flex items-center gap-3">
+                            <div className="w-2 h-2 rounded-full bg-gradient-to-r from-indigo-300 to-purple-300"></div>
+                            <span className="text-sm font-bold">TOTAL</span>
+                          </div>
+                        </td>
+                        {totals.map((total, idx) => (
+                          <td key={`total-${idx}`} className="px-4 py-4">
+                            <div className="flex justify-center">
+                              <span className="inline-flex items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500/30 to-purple-500/30 border border-indigo-400/40 px-4 py-2 text-sm font-bold text-indigo-100 backdrop-blur-sm shadow-lg shadow-indigo-500/20">
+                                {total}
+                              </span>
+                            </div>
+                          </td>
+                        ))}
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
             </div>
           ) : null}
         </div>
