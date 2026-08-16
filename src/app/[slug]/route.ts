@@ -10,6 +10,7 @@ import { buildRedirectTargetUrl } from '@/lib/utils/redirect';
 import { parseVisitorProfile } from '@/lib/utils/visitor-profile';
 import { getOfferSelectionUserIds, getOwnerUserId } from '@/lib/auth';
 import { selectOffer as selectOfferFromVault } from '@/lib/utils/offer-selection';
+import { getCorsHeaders, isOriginAllowed } from '@/config/cors';
 
 const normalizeGroupName = (value?: string | null) => value?.trim() ?? '';
 
@@ -572,10 +573,15 @@ export async function GET(
 // 8. CORS preflight
 // ────────────────────────────────────────────────────────────────
 export async function OPTIONS(request: NextRequest) {
-  const origin = request.headers.get('origin') || '*';
+  const origin = request.headers.get('origin') || null;
+  const corsHeaders = getCorsHeaders(origin);
   const response = new NextResponse(null, { status: 204 });
-  response.headers.set('Access-Control-Allow-Origin', origin);
-  response.headers.set('Access-Control-Allow-Credentials', 'true');
+  
+  // Set CORS headers
+  Object.entries(corsHeaders).forEach(([key, value]) => {
+    response.headers.set(key, value);
+  });
+  
   response.headers.set('Access-Control-Allow-Methods', 'GET, OPTIONS');
   response.headers.set(
     'Access-Control-Allow-Headers',

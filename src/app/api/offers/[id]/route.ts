@@ -1,8 +1,8 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { prisma } from '@/lib/db/prisma'
-import { getUserFromToken, getTokenFromCookie, isAdmin, isOwner, getOwnerUserId, getEffectiveOfferUserId } from '@/lib/auth'
-import { createUserSafe } from '@/lib/db/user'
+import { getUserFromToken, getTokenFromCookie, isAdmin, isOwner, isManager, getOwnerUserId } from '@/lib/auth'
 import bcrypt from 'bcryptjs'
+import { randomBytes } from 'crypto'
 import { getCorsHeaders } from '@/config/cors'
 
 export async function PUT(
@@ -42,36 +42,38 @@ export async function PUT(
 
     const offer = await prisma.offerVault.findUnique({ where: { id } })
 
-    // Resolve DB-backed user id for ownership checks (handles `local-` tokens)
-    const ownerUserId = await getOwnerUserId()
-    let finalUserId: string = user.id
-
-    if (typeof finalUserId === 'string' && finalUserId.startsWith('local-')) {
-      const username = finalUserId.replace(/^local-/, '')
-      const existing = await prisma.user.findUnique({ where: { username }, select: { id: true } })
-      if (existing?.id) {
-        finalUserId = existing.id
-      } else if (ownerUserId) {
-        finalUserId = ownerUserId
-      } else {
-        const hashed = await bcrypt.hash(Math.random().toString(36).slice(2), 10)
-        const created = await createUserSafe({
-          username,
-          email: `${username}@example.com`,
-          password: hashed,
-          role: 'ADMIN',
-        } as any)
-        finalUserId = created.id
-      }
-    } else {
-      finalUserId = await getEffectiveOfferUserId(user.id)
-    }
-
-    if (!offer || (!isOwner(user) && offer.userId !== finalUserId)) {
+    if (!offer) {
       return NextResponse.json(
         { error: 'Offer not found' },
         { status: 404, headers: getCorsHeaders(origin) }
       )
+    }
+
+    // Verify ownership based on user role
+    if (!isOwner(user) && !isAdmin(user)) {
+      // Additional check for other roles (like managers)
+      if (!isManager(user)) {
+        return NextResponse.json(
+          { error: 'Forbidden' },
+          { status: 403, headers: getCorsHeaders(origin) }
+        )
+      }
+
+      // Managers can only manage owner's offers
+      try {
+        const managerOwnerId = await getOwnerUserId(user.id)
+        if (!managerOwnerId || offer.userId !== managerOwnerId) {
+          return NextResponse.json(
+            { error: 'Forbidden' },
+            { status: 403, headers: getCorsHeaders(origin) }
+          )
+        }
+      } catch {
+        return NextResponse.json(
+          { error: 'Authorization check failed' },
+          { status: 403, headers: getCorsHeaders(origin) }
+        )
+      }
     }
 
     const nextCountry = Boolean(isGlobal) || Boolean(isContentLocker)

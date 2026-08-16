@@ -3,7 +3,6 @@ export const corsConfig = {
     'http://localhost:3000',
     'https://*.vercel.app',
     'https://*.yourdomain.com',
-    '*',
   ],
   allowedMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
   allowedHeaders: [
@@ -21,13 +20,26 @@ export const corsConfig = {
   maxAge: 86400,
 }
 
+export function isOriginAllowed(origin: string): boolean {
+  // Check exact matches
+  if (corsConfig.allowedOrigins.includes(origin)) {
+    return true
+  }
+
+  // Check wildcard patterns
+  return corsConfig.allowedOrigins.some(allowed => {
+    if (!allowed.includes('*')) return false
+    const pattern = allowed.replace(/\*/g, '.*')
+    const regex = new RegExp(`^${pattern}$`)
+    return regex.test(origin)
+  })
+}
+
 export function getCorsHeaders(origin?: string | null): Record<string, string> {
-  const isAllowed = corsConfig.allowedOrigins.includes('*') ||
-    (origin && corsConfig.allowedOrigins.includes(origin)) ||
-    (origin && corsConfig.allowedOrigins.some(o => o.includes('*') && origin.includes(o.replace('*', ''))))
+  const isAllowed = origin && isOriginAllowed(origin)
 
   return {
-    'Access-Control-Allow-Origin': isAllowed ? (origin || '*') : 'null',
+    'Access-Control-Allow-Origin': isAllowed ? origin : 'null',
     'Access-Control-Allow-Credentials': String(corsConfig.credentials),
     'Access-Control-Allow-Methods': corsConfig.allowedMethods.join(', '),
     'Access-Control-Allow-Headers': corsConfig.allowedHeaders.join(', '),

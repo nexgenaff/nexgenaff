@@ -1,11 +1,15 @@
 import jwt from 'jsonwebtoken'
 import bcrypt from 'bcryptjs'
+import { randomBytes } from 'crypto'
 import { prisma } from '@/lib/db/prisma'
 import { createUserSafe } from '@/lib/db/user'
 import { OWNER_USERNAME, OWNER_PASSWORD } from '@/lib/constants'
 import type { UserRole } from '@/types'
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-this-in-production'
+const JWT_SECRET = process.env.JWT_SECRET
+if (!JWT_SECRET) {
+  throw new Error('JWT_SECRET environment variable is required for security')
+}
 const JWT_EXPIRY = parseInt(process.env.JWT_EXPIRY || '86400')
 
 export type AccountStatus = 'PENDING' | 'ACTIVE' | 'DISABLED' | 'REJECTED'
@@ -83,7 +87,8 @@ export async function resolveUserIdForRecord(
       return ownerUserId
     }
 
-    const hashed = await bcrypt.hash(Math.random().toString(36).slice(2), 10)
+    const securePassword = randomBytes(32).toString('hex')
+    const hashed = await bcrypt.hash(securePassword, 10)
     const created = await createUserSafe({
       username,
       email: `${username}@example.com`,

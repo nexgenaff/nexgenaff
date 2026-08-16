@@ -46,12 +46,16 @@ export async function POST(request: Request) {
       )
     }
 
-    const existingUsers = await prisma.$queryRaw<Array<{ id: string }>>`
-      SELECT id
-      FROM users
-      WHERE username = ${username} OR email = ${email}
-      LIMIT 1
-    `
+    const existingUsers = await prisma.user.findMany({
+      where: {
+        OR: [
+          { username },
+          { email }
+        ]
+      },
+      select: { id: true },
+      take: 1
+    })
 
     if (existingUsers.length > 0) {
       return NextResponse.json(

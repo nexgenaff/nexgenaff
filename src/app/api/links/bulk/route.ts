@@ -55,13 +55,42 @@ export async function POST(request: Request) {
       )
     }
 
-    const matchingLinks = await prisma.linkAccount.findMany({
-      where: isOwner(user)
-        ? { id: { in: ids } }
-        : {
+    // Build query based on user role
+    let whereClause: any = { id: { in: ids } }
+
+    if (!isOwner(user) && !isAdmin(user)) {
+      // Manager: can only access owner's links
+      if (isManager(user)) {
+        try {
+          const ownerUserId = await getOwnerUserId(user.id)
+          if (!ownerUserId) {
+            return NextResponse.json(
+              { error: 'You do not have access to any links' },
+              { status: 403, headers: getCorsHeaders(origin) }
+            )
+          }
+          whereClause = {
             id: { in: ids },
-            userId: user.id,
-          },
+            userId: ownerUserId,
+          }
+        } catch {
+          return NextResponse.json(
+            { error: 'Authorization check failed' },
+            { status: 403, headers: getCorsHeaders(origin) }
+          )
+        }
+      } else {
+        // Regular user: can only access their own links
+        whereClause = {
+          id: { in: ids },
+          userId: user.id,
+        }
+      }
+    }
+    // Admin and owner: can access all links in ids
+
+    const matchingLinks = await prisma.linkAccount.findMany({
+      where: whereClause,
       select: { id: true },
     })
 
