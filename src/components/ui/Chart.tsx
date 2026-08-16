@@ -15,6 +15,7 @@ import {
 } from 'chart.js'
 import { Line, Bar } from 'react-chartjs-2'
 
+// Register Chart.js components
 ChartJS.register(
   CategoryScale,
   LinearScale,
@@ -27,7 +28,37 @@ ChartJS.register(
   Filler
 )
 
+// ─── Helpers ──────────────────────────────────────────────────────────────
+
+/** Convert a 2‑letter country code to its flag emoji (e.g. "US" → "🇺🇸") */
+function getFlagEmoji(countryCode: string): string {
+  const code = countryCode.toUpperCase()
+  if (code.length !== 2) return countryCode // fallback
+  const offset = 0x1F1E6 - 65 // 'A' = 65, regional indicator starts at 0x1F1E6
+  const first = code.charCodeAt(0)
+  const second = code.charCodeAt(1)
+  if (first < 65 || first > 90 || second < 65 || second > 90) return countryCode
+  return String.fromCodePoint(offset + first, offset + second)
+}
+
+/** Check if a string is already a flag emoji (contains regional indicator symbols) */
+function isFlagEmoji(str: string): boolean {
+  return /[\u{1F1E6}-\u{1F1FF}]/u.test(str)
+}
+
+/** Normalise a flag input: if it's a country code → convert to emoji; if emoji → keep; else empty */
+function normalizeFlag(input: string | null | undefined): string {
+  if (!input) return ''
+  const trimmed = input.trim()
+  if (!trimmed) return ''
+  if (isFlagEmoji(trimmed)) return trimmed
+  return getFlagEmoji(trimmed)
+}
+
+// ─── Component Props ──────────────────────────────────────────────────────
+
 interface ChartProps {
+  /** Chart data: labels and datasets (each with label, data, optional styling) */
   data: {
     labels: string[]
     datasets: {
@@ -43,28 +74,64 @@ interface ChartProps {
       fill?: boolean
     }[]
   }
+  /** Height of the chart container (default: 220px) */
   height?: number
+  /** Chart type: 'line' (default) or 'bar' */
   type?: 'line' | 'bar'
+  /** Enable stacked area/bar (default: false) */
+  stacked?: boolean
+  /** Country codes (e.g. ['US','DE']) or flag emojis in dataset order */
+  flags?: (string | null)[]
+  /** Additional Chart.js options (merged with defaults) */
   options?: any
 }
 
-export function Chart({ data, height = 220, type = 'line', options = {} }: ChartProps) {
+// ─── Main Component ──────────────────────────────────────────────────────
+
+export function Chart({
+  data,
+  height = 220,
+  type = 'line',
+  stacked = false,
+  flags = [],
+  options = {},
+}: ChartProps) {
   const [isClient, setIsClient] = useState(false)
 
   useEffect(() => {
     setIsClient(true)
   }, [])
 
-  const yScaleFactor = options?.yScaleFactor ?? 1
+  // Normalise all flags once
+  const flagEmojis = flags.map((f) => normalizeFlag(f))
+
+  // ── Default Chart.js options ────────────────────────────────────────────
 
   const defaultOptions = {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
       legend: {
-        display: false,
+        display: true,
+        labels: {
+          color: 'rgba(255,255,255,0.7)',
+          font: { size: 11, weight: '600', family: 'Inter' },
+          padding: 16,
+          usePointStyle: false,
+          // Prepend flag to each label
+          generateLabels: function (chart: any) {
+            const original = ChartJS.defaults.plugins.legend.labels.generateLabels(chart)
+            return original.map((label: any, i: number) => {
+              const flag = flagEmojis[i] || ''
+              return {
+                ...label,
+                text: flag ? `${flag} ${label.text}` : label.text,
+              }
+            })
+          },
+        },
       },
-        tooltip: {
+      tooltip: {
         backgroundColor: 'rgba(6, 8, 15, 0.95)',
         titleColor: '#EFF6FF',
         bodyColor: '#CBD5E1',
@@ -74,10 +141,13 @@ export function Chart({ data, height = 220, type = 'line', options = {} }: Chart
         cornerRadius: 8,
         boxPadding: 6,
         callbacks: {
-            label: function (context: any) {
-              // tooltip should show raw click count
-              return context.dataset.label + ': ' + context.parsed.y + ' clicks'
-            },
+          label: function (context: any) {
+            const datasetIndex = context.datasetIndex
+            const flag = flagEmojis[datasetIndex] || ''
+            const label = context.dataset.label || ''
+            const value = context.parsed.y
+            return `${flag} ${label}: ${value} clicks`
+          },
         },
       },
     },
@@ -91,25 +161,26 @@ export function Chart({ data, height = 220, type = 'line', options = {} }: Chart
           padding: 8,
         },
       },
-        y: {
-          border: { display: false },
-          grid: { color: 'rgba(255,255,255,0.02)', drawBorder: false },
-          ticks: {
-            color: 'rgba(255,255,255,0.6)',
-            font: { size: 10, weight: '600', family: 'Inter' },
-            padding: 8,
-            callback: function(value: any) {
-              const n = Number(value)
-              if (!Number.isFinite(n)) return value
-              if (yScaleFactor && yScaleFactor > 1) {
-                // display scaled value (e.g., each 10 raw units => 1)
-                return (n / yScaleFactor).toLocaleString(undefined, { maximumFractionDigits: 0 })
-              }
-              return n.toLocaleString(undefined, { maximumFractionDigits: 0 })
-            },
+      y: {
+        border: { display: false },
+        grid: { color: 'rgba(255,255,255,0.02)', drawBorder: false },
+        ticks: {
+          color: 'rgba(255,255,255,0.6)',
+          font: { size: 10, weight: '600', family: 'Inter' },
+          padding: 8,
+          callback: function (value: any) {
+            const n = Number(value)
+            if (!Number.isFinite(n)) return value
+            // Apply optional scale factor (e.g. to show thousands as 'k')
+            const factor = options?.yScaleFactor ?? 1
+            if (factor > 1) {
+              return (n / factor).toLocaleString(undefined, { maximumFractionDigits: 0 })
+            }
+            return n.toLocaleString(undefined, { maximumFractionDigits: 0 })
           },
-          beginAtZero: true,
         },
+        beginAtZero: true,
+      },
     },
     interaction: {
       intersect: false,
@@ -133,54 +204,65 @@ export function Chart({ data, height = 220, type = 'line', options = {} }: Chart
         hoverRadius: 3,
       },
     },
-    ...options,
+    ...options, // user overrides
   }
+
+  // ── Early returns ────────────────────────────────────────────────────────
 
   if (!isClient) {
     return <div className="w-full h-full animate-pulse" style={{ height }} />
   }
 
   if (!data || !Array.isArray(data.labels) || !Array.isArray(data.datasets)) {
-    return <div className="w-full h-full text-center" style={{ height }}>
-      <p className="text-white/40">No chart data available</p>
-    </div>
+    return (
+      <div className="w-full h-full text-center" style={{ height }}>
+        <p className="text-white/40">No chart data available</p>
+      </div>
+    )
   }
 
-  const safeLabels = Array.isArray(data.labels) ? data.labels : []
+  // ── Sanitise datasets ────────────────────────────────────────────────────
+
+  const safeLabels = data.labels ?? []
   const safeDatasets = data.datasets
     .filter(Boolean)
-    .filter((dataset): dataset is NonNullable<typeof dataset> => !!dataset && Array.isArray(dataset.data))
+    .filter((ds) => ds && Array.isArray(ds.data))
     .map((dataset, idx) => {
-      const label = (dataset.label || '').toString().toLowerCase()
-      const isClicks = label.includes('click') || label.includes('clicks') || label.includes('clicks:')
+      const label = (dataset.label || '').toLowerCase()
+      const isClicks = label.includes('click')
 
+      // Colour palette (emerald, cyan, indigo, violet, plus extras)
       const palette = [
-        { border: 'rgba(16,185,129,1)', bg: 'rgba(16,185,129,0.10)' }, // emerald
-        { border: 'rgba(34,211,238,1)', bg: 'rgba(34,211,238,0.08)' }, // cyan
-        { border: 'rgba(99,102,241,1)', bg: 'rgba(99,102,241,0.08)' }, // indigo
-        { border: 'rgba(168,85,247,1)', bg: 'rgba(168,85,247,0.08)' }, // violet
+        { border: '#10b981', bg: 'rgba(16,185,129,0.15)' },
+        { border: '#22d3ee', bg: 'rgba(34,211,238,0.12)' },
+        { border: '#818cf8', bg: 'rgba(129,140,248,0.12)' },
+        { border: '#a78bfa', bg: 'rgba(167,139,250,0.12)' },
+        { border: '#f472b6', bg: 'rgba(244,114,182,0.12)' },
+        { border: '#fb923c', bg: 'rgba(251,146,60,0.12)' },
       ]
-
       const pick = isClicks ? palette[0] : palette[idx % palette.length]
 
       return {
         ...dataset,
-        data: dataset.data.map((value) => (Number.isFinite(Number(value)) ? Number(value) : 0)),
+        data: dataset.data.map((v) => (Number.isFinite(Number(v)) ? Number(v) : 0)),
         borderWidth: dataset.borderWidth ?? 1,
         tension: dataset.tension ?? 0,
         pointRadius: dataset.pointRadius ?? 0,
-        fill: dataset.fill ?? false,
+        // If stacked, default fill to true (area) unless user explicitly set it
+        fill: dataset.fill ?? (stacked ? true : false),
         borderColor: dataset.borderColor ?? pick.border,
-        backgroundColor: dataset.backgroundColor ?? (dataset.fill ? pick.bg : undefined),
+        backgroundColor: dataset.backgroundColor ?? (dataset.fill || stacked ? pick.bg : undefined),
         pointBackgroundColor: dataset.pointBackgroundColor ?? pick.border,
         pointBorderColor: dataset.pointBorderColor ?? 'rgba(0,0,0,0.2)',
       }
     })
 
   if (!safeLabels.length || safeDatasets.length === 0) {
-    return <div className="w-full bg-white/5 rounded-xl p-6 text-center" style={{ height }}>
-      <p className="text-white/40">No chart data available</p>
-    </div>
+    return (
+      <div className="w-full bg-white/5 rounded-xl p-6 text-center" style={{ height }}>
+        <p className="text-white/40">No chart data available</p>
+      </div>
+    )
   }
 
   const normalizedData = {
@@ -189,10 +271,11 @@ export function Chart({ data, height = 220, type = 'line', options = {} }: Chart
     datasets: safeDatasets,
   }
 
-  // Compute dynamic y-axis step and suggested max based on data range
-  const overallMax = normalizedData.datasets.reduce((m, ds) => {
-    const localMax = Array.isArray(ds.data) && ds.data.length ? Math.max(...ds.data) : 0
-    return Math.max(m, Number.isFinite(Number(localMax)) ? Number(localMax) : 0)
+  // ── Dynamic Y‑axis scaling ──────────────────────────────────────────────
+
+  const overallMax = normalizedData.datasets.reduce((max, ds) => {
+    const dsMax = ds.data.length ? Math.max(...ds.data) : 0
+    return Math.max(max, Number.isFinite(dsMax) ? dsMax : 0)
   }, 0)
 
   const computeStep = (maxVal: number) => {
@@ -208,15 +291,11 @@ export function Chart({ data, height = 220, type = 'line', options = {} }: Chart
     return pow * 10
   }
 
-  // Apply y-scale only when data range is large enough — avoids producing only [0, max] ticks
-  const appliedYScale = yScaleFactor && yScaleFactor > 1 && overallMax >= yScaleFactor ? yScaleFactor : 1
-
+  const yScaleFactor = options?.yScaleFactor ?? 1
+  const appliedYScale = (yScaleFactor > 1 && overallMax >= yScaleFactor) ? yScaleFactor : 1
   let stepSize = computeStep(overallMax)
-  // If a y-scale is applied, make stepSize a multiple of that factor for clean integer labels
-  if (appliedYScale > 1) {
-    if (stepSize % appliedYScale !== 0) {
-      stepSize = appliedYScale * Math.max(1, Math.ceil(stepSize / appliedYScale))
-    }
+  if (appliedYScale > 1 && stepSize % appliedYScale !== 0) {
+    stepSize = appliedYScale * Math.max(1, Math.ceil(stepSize / appliedYScale))
   }
   const suggestedMax = Math.ceil((overallMax || 0) / stepSize) * stepSize || stepSize
 
@@ -226,14 +305,16 @@ export function Chart({ data, height = 220, type = 'line', options = {} }: Chart
       ...defaultOptions.scales,
       y: {
         ...defaultOptions.scales.y,
+        stacked: stacked ? true : false,
         ticks: {
           ...defaultOptions.scales.y.ticks,
           stepSize,
-          callback: function(value: any) {
+          callback: function (value: any) {
             const n = Number(value)
             if (!Number.isFinite(n)) return value
-            // If appliedYScale>1 show scaled integer labels (e.g., 10 -> 1)
-            if (appliedYScale > 1) return (n / appliedYScale).toLocaleString(undefined, { maximumFractionDigits: 0 })
+            if (appliedYScale > 1) {
+              return (n / appliedYScale).toLocaleString(undefined, { maximumFractionDigits: 0 })
+            }
             return n.toLocaleString(undefined, { maximumFractionDigits: 0 })
           },
         },
@@ -241,6 +322,8 @@ export function Chart({ data, height = 220, type = 'line', options = {} }: Chart
       },
     },
   }
+
+  // ── Render ──────────────────────────────────────────────────────────────
 
   return (
     <div className="w-full" style={{ height }}>
