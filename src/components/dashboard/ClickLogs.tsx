@@ -635,34 +635,34 @@ export default function ClickLogs({ filter }: ClickLogsProps) {
                   </div>
                 </div>
 
-                <div className="mt-2 space-y-1 text-xs text-slate-300">
-                  <div className="flex justify-between">
+                <div className="mt-2 space-y-0 divide-y divide-slate-800 text-xs text-slate-300">
+                  <div className="flex justify-between py-1.5">
                     <span className="text-slate-500">IP:</span>
                     <span className="font-medium text-slate-100">{click.ipAddress}</span>
                   </div>
-                  <div className="flex justify-between">
+                  <div className="flex justify-between py-1.5">
                     <span className="text-slate-500">Campaign:</span>
                     <span className="truncate text-cyan-300">{click.linkAccount.slug}</span>
                   </div>
-                  <div className="flex justify-between">
+                  <div className="flex justify-between py-1.5">
                     <span className="text-slate-500">Device:</span>
                     <button onClick={() => setShowDeviceInfo(showDeviceInfo === click.id ? null : click.id)} className="truncate text-slate-300 hover:text-slate-200 cursor-pointer transition" title="More details">
                       {getDeviceLabel(click)}
                     </button>
                   </div>
-                  <div className="flex justify-between">
+                  <div className="flex justify-between py-1.5">
                     <span className="text-slate-500">Browser:</span>
                     <button onClick={() => setShowBrowserVersion(showBrowserVersion === click.id ? null : click.id)} className="text-violet-300 hover:text-violet-200 cursor-pointer transition" title="More details">
                       {showBrowserVersion === click.id ? getBrowserVersion(click) : getBrowserLabel(click)}
                     </button>
                   </div>
-                  <div className="flex justify-between">
+                  <div className="flex justify-between py-1.5">
                     <span className="text-slate-500">Referrer:</span>
                     <span className="truncate text-slate-400">
                       {click.referrer ? referrerInfo.hostname : 'Direct'}
                     </span>
                   </div>
-                  <button onClick={() => setShowGeoInfo(showGeoInfo === click.id ? null : click.id)} className="flex justify-between w-full text-slate-300 hover:text-slate-200 cursor-pointer transition" title="More details">
+                  <button onClick={() => setShowGeoInfo(showGeoInfo === click.id ? null : click.id)} className="flex justify-between w-full text-slate-300 hover:text-slate-200 cursor-pointer transition py-1.5" title="More details">
                     <span className="text-slate-500">Location:</span>
                     <span className="flex items-center gap-1">
                       {getCountryFlag(click.country)}
