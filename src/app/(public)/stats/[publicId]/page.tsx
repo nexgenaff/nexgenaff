@@ -407,8 +407,8 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
     const data = filteredClicks.map(click => ({
       Timestamp: click.timestamp,
       Country: click.country,
-      Region: click.region,
-      City: click.city,
+      Region: click.region ? decodeURIComponent(click.region) : click.region,
+      City: click.city ? decodeURIComponent(click.city) : click.city,
       ISP: click.isp,
       Browser: click.browser,
       'Browser Version': click.browserVersion,
@@ -1015,7 +1015,7 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
                               <span className={`text-xs truncate max-w-[80px] ${isDark ? 'text-white/60' : 'text-gray-600'}`}>
                                 {getCountryLabel(click.country)}
                               </span>
-                              {click.city && <span className={`text-[10px] hidden md:inline ${isDark ? 'text-white/30' : 'text-gray-400'}`}>• {click.city}</span>}
+                              {click.city && <span className={`text-[10px] hidden md:inline ${isDark ? 'text-white/30' : 'text-gray-400'}`}>• {decodeURIComponent(click.city)}</span>}
                             </div>
                           </td>
                           <td className="px-3 py-2.5">

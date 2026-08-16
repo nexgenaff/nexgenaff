@@ -237,7 +237,9 @@ export default function ClickLogs({ filter }: ClickLogsProps) {
 
   const getLocationSummary = (click: Click) => {
     const countryLabel = getCountryLabel(click.country)
-    const locationParts = [click.city, click.region].filter(Boolean)
+    const decodedCity = click.city ? decodeURIComponent(click.city) : null
+    const decodedRegion = click.region ? decodeURIComponent(click.region) : null
+    const locationParts = [decodedCity, decodedRegion].filter(Boolean)
     const locationText = locationParts.join(', ')
     const ispText = click.isp?.trim() && click.isp !== 'Unknown' && click.isp !== 'Proxy Geo Header' ? click.isp.trim() : null
 
@@ -626,7 +628,7 @@ export default function ClickLogs({ filter }: ClickLogsProps) {
                   <div className="min-w-0">
                     <div className="flex flex-col gap-0.5">
                       <div className="flex items-center gap-1.5"><span>{getCountryFlag(click.country)}</span><span className="font-medium text-white/80">{getCountryLabel(click.country)}</span></div>
-                      <div className="text-[11px] text-white/25">{click.city ? `${click.city}, ${click.region}` : 'Unknown location'}</div>
+                      <div className="text-[11px] text-white/25">{click.city ? `${decodeURIComponent(click.city)}, ${decodeURIComponent(click.region || '')}` : 'Unknown location'}</div>
                     </div>
                   </div>
                 </div>
