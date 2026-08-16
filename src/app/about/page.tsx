@@ -2,9 +2,10 @@
 import AboutClient from "./AboutClient";
 
 export const metadata: Metadata = {
-  title: "About Afficixo — CPC Affiliate Marketplace",
+  metadataBase: new URL('https://www.weebly.pro'),
+  title: "About Afficixo — Premium CPC Affiliate Marketplace for Publishers",
   description:
-    "Learn about Afficixo, a CPC affiliate marketplace built to help publishers discover offers, monetize traffic, track clicks, and grow their affiliate business.",
+    "Discover Afficixo's mission to empower publishers with a reliable CPC affiliate marketplace. Learn about our platform, team, and commitment to high-paying CPC offers and transparent click tracking.",
   keywords: [
     "Afficixo",
     "CPC affiliate marketplace",
@@ -14,21 +15,29 @@ export const metadata: Metadata = {
     "click tracking",
     "publisher tools",
     "affiliate campaigns",
+    "about Afficixo",
+    "CPC publisher platform",
+    "affiliate network about",
   ],
   alternates: {
     canonical: "https://www.weebly.pro/about",
   },
+  robots: {
+    index: true,
+    follow: true,
+  },
   openGraph: {
-    title: "About Afficixo — CPC Affiliate Marketplace",
+    title: "About Afficixo — Premium CPC Affiliate Marketplace",
     description:
-      "Learn about Afficixo, a CPC affiliate marketplace built to help publishers discover offers, monetize traffic, track clicks, and grow their affiliate business.",
+      "Discover Afficixo's mission to empower publishers with a reliable CPC affiliate marketplace and transparent click tracking.",
     type: "website",
     url: "https://www.weebly.pro/about",
     siteName: "Afficixo",
+    locale: "en_US",
     images: [
       {
-        url: "https://www.weebly.pro/og-image.png",
-        secureUrl: "https://www.weebly.pro/og-image.png",
+        url: "https://www.weebly.pro/og.png",
+        secureUrl: "https://www.weebly.pro/og.png",
         width: 1200,
         height: 630,
         alt: "Afficixo Pay Per Click Affiliate Marketplace",
@@ -38,11 +47,12 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "About Afficixo — CPC Affiliate Marketplace",
+    title: "About Afficixo — Premium CPC Affiliate Marketplace",
     description:
-      "Learn about Afficixo, a CPC affiliate marketplace built to help publishers discover offers, monetize traffic, track clicks, and grow their affiliate business.",
-    images: ["https://www.weebly.pro/og-image.png"],
-    creator: "Afficixo",
+      "Discover Afficixo's mission to empower publishers with reliable CPC offers and transparent click tracking.",
+    images: ["https://www.weebly.pro/og.png"],
+    creator: "@afficixo",
+    site: "@afficixo",
   },
 };
 

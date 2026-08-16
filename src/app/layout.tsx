@@ -13,7 +13,7 @@ export const metadata: Metadata = {
   metadataBase: new URL('https://www.weebly.pro'),
   title: 'Afficixo — Best CPC Affiliate Marketplace for Publishers',
   description:
-    'Afficixo is the premier pay-per-click affiliate marketplace where publishers find high-paying CPC offers, promote campaigns, generate valid clicks, track traffic, and earn from quality visitors worldwide.',
+    'Afficixo is the premier pay-per-click affiliate marketplace where publishers find high-paying CPC offers, promote campaigns, generate valid clicks, track traffic, and earn from quality visitors worldwide. Join 10,000+ publishers earning with our platform.',
   keywords: [
     'CPC affiliate marketplace',
     'pay per click offers',
@@ -21,20 +21,33 @@ export const metadata: Metadata = {
     'publisher network',
     'click tracking',
     'traffic monetization',
-    'affiliate marketing',
+    'affiliate marketing platform',
     'earn per click',
     'Afficixo',
-    'CPC advertising',
+    'CPC advertising network',
     'affiliate links',
     'campaign management',
     'valid clicks',
     'publisher earnings',
     'online monetization',
+    'performance marketing',
+    'publisher platform',
+    'affiliate offers',
   ],
-  authors: [{ name: 'Afficixo' }],
+  authors: [{ name: 'Afficixo', url: 'https://www.weebly.pro' }],
   creator: 'Afficixo',
   publisher: 'Afficixo',
   category: 'Business',
+  referrer: 'strict-origin-when-cross-origin',
+  formatDetection: {
+    email: false,
+    telephone: false,
+  },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'black-translucent',
+    title: 'Afficixo',
+  },
   alternates: {
     canonical: 'https://www.weebly.pro',
   },
@@ -52,11 +65,12 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
-      { url: '/favicon.ico' },
+      { url: '/favicon.ico', sizes: 'any' },
       { url: '/favicon-96x96.png', sizes: '96x96', type: 'image/png' },
       { url: '/favicon.svg', type: 'image/svg+xml' },
     ],
-    apple: '/apple-touch-icon.png',
+    apple: [{ url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' }],
+    shortcut: '/favicon.ico',
   },
   manifest: '/site.webmanifest',
   openGraph: {
@@ -66,6 +80,7 @@ export const metadata: Metadata = {
     type: 'website',
     url: 'https://www.weebly.pro',
     siteName: 'Afficixo',
+    locale: 'en_US',
     images: [
       {
         url: 'https://www.weebly.pro/og.png',
@@ -84,7 +99,7 @@ export const metadata: Metadata = {
       'Discover CPC offers, promote campaigns, track valid clicks, and monetize your traffic with Afficixo.',
     images: ['https://www.weebly.pro/og.png'],
     site: '@afficixo',
-    creator: 'Afficixo',
+    creator: '@afficixo',
   },
 }
 

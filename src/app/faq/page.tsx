@@ -1,6 +1,58 @@
 import type { Metadata } from "next";
 import FAQClient from "./FAQClient";
 
+export const metadata: Metadata = {
+  metadataBase: new URL('https://www.weebly.pro'),
+  title: "FAQ — CPC Affiliate Questions & Answers | Afficixo",
+  description:
+    "Get answers to common questions about Afficixo's CPC affiliate marketplace. Learn how to join, earn money, track clicks, and maximize your affiliate revenue.",
+  keywords: [
+    "CPC FAQ",
+    "affiliate questions",
+    "how to earn CPC",
+    "click tracking explained",
+    "affiliate marketplace FAQ",
+    "publisher help",
+    "CPC offers help",
+    "Afficixo help",
+  ],
+  alternates: {
+    canonical: "https://www.weebly.pro/faq",
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
+  openGraph: {
+    title: "FAQ — CPC Affiliate Questions & Answers",
+    description:
+      "Get answers to common questions about Afficixo's CPC affiliate marketplace and how to start earning.",
+    type: "website",
+    url: "https://www.weebly.pro/faq",
+    siteName: "Afficixo",
+    locale: "en_US",
+    images: [
+      {
+        url: "https://www.weebly.pro/og.png",
+        secureUrl: "https://www.weebly.pro/og.png",
+        width: 1200,
+        height: 630,
+        alt: "Afficixo FAQ",
+        type: "image/png",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "FAQ — CPC Affiliate Questions & Answers",
+    description:
+      "Find answers to common questions about Afficixo's CPC marketplace and affiliate program.",
+    images: ["https://www.weebly.pro/og.png"],
+    creator: "@afficixo",
+    site: "@afficixo",
+  },
+};
+
 const faqStructuredData = {
   '@context': 'https://schema.org',
   '@type': 'FAQPage',
