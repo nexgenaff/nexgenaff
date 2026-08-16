@@ -319,7 +319,7 @@ export default function DashboardPage() {
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#1e293b12_1px,transparent_1px),linear-gradient(to_bottom,#1e293b12_1px,transparent_1px)] bg-[size:3rem_3rem]" />
       </div>
 
-      <div className="relative z-10 mx-auto w-full max-w-[1280px] px-2 pt-4 sm:px-3 sm:pt-6 lg:px-6">
+      <div className="relative z-10 mx-auto w-full max-w-[1280px] px-2 pt-4 sm:px-3 sm:pt-6 lg:px-3">
         {/* ─── Header ─── */}
         <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-[#0d111a]/95 rounded-2xl p-4 sm:p-5 backdrop-blur-md shadow-xl mb-4 sm:mb-6">
           <div className="flex items-center gap-3">
