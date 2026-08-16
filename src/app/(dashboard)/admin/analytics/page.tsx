@@ -102,6 +102,18 @@ export default function AnalyticsPage() {
     direction: "ascending" | "descending";
   } | null>(null);
   const [period, setPeriod] = useState<'week' | 'month' | 'year'>('week');
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Detect mobile screen size
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768); // md breakpoint
+    };
+    
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
 
   const handlePeriodChange = useCallback((newPeriod: 'week' | 'month' | 'year') => {
     setPeriod(newPeriod);
@@ -210,16 +222,17 @@ export default function AnalyticsPage() {
     const report = stats.accountGeoReport;
     if (!report || report.accountBreakdown.length === 0) return;
 
-    const headers = ["Account", ...report.labels];
+    const labelsToExport = isMobile ? visibleLabels : report.labels;
+    const headers = ["Account", ...labelsToExport];
     const rows = report.accountBreakdown.map((account) => [
       account.accountName,
-      ...report.labels.map((country) => {
+      ...labelsToExport.map((country) => {
         const val = account.countries.find((c) => c.country === country);
         return val ? val.uniqueClicks : 0;
       }),
     ]);
 
-    const totals = report.labels.map((country) => {
+    const totals = labelsToExport.map((country) => {
       return report.accountBreakdown.reduce((sum, acc) => {
         const val = acc.countries.find((c) => c.country === country);
         return sum + (val ? val.uniqueClicks : 0);
@@ -244,17 +257,18 @@ export default function AnalyticsPage() {
   const reportLabels = report?.labels ?? [];
   const reportRows = report?.accountBreakdown ?? [];
 
+  const MAX_COLUMNS = isMobile ? 8 : 12;
+  const visibleLabels = isMobile ? reportLabels.slice(0, 4) : reportLabels;
+  const blankColumns = Math.max(0, MAX_COLUMNS - 1 - visibleLabels.length);
+
   const totals = useMemo(() => {
-    return reportLabels.map((country) => {
+    return visibleLabels.map((country) => {
       return reportRows.reduce((sum, acc) => {
         const val = acc.countries.find((c) => c.country === country);
         return sum + (val ? val.uniqueClicks : 0);
       }, 0);
     });
-  }, [reportLabels, reportRows]);
-
-  const MAX_COLUMNS = 12;
-  const blankColumns = Math.max(0, MAX_COLUMNS - 1 - reportLabels.length);
+  }, [visibleLabels, reportRows]);
 
   const sortedRows = useMemo(() => {
     if (!sortConfig) return reportRows;
@@ -545,7 +559,7 @@ export default function AnalyticsPage() {
                         )}
                       </div>
                     </th>
-                    {reportLabels.map((country) => (
+                    {visibleLabels.map((country) => (
                       <th
                         key={country}
                         className="px-2 py-1.5 font-medium text-slate-300 cursor-pointer hover:text-slate-200 border-r border-slate-700/30 last:border-r-0 select-none text-center min-w-[80px]"
@@ -578,7 +592,7 @@ export default function AnalyticsPage() {
                       <td className="px-2.5 py-1.5 font-medium text-slate-200 border-r border-slate-700/30 min-w-max">
                         {account.accountName}
                       </td>
-                      {reportLabels.map((country) => {
+                      {visibleLabels.map((country) => {
                         const countryValue = account.countries.find((item) => item.country === country);
                         return (
                           <td 
@@ -603,16 +617,16 @@ export default function AnalyticsPage() {
                   ))}
                   {/* Totals row */}
                   {totals.some((t) => t > 0) && (
-                    <tr className="border-t border-slate-700/50 bg-slate-900/40 font-semibold">
-                      <td className="px-2.5 py-1.5 text-slate-200 border-r border-slate-700/30 font-bold min-w-max">TOTAL</td>
+                    <tr className="border-t border-teal-600/50 bg-teal-500/15 font-semibold">
+                      <td className="px-2.5 py-1.5 text-teal-200 border-r border-teal-600/30 font-bold min-w-max">TOTAL</td>
                       {totals.map((total, idx) => (
-                        <td key={`total-${idx}`} className="px-2 py-1.5 text-center border-r border-slate-700/30 last:border-r-0 text-slate-100 font-bold min-w-[80px]">
+                        <td key={`total-${idx}`} className="px-2 py-1.5 text-center border-r border-teal-600/30 last:border-r-0 text-teal-100 font-bold min-w-[80px]">
                           {total}
                         </td>
                       ))}
                       {/* Blank cells */}
                       {Array.from({ length: blankColumns }).map((_, i) => (
-                        <td key={`total-blank-${i}`} className="px-2 py-1.5 border-r border-slate-700/30 min-w-[80px]" />
+                        <td key={`total-blank-${i}`} className="px-2 py-1.5 border-r border-teal-600/30 min-w-[80px]" />
                       ))}
                     </tr>
                   )}
