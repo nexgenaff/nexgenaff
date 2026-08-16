@@ -5,15 +5,46 @@ import { getCorsHeaders } from '@/config/cors'
 import { prisma } from '@/lib/db/prisma'
 import { createUserSafe } from '@/lib/db/user'
 import { ADMIN_USERNAME, ADMIN_PASSWORD, OWNER_USERNAME, OWNER_PASSWORD } from '@/lib/constants'
+import { checkRateLimit, getRemainingAttempts, getResetTime } from '@/lib/utils/rate-limiter'
 
 const ADMIN_ENV_USERNAME = ADMIN_USERNAME?.trim() || ''
 const ADMIN_ENV_PASSWORD = ADMIN_PASSWORD?.trim() || ''
 const OWNER_ENV_USERNAME = OWNER_USERNAME?.trim() || ''
 const OWNER_ENV_PASSWORD = OWNER_PASSWORD?.trim() || ''
 
+/**
+ * Get client IP from request headers
+ */
+const getClientIp = (request: Request): string => {
+  const forwarded = request.headers.get('x-forwarded-for')
+  if (forwarded) return forwarded.split(',')[0].trim()
+  const realIp = request.headers.get('x-real-ip')
+  if (realIp) return realIp
+  return 'unknown'
+}
+
 export async function POST(request: Request) {
   try {
     const origin = request.headers.get('origin') || null
+    const clientIp = getClientIp(request)
+
+    // Rate limit: 5 attempts per 15 minutes per IP address
+    if (!checkRateLimit(clientIp, 5, 15 * 60 * 1000)) {
+      const resetTime = getResetTime(clientIp)
+      return NextResponse.json(
+        {
+          error: 'Too many login attempts. Please try again later.',
+          retryAfterSeconds: Math.ceil(resetTime / 1000),
+        },
+        {
+          status: 429,
+          headers: {
+            ...getCorsHeaders(origin),
+            'Retry-After': Math.ceil(resetTime / 1000).toString(),
+          },
+        }
+      )
+    }
 
     let body: Record<string, unknown> = {}
     try {

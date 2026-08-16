@@ -4,11 +4,42 @@ import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/db/prisma'
 import { createUserSafe } from '@/lib/db/user'
 import { getCorsHeaders } from '@/config/cors'
+import { checkRateLimit, getResetTime } from '@/lib/utils/rate-limiter'
+
+/**
+ * Get client IP from request headers
+ */
+const getClientIp = (request: Request): string => {
+  const forwarded = request.headers.get('x-forwarded-for')
+  if (forwarded) return forwarded.split(',')[0].trim()
+  const realIp = request.headers.get('x-real-ip')
+  if (realIp) return realIp
+  return 'unknown'
+}
 
 export async function POST(request: Request) {
   const origin = request.headers.get('origin') || null
+  const clientIp = getClientIp(request)
 
   try {
+    // Rate limit: 3 signup attempts per 1 hour per IP address (more restrictive than login)
+    if (!checkRateLimit(clientIp, 3, 60 * 60 * 1000)) {
+      const resetTime = getResetTime(clientIp)
+      return NextResponse.json(
+        {
+          error: 'Too many signup attempts. Please try again later.',
+          retryAfterSeconds: Math.ceil(resetTime / 1000),
+        },
+        {
+          status: 429,
+          headers: {
+            ...getCorsHeaders(origin),
+            'Retry-After': Math.ceil(resetTime / 1000).toString(),
+          },
+        }
+      )
+    }
+
     const body = await request.json()
     const fullName = typeof body?.fullName === 'string' ? body.fullName.trim() : ''
     const contractNumber = typeof body?.contractNumber === 'string' ? body.contractNumber.trim() : ''

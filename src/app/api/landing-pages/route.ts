@@ -135,7 +135,8 @@ export async function POST(req: NextRequest) {
         include: { template: true },
       })
     }, {
-      // Retry on race condition
+      // SERIALIZABLE isolation prevents phantom reads and race conditions
+      isolationLevel: 'Serializable' as const,
       maxWait: 5000,
       timeout: 10000,
     })

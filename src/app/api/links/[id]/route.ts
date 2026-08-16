@@ -181,6 +181,8 @@ export async function PUT(
         },
       })
     }, {
+      // SERIALIZABLE isolation prevents phantom reads and race conditions
+      isolationLevel: 'Serializable' as const,
       maxWait: 5000,
       timeout: 10000,
     })
@@ -242,24 +244,30 @@ export async function POST(
       )
     }
 
-    await prisma.$transaction([
-      prisma.click.deleteMany({ where: { linkAccountId: id } }),
-      prisma.geoStat.deleteMany({ where: { linkAccountId: id } }),
-      prisma.dailyAnalytics.deleteMany({ where: { linkAccountId: id } }),
-      prisma.hourlyAnalytics.deleteMany({ where: { linkAccountId: id } }),
-      prisma.browserStat.deleteMany({ where: { linkAccountId: id } }),
-      prisma.oSStat.deleteMany({ where: { linkAccountId: id } }),
-      prisma.deviceStat.deleteMany({ where: { linkAccountId: id } }),
-      prisma.referrerStat.deleteMany({ where: { linkAccountId: id } }),
-      prisma.linkAccount.update({
-        where: { id },
-        data: {
-          totalClicks: 0,
-          uniqueClicks: 0,
-          botClicks: 0,
-        },
-      }),
-    ])
+    await prisma.$transaction(
+      [
+        prisma.click.deleteMany({ where: { linkAccountId: id } }),
+        prisma.geoStat.deleteMany({ where: { linkAccountId: id } }),
+        prisma.dailyAnalytics.deleteMany({ where: { linkAccountId: id } }),
+        prisma.hourlyAnalytics.deleteMany({ where: { linkAccountId: id } }),
+        prisma.browserStat.deleteMany({ where: { linkAccountId: id } }),
+        prisma.oSStat.deleteMany({ where: { linkAccountId: id } }),
+        prisma.deviceStat.deleteMany({ where: { linkAccountId: id } }),
+        prisma.referrerStat.deleteMany({ where: { linkAccountId: id } }),
+        prisma.linkAccount.update({
+          where: { id },
+          data: {
+            totalClicks: 0,
+            uniqueClicks: 0,
+            botClicks: 0,
+          },
+        }),
+      ],
+      {
+        // SERIALIZABLE isolation prevents phantom reads and race conditions
+        isolationLevel: 'Serializable' as const,
+      }
+    )
 
     return NextResponse.json(
       { success: true, message: 'Link statistics reset successfully' },
