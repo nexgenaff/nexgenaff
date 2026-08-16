@@ -17,6 +17,7 @@ import {
   X,
 } from "lucide-react";
 import { coerceArray } from "@/lib/utils/array-response";
+import { AfficixoLoading } from "@/components/ui/AfficixoLoading";
 
 interface DomainRecord {
   host: string;
