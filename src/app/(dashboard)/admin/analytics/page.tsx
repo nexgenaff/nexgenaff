@@ -527,32 +527,32 @@ export default function AnalyticsPage() {
           {/* ===== TABLE ===== */}
           {report?.datasets?.length ? (
             <div className="overflow-x-auto rounded-lg border border-white/10 bg-slate-950/40">
-              <table className="w-full border-collapse text-left text-sm">
-                <thead className="sticky top-0 bg-slate-900/80 backdrop-blur">
-                  <tr className="border-b border-white/10">
+              <table className="w-full border-collapse text-left text-xs">
+                <thead className="sticky top-0 bg-slate-900/60">
+                  <tr className="border-b border-slate-700/50">
                     <th
-                      className="px-4 py-3 font-semibold text-slate-200 cursor-pointer hover:bg-slate-800/60 transition-colors border-r border-white/5 select-none"
+                      className="px-2.5 py-1.5 font-medium text-slate-300 cursor-pointer hover:text-slate-200 border-r border-slate-700/30 select-none"
                       onClick={() => requestSort("accountName")}
                       title="Click to sort"
                     >
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-1">
                         <span>Account</span>
                         {sortConfig?.key === "accountName" && (
-                          <span className="text-indigo-400 text-xs">{sortConfig.direction === "ascending" ? "↑" : "↓"}</span>
+                          <span className="text-slate-400 text-[10px]">{sortConfig.direction === "ascending" ? "↑" : "↓"}</span>
                         )}
                       </div>
                     </th>
                     {reportLabels.map((country) => (
                       <th
                         key={country}
-                        className="px-3 py-3 font-semibold text-slate-300 cursor-pointer hover:bg-slate-800/60 transition-colors border-r border-white/5 last:border-r-0 select-none text-center"
+                        className="px-2 py-1.5 font-medium text-slate-300 cursor-pointer hover:text-slate-200 border-r border-slate-700/30 last:border-r-0 select-none text-center"
                         onClick={() => requestSort(country)}
                         title="Click to sort"
                       >
-                        <div className="flex items-center justify-center gap-1.5">
-                          <span className="text-xs">{country}</span>
+                        <div className="flex items-center justify-center gap-1">
+                          <span>{country}</span>
                           {sortConfig?.key === country && (
-                            <span className="text-indigo-400 text-xs">{sortConfig.direction === "ascending" ? "↑" : "↓"}</span>
+                            <span className="text-slate-400 text-[10px]">{sortConfig.direction === "ascending" ? "↑" : "↓"}</span>
                           )}
                         </div>
                       </th>
@@ -563,9 +563,9 @@ export default function AnalyticsPage() {
                   {sortedRows.map((account, index) => (
                     <tr
                       key={account.accountName}
-                      className="border-b border-white/5 hover:bg-slate-900/40 transition-colors group"
+                      className={`border-b border-slate-800/40 hover:bg-slate-900/30 transition-colors ${index % 2 === 0 ? "bg-slate-950/20" : ""}`}
                     >
-                      <td className="px-4 py-3 font-medium text-white border-r border-white/5 group-hover:text-slate-100 bg-slate-950/20">
+                      <td className="px-2.5 py-1.5 font-medium text-slate-200 border-r border-slate-700/30">
                         {account.accountName}
                       </td>
                       {reportLabels.map((country) => {
@@ -573,16 +573,14 @@ export default function AnalyticsPage() {
                         return (
                           <td 
                             key={`${account.accountName}-${country}`} 
-                            className="px-3 py-3 border-r border-white/5 last:border-r-0 text-center hover:bg-slate-900/50 transition-colors"
+                            className="px-2 py-1.5 border-r border-slate-700/30 last:border-r-0 text-center text-slate-300"
                           >
                             {countryValue ? (
-                              <span className="inline-flex items-center justify-center px-3 py-1.5 rounded bg-indigo-500/20 border border-indigo-500/30 text-indigo-200 font-medium text-sm hover:bg-indigo-500/30 transition-colors">
+                              <span className="text-slate-100 font-medium">
                                 {countryValue.uniqueClicks}
                               </span>
                             ) : (
-                              <span className="inline-flex items-center justify-center text-slate-500 text-xs font-medium">
-                                —
-                              </span>
+                              <span className="text-slate-600">—</span>
                             )}
                           </td>
                         );
@@ -591,13 +589,11 @@ export default function AnalyticsPage() {
                   ))}
                   {/* Totals row */}
                   {totals.some((t) => t > 0) && (
-                    <tr className="border-t border-white/10 bg-indigo-500/10 font-semibold hover:bg-indigo-500/15 transition-colors">
-                      <td className="px-4 py-3 text-slate-100 border-r border-white/5 font-bold">TOTAL</td>
+                    <tr className="border-t border-slate-700/50 bg-slate-900/40 font-semibold">
+                      <td className="px-2.5 py-1.5 text-slate-200 border-r border-slate-700/30 font-bold">TOTAL</td>
                       {totals.map((total, idx) => (
-                        <td key={`total-${idx}`} className="px-3 py-3 text-center border-r border-white/5 last:border-r-0">
-                          <span className="inline-flex items-center justify-center px-3 py-1.5 rounded bg-indigo-600/40 border border-indigo-500/50 text-indigo-100 font-bold text-sm">
-                            {total}
-                          </span>
+                        <td key={`total-${idx}`} className="px-2 py-1.5 text-center border-r border-slate-700/30 last:border-r-0 text-slate-100 font-bold">
+                          {total}
                         </td>
                       ))}
                     </tr>
