@@ -70,6 +70,8 @@ export default function CreateLinkPage() {
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
   const [createdAccount, setCreatedAccount] = useState<CreatedAccount | null>(null);
+  const [baseUrl, setBaseUrl] = useState<string>("");
+  const [isHydrated, setIsHydrated] = useState(false);
 
   const fetchDomains = useCallback(async () => {
     try {
@@ -103,11 +105,15 @@ export default function CreateLinkPage() {
   useEffect(() => {
     void fetchDomains();
     void fetchOfferGroups();
+    
+    // Set baseUrl after hydration
+    setBaseUrl(window.location.origin.replace(/\/$/, ""));
+    setIsHydrated(true);
   }, [fetchDomains, fetchOfferGroups]);
 
   const getBaseUrl = () => {
-    if (typeof window !== "undefined") {
-      return window.location.origin.replace(/\/$/, "");
+    if (baseUrl) {
+      return baseUrl;
     }
     return (process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000").replace(/\/$/, "");
   };
@@ -118,8 +124,17 @@ export default function CreateLinkPage() {
     ? `https://${selectedDomain.domain}/${slug || "your-slug"}`
     : `${getBaseUrl()}/${slug || "your-slug"}`;
 
+  // Prevent rendering mismatches by not rendering dynamic content until hydrated
+  if (!isHydrated) {
+    return (
+      <div className="min-h-screen bg-white px-4 py-6 sm:px-6 lg:px-8 flex items-center justify-center">
+        <div className="text-slate-600">Loading...</div>
+      </div>
+    );
+  }
+
   const handleBack = () => {
-    if (typeof window !== "undefined" && window.history.length > 1) {
+    if (window.history.length > 1) {
       router.back();
       return;
     }
