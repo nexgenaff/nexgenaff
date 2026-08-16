@@ -84,25 +84,37 @@ export function isDuplicateClickEvent(
     return false
   }
 
-  const sameClickSignature = Boolean(
-    context.clickSignature &&
-      context.lastClickSignature &&
-      normalizeMatchValue(context.clickSignature) === normalizeMatchValue(context.lastClickSignature),
-  )
-
+  // CRITICAL: IP address is the primary identifier for uniqueness
+  // Same IP = same visitor = NOT unique (even if fingerprint/UA differs)
   const sameIpAddress = Boolean(
     hasMeaningfulMatchValue(context.ipAddress) &&
       hasMeaningfulMatchValue(context.lastIpAddress) &&
       normalizeMatchValue(context.ipAddress) === normalizeMatchValue(context.lastIpAddress),
   )
 
+  if (sameIpAddress) {
+    return true
+  }
+
+  // Secondary: exact fingerprint match (same IP + UA + browser combo)
+  const sameClickSignature = Boolean(
+    context.clickSignature &&
+      context.lastClickSignature &&
+      normalizeMatchValue(context.clickSignature) === normalizeMatchValue(context.lastClickSignature),
+  )
+
+  if (sameClickSignature) {
+    return true
+  }
+
+  // Tertiary: same user agent (weak signal, requires other matching factors)
   const sameUserAgent = Boolean(
     hasMeaningfulMatchValue(context.userAgent) &&
       hasMeaningfulMatchValue(context.lastUserAgent) &&
       normalizeMatchValue(context.userAgent) === normalizeMatchValue(context.lastUserAgent),
   )
 
-  return sameClickSignature || sameIpAddress || sameUserAgent
+  return sameUserAgent
 }
 
 export function isUniqueVisit(lastSeenAt: Date, now: Date, windowMs = CLICK_DEDUPE_WINDOW_MS): boolean {

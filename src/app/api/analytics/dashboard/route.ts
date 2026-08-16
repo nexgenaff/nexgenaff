@@ -27,6 +27,7 @@ interface ClickRecord {
   createdAt: Date;
   isUnique: boolean;
   isBot: boolean;
+  ipAddress: string | null; // Added: for unique visitor counting
 }
 
 interface DashboardFilters {
@@ -185,24 +186,35 @@ const aggregateClicks = (clicks: ClickRecord[], period: Period, dateRange: DateR
   const { startDate, bucketCount } = dateRange;
   const trendValues = Array(bucketCount).fill(0);
   const uniqueTrendValues = Array(bucketCount).fill(0);
-  const geoMap = new Map<string, { clicks: number; uniqueClicks: number }>();
+  const geoMap = new Map<string, { clicks: number; uniqueClicks: number; uniqueIPs: Set<string> }>();
   const geoSeriesMap = new Map<string, number[]>();
-  const referrerMap = new Map<string, { clicks: number; uniqueClicks: number }>();
-  const browserMap = new Map<string, { clicks: number; uniqueClicks: number }>();
-  const deviceMap = new Map<string, { clicks: number; uniqueClicks: number }>();
+  const referrerMap = new Map<string, { clicks: number; uniqueClicks: number; uniqueIPs: Set<string> }>();
+  const browserMap = new Map<string, { clicks: number; uniqueClicks: number; uniqueIPs: Set<string> }>();
+  const deviceMap = new Map<string, { clicks: number; uniqueClicks: number; uniqueIPs: Set<string> }>();
+  const uniqueIPsPerBucket = Array(bucketCount).fill(0).map(() => new Set<string>()); // Track unique IPs per time bucket
 
   clicks.forEach((click) => {
     const clickDate = new Date(click.createdAt);
     const bucketIndex = getBucketIndex(clickDate, startDate, dateRange);
+    const ipAddress = (click.ipAddress || '').trim();
 
     trendValues[bucketIndex] += 1;
-    if (click.isUnique) uniqueTrendValues[bucketIndex] += 1;
+    
+    // CRITICAL FIX: Count unique by distinct IP, not by isUnique flag
+    // Add IP to this bucket's unique set if it's a valid IP
+    if (ipAddress && ipAddress !== '') {
+      uniqueIPsPerBucket[bucketIndex].add(ipAddress);
+      uniqueTrendValues[bucketIndex] = uniqueIPsPerBucket[bucketIndex].size;
+    }
 
     const country = (click.country || '').trim();
     if (country) {
-      const current = geoMap.get(country) || { clicks: 0, uniqueClicks: 0 };
+      const current = geoMap.get(country) || { clicks: 0, uniqueClicks: 0, uniqueIPs: new Set<string>() };
       current.clicks += 1;
-      if (click.isUnique) current.uniqueClicks += 1;
+      if (ipAddress && ipAddress !== '') {
+        current.uniqueIPs.add(ipAddress);
+        current.uniqueClicks = current.uniqueIPs.size; // Update count based on unique IPs
+      }
       geoMap.set(country, current);
 
       const series = geoSeriesMap.get(country) || Array(bucketCount).fill(0);
@@ -211,21 +223,30 @@ const aggregateClicks = (clicks: ClickRecord[], period: Period, dateRange: DateR
     }
 
     const referrer = (click.referrer || 'Direct').trim() || 'Direct';
-    const rCurrent = referrerMap.get(referrer) || { clicks: 0, uniqueClicks: 0 };
+    const rCurrent = referrerMap.get(referrer) || { clicks: 0, uniqueClicks: 0, uniqueIPs: new Set<string>() };
     rCurrent.clicks += 1;
-    if (click.isUnique) rCurrent.uniqueClicks += 1;
+    if (ipAddress && ipAddress !== '') {
+      rCurrent.uniqueIPs.add(ipAddress);
+      rCurrent.uniqueClicks = rCurrent.uniqueIPs.size;
+    }
     referrerMap.set(referrer, rCurrent);
 
     const browser = (click.browser || 'Unknown').trim() || 'Unknown';
-    const bCurrent = browserMap.get(browser) || { clicks: 0, uniqueClicks: 0 };
+    const bCurrent = browserMap.get(browser) || { clicks: 0, uniqueClicks: 0, uniqueIPs: new Set<string>() };
     bCurrent.clicks += 1;
-    if (click.isUnique) bCurrent.uniqueClicks += 1;
+    if (ipAddress && ipAddress !== '') {
+      bCurrent.uniqueIPs.add(ipAddress);
+      bCurrent.uniqueClicks = bCurrent.uniqueIPs.size;
+    }
     browserMap.set(browser, bCurrent);
 
     const device = (click.deviceType || 'Unknown').trim() || 'Unknown';
-    const dCurrent = deviceMap.get(device) || { clicks: 0, uniqueClicks: 0 };
+    const dCurrent = deviceMap.get(device) || { clicks: 0, uniqueClicks: 0, uniqueIPs: new Set<string>() };
     dCurrent.clicks += 1;
-    if (click.isUnique) dCurrent.uniqueClicks += 1;
+    if (ipAddress && ipAddress !== '') {
+      dCurrent.uniqueIPs.add(ipAddress);
+      dCurrent.uniqueClicks = dCurrent.uniqueIPs.size;
+    }
     deviceMap.set(device, dCurrent);
   });
 
@@ -394,6 +415,7 @@ export async function GET(request: Request) {
         createdAt: true,
         isUnique: true,
         isBot: true,
+        ipAddress: true, // Added: needed to count unique visitors by IP
       },
       orderBy: { createdAt: 'asc' },
       take: 100000, // Limit to prevent memory exhaustion
@@ -403,7 +425,10 @@ export async function GET(request: Request) {
     const aggregated = aggregateClicks(clicks, period, dateRange);
 
     const totalClicks = clicks.length;
-    const uniqueClicks = clicks.filter((c) => c.isUnique).length;
+    // CRITICAL FIX: Count unique visitors by distinct IP addresses, not by isUnique flag
+    // Same IP = same visitor, regardless of fingerprint changes
+    const uniqueIPs = new Set(clicks.map((c) => c.ipAddress).filter((ip) => ip && ip.trim() !== ''));
+    const uniqueClicks = uniqueIPs.size;
     const botClicks = clicks.filter((c) => c.isBot).length;
 
     const countryBreakdown = Array.from(aggregated.geoMap.entries())

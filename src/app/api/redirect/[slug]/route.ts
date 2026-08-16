@@ -330,12 +330,17 @@ export async function GET(
       await acquireDedupeLocks(tx, clickFingerprint, ip, userAgent);
 
       // ── 6a. Re‑check duplicate under lock ──
+      // CRITICAL: Check for duplicate by IP first (same IP = same visitor)
+      // Then fall back to fingerprint/UA matching
       const existing = await tx.click.findFirst({
         where: {
           linkAccountId: link.id,
           OR: [
-            { clickSignature: clickFingerprint },
+            // Primary: same IP (most reliable indicator of same visitor)
             ...(ip ? [{ ipAddress: ip }] : []),
+            // Secondary: exact fingerprint match
+            { clickSignature: clickFingerprint },
+            // Tertiary: same user agent
             ...(userAgent ? [{ userAgent }] : []),
           ],
           createdAt: {
