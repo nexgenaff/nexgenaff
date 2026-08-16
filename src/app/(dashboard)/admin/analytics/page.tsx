@@ -105,16 +105,20 @@ export default function AnalyticsPage() {
 
   const handlePeriodChange = useCallback((newPeriod: 'week' | 'month' | 'year') => {
     setPeriod(newPeriod);
-    // Optionally: you can add logic here to adjust the date range based on period
   }, []);
 
   const fetchStats = useCallback(
-    async (showRefreshing = false, filterParams: Partial<FilterParams> = {}) => {
+    async (
+      showRefreshing = false,
+      filterParams: Partial<FilterParams> = {},
+      selectedPeriod: 'week' | 'month' | 'year' = period
+    ) => {
       if (showRefreshing) setRefreshing(true);
       else setLoading(true);
 
       try {
         const params = new URLSearchParams();
+        params.append("period", selectedPeriod);
         if (filterParams.startDate) params.append("startDate", filterParams.startDate as string);
         if (filterParams.endDate) params.append("endDate", filterParams.endDate as string);
         if (filterParams.granularity) params.append("granularity", filterParams.granularity as string);
@@ -122,7 +126,7 @@ export default function AnalyticsPage() {
           params.append("clickType", filterParams.clickType as string);
         }
 
-        const url = `/api/analytics/dashboard${params.toString() ? `?${params.toString()}` : ""}`;
+        const url = `/api/analytics/dashboard?${params.toString()}`;
         const response = await fetch(url, { credentials: "include" });
         if (response.status === 401) {
           router.push("/login");
@@ -139,33 +143,29 @@ export default function AnalyticsPage() {
         setRefreshing(false);
       }
     },
-    [router]
+    [period, router]
   );
 
   useEffect(() => {
-    void fetchStats(false);
-  }, [fetchStats]);
+    void fetchStats(false, filters, period);
+  }, [fetchStats, period]);
 
   const applyFilters = () => {
-    void fetchStats(true, filters);
+    void fetchStats(true, filters, period);
     setActivePreset(null);
   };
 
   const clearFilters = () => {
-    setFilters({
+    const clearedFilters = {
       startDate: "",
       endDate: "",
       granularity: "daily",
       clickType: "all",
-    });
+    };
+    setFilters(clearedFilters);
     setActivePreset(null);
     setTimeout(() => {
-      void fetchStats(true, {
-        startDate: "",
-        endDate: "",
-        granularity: "daily",
-        clickType: "all",
-      });
+      void fetchStats(true, clearedFilters, period);
     }, 100);
   };
 
@@ -203,7 +203,7 @@ export default function AnalyticsPage() {
 
     const newFilters = { ...filters, startDate, endDate };
     setFilters(newFilters);
-    void fetchStats(true, newFilters);
+    void fetchStats(true, newFilters, period);
   };
 
   const exportCSV = () => {
