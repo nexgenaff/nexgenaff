@@ -35,8 +35,8 @@ function BreakdownSection({
   iconColor?: string
   valueColor?: string
 }) {
-  // Filter out items with empty or "Unknown" names
-  const filteredItems = items.filter(item => item.name && item.name.trim() !== '')
+  // Filter out items with empty names or "Unknown"
+  const filteredItems = items.filter(item => item.name && item.name.trim() !== '' && item.name.toLowerCase() !== 'unknown')
   const maxValue = Math.max(...filteredItems.map(item => item.clicks), 1)
 
   return (

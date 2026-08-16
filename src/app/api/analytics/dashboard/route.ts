@@ -432,7 +432,7 @@ export async function GET(request: Request) {
     const botClicks = clicks.filter((c) => c.isBot).length;
 
     const countryBreakdown = Array.from(aggregated.geoMap.entries())
-      .map(([country, values]) => ({ country, ...values }))
+      .map(([country, values]) => ({ name: country, ...values }))
       .sort((a, b) => b.clicks - a.clicks);
 
     const referrerBreakdown = Array.from(aggregated.referrerMap.entries())
@@ -457,8 +457,8 @@ export async function GET(request: Request) {
     const highlightedCountries = countryBreakdown.slice(0, 3);
     const countryColors = ['#38BDF8', '#F59E0B', '#F472B6'];
     const geoDatasets = highlightedCountries.map((countryItem, index) => ({
-      label: countryItem.country,
-      data: aggregated.geoSeriesMap.get(countryItem.country) || Array(dateRange.bucketCount).fill(0),
+      label: countryItem.name,
+      data: aggregated.geoSeriesMap.get(countryItem.name) || Array(dateRange.bucketCount).fill(0),
       borderColor: countryColors[index % countryColors.length],
       backgroundColor: `${countryColors[index % countryColors.length]}22`,
       fill: false,
