@@ -448,7 +448,8 @@ export async function GET(
     // 4. Geo lookup (only after bot check)
     // ────────────────────────────────────────────────────────────────
     const geo = await getGeoLocation(ip, headers);
-    const country = (geo?.country_code || '').toUpperCase();
+    const defaultCountry = process.env.GEO_DEFAULT_COUNTRY || 'US';
+    const country = (geo?.country_code || defaultCountry || '').toUpperCase();
 
     const dedupeWindowMs = getClickDedupeWindowMs();
 
