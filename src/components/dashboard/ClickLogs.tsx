@@ -239,7 +239,7 @@ export default function ClickLogs({ filter }: ClickLogsProps) {
     const countryLabel = getCountryLabel(click.country)
     const locationParts = [click.city, click.region].filter(Boolean)
     const locationText = locationParts.join(', ')
-    const ispText = click.isp?.trim()
+    const ispText = click.isp?.trim() && click.isp !== 'Unknown' ? click.isp.trim() : null
 
     return (
       <div className="flex flex-col gap-0.5">

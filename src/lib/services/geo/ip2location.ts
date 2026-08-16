@@ -19,7 +19,7 @@ export interface GeoLocation {
   city: string;
   latitude: number;
   longitude: number;
-  isp: string;
+  isp?: string | null;
   timezone: string;
 }
 
@@ -197,7 +197,7 @@ function getHeaderGeoLocation(headers?: Headers): GeoLocation | null {
     headers?.get('cf-ipcity') ||
     headers?.get('x-city') ||
     'Unknown';
-  const isp = headers?.get('x-vercel-ip-isp') || headers?.get('x-isp') || 'Proxy Geo Header';
+  const isp = headers?.get('x-vercel-ip-isp') || headers?.get('x-isp') || null;
   const timezone = headers?.get('x-vercel-ip-timezone') || 'UTC';
   const latitude = parseFloat(headers?.get('x-vercel-ip-latitude') || '0') || 0;
   const longitude = parseFloat(headers?.get('x-vercel-ip-longitude') || '0') || 0;
