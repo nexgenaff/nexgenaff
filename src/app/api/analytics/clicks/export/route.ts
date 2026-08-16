@@ -57,10 +57,16 @@ export async function GET(request: Request) {
     const startDate = url.searchParams.get('startDate') || undefined;
     const endDate = url.searchParams.get('endDate') || undefined;
     const search = url.searchParams.get('search') || undefined;
-    const limit = Math.min(
-      Number(url.searchParams.get('limit')) || MAX_EXPORT_ROWS,
-      MAX_EXPORT_ROWS
-    );
+    
+    // Safely parse and validate limit
+    const limitParam = url.searchParams.get('limit');
+    let limit = MAX_EXPORT_ROWS;
+    if (limitParam) {
+      const parsed = Number(limitParam);
+      if (!isNaN(parsed) && isFinite(parsed) && parsed > 0) {
+        limit = Math.min(Math.floor(parsed), MAX_EXPORT_ROWS);
+      }
+    }
 
     // Get all link IDs for the user
     const ownerUserId = await getOwnerUserId();

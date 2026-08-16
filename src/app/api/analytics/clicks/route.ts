@@ -37,6 +37,7 @@ const DEFAULT_ORDER = 'desc';
 const DEFAULT_PAGE = 1;
 const DEFAULT_LIMIT = 20;
 const MAX_LIMIT = 100;
+const MAX_OFFSET = 1000000; // Prevent offset-based DoS attacks
 
 // ========== HELPERS ==========
 
@@ -96,6 +97,15 @@ export async function GET(request: Request) {
       sortBy: validateSortBy(url.searchParams.get('sortBy') || DEFAULT_SORT),
       sortOrder: (url.searchParams.get('sortOrder') as 'asc' | 'desc') || DEFAULT_ORDER,
     };
+
+    // Validate offset doesn't exceed MAX_OFFSET to prevent DoS
+    const offset = (params.page - 1) * params.limit;
+    if (offset > MAX_OFFSET) {
+      return NextResponse.json(
+        { error: 'Page number exceeds maximum limit' },
+        { status: 400, headers: getCorsHeaders(origin) }
+      );
+    }
 
     // Get all link IDs for the user
     const ownerUserId = await getOwnerUserId();

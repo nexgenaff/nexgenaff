@@ -97,13 +97,26 @@ export async function POST(req: NextRequest) {
 
     // Use transaction to prevent race condition on subdomain uniqueness
     const landingPage = await prisma.$transaction(async (tx) => {
-      // Check if subdomain is already taken
+      // Check if subdomain is already taken by another landing page
       const existing = await tx.landingPage.findUnique({
         where: { subdomain },
       })
 
       if (existing) {
         throw new Error('Subdomain already taken')
+      }
+
+      // Check if subdomain conflicts with custom domains
+      const customDomainConflict = await tx.customDomain.findFirst({
+        where: {
+          domain: {
+            contains: subdomain,
+          },
+        },
+      })
+
+      if (customDomainConflict) {
+        throw new Error('Subdomain conflicts with existing custom domain')
       }
 
       return tx.landingPage.create({

@@ -177,13 +177,18 @@ export async function GET(
       linkUrl: landingPage.trackingUrl || '',
     })
 
-    // Return rendered HTML
-    return new NextResponse(renderedHtml, {
+    // Return rendered HTML with strict security headers
+    const response = new NextResponse(renderedHtml, {
       status: 200,
       headers: {
         'Content-Type': 'text/html; charset=utf-8',
+        'Content-Security-Policy': "default-src 'self' https:; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src *; font-src *;",
+        'X-Frame-Options': 'SAMEORIGIN',
+        'X-Content-Type-Options': 'nosniff',
       },
     })
+
+    return response
   } catch (error) {
     console.error('Error handling landing page:', error)
     return NextResponse.json(

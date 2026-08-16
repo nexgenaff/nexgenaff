@@ -250,6 +250,7 @@ const buildHourlyData = async (linkIds: string[], dateRange: DateRange) => {
         },
         select: { createdAt: true, isUnique: true },
         orderBy: { createdAt: 'asc' },
+        take: 100000, // Limit to prevent memory exhaustion
       })
     : [];
 
@@ -389,6 +390,7 @@ export async function GET(request: Request) {
         isBot: true,
       },
       orderBy: { createdAt: 'asc' },
+      take: 100000, // Limit to prevent memory exhaustion
     });
 
     // Aggregate

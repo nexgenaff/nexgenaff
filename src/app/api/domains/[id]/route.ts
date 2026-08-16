@@ -33,17 +33,18 @@ export async function DELETE(
       where: { id },
     });
 
-    if (!domain || (!isOwner(user) && !isAdmin(user))) {
-      return NextResponse.json(
-        { error: 'Forbidden' },
-        { status: 403, headers: getCorsHeaders(origin) }
-      );
-    }
-
-    if (!domain || (!isOwner(user) && domain.userId !== user.id)) {
+    if (!domain) {
       return NextResponse.json(
         { error: 'Domain not found' },
         { status: 404, headers: getCorsHeaders(origin) }
+      );
+    }
+
+    // Check authorization: user must own the domain or be owner
+    if (!isOwner(user) && domain.userId !== user.id) {
+      return NextResponse.json(
+        { error: 'Forbidden' },
+        { status: 403, headers: getCorsHeaders(origin) }
       );
     }
 

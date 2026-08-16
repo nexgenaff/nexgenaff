@@ -185,6 +185,7 @@ export async function GET(
       where: visibleWhere,
       orderBy: { createdAt: 'asc' },
       select: { createdAt: true, isUnique: true },
+      take: 100000, // Limit to prevent memory exhaustion
     });
 
     const trendMap: Record<string, { total: number; unique: number }> = {};
