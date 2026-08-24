@@ -107,12 +107,12 @@ export default function SettingsPage() {
         body: JSON.stringify({ action: "update-click-rate", clickRate: Number(clickRate) }),
       });
       const data = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(data.error || "Unable to update click rate");
+      if (!response.ok) throw new Error(data.error || "Unable to update USA click rate");
       setClickRate(String(data.clickRate));
-      setFeedback({ type: "success", message: data.message || "Click rate updated successfully." });
+      setFeedback({ type: "success", message: data.message || "USA click rate updated successfully." });
       setShowClickRateForm(false);
     } catch (error) {
-      setFeedback({ type: "error", message: error instanceof Error ? error.message : "Unable to update click rate" });
+      setFeedback({ type: "error", message: error instanceof Error ? error.message : "Unable to update USA click rate" });
     } finally {
       setIsSubmitting(false);
     }
@@ -337,7 +337,7 @@ export default function SettingsPage() {
                     onClick={() => setShowClickRateForm((prev) => !prev)}
                     className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-500/20 bg-emerald-500/10 px-3 py-2 text-xs font-medium text-emerald-300 hover:bg-emerald-500/20"
                   >
-                    Global click rate: ${Number(clickRate).toFixed(2)}
+                    USA click rate: ${Number(clickRate).toFixed(2)}
                   </button>
                 )}
                 <button
@@ -360,10 +360,10 @@ export default function SettingsPage() {
               {showClickRateForm && userInfo?.role === "OWNER" && (
                 <form onSubmit={handleClickRateSubmit} className="mt-3 space-y-3 rounded-lg border border-emerald-500/20 bg-emerald-500/5 p-4">
                   <div>
-                    <label className="mb-1 block text-xs font-medium text-slate-400">Earning per USA unique referrer click for all users</label>
+                    <label className="mb-1 block text-xs font-medium text-slate-400">USA click rate per unique referrer click</label>
                     <input type="number" min="0" step="0.01" value={clickRate} onChange={(event) => setClickRate(event.target.value)} required className="w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-white focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500" />
                   </div>
-                  <button type="submit" disabled={isSubmitting} className="rounded-lg bg-emerald-600 px-4 py-2 text-xs font-medium text-white hover:bg-emerald-500 disabled:opacity-60">{isSubmitting ? "Saving..." : "Save click rate"}</button>
+                  <button type="submit" disabled={isSubmitting} className="rounded-lg bg-emerald-600 px-4 py-2 text-xs font-medium text-white hover:bg-emerald-500 disabled:opacity-60">{isSubmitting ? "Saving..." : "Save USA click rate"}</button>
                 </form>
               )}
 

@@ -722,7 +722,7 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
               label="Earning"
               value={formatCurrency(earning)}
               color="#34D399"
-              subtitle={`${formatNumber(usaUniqueReferrerClicks)} qualified USA clicks at ${formatCurrency(clickRate)} each`}
+              subtitle={`${formatNumber(usaUniqueReferrerClicks)} USA unique referrer clicks at ${formatCurrency(clickRate)} each`}
               isDark={isDark}
             />
           </div>

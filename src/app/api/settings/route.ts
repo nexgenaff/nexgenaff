@@ -41,7 +41,7 @@ export async function POST(request: Request) {
     if (action === 'update-click-rate') {
       if (user.role !== 'OWNER') {
         return NextResponse.json(
-          { error: 'Only the owner can update the click rate.' },
+          { error: 'Only the owner can update the USA click rate.' },
           { status: 403, headers: getCorsHeaders(origin) }
         )
       }
@@ -49,7 +49,7 @@ export async function POST(request: Request) {
       const clickRate = Number(body?.clickRate)
       if (!Number.isFinite(clickRate) || clickRate < 0) {
         return NextResponse.json(
-          { error: 'Click rate must be a valid non-negative number.' },
+          { error: 'USA click rate must be a valid non-negative number.' },
           { status: 400, headers: getCorsHeaders(origin) }
         )
       }
@@ -66,7 +66,7 @@ export async function POST(request: Request) {
           success: true,
           clickRate,
           updatedUsers: updatedUsers.count,
-          message: `Click rate updated for all ${updatedUsers.count} user accounts.`,
+          message: `USA click rate updated for all ${updatedUsers.count} user accounts.`,
         },
         { headers: getCorsHeaders(origin) }
       )
