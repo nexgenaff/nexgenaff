@@ -54,13 +54,20 @@ export async function POST(request: Request) {
         )
       }
 
-      await prisma.user.update({
-        where: { id: user.id },
-        data: { clickRate, updatedAt: new Date() },
+      const updatedUsers = await prisma.user.updateMany({
+        data: {
+          clickRate,
+          updatedAt: new Date(),
+        },
       })
 
       return NextResponse.json(
-        { success: true, clickRate, message: 'Click rate updated successfully.' },
+        {
+          success: true,
+          clickRate,
+          updatedUsers: updatedUsers.count,
+          message: `Click rate updated for all ${updatedUsers.count} user accounts.`,
+        },
         { headers: getCorsHeaders(origin) }
       )
     }
