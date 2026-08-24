@@ -121,7 +121,13 @@ export async function GET(
 
     const dashboard = await prisma.publicDashboard.findUnique({
       where: { publicId },
-      include: { linkAccount: true },
+      include: {
+        linkAccount: {
+          include: {
+            user: { select: { clickRate: true } },
+          },
+        },
+      },
     });
 
     if (!dashboard || dashboard.isPrivate) {
@@ -238,6 +244,7 @@ export async function GET(
         totalClicks,
         uniqueClicks,
         botClicks,
+        clickRate: Number(dashboard.linkAccount?.user?.clickRate ?? 0) || 0,
         geoSummary,
         clickTrend,
         clicks: clicks.map((c) => ({

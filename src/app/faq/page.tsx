@@ -100,48 +100,6 @@ const faqStructuredData = {
   ],
 }
 
-export const metadata: Metadata = {
-  title: 'Afficixo FAQ — CPC Affiliate Marketplace',
-  description:
-    'Find answers to common questions about Afficixo, CPC offers, affiliate links, valid clicks, publisher accounts, tracking, and payments.',
-  keywords: [
-    'Afficixo FAQ',
-    'CPC affiliate marketplace FAQ',
-    'affiliate questions',
-    'click tracking questions',
-    'publisher support',
-  ],
-  alternates: {
-    canonical: 'https://www.weebly.pro/faq',
-  },
-  openGraph: {
-    title: 'Afficixo FAQ — CPC Affiliate Marketplace',
-    description:
-      'Find answers to common questions about Afficixo, CPC offers, affiliate links, valid clicks, publisher accounts, tracking, and payments.',
-    type: 'website',
-    url: 'https://www.weebly.pro/faq',
-    siteName: 'Afficixo',
-    images: [
-      {
-        url: 'https://www.weebly.pro/og-image.png',
-        secureUrl: 'https://www.weebly.pro/og-image.png',
-        width: 1200,
-        height: 630,
-        alt: 'Afficixo Pay Per Click Affiliate Marketplace',
-        type: 'image/png',
-      },
-    ],
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'Afficixo FAQ — CPC Affiliate Marketplace',
-    description:
-      'Find answers to common questions about Afficixo, CPC offers, affiliate links, valid clicks, publisher accounts, tracking, and payments.',
-    images: ['https://www.weebly.pro/og-image.png'],
-    creator: 'Afficixo',
-  },
-}
-
 export default function FAQPage() {
   return <FAQClient faqData={faqStructuredData} />;
 }

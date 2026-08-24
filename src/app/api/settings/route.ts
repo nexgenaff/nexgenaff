@@ -38,6 +38,33 @@ export async function POST(request: Request) {
     const body = await request.json().catch(() => ({}))
     const action = typeof body?.action === 'string' ? body.action : ''
 
+    if (action === 'update-click-rate') {
+      if (user.role !== 'OWNER') {
+        return NextResponse.json(
+          { error: 'Only the owner can update the click rate.' },
+          { status: 403, headers: getCorsHeaders(origin) }
+        )
+      }
+
+      const clickRate = Number(body?.clickRate)
+      if (!Number.isFinite(clickRate) || clickRate < 0) {
+        return NextResponse.json(
+          { error: 'Click rate must be a valid non-negative number.' },
+          { status: 400, headers: getCorsHeaders(origin) }
+        )
+      }
+
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { clickRate, updatedAt: new Date() },
+      })
+
+      return NextResponse.json(
+        { success: true, clickRate, message: 'Click rate updated successfully.' },
+        { headers: getCorsHeaders(origin) }
+      )
+    }
+
     if (action === 'change-password') {
       const currentPassword = typeof body?.currentPassword === 'string' ? body.currentPassword : ''
       const newPassword = typeof body?.newPassword === 'string' ? body.newPassword : ''

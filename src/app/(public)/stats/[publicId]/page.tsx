@@ -11,6 +11,7 @@ import {
   Users,
   Globe2,
   Bot,
+  DollarSign,
   User,
   CheckCircle,
   XCircle,
@@ -46,6 +47,7 @@ interface Stats {
   totalClicks: number
   uniqueClicks: number
   botClicks: number
+  clickRate?: number
   geoSummary: Array<{
     country: string
     totalClicks: number
@@ -85,6 +87,13 @@ interface Stats {
 }
 
 // Metric Card
+const formatCurrency = (amount: number) => new Intl.NumberFormat('en-US', {
+  style: 'currency',
+  currency: 'USD',
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+}).format(amount)
+
 const MetricCard = ({
   icon: Icon,
   label,
@@ -95,7 +104,7 @@ const MetricCard = ({
   percentageColor = '#818CF8',
   isDark = true
 }: any) => (
-  <div className={`group relative overflow-hidden rounded-xl border p-5 transition-all duration-200 hover:scale-[1.02] ${
+  <div className={`group relative overflow-hidden rounded-xl border p-5 transition-all duration-200 hover:-translate-y-0.5 ${
     isDark
       ? 'bg-white/5 backdrop-blur-sm border-white/10 hover:border-white/20 hover:bg-white/10'
       : 'bg-white/80 backdrop-blur-sm border-gray-200 hover:border-indigo-300 hover:bg-white'
@@ -106,7 +115,7 @@ const MetricCard = ({
           isDark ? 'text-white/40' : 'text-gray-500'
         }`}>{label}</p>
         <p className={`text-2xl font-bold tracking-tight ${
-          isDark ? 'text-white' : 'text-gray-800'
+      isDark ? 'text-white' : 'text-gray-800'
         }`}>{value}</p>
         {subtitle && <p className={`text-[11px] ${isDark ? 'text-white/30' : 'text-gray-500'}`}>{subtitle}</p>}
         {percentage !== undefined && (
@@ -525,7 +534,13 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
   const totalClicks = computedStats.totalClicks
   const uniqueClicks = computedStats.uniqueClicks
   const botClicks = computedStats.botClicks
-  const usaUniqueClicks = filteredClicks.filter((click) => click.country === 'US').length
+  const clickRate = Number(stats?.clickRate ?? 0) || 0
+  const usaUniqueReferrerClicks = filteredClicks.filter((click) => {
+    if (click.country !== 'US' || !click.isUnique || !click.referrer?.trim()) return false
+    const device = (click.deviceType || '').toLowerCase()
+    return device !== 'desktop' && device !== 'computer'
+  }).length
+  const earning = usaUniqueReferrerClicks * clickRate
   const uniqueRate = totalClicks ? ((uniqueClicks / totalClicks) * 100) : 0
   const botRate = totalClicks ? ((botClicks / totalClicks) * 100) : 0
   const maxCountryClicks = computedStats.geoSummary.length
@@ -686,7 +701,7 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
               icon={Users}
               label="Unique Visitors"
               value={formatNumber(uniqueClicks)}
-              color="#34D399"
+              color="#818CF8"
               percentage={uniqueRate}
               percentageColor="#34D399"
               subtitle="Unique"
@@ -703,13 +718,11 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
               isDark={isDark}
             />
             <MetricCard
-              icon={Bot}
-              label="Bot Traffic"
-              value={formatNumber(botClicks)}
-              color="#F87171"
-              percentage={botRate}
-              percentageColor="#F87171"
-              subtitle={`${botRate.toFixed(1)}% of total`}
+              icon={DollarSign}
+              label="Earning"
+              value={formatCurrency(earning)}
+              color="#34D399"
+              subtitle={`${formatNumber(usaUniqueReferrerClicks)} qualified USA clicks at ${formatCurrency(clickRate)} each`}
               isDark={isDark}
             />
           </div>
@@ -854,7 +867,7 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
                     }`}
                   >
                     <span className="text-base">{flag}</span>
-                    <span>{usaUniqueClicks}</span>
+                    <span>{usaUniqueReferrerClicks}</span>
                   </button>
                 )
               })()}

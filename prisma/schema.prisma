@@ -19,6 +19,7 @@ model User {
   contractNumber   String?
   telegramUsername String?
   bkashNumber      String?
+  clickRate        Float?      @default(0)
   password         String
   role             UserRole    @default(ADMIN)
   status           UserStatus  @default(PENDING)

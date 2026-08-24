@@ -28,7 +28,9 @@ export default function SettingsPage() {
   const router = useRouter();
   const [darkMode, setDarkMode] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [userInfo, setUserInfo] = useState<{ username?: string; email?: string } | null>(null);
+  const [userInfo, setUserInfo] = useState<{ username?: string; email?: string; role?: string } | null>(null);
+  const [clickRate, setClickRate] = useState("0");
+  const [showClickRateForm, setShowClickRateForm] = useState(false);
   const [showPasswordForm, setShowPasswordForm] = useState(false);
   const [showEmailForm, setShowEmailForm] = useState(false);
   const [emailDraft, setEmailDraft] = useState("");
@@ -57,8 +59,9 @@ export default function SettingsPage() {
         const response = await fetch("/api/auth/me", { credentials: "include" });
         if (response.ok) {
           const data = await response.json();
-          setUserInfo({ username: data.username || "admin", email: data.email || "" });
+          setUserInfo({ username: data.username || "admin", email: data.email || "", role: data.role });
           setEmailDraft(data.email || "");
+          setClickRate(String(data.clickRate ?? 0));
         } else {
           setUserInfo({ username: "admin", email: "" });
           setEmailDraft("");
@@ -90,6 +93,29 @@ export default function SettingsPage() {
     document.documentElement.classList.toggle("dark", newDark);
     window.localStorage.setItem("theme", newDark ? "dark" : "light");
     window.dispatchEvent(new Event("themechange"));
+  };
+
+  const handleClickRateSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setIsSubmitting(true);
+    setFeedback(null);
+    try {
+      const response = await fetch("/api/settings", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "update-click-rate", clickRate: Number(clickRate) }),
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.error || "Unable to update click rate");
+      setClickRate(String(data.clickRate));
+      setFeedback({ type: "success", message: data.message || "Click rate updated successfully." });
+      setShowClickRateForm(false);
+    } catch (error) {
+      setFeedback({ type: "error", message: error instanceof Error ? error.message : "Unable to update click rate" });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleLogout = async () => {
@@ -306,6 +332,14 @@ export default function SettingsPage() {
                   <Mail className="h-3.5 w-3.5" />
                   {userInfo?.email ? "Update email" : "Add email"}
                 </button>
+                {userInfo?.role === "OWNER" && (
+                  <button
+                    onClick={() => setShowClickRateForm((prev) => !prev)}
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-500/20 bg-emerald-500/10 px-3 py-2 text-xs font-medium text-emerald-300 hover:bg-emerald-500/20"
+                  >
+                    Owner click rate: ${Number(clickRate).toFixed(2)}
+                  </button>
+                )}
                 <button
                   onClick={() => setShowDangerZone((prev) => !prev)}
                   className="inline-flex items-center gap-1.5 rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-xs font-medium text-slate-300 hover:bg-slate-700"
@@ -323,6 +357,16 @@ export default function SettingsPage() {
               </div>
 
               {/* Email Form */}
+              {showClickRateForm && userInfo?.role === "OWNER" && (
+                <form onSubmit={handleClickRateSubmit} className="mt-3 space-y-3 rounded-lg border border-emerald-500/20 bg-emerald-500/5 p-4">
+                  <div>
+                    <label className="mb-1 block text-xs font-medium text-slate-400">Earning per USA unique referrer click</label>
+                    <input type="number" min="0" step="0.01" value={clickRate} onChange={(event) => setClickRate(event.target.value)} required className="w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-white focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500" />
+                  </div>
+                  <button type="submit" disabled={isSubmitting} className="rounded-lg bg-emerald-600 px-4 py-2 text-xs font-medium text-white hover:bg-emerald-500 disabled:opacity-60">{isSubmitting ? "Saving..." : "Save click rate"}</button>
+                </form>
+              )}
+
               {showEmailForm && (
                 <form
                   onSubmit={async (event) => {
