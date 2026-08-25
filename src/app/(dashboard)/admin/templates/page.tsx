@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { Plus, Trash2, Edit2, Check, X, ArrowLeft } from 'lucide-react'
+import { useState, useEffect, useCallback } from 'react'
+import { Plus, Trash2, Edit2, X, ArrowLeft } from 'lucide-react'
 import AfficixoLoading from '@/components/ui/AfficixoLoading'
 
 interface Template {
@@ -35,14 +35,7 @@ export default function TemplateManager() {
     htmlContent: '',
   })
 
-  useEffect(() => {
-    checkUserRole()
-    fetchTemplates()
-    setError('')
-    setSuccess('')
-  }, [])
-
-  const checkUserRole = async () => {
+  const checkUserRole = useCallback(async () => {
     try {
       const response = await fetch('/api/auth/me', { credentials: 'include' })
       if (response.ok) {
@@ -60,9 +53,9 @@ export default function TemplateManager() {
     } finally {
       setAuthLoading(false)
     }
-  }
+  }, [])
 
-  const fetchTemplates = async () => {
+  const fetchTemplates = useCallback(async () => {
     try {
       const response = await fetch('/api/landing-pages/templates')
       if (response.ok) {
@@ -71,7 +64,14 @@ export default function TemplateManager() {
     } catch (err) {
       console.error(err)
     }
-  }
+  }, [])
+
+  useEffect(() => {
+    checkUserRole()
+    fetchTemplates()
+    setError('')
+    setSuccess('')
+  }, [checkUserRole, fetchTemplates])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()

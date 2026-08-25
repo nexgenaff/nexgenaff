@@ -1,7 +1,7 @@
 'use client'
 
 import Image from 'next/image'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import AfficixoLoading from '@/components/ui/AfficixoLoading'
 import {
   Plus,
@@ -28,6 +28,13 @@ interface LandingPage {
   id: string
   subdomain: string
   trackingUrl: string
+  userId: string
+  user?: {
+    id: string
+    username: string
+    email: string
+    role: string
+  }
   headline?: string
   description?: string
   imageUrl?: string
@@ -64,6 +71,11 @@ export default function LandingPageBuilder() {
   const [success, setSuccess] = useState('')
   const [landingPageDomain, setLandingPageDomain] = useState('')
   const [userId, setUserId] = useState<string | null>(null)
+  const [userRole, setUserRole] = useState<string | null>(null)
+  const [managerFilter, setManagerFilter] = useState('all')
+  const [statusFilter, setStatusFilter] = useState('all')
+  const [searchFilter, setSearchFilter] = useState('')
+  const [selectedPageIds, setSelectedPageIds] = useState<string[]>([])
 
   // Builder form state
   const [subdomain, setSubdomain] = useState('')
@@ -71,12 +83,13 @@ export default function LandingPageBuilder() {
   const [selectedTemplate, setSelectedTemplate] = useState<Template | null>(null)
   const [subdomainError, setSubdomainError] = useState('')
 
-  const fetchCurrentUser = async () => {
+  const fetchCurrentUser = useCallback(async () => {
     try {
       const response = await fetch('/api/auth/me', { credentials: 'include' })
       if (response.ok) {
         const data = await response.json()
         setUserId(data.id)
+        setUserRole(data.role)
       } else {
         setError('Failed to authenticate user')
       }
@@ -84,21 +97,9 @@ export default function LandingPageBuilder() {
       console.error('Auth error:', err)
       setError('Authentication error')
     }
-  }
-
-  useEffect(() => {
-    setLandingPageDomain(getDomain())
-    fetchCurrentUser()
-    fetchTemplates()
   }, [])
 
-  useEffect(() => {
-    if (userId) {
-      fetchLandingPages()
-    }
-  }, [userId])
-
-  const fetchLandingPages = async () => {
+  const fetchLandingPages = useCallback(async () => {
     if (!userId) return
     try {
       setLoading(true)
@@ -113,9 +114,9 @@ export default function LandingPageBuilder() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [userId])
 
-  const fetchTemplates = async () => {
+  const fetchTemplates = useCallback(async () => {
     try {
       const response = await fetch('/api/landing-pages/templates')
       if (response.ok) {
@@ -124,7 +125,19 @@ export default function LandingPageBuilder() {
     } catch (err) {
       console.error(err)
     }
-  }
+  }, [])
+
+  useEffect(() => {
+    setLandingPageDomain(getDomain())
+    fetchCurrentUser()
+    fetchTemplates()
+  }, [fetchCurrentUser, fetchTemplates])
+
+  useEffect(() => {
+    if (userId) {
+      fetchLandingPages()
+    }
+  }, [fetchLandingPages, userId])
 
   const validateSubdomain = async (value: string) => {
     setSubdomain(value)
@@ -245,9 +258,53 @@ export default function LandingPageBuilder() {
         setSuccess('Landing page deleted')
         setTimeout(() => setSuccess(''), 2000)
       }
-    } catch (err) {
+    } catch {
       setError('Failed to delete landing page')
     }
+  }
+
+  const managerGroups = landingPages.reduce<Record<string, LandingPage[]>>((groups, page) => {
+    const groupName = page.user?.username || 'Unknown user'
+    groups[groupName] = groups[groupName] || []
+    groups[groupName].push(page)
+    return groups
+  }, {})
+  const managerOptions = Object.entries(managerGroups)
+    .map(([username, pages]) => ({ username, userId: pages[0]?.user?.id || '' }))
+    .sort((left, right) => left.username.localeCompare(right.username))
+  const normalizedSearch = searchFilter.trim().toLowerCase()
+  const filteredPages = landingPages.filter((page) => {
+    const matchesManager = managerFilter === 'all' || page.user?.id === managerFilter || page.user?.username === managerFilter
+    const matchesStatus = statusFilter === 'all' || (statusFilter === 'published' ? page.isPublished : !page.isPublished)
+    const searchableText = [
+      page.subdomain,
+      page.trackingUrl,
+      page.headline,
+      page.description,
+      page.user?.username,
+      page.user?.email,
+    ].filter(Boolean).join(' ').toLowerCase()
+    return matchesManager && matchesStatus && (!normalizedSearch || searchableText.includes(normalizedSearch))
+  })
+  const visibleGroups = filteredPages.reduce<Record<string, LandingPage[]>>((groups, page) => {
+    const groupName = page.user?.username || 'Unknown user'
+    groups[groupName] = groups[groupName] || []
+    groups[groupName].push(page)
+    return groups
+  }, {})
+  const visiblePageIds = filteredPages.map((page) => page.id)
+  const allVisibleSelected = visiblePageIds.length > 0 && visiblePageIds.every((id) => selectedPageIds.includes(id))
+
+  const togglePageSelection = (id: string) => {
+    setSelectedPageIds((current) => current.includes(id)
+      ? current.filter((selectedId) => selectedId !== id)
+      : [...current, id])
+  }
+
+  const toggleAllVisiblePages = () => {
+    setSelectedPageIds((current) => allVisibleSelected
+      ? current.filter((id) => !visiblePageIds.includes(id))
+      : [...new Set([...current, ...visiblePageIds])])
   }
 
   if (loading && currentStep === 'list') {
@@ -289,7 +346,9 @@ export default function LandingPageBuilder() {
                 />
                 <div>
                   <h1 className="text-2xl font-bold text-white">Landing Pages</h1>
-                  <p className="text-sm text-slate-400">Create and manage your landing pages</p>
+                  <p className="text-sm text-slate-400">
+                    {userRole === 'OWNER' ? 'Review landing pages created by each manager' : 'Create and manage your landing pages'}
+                  </p>
                 </div>
               </div>
               <button
@@ -301,19 +360,89 @@ export default function LandingPageBuilder() {
               </button>
             </div>
 
+            <div className="mb-6 grid gap-3 rounded-xl border border-slate-800 bg-slate-900/40 p-4 sm:grid-cols-2 lg:grid-cols-4">
+              <input
+                type="search"
+                value={searchFilter}
+                onChange={(event) => setSearchFilter(event.target.value)}
+                placeholder="Search URL, destination, creator..."
+                aria-label="Search landing pages"
+                className="rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white outline-none placeholder:text-slate-500 focus:border-cyan-400"
+              />
+              {userRole === 'OWNER' && (
+                <select
+                  aria-label="Filter by manager"
+                  value={managerFilter}
+                  onChange={(event) => setManagerFilter(event.target.value)}
+                  className="rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white outline-none focus:border-cyan-400"
+                >
+                  <option value="all">All managers</option>
+                  {managerOptions.map((manager) => (
+                    <option key={manager.userId || manager.username} value={manager.userId || manager.username}>
+                      {manager.username}
+                    </option>
+                  ))}
+                </select>
+              )}
+              <select
+                aria-label="Filter by publish status"
+                value={statusFilter}
+                onChange={(event) => setStatusFilter(event.target.value)}
+                className="rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white outline-none focus:border-cyan-400"
+              >
+                <option value="all">All statuses</option>
+                <option value="published">Published</option>
+                <option value="draft">Draft</option>
+              </select>
+              <button
+                type="button"
+                onClick={toggleAllVisiblePages}
+                disabled={visiblePageIds.length === 0}
+                className="rounded-lg border border-cyan-500/30 bg-cyan-500/10 px-3 py-2 text-sm font-medium text-cyan-200 transition-colors hover:bg-cyan-500/20 disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                {allVisibleSelected ? 'Clear visible selection' : 'Select all visible'}
+              </button>
+              <div className="text-xs text-slate-500 sm:col-span-2 lg:col-span-4">
+                Showing {filteredPages.length} of {landingPages.length} pages
+                {selectedPageIds.length > 0 && ` | ${selectedPageIds.length} selected`}
+              </div>
+            </div>
+
             {/* Landing Pages Grid */}
-            {landingPages.length === 0 ? (
+            {landingPages.length === 0 || filteredPages.length === 0 ? (
               <div className="rounded-xl border border-slate-800 bg-slate-900/40 py-12 text-center">
-                <p className="text-sm font-medium text-slate-400">No landing pages yet</p>
-                <p className="mt-1 text-xs text-slate-500">Create your first landing page to get started.</p>
+                <p className="text-sm font-medium text-slate-400">
+                  {landingPages.length === 0 ? 'No landing pages yet' : 'No pages match these filters'}
+                </p>
+                <p className="mt-1 text-xs text-slate-500">
+                  {landingPages.length === 0 ? 'Create your first landing page to get started.' : 'Try changing the search or filter options.'}
+                </p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {landingPages.map((page) => (
-                  <div
-                    key={page.id}
-                    className="rounded-xl border border-slate-800 bg-slate-900/60 p-4"
-                  >
+              <div className="space-y-8">
+                {Object.entries(visibleGroups).map(([groupName, pages]) => (
+                  <section key={groupName}>
+                    {userRole === 'OWNER' && (
+                      <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-cyan-300">
+                        {groupName}
+                      </h2>
+                    )}
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                      {pages.map((page) => (
+                        <div
+                          key={page.id}
+                          className="rounded-xl border border-slate-800 bg-slate-900/60 p-4"
+                        >
+                    <label className="mb-3 flex items-center gap-2 text-xs text-slate-400">
+                      <input
+                        type="checkbox"
+                        checked={selectedPageIds.includes(page.id)}
+                        onChange={() => togglePageSelection(page.id)}
+                        className="h-4 w-4 accent-cyan-500"
+                        aria-label={`Select ${page.subdomain}`}
+                      />
+                      Select page
+                    </label>
                     {/* Subdomain & Copy URL */}
                     <div className="mb-3 flex items-center justify-between gap-2">
                       <div className="min-w-0">
@@ -350,16 +479,18 @@ export default function LandingPageBuilder() {
                       </div>
                     </div>
 
-                    {/* Actions */}
-                    <div className="flex gap-2 border-t border-slate-800 pt-3">
-                      <button
-                        onClick={() => deleteLandingPage(page.id)}
-                        className="flex flex-1 items-center justify-center gap-1 rounded-md px-2 py-2 text-xs font-medium text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-colors"
-                        title="Delete landing page"
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                        <span className="hidden sm:inline">Delete</span>
-                      </button>
+                          {/* Actions */}
+                          <div className="flex gap-2 border-t border-slate-800 pt-3">
+                            {page.userId === userId && (
+                              <button
+                                onClick={() => deleteLandingPage(page.id)}
+                                className="flex flex-1 items-center justify-center gap-1 rounded-md px-2 py-2 text-xs font-medium text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-colors"
+                                title="Delete landing page"
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                                <span className="hidden sm:inline">Delete</span>
+                              </button>
+                            )}
                       <button
                         type="button"
                         onClick={() => copyLandingPageLink(page)}
@@ -369,8 +500,11 @@ export default function LandingPageBuilder() {
                         <Copy className="h-3.5 w-3.5" />
                         <span className="hidden sm:inline">Copy</span>
                       </button>
+                          </div>
+                        </div>
+                      ))}
                     </div>
-                  </div>
+                  </section>
                 ))}
               </div>
             )}
@@ -465,9 +599,11 @@ export default function LandingPageBuilder() {
                           }`}
                         >
                           {template.thumbnail && (
-                            <img
+                            <Image
                               src={template.thumbnail}
                               alt={template.name}
+                              width={400}
+                              height={96}
                               className="mb-2 h-24 w-full rounded object-cover"
                             />
                           )}

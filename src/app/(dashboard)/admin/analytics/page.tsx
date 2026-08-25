@@ -260,21 +260,16 @@ export default function AnalyticsPage() {
   const MAX_COLUMNS = isMobile ? 8 : 12;
   
   // Mobile: prioritize major geo countries, then show others
-  const visibleLabels = useMemo(() => {
+  const visibleLabels = (() => {
     if (!isMobile) return reportLabels;
-    
+
     const priorityCountries = ['US', 'GB', 'CA', 'AU'];
-    const maxCountries = MAX_COLUMNS - 1; // -1 for Account column
-    
-    // Start with priority countries that exist in the data
+    const maxCountries = MAX_COLUMNS - 1;
     const priorityVisible = priorityCountries.filter(c => reportLabels.includes(c));
-    
-    // Add remaining countries that aren't in priority list
     const otherCountries = reportLabels.filter(c => !priorityCountries.includes(c));
-    
-    // Combine: priority first, then others, up to maxCountries
+
     return [...priorityVisible, ...otherCountries].slice(0, maxCountries);
-  }, [isMobile, reportLabels, MAX_COLUMNS]);
+  })();
 
   const blankColumns = Math.max(0, MAX_COLUMNS - 1 - visibleLabels.length);
 

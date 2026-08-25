@@ -1,6 +1,6 @@
 import { PrismaClient } from '@prisma/client'
 import { NextRequest, NextResponse } from 'next/server'
-import { getUserFromToken, getTokenFromCookie } from '@/lib/auth'
+import { getUserFromToken, getTokenFromCookie, isOwner } from '@/lib/auth'
 import { getCorsHeaders } from '@/config/cors'
 import { z } from 'zod'
 
@@ -44,8 +44,13 @@ export async function GET(req: NextRequest) {
     }
 
     const landingPages = await prisma.landingPage.findMany({
-      where: { userId: user.id },
-      include: { template: true },
+      where: isOwner(user) ? undefined : { userId: user.id },
+      include: {
+        template: true,
+        user: {
+          select: { id: true, username: true, email: true, role: true },
+        },
+      },
       orderBy: { createdAt: 'desc' },
     })
 
