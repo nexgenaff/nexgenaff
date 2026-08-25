@@ -411,7 +411,7 @@ export default function HomePage() {
               >
                 <div className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-indigo-400 shrink-0" />
                 <span className="text-[10px] md:text-xs font-bold tracking-widest uppercase text-slate-200">
-                  #1 CPA Network
+                  #1 CPC Network
                 </span>
               </motion.div>
 

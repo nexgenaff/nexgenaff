@@ -97,13 +97,40 @@ export function Chart({
   options = {},
 }: ChartProps) {
   const [isClient, setIsClient] = useState(false)
+  const [isDark, setIsDark] = useState(true)
 
   useEffect(() => {
     setIsClient(true)
+    const readTheme = () => {
+      const storedTheme = window.localStorage.getItem('theme')
+      setIsDark(storedTheme ? storedTheme === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches)
+    }
+
+    readTheme()
+    window.addEventListener('themechange', readTheme)
+    window.addEventListener('storage', readTheme)
+
+    return () => {
+      window.removeEventListener('themechange', readTheme)
+      window.removeEventListener('storage', readTheme)
+    }
   }, [])
 
   // Normalise all flags once
   const flagEmojis = flags.map((f) => normalizeFlag(f))
+  const chartColors = isDark
+    ? {
+        text: 'rgba(255,255,255,0.7)',
+        tick: 'rgba(255,255,255,0.5)',
+        grid: 'rgba(255,255,255,0.06)',
+        subtleGrid: 'rgba(255,255,255,0.04)',
+      }
+    : {
+        text: '#334155',
+        tick: '#64748b',
+        grid: 'rgba(100,116,139,0.2)',
+        subtleGrid: 'rgba(100,116,139,0.12)',
+      }
 
   // ── Default Chart.js options ────────────────────────────────────────────
 
@@ -114,7 +141,7 @@ export function Chart({
       legend: {
         display: true,
         labels: {
-          color: 'rgba(255,255,255,0.7)',
+          color: chartColors.text,
           font: { size: 11, weight: '600', family: 'Inter' },
           padding: 16,
           usePointStyle: false,
@@ -154,18 +181,18 @@ export function Chart({
     scales: {
       x: {
         border: { display: false },
-        grid: { color: 'rgba(255,255,255,0.03)', drawBorder: false },
+        grid: { color: chartColors.grid, drawBorder: false },
         ticks: {
-          color: 'rgba(255,255,255,0.5)',
+          color: chartColors.tick,
           font: { size: 10, weight: '600', family: 'Inter' },
           padding: 8,
         },
       },
       y: {
         border: { display: false },
-        grid: { color: 'rgba(255,255,255,0.02)', drawBorder: false },
+        grid: { color: chartColors.subtleGrid, drawBorder: false },
         ticks: {
-          color: 'rgba(255,255,255,0.6)',
+          color: chartColors.tick,
           font: { size: 10, weight: '600', family: 'Inter' },
           padding: 8,
           callback: function (value: any) {
