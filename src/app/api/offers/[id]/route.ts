@@ -1,8 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { prisma } from '@/lib/db/prisma'
-import { getUserFromToken, getTokenFromCookie, isAdmin, isOwner, isManager, getOwnerUserId } from '@/lib/auth'
-import bcrypt from 'bcryptjs'
-import { randomBytes } from 'crypto'
+import { getUserFromToken, getTokenFromCookie, isAdmin, isOwner, getOwnerUserId } from '@/lib/auth'
 import { getCorsHeaders } from '@/config/cors'
 
 export async function PUT(
@@ -49,31 +47,19 @@ export async function PUT(
       )
     }
 
-    // Verify ownership based on user role
-    if (!isOwner(user) && !isAdmin(user)) {
-      // Additional check for other roles (like managers)
-      if (!isManager(user)) {
-        return NextResponse.json(
-          { error: 'Forbidden' },
-          { status: 403, headers: getCorsHeaders(origin) }
-        )
-      }
+    const ownerUserId = await getOwnerUserId()
+    const canManageOffer = isOwner(user)
+      ? offer.userId === (ownerUserId || user.id) || (await prisma.user.findUnique({
+          where: { id: offer.userId },
+          select: { role: true },
+        }))?.role === 'MANAGER'
+      : isAdmin(user) && offer.userId === user.id
 
-      // Managers can only manage owner's offers
-      try {
-        const ownerUserId = await getOwnerUserId()
-        if (!ownerUserId || offer.userId !== ownerUserId) {
-          return NextResponse.json(
-            { error: 'Forbidden' },
-            { status: 403, headers: getCorsHeaders(origin) }
-          )
-        }
-      } catch {
-        return NextResponse.json(
-          { error: 'Authorization check failed' },
-          { status: 403, headers: getCorsHeaders(origin) }
-        )
-      }
+    if (!canManageOffer) {
+      return NextResponse.json(
+        { error: 'Forbidden' },
+        { status: 403, headers: getCorsHeaders(origin) }
+      )
     }
 
     const nextCountry = Boolean(isGlobal) || Boolean(isContentLocker)
@@ -187,7 +173,15 @@ export async function DELETE(
       )
     }
 
-    if (!offer || (!isOwner(user) && offer.userId !== user.id)) {
+    const ownerUserId = await getOwnerUserId()
+    const canDeleteOffer = isOwner(user)
+      ? offer.userId === (ownerUserId || user.id) || (await prisma.user.findUnique({
+          where: { id: offer.userId },
+          select: { role: true },
+        }))?.role === 'MANAGER'
+      : offer.userId === user.id
+
+    if (!canDeleteOffer) {
       return NextResponse.json(
         { error: 'Offer not found' },
         { status: 404, headers: getCorsHeaders(origin) }

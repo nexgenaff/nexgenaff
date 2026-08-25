@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db/prisma'
 import { getUserFromToken, getTokenFromCookie, isAdmin, isOwner, getOwnerUserId, getOfferSelectionUserIds, resolveUserIdForRecord } from '@/lib/auth'
-import bcrypt from 'bcryptjs'
 import { getCorsHeaders } from '@/config/cors'
 
 export async function GET(request: Request) {
@@ -27,7 +26,7 @@ export async function GET(request: Request) {
 
     const ownerUserId = await getOwnerUserId()
 
-    // Owner: full access. Admin: own offers only. Manager: owner-provided offers.
+    // Owner: owner and manager offers. Admin: own offers only. Manager: shared offers.
     // If no owner account exists, return an empty list for managers instead of erroring.
     if (!isOwner(user) && !isAdmin(user) && !ownerUserId) {
       return NextResponse.json([], { headers: getCorsHeaders(origin) })
@@ -35,7 +34,12 @@ export async function GET(request: Request) {
 
     let queryWhere: Record<string, unknown>
     if (isOwner(user)) {
-      queryWhere = {} // owners see all offers
+      queryWhere = {
+        OR: [
+          { userId: ownerUserId || user.id },
+          { user: { role: 'MANAGER' } },
+        ],
+      }
     } else if (isAdmin(user)) {
       queryWhere = { userId: user.id } // admins see only their own offers
     } else {
