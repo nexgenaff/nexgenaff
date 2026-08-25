@@ -39,6 +39,9 @@ export async function GET(request: Request) {
       role: effectiveRole,
       email: user.email,
       status: user.status,
+      clickRate: user.clickRate ?? 0,
+      payoutMethod: user.payoutMethod || 'BKASH',
+      payoutAccount: user.payoutAccount || user.bkashNumber || '',
     }, { headers: getCorsHeaders(origin) })
   } catch (error) {
     console.error('Auth error:', error)

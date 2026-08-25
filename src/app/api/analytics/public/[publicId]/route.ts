@@ -245,6 +245,7 @@ export async function GET(
         uniqueClicks,
         botClicks,
         clickRate: Number(dashboard.linkAccount?.user?.clickRate ?? 0) || 0,
+        payoutMethod: dashboard.linkAccount?.payoutMethod || null,
         geoSummary,
         clickTrend,
         clicks: clicks.map((c) => ({

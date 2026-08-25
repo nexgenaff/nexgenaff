@@ -17,6 +17,9 @@ model User {
   telegramUsername String?
   bkashNumber      String?
   clickRate        Float?      @default(0)
+  payoutMethod     String?
+  payoutAccount    String?
+  paymentPasswordHash String?
   password         String
   role             UserRole    @default(ADMIN)
   status           UserStatus  @default(PENDING)
@@ -58,6 +61,10 @@ model LinkAccount {
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt
   isActive        Boolean     @default(true)
+
+  payoutMethod          String?
+  payoutAccount         String?
+  paymentPasswordHash   String?
   
   totalClicks     Int         @default(0)
   uniqueClicks    Int         @default(0)
@@ -74,6 +81,7 @@ model LinkAccount {
   osStats          OSStat[]
   deviceStats      DeviceStat[]
   referrerStats    ReferrerStat[]
+  invoices         Invoice[]
   
   @@unique([slug, customDomainId])
   @@index([userId, offerGroupName])
@@ -332,4 +340,22 @@ model LandingPage {
   @@index([subdomain])
   @@index([isPublished])
   @@map("landing_pages")
+}
+
+model Invoice {
+  id                   String      @id @default(cuid())
+  invoiceNumber        String      @unique
+  linkAccountId        String
+  linkAccount          LinkAccount @relation(fields: [linkAccountId], references: [id], onDelete: Cascade)
+  qualifiedClicks      Int
+  clickRate            Float
+  totalEarning         Float
+  payoutMethod         String?
+  payoutAccount        String?
+  isPaid               Boolean     @default(false)
+  paidAt               DateTime?
+  createdAt            DateTime    @default(now())
+
+  @@index([linkAccountId, createdAt])
+  @@map("invoices")
 }

@@ -270,6 +270,10 @@ type AuthUser = {
   role: UserRole
   email?: string
   status?: AccountStatus | null
+  bkashNumber?: string | null
+  clickRate?: number | null
+  payoutMethod?: string | null
+  payoutAccount?: string | null
 }
 
 export async function getUserFromToken(token: string): Promise<AuthUser | null> {
@@ -306,6 +310,10 @@ export async function getUserFromToken(token: string): Promise<AuthUser | null> 
       username: true,
       email: true,
       role: true,
+      bkashNumber: true,
+      clickRate: true,
+      payoutMethod: true,
+      payoutAccount: true,
       status: true,
     },
   })) as AuthUser | null

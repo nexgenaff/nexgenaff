@@ -72,6 +72,18 @@ export async function POST(request: Request) {
       )
     }
 
+    if (action === 'save-payment-binding') {
+      const payoutMethod = typeof body?.payoutMethod === 'string' ? body.payoutMethod.trim().toUpperCase() : ''
+      const payoutAccount = typeof body?.payoutAccount === 'string' ? body.payoutAccount.trim() : ''
+      const paymentPassword = typeof body?.paymentPassword === 'string' ? body.paymentPassword : ''
+      if (!['BKASH', 'BINANCE'].includes(payoutMethod) || !payoutAccount || paymentPassword.length < 8) {
+        return NextResponse.json({ error: 'Choose bKash or Binance, provide an account, and use an access password of at least 8 characters.' }, { status: 400, headers: getCorsHeaders(origin) })
+      }
+      const paymentPasswordHash = await bcrypt.hash(paymentPassword, 12)
+      await prisma.user.update({ where: { id: user.id }, data: { payoutMethod, payoutAccount, paymentPasswordHash, updatedAt: new Date() } })
+      return NextResponse.json({ success: true, message: 'Payment binding saved for your link account.' }, { headers: getCorsHeaders(origin) })
+    }
+
     if (action === 'change-password') {
       const currentPassword = typeof body?.currentPassword === 'string' ? body.currentPassword : ''
       const newPassword = typeof body?.newPassword === 'string' ? body.newPassword : ''

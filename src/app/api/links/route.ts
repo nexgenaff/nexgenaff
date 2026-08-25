@@ -34,16 +34,44 @@ export async function GET(request: Request) {
       include: {
         customDomain: true,
         publicDashboard: true,
+        invoices: { orderBy: { createdAt: 'desc' }, take: 100 },
         user: {
           select: {
             username: true,
+            clickRate: true,
+            payoutMethod: true,
           },
         },
       },
       orderBy: { createdAt: 'desc' },
     })
 
-    return NextResponse.json(links, { headers: getCorsHeaders(origin) })
+    const qualifiedClicks = await prisma.click.groupBy({
+      by: ['linkAccountId'],
+      where: {
+        linkAccountId: { in: links.map((link) => link.id) },
+        country: 'US',
+        isUnique: true,
+        isBot: false,
+        referrer: { not: null },
+        deviceType: { notIn: ['desktop', 'computer'] },
+      },
+      _count: { _all: true },
+    })
+    const qualifiedClickMap = new Map(qualifiedClicks.map((item) => [item.linkAccountId, item._count._all]))
+
+    return NextResponse.json(
+      links.map((link) => ({
+        ...link,
+        qualifiedClicks: qualifiedClickMap.get(link.id) || 0,
+        totalEarning: (qualifiedClickMap.get(link.id) || 0) * (Number(link.user?.clickRate ?? 0) || 0),
+        payoutMethod: link.payoutMethod || null,
+        payoutAccount: link.payoutAccount || null,
+        invoiceHistory: link.invoices,
+        invoices: link.invoices.filter((invoice) => !invoice.isPaid).slice(0, 1),
+      })),
+      { headers: getCorsHeaders(origin) }
+    )
   } catch (error) {
     console.error('Error fetching links:', error)
     return NextResponse.json(

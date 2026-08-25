@@ -31,6 +31,10 @@ export default function SettingsPage() {
   const [userInfo, setUserInfo] = useState<{ username?: string; email?: string; role?: string } | null>(null);
   const [clickRate, setClickRate] = useState("0");
   const [showClickRateForm, setShowClickRateForm] = useState(false);
+  const [payoutMethod, setPayoutMethod] = useState("BKASH");
+  const [payoutAccount, setPayoutAccount] = useState("");
+  const [paymentPassword, setPaymentPassword] = useState("");
+  const [showPaymentBindingForm, setShowPaymentBindingForm] = useState(false);
   const [showPasswordForm, setShowPasswordForm] = useState(false);
   const [showEmailForm, setShowEmailForm] = useState(false);
   const [emailDraft, setEmailDraft] = useState("");
@@ -62,6 +66,8 @@ export default function SettingsPage() {
           setUserInfo({ username: data.username || "admin", email: data.email || "", role: data.role });
           setEmailDraft(data.email || "");
           setClickRate(String(data.clickRate ?? 0));
+          setPayoutMethod(data.payoutMethod || "BKASH");
+          setPayoutAccount(data.payoutAccount || "");
         } else {
           setUserInfo({ username: "admin", email: "" });
           setEmailDraft("");
@@ -113,6 +119,29 @@ export default function SettingsPage() {
       setShowClickRateForm(false);
     } catch (error) {
       setFeedback({ type: "error", message: error instanceof Error ? error.message : "Unable to update USA click rate" });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handlePaymentBindingSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setIsSubmitting(true);
+    setFeedback(null);
+    try {
+      const response = await fetch("/api/settings", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "save-payment-binding", payoutMethod, payoutAccount, paymentPassword }),
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.error || "Unable to save payment binding");
+      setPaymentPassword("");
+      setShowPaymentBindingForm(false);
+      setFeedback({ type: "success", message: data.message || "Payment binding saved successfully." });
+    } catch (error) {
+      setFeedback({ type: "error", message: error instanceof Error ? error.message : "Unable to save payment binding" });
     } finally {
       setIsSubmitting(false);
     }
@@ -340,6 +369,11 @@ export default function SettingsPage() {
                     USA click rate: ${Number(clickRate).toFixed(2)}
                   </button>
                 )}
+                {userInfo && (
+                  <button onClick={() => setShowPaymentBindingForm((prev) => !prev)} className="inline-flex items-center gap-1.5 rounded-lg border border-cyan-500/20 bg-cyan-500/10 px-3 py-2 text-xs font-medium text-cyan-300 hover:bg-cyan-500/20">
+                    Payment binding
+                  </button>
+                )}
                 <button
                   onClick={() => setShowDangerZone((prev) => !prev)}
                   className="inline-flex items-center gap-1.5 rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-xs font-medium text-slate-300 hover:bg-slate-700"
@@ -364,6 +398,21 @@ export default function SettingsPage() {
                     <input type="number" min="0" step="0.01" value={clickRate} onChange={(event) => setClickRate(event.target.value)} required className="w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-white focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500" />
                   </div>
                   <button type="submit" disabled={isSubmitting} className="rounded-lg bg-emerald-600 px-4 py-2 text-xs font-medium text-white hover:bg-emerald-500 disabled:opacity-60">{isSubmitting ? "Saving..." : "Save USA click rate"}</button>
+                </form>
+              )}
+
+              {showPaymentBindingForm && userInfo && (
+                <form onSubmit={handlePaymentBindingSubmit} className="mt-3 space-y-3 rounded-lg border border-cyan-500/20 bg-cyan-500/5 p-4">
+                  <p className="text-xs text-slate-400">Set the password and payout account used by your public link account.</p>
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <select value={payoutMethod} onChange={(event) => setPayoutMethod(event.target.value)} className="rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-white focus:border-cyan-500 focus:outline-none">
+                      <option value="BKASH">bKash</option>
+                      <option value="BINANCE">Binance</option>
+                    </select>
+                    <input value={payoutAccount} onChange={(event) => setPayoutAccount(event.target.value)} placeholder={payoutMethod === "BINANCE" ? "Binance ID" : "bKash number"} required className="rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-white placeholder-slate-500 focus:border-cyan-500 focus:outline-none" />
+                  </div>
+                  <input type="password" minLength={8} value={paymentPassword} onChange={(event) => setPaymentPassword(event.target.value)} placeholder="Payment access password (8+ characters)" required className="w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-white placeholder-slate-500 focus:border-cyan-500 focus:outline-none" />
+                  <button type="submit" disabled={isSubmitting} className="rounded-lg bg-cyan-600 px-4 py-2 text-xs font-medium text-white hover:bg-cyan-500 disabled:opacity-60">{isSubmitting ? "Saving..." : "Save payment binding"}</button>
                 </form>
               )}
 

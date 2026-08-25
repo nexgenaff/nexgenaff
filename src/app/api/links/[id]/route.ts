@@ -237,6 +237,13 @@ export async function POST(
 
 
     const body = await request.json()
+    if (body.action === 'mark-paid') {
+      const invoice = await prisma.invoice.findFirst({ where: { linkAccountId: id, isPaid: false }, orderBy: { createdAt: 'desc' } })
+      if (!invoice) return NextResponse.json({ error: 'No unpaid invoice found' }, { status: 404, headers: getCorsHeaders(origin) })
+      await prisma.invoice.update({ where: { id: invoice.id }, data: { isPaid: true, paidAt: new Date() } })
+      return NextResponse.json({ success: true, invoiceNumber: invoice.invoiceNumber }, { headers: getCorsHeaders(origin) })
+    }
+
     if (body.action !== 'reset') {
       return NextResponse.json(
         { error: 'Unsupported action' },
@@ -244,8 +251,22 @@ export async function POST(
       )
     }
 
+    const invoiceClickRows = await prisma.click.findMany({
+      where: { linkAccountId: id, country: 'US', isUnique: true, isBot: false },
+      select: { referrer: true, deviceType: true },
+    })
+    const invoiceClicks = invoiceClickRows.filter((click) => {
+      if (!click.referrer?.trim()) return false
+      const device = (click.deviceType || '').toLowerCase()
+      return device !== 'desktop' && device !== 'computer'
+    }).length
+    const invoiceClickRate = Number((await prisma.user.findUnique({ where: { id: link.userId }, select: { clickRate: true } }))?.clickRate ?? 0) || 0
+    const invoiceTimestamp = new Date().toISOString().replaceAll('-', '').replaceAll(':', '').replaceAll('.', '').replace('T', '').replace('Z', '').slice(0, 14)
+    const invoiceNumber = `INV-${invoiceTimestamp}-${id.slice(-6).toUpperCase()}`
+
     await prisma.$transaction(
       [
+        prisma.invoice.create({ data: { invoiceNumber, linkAccountId: id, qualifiedClicks: invoiceClicks, clickRate: invoiceClickRate, totalEarning: invoiceClicks * invoiceClickRate, payoutMethod: link.payoutMethod, payoutAccount: link.payoutAccount } }),
         prisma.click.deleteMany({ where: { linkAccountId: id } }),
         prisma.geoStat.deleteMany({ where: { linkAccountId: id } }),
         prisma.dailyAnalytics.deleteMany({ where: { linkAccountId: id } }),

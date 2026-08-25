@@ -16,6 +16,7 @@ import {
   Sparkles,
   Copy,
   Check,
+  CheckCircle,
   Pencil,
   RotateCcw,
   Trash2,
@@ -44,6 +45,28 @@ interface LinkAccount {
   createdAt: string;
   isActive: boolean;
   offerGroupName: string | null;
+  qualifiedClicks: number;
+  totalEarning: number;
+  payoutMethod: string | null;
+  payoutAccount: string | null;
+  invoices?: Array<{
+    invoiceNumber: string;
+    totalEarning: number;
+    isPaid: boolean;
+    createdAt: string;
+    paidAt: string | null;
+  }>;
+  invoiceHistory?: Array<{
+    invoiceNumber: string;
+    totalEarning: number;
+    qualifiedClicks: number;
+    clickRate: number;
+    payoutMethod: string | null;
+    payoutAccount: string | null;
+    isPaid: boolean;
+    createdAt: string;
+    paidAt: string | null;
+  }>;
   customDomain: { domain: string } | null;
   customDomainId?: string | null;
   publicDashboard: { publicId: string } | null;
@@ -73,7 +96,7 @@ const getBaseUrl = () => {
 };
 
 // ===== COPY BUTTON (simplified, no tooltip) =====
-const CopyIcon = ({ text, onCopy }: { text: string; onCopy: () => void }) => {
+const CopyIcon = ({ text, onCopy, label = "Copy link" }: { text: string; onCopy: () => void; label?: string }) => {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = async () => {
@@ -91,7 +114,8 @@ const CopyIcon = ({ text, onCopy }: { text: string; onCopy: () => void }) => {
     <button
       onClick={handleCopy}
       className="p-1 rounded-md text-slate-400 hover:text-white hover:bg-white/10 transition-colors"
-      aria-label="Copy link"
+      aria-label={label}
+      title={label}
     >
       {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
     </button>
@@ -123,12 +147,16 @@ export default function LinksPage() {
   const [savingLinkId, setSavingLinkId] = useState<string | null>(null);
   const [busyLinkId, setBusyLinkId] = useState<string | null>(null);
   const [confirmInline, setConfirmInline] = useState<ConfirmInlineState | null>(null);
+  const [invoiceHistoryLink, setInvoiceHistoryLink] = useState<LinkAccount | null>(null);
 
   // ===== SORT & FILTER =====
-  const [sortBy, setSortBy] = useState<"createdAt" | "totalClicks" | "uniqueClicks" | "accountName">("createdAt");
+  const [sortBy, setSortBy] = useState<"createdAt" | "totalClicks" | "uniqueClicks" | "totalEarning" | "accountName">("createdAt");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const [filterStatus, setFilterStatus] = useState<"all" | "active" | "paused">("all");
   const [filterOfferGroup, setFilterOfferGroup] = useState<string>("all");
+  const [filterInvoice, setFilterInvoice] = useState<"all" | "unpaid" | "paid">("all");
+  const [filterPaymentMethod, setFilterPaymentMethod] = useState<"all" | "BKASH" | "BINANCE">("all");
+  const [filterCreatedBy, setFilterCreatedBy] = useState<string>("all");
   const [showFilters, setShowFilters] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
 
@@ -141,6 +169,14 @@ export default function LinksPage() {
       }
     });
     return ["all", ...Array.from(groups)];
+  }, [links]);
+
+  const creatorFilterOptions = useMemo(() => {
+    const creators = new Set<string>();
+    links.forEach((link) => {
+      if (link.user?.username) creators.add(link.user.username);
+    });
+    return ["all", ...Array.from(creators).sort()];
   }, [links]);
 
   const fetchLinks = useCallback(async () => {
@@ -228,6 +264,23 @@ export default function LinksPage() {
       result = result.filter((link) => link.offerGroupName === filterOfferGroup);
     }
 
+    if (filterInvoice !== "all") {
+      result = result.filter((link) => {
+        const invoices = link.invoiceHistory || [];
+        return filterInvoice === "unpaid"
+          ? invoices.some((invoice) => !invoice.isPaid)
+          : invoices.some((invoice) => invoice.isPaid);
+      });
+    }
+
+    if (filterPaymentMethod !== "all") {
+      result = result.filter((link) => link.payoutMethod === filterPaymentMethod);
+    }
+
+    if (filterCreatedBy !== "all") {
+      result = result.filter((link) => link.user?.username === filterCreatedBy);
+    }
+
     result.sort((a, b) => {
       let aVal: string | number = a[sortBy];
       let bVal: string | number = b[sortBy];
@@ -241,7 +294,7 @@ export default function LinksPage() {
     });
 
     return result;
-  }, [links, search, sortBy, sortOrder, filterStatus, filterOfferGroup]);
+  }, [links, search, sortBy, sortOrder, filterStatus, filterOfferGroup, filterInvoice, filterPaymentMethod, filterCreatedBy]);
 
   const activeLinks = links.filter((link) => link.isActive).length;
   const totalClicks = links.reduce((sum, link) => sum + link.totalClicks, 0);
@@ -410,6 +463,29 @@ export default function LinksPage() {
     });
   };
 
+  const handleMarkInvoicePaid = async (id: string) => {
+    if (isManager) return;
+    setBusyLinkId(id);
+    setActionError("");
+    setActionMessage("");
+    try {
+      const response = await fetch(`/api/links/${id}`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "mark-paid" }),
+      });
+      const data = await response.json().catch(() => null);
+      if (!response.ok) throw new Error(data?.error || "Failed to mark invoice as paid");
+      setActionMessage("Invoice marked as paid.");
+      await fetchLinks();
+    } catch (error) {
+      setActionError(error instanceof Error ? error.message : "Failed to mark invoice as paid");
+    } finally {
+      setBusyLinkId(null);
+    }
+  };
+
   const handleBulkReset = async () => {
     if (isManager || selectedIds.length === 0) return;
     setConfirmInline({
@@ -541,6 +617,9 @@ export default function LinksPage() {
     setSearch("");
     setFilterStatus("all");
     setFilterOfferGroup("all");
+    setFilterInvoice("all");
+    setFilterPaymentMethod("all");
+    setFilterCreatedBy("all");
     setSortBy("createdAt");
     setSortOrder("desc");
   };
@@ -658,9 +737,10 @@ export default function LinksPage() {
     { value: "accountName", label: "Name" },
     { value: "totalClicks", label: "Clicks" },
     { value: "uniqueClicks", label: "Unique" },
+    { value: "totalEarning", label: "Highest earnings" },
   ];
 
-  const hasActiveFilters = search !== "" || filterStatus !== "all" || filterOfferGroup !== "all";
+  const hasActiveFilters = search !== "" || filterStatus !== "all" || filterOfferGroup !== "all" || filterInvoice !== "all" || filterPaymentMethod !== "all" || filterCreatedBy !== "all";
 
   return (
     <div className="space-y-6">
@@ -819,6 +899,38 @@ export default function LinksPage() {
 
               <div className="h-6 w-px bg-slate-700" />
 
+              {/* Invoice Filter */}
+              <div className="flex items-center gap-1.5">
+                <span className="text-sm text-slate-400">Invoice:</span>
+                <select
+                  value={filterInvoice}
+                  onChange={(e) => setFilterInvoice(e.target.value as typeof filterInvoice)}
+                  className="rounded-md border border-slate-700 bg-slate-800 px-2 py-1 text-sm text-slate-300 focus:border-indigo-500 focus:outline-none"
+                >
+                  <option value="all">All</option>
+                  <option value="unpaid">Unpaid</option>
+                  <option value="paid">Paid</option>
+                </select>
+              </div>
+
+              <div className="h-6 w-px bg-slate-700" />
+
+              {/* Payment Method Filter */}
+              <div className="flex items-center gap-1.5">
+                <span className="text-sm text-slate-400">Payment:</span>
+                <select
+                  value={filterPaymentMethod}
+                  onChange={(e) => setFilterPaymentMethod(e.target.value as typeof filterPaymentMethod)}
+                  className="rounded-md border border-slate-700 bg-slate-800 px-2 py-1 text-sm text-slate-300 focus:border-indigo-500 focus:outline-none"
+                >
+                  <option value="all">All methods</option>
+                  <option value="BKASH">bKash</option>
+                  <option value="BINANCE">Binance</option>
+                </select>
+              </div>
+
+              <div className="h-6 w-px bg-slate-700" />
+
               {/* Offer Group Filter */}
               <div className="flex items-center gap-1.5">
                 <Layers className="h-4 w-4 text-slate-400" />
@@ -831,6 +943,21 @@ export default function LinksPage() {
                   {offerGroupFilterOptions.map((group) => (
                     <option key={group} value={group}>
                       {group === "all" ? "All" : group}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="flex items-center gap-1.5">
+                <span className="text-sm text-slate-400">Created by:</span>
+                <select
+                  value={filterCreatedBy}
+                  onChange={(e) => setFilterCreatedBy(e.target.value)}
+                  className="max-w-[160px] rounded-md border border-slate-700 bg-slate-800 px-2 py-1 text-sm text-slate-300 focus:border-indigo-500 focus:outline-none"
+                >
+                  {creatorFilterOptions.map((creator) => (
+                    <option key={creator} value={creator}>
+                      {creator === "all" ? "All creators" : creator}
                     </option>
                   ))}
                 </select>
@@ -995,11 +1122,11 @@ export default function LinksPage() {
           {filteredLinks.map((link) => (
             <article
               key={link.id}
-              className={`rounded-xl border border-slate-800 bg-slate-900/60 p-4 transition hover:border-slate-700 ${
+              className={`relative rounded-xl border border-slate-800 bg-slate-900/60 p-3 pb-12 transition hover:border-slate-700 sm:p-4 sm:pb-12 ${
                 link.isActive ? "border-l-2 border-l-emerald-500" : "border-l-2 border-l-amber-500"
               }`}
             >
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                 {/* LEFT: INFO */}
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-1.5">
@@ -1039,22 +1166,22 @@ export default function LinksPage() {
                     )}
                   </div>
 
-                  <h3 className="mt-1.5 font-semibold text-white">{link.accountName}</h3>
-                  <div className="text-sm text-slate-400">/{link.slug}</div>
+                  <div className="mt-1.5 flex flex-wrap items-baseline gap-x-2">
+                    <h3 className="font-semibold text-white">{link.accountName}</h3>
+                    {isOwner && link.user?.username && (
+                      <span className="text-xs text-slate-500">
+                        Created by <span className="font-medium text-slate-300">{link.user.username}</span>
+                      </span>
+                    )}
+                  </div>
 
-                  {isOwner && link.user?.username && (
-                    <div className="mt-1 text-xs text-slate-500">
-                      Created by <span className="font-medium text-slate-300">{link.user.username}</span>
-                    </div>
-                  )}
-
-                  <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
-                    <span className="flex items-center gap-1 text-slate-400">
+                  <div className="absolute bottom-3 left-3 right-[112px] flex w-auto flex-nowrap items-center gap-1.5 overflow-hidden text-xs sm:left-4 sm:right-[112px]">
+                    <span className="inline-flex min-w-0 flex-1 items-center gap-1 rounded-md border border-slate-800 bg-slate-800/40 px-1.5 py-0.5 text-slate-400">
                       <Link2 className="h-3.5 w-3.5 text-indigo-400" />
-                      <span className="truncate">{getPreviewUrl(link)}</span>
-                      <CopyIcon text={getPreviewUrl(link)} onCopy={() => setCopiedKey(`tracking-${link.id}`)} />
+                      <span className="min-w-0 flex-1 truncate">{getPreviewUrl(link)}</span>
+                      <CopyIcon text={getPreviewUrl(link)} label="Copy tracking link" onCopy={() => setCopiedKey(`tracking-${link.id}`)} />
                     </span>
-                    <span className="flex items-center gap-1 text-slate-400">
+                    <span className="inline-flex shrink-0 items-center gap-1 rounded-md border border-slate-800 bg-slate-800/40 px-1.5 py-0.5 text-slate-400">
                       <Globe2 className="h-3.5 w-3.5 text-emerald-400" />
                       <a
                         href={getPublicStatsUrl(link)}
@@ -1065,48 +1192,90 @@ export default function LinksPage() {
                       >
                         <ArrowUpRight className="h-3.5 w-3.5" />
                       </a>
-                      <CopyIcon text={getPublicStatsUrl(link)} onCopy={() => setCopiedKey(`stats-${link.id}`)} />
+                      <span className="text-[10px] font-medium text-slate-500">Stats</span>
+                      <CopyIcon text={getPublicStatsUrl(link)} label="Copy public stats link" onCopy={() => setCopiedKey(`stats-${link.id}`)} />
                     </span>
                   </div>
                 </div>
 
                 {/* RIGHT: STATS + ACTIONS */}
-                <div className="flex flex-col items-end gap-2 sm:flex-row sm:items-start sm:justify-end">
-                  <div className="flex gap-1.5">
-                    {[
-                      { label: "Clicks", value: formatNumber(link.totalClicks), color: "text-indigo-400" },
-                      { label: "Unique", value: formatNumber(link.uniqueClicks), color: "text-emerald-400" },
-                      { label: "Bots", value: formatNumber(link.botClicks), color: "text-rose-400" },
-                    ].map((stat) => (
-                      <div
-                        key={stat.label}
-                        className="min-w-[48px] rounded-md border border-slate-800 bg-slate-800/50 px-2 py-1 text-center"
-                      >
-                        <div className="text-[9px] uppercase tracking-wider text-slate-500">{stat.label}</div>
-                        <div className={`text-xs font-bold ${stat.color}`}>{stat.value}</div>
+                <div className="flex w-full flex-wrap items-start justify-end gap-2 sm:w-auto sm:flex-nowrap">
+                  <div className="grid w-full grid-cols-4 gap-1.5 sm:w-auto sm:min-w-[430px]">
+                    <div className="contents">
+                      {[
+                        { label: "Clicks", value: formatNumber(link.totalClicks), color: "text-indigo-400" },
+                        { label: "Unique", value: formatNumber(link.uniqueClicks), color: "text-emerald-400" },
+                        { label: "Bots", value: formatNumber(link.botClicks), color: "text-rose-400" },
+                        { label: "Earnings", value: `$${Number(link.totalEarning || 0).toFixed(2)}`, color: "text-emerald-300" },
+                      ].map((stat) => (
+                        <div
+                          key={stat.label}
+                          className="min-h-[46px] min-w-0 rounded-md border border-slate-800 bg-slate-800/50 px-1.5 py-1 text-center"
+                        >
+                          <div className="text-[9px] uppercase tracking-wider text-slate-500">{stat.label}</div>
+                          <div className={`text-xs font-bold ${stat.color}`}>{stat.value}</div>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="col-span-4 flex min-w-0 items-stretch gap-1.5">
+                      <div className="flex h-[46px] min-w-0 flex-1 flex-col items-start justify-center rounded-md border border-slate-800 bg-slate-800/50 px-2 py-1 text-[10px] leading-tight text-slate-400">
+                      <span className={link.payoutMethod ? "font-semibold text-cyan-300" : "text-slate-500"}>
+                        {link.payoutMethod ? (link.payoutMethod === "BKASH" ? "bKash" : "Binance") : "Not set"}
+                      </span>
+                      {link.payoutMethod && link.payoutAccount && (
+                        <span className="mt-0.5 flex max-w-[110px] items-center gap-0.5">
+                          <span className="max-w-[88px] truncate text-[9px] text-slate-500">{link.payoutAccount}</span>
+                          <CopyIcon text={link.payoutAccount} label="Copy payment account" onCopy={() => setCopiedKey(`payment-${link.id}`)} />
+                        </span>
+                      )}
                       </div>
-                    ))}
+                    {(link.invoices?.length || link.invoiceHistory?.length) ? (
+                      <div className="flex min-w-0 flex-[2] items-stretch gap-1.5">
+                        {link.invoices?.length ? <div className="flex min-w-0 flex-1 items-center justify-between gap-1 rounded-md border border-emerald-500/20 bg-emerald-500/5 px-2 py-1 text-[10px] leading-tight">
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-1.5">
+                            <span className="font-semibold uppercase tracking-wider text-emerald-300">Invoice</span>
+                            <span className="text-[9px] font-medium text-slate-500">Unpaid</span>
+                          </div>
+                          <span className="mt-0.5 block text-xs font-bold leading-none text-emerald-200">${Number(link.invoices[0].totalEarning || 0).toFixed(2)}</span>
+                        </div>
+                        <button type="button" onClick={() => handleMarkInvoicePaid(link.id)} disabled={busyLinkId === link.id} className="inline-flex shrink-0 items-center justify-center gap-1 rounded border border-emerald-400/25 px-1.5 py-1 text-[8px] font-medium text-emerald-300 transition-colors hover:bg-emerald-400/10 disabled:opacity-60" aria-label={`Mark invoice for ${link.accountName} as paid`}>
+                            {busyLinkId === link.id ? "Saving..." : <><CheckCircle className="h-3 w-3" /> Paid</>}
+                        </button>
+                      </div> : null}
+                      {link.invoiceHistory?.length ? <button type="button" onClick={() => setInvoiceHistoryLink(link)} className="inline-flex h-[46px] shrink-0 items-center justify-center gap-1 rounded-md border border-slate-700 bg-slate-800/50 px-3 text-[9px] font-medium text-slate-300 transition-colors hover:border-slate-600 hover:bg-slate-800 hover:text-white" aria-label={`View invoice history for ${link.accountName}`} title="View invoice history">
+                        History
+                      </button> : null}
+                      </div>
+                    ) : null}
+                    </div>
                   </div>
 
                   {!isManager ? (
-                    <div className="flex gap-1">
+                    <div className="absolute bottom-3 right-3 flex shrink-0 gap-1 rounded-md bg-slate-900/80 p-0.5">
                       <button
                         onClick={() => openEdit(link)}
-                        className="rounded-md p-1.5 text-indigo-400 hover:bg-indigo-500/10 hover:text-indigo-300"
+                        className="rounded-md p-1.5 text-slate-400 transition-colors hover:bg-sky-500/10 hover:text-sky-300"
+                        aria-label={`Edit ${link.accountName}`}
+                        title="Edit link"
                       >
                         <Pencil className="h-3.5 w-3.5" />
                       </button>
                       <button
                         onClick={() => handleReset(link.id)}
                         disabled={busyLinkId === link.id}
-                        className="rounded-md p-1.5 text-amber-400 hover:bg-amber-500/10 hover:text-amber-300 disabled:opacity-60"
+                        className="rounded-md p-1.5 text-slate-400 transition-colors hover:bg-amber-500/10 hover:text-amber-300 disabled:opacity-60"
+                        aria-label={`Reset ${link.accountName}`}
+                        title="Reset link"
                       >
                         <RotateCcw className="h-3.5 w-3.5" />
                       </button>
                       <button
                         onClick={() => handleDelete(link.id)}
                         disabled={busyLinkId === link.id}
-                        className="rounded-md p-1.5 text-red-400 hover:bg-red-500/10 hover:text-red-300 disabled:opacity-60"
+                        className="rounded-md p-1.5 text-slate-400 transition-colors hover:bg-red-500/10 hover:text-red-300 disabled:opacity-60"
+                        aria-label={`Delete ${link.accountName}`}
+                        title="Delete link"
                       >
                         <Trash2 className="h-3.5 w-3.5" />
                       </button>
@@ -1285,6 +1454,50 @@ export default function LinksPage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {invoiceHistoryLink && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm"
+          onClick={(event) => {
+            if (event.target === event.currentTarget) setInvoiceHistoryLink(null);
+          }}
+        >
+          <div className="w-full max-w-lg rounded-xl border border-slate-700 bg-slate-900 p-5 shadow-2xl sm:p-6">
+            <div className="mb-5 flex items-start justify-between gap-4">
+              <div>
+                <p className="text-xs font-medium uppercase tracking-wider text-emerald-400">Invoice history</p>
+                <h2 className="mt-1 text-xl font-bold text-white">{invoiceHistoryLink.accountName}</h2>
+              </div>
+              <button
+                type="button"
+                onClick={() => setInvoiceHistoryLink(null)}
+                className="rounded-md p-1.5 text-slate-400 hover:bg-slate-800 hover:text-white"
+                aria-label="Close invoice history"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+            <div className="max-h-80 space-y-2 overflow-y-auto">
+              {invoiceHistoryLink.invoiceHistory?.map((invoice) => (
+                <div key={invoice.invoiceNumber} className="flex items-center justify-between gap-3 rounded-lg border border-slate-800 bg-slate-950/50 px-3 py-2.5">
+                  <div className="min-w-0">
+                    <p className="truncate font-mono text-[10px] text-slate-400">{invoice.invoiceNumber}</p>
+                    <p className="mt-1 text-[11px] text-slate-500">{new Date(invoice.createdAt).toLocaleString()}</p>
+                      <p className="mt-1 truncate text-[11px] text-slate-400">
+                        {invoice.payoutMethod === "BKASH" ? "bKash" : invoice.payoutMethod === "BINANCE" ? "Binance" : "Payment method not recorded"}
+                        {invoice.payoutAccount ? ` · ${invoice.payoutAccount}` : ""}
+                      </p>
+                  </div>
+                  <div className="shrink-0 text-right">
+                    <p className="text-sm font-bold text-emerald-300">${Number(invoice.totalEarning || 0).toFixed(2)}</p>
+                    <p className={`mt-1 text-[10px] font-medium ${invoice.isPaid ? "text-slate-500" : "text-amber-300"}`}>{invoice.isPaid ? "Paid" : "Unpaid"}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       )}

@@ -48,6 +48,7 @@ interface Stats {
   uniqueClicks: number
   botClicks: number
   clickRate?: number
+  payoutMethod?: string | null
   geoSummary: Array<{
     country: string
     totalClicks: number
@@ -682,6 +683,16 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
               >
                 {isDark ? <Sun className="h-3.5 w-3.5" strokeWidth={1.5} /> : <Moon className="h-3.5 w-3.5" strokeWidth={1.5} />}
               </button>
+              <a
+                href={`/payment/${publicId}`}
+                className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs font-medium transition-colors ${
+                  isDark ? 'border-emerald-400/25 bg-emerald-400/10 text-emerald-300 hover:bg-emerald-400/20' : 'border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
+                }`}
+                title="Open protected payment profile"
+              >
+                <DollarSign className="h-3.5 w-3.5" />
+                Payment
+              </a>
             </div>
           </div>
 
