@@ -9,10 +9,11 @@
     "lint": "eslint .",
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
+    "db:migrate:deploy": "prisma migrate deploy",
     "db:studio": "prisma studio",
     "db:seed": "tsx prisma/seed.ts",
     "postinstall": "prisma generate",
-    "vercel-build": "prisma migrate deploy && prisma generate && next build"
+    "vercel-build": "prisma generate && next build"
   },
   "dependencies": {
     "@prisma/client": "^5.22.0",
