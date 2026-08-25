@@ -33,9 +33,9 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
           transition={{ duration: 0.5 }}
           className="fixed top-0 left-0 right-0 z-40 backdrop-blur-md bg-[#05070b]/90 border-b border-white/5"
         >
-          <nav className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+          <nav className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8 md:h-20">
             <Link href="/" className="flex items-center shrink-0" onClick={() => setMobileMenuOpen(false)}>
-              <div className="relative h-12 w-12 overflow-hidden rounded-lg md:h-14 md:w-14">
+              <div className="relative h-16 w-16 overflow-hidden rounded-lg md:h-20 md:w-20">
                 <Image
                   src="/afficixo-logo.png"
                   alt="Afficixo logo"
