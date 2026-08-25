@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client'
 import { NextRequest, NextResponse } from 'next/server'
+import { getTokenFromCookie, getUserFromToken, isOwner } from '@/lib/auth'
 
 const prisma = new PrismaClient()
 
@@ -93,6 +94,8 @@ export async function DELETE(
 ) {
   try {
     const userId = req.headers.get('x-user-id')
+    const token = getTokenFromCookie(req.headers.get('cookie') || '')
+    const currentUser = token ? await getUserFromToken(token) : null
     const { id } = await params
 
     const landingPage = await prisma.landingPage.findUnique({
@@ -106,8 +109,8 @@ export async function DELETE(
       )
     }
 
-    // Verify ownership
-    if (landingPage.userId !== userId) {
+    // Owners can remove any landing page; other users can remove only their own.
+    if (!currentUser || (!isOwner(currentUser) && landingPage.userId !== userId)) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 403 }

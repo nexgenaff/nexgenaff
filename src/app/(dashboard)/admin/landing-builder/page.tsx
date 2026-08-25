@@ -307,6 +307,42 @@ export default function LandingPageBuilder() {
       : [...new Set([...current, ...visiblePageIds])])
   }
 
+  const selectedPages = landingPages.filter((page) => selectedPageIds.includes(page.id))
+  const canDeleteSelected = selectedPages.length > 0 && (userRole === 'OWNER' || selectedPages.every((page) => page.userId === userId))
+
+  const copySelectedLinks = async () => {
+    const links = selectedPages.map((page) => `https://${page.subdomain}.${landingPageDomain}`)
+    try {
+      await navigator.clipboard.writeText(links.join('\n'))
+      setSuccess(`Copied ${links.length} landing page link${links.length === 1 ? '' : 's'}`)
+      setTimeout(() => setSuccess(''), 3000)
+    } catch {
+      setError('Failed to copy selected links')
+    }
+  }
+
+  const deleteSelectedPages = async () => {
+    if (!canDeleteSelected || !confirm(`Delete ${selectedPages.length} selected landing page${selectedPages.length === 1 ? '' : 's'}?`)) return
+
+    try {
+      const results = await Promise.all(selectedPages.map((page) => fetch(`/api/landing-pages/${page.id}`, {
+        method: 'DELETE',
+        headers: { 'x-user-id': userId || '' },
+      })))
+      if (results.every((response) => response.ok)) {
+        const deletedIds = new Set(selectedPages.map((page) => page.id))
+        setLandingPages((pages) => pages.filter((page) => !deletedIds.has(page.id)))
+        setSelectedPageIds([])
+        setSuccess('Selected landing pages deleted')
+        setTimeout(() => setSuccess(''), 3000)
+      } else {
+        setError('Some selected pages could not be deleted')
+      }
+    } catch {
+      setError('Failed to delete selected pages')
+    }
+  }
+
   if (loading && currentStep === 'list') {
     return <AfficixoLoading compact />
   }
@@ -406,6 +442,26 @@ export default function LandingPageBuilder() {
                 Showing {filteredPages.length} of {landingPages.length} pages
                 {selectedPageIds.length > 0 && ` | ${selectedPageIds.length} selected`}
               </div>
+              {selectedPageIds.length > 0 && (
+                <div className="flex flex-wrap gap-2 sm:col-span-2 lg:col-span-4">
+                  <button
+                    type="button"
+                    onClick={copySelectedLinks}
+                    className="rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm font-medium text-slate-200 transition-colors hover:bg-slate-700"
+                  >
+                    Copy selected links
+                  </button>
+                  <button
+                    type="button"
+                    onClick={deleteSelectedPages}
+                    disabled={!canDeleteSelected}
+                    title={!canDeleteSelected ? 'You can only delete pages you own' : 'Delete selected pages'}
+                    className="rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm font-medium text-red-300 transition-colors hover:bg-red-500/20 disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    Delete selected
+                  </button>
+                </div>
+              )}
             </div>
 
             {/* Landing Pages Grid */}
@@ -481,7 +537,7 @@ export default function LandingPageBuilder() {
 
                           {/* Actions */}
                           <div className="flex gap-2 border-t border-slate-800 pt-3">
-                            {page.userId === userId && (
+                            {(page.userId === userId || userRole === 'OWNER') && (
                               <button
                                 onClick={() => deleteLandingPage(page.id)}
                                 className="flex flex-1 items-center justify-center gap-1 rounded-md px-2 py-2 text-xs font-medium text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-colors"
