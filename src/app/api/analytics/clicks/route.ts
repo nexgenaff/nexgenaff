@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
 import type { Prisma } from '@prisma/client';
-import { getUserFromToken, getTokenFromCookie, isAdmin, isOwner, getOwnerUserId } from '@/lib/auth';
+import { getUserFromToken, getTokenFromCookie, isOwner, getOwnerUserId } from '@/lib/auth';
 import { getCorsHeaders } from '@/config/cors';
 import { getLinkAccountVisibilityWhereClause } from '@/lib/utils/link-account-access';
 
@@ -140,7 +140,9 @@ export async function GET(request: Request) {
     if (params.browser) where.browser = params.browser;
     if (params.deviceType) where.deviceType = params.deviceType;
     if (params.isUnique !== undefined) where.isUnique = params.isUnique;
-    if (params.isBot !== undefined) where.isBot = params.isBot;
+    // Keep automated traffic out of the default click log while preserving
+    // explicit isBot=true/false requests for API consumers.
+    where.isBot = params.isBot ?? false;
 
     if (params.startDate || params.endDate) {
       where.createdAt = {};

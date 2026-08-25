@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
-import { getUserFromToken, getTokenFromCookie, getOwnerUserId, isAdmin, isOwner } from '@/lib/auth';
+import { getUserFromToken, getTokenFromCookie, getOwnerUserId } from '@/lib/auth';
 import { getCorsHeaders } from '@/config/cors';
 import { getLinkAccountVisibilityWhereClause } from '@/lib/utils/link-account-access';
 
@@ -88,7 +88,7 @@ export async function GET(request: Request) {
     if (browser) where.browser = browser;
     if (deviceType) where.deviceType = deviceType;
     if (isUnique !== undefined) where.isUnique = isUnique;
-    if (isBot !== undefined) where.isBot = isBot;
+    where.isBot = isBot ?? false;
 
     if (startDate || endDate) {
       where.createdAt = {};

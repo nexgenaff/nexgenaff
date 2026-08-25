@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
 import type { Prisma } from '@prisma/client';
-import { getUserFromToken, getTokenFromCookie, isAdmin, isOwner, isManager, getOwnerUserId } from '@/lib/auth';
+import { getUserFromToken, getTokenFromCookie, getOwnerUserId } from '@/lib/auth';
 import { getCorsHeaders } from '@/config/cors';
 import { getLinkAccountVisibilityWhereClause } from '@/lib/utils/link-account-access';
 
@@ -47,7 +47,7 @@ export async function GET(request: Request) {
     }
 
     const clicks = await prisma.click.findMany({
-      where: { linkAccountId: { in: linkIds } },
+      where: { linkAccountId: { in: linkIds }, isBot: false },
       orderBy: { createdAt: 'desc' },
       take: RECENT_CLICKS_LIMIT,
       select: {
