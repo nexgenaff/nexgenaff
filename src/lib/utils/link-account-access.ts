@@ -16,10 +16,6 @@ export function getLinkAccountUserId(
     return ownerUserId || user.id
   }
 
-  if (isManager(user) && ownerUserId) {
-    return ownerUserId
-  }
-
   return user.id
 }
 
@@ -36,8 +32,8 @@ export function getLinkAccountVisibilityWhereClause(
     }
   }
 
-  if (isManager(user) && ownerUserId) {
-    return { userId: { in: [user.id, ownerUserId] } }
+  if (isManager(user)) {
+    return { userId: user.id }
   }
 
   return { userId: getLinkAccountUserId(user, ownerUserId) }
