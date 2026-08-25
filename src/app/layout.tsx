@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
 import PageTransition from '@/components/ui/PageTransition'
+import ThemeInitializer from '@/components/ui/ThemeInitializer'
 
 const inter = Inter({
   subsets: ['latin'],
@@ -120,6 +121,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body suppressHydrationWarning className={`${inter.variable} font-sans antialiased`}>
+        <ThemeInitializer />
         <div className="min-h-screen">
           <PageTransition>{children}</PageTransition>
         </div>

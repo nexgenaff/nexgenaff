@@ -103,7 +103,7 @@ export default function StatsCards({
         />
       </div>
 
-      <div className="w-full bg-slate-950/70 p-0">
+      <div className="performance-panel w-full bg-slate-950/70 p-0">
         <div className="mb-4 flex flex-col gap-4 sm:mb-5 sm:flex-row sm:items-center sm:justify-between px-4 sm:px-6 pt-4">
           <div>
             <p className="text-[10px] font-semibold uppercase tracking-[0.32em] text-sky-300">Performance</p>
@@ -132,21 +132,23 @@ export default function StatsCards({
           </div>
         </div>
 
-        <Chart
-          data={data}
-          height={260}
-          options={{
-            animation: {
-              duration: 800,
-              easing: 'easeOutQuart',
-            },
-            // display y-axis scaled: each 10 raw units == 1 on axis labels
-            yScaleFactor: 10,
-          }}
-        />
+        <div className="chart-surface mx-4 rounded-xl border border-slate-800/60 bg-white/5 p-2 sm:mx-6">
+          <Chart
+            data={data}
+            height={260}
+            options={{
+              animation: {
+                duration: 800,
+                easing: 'easeOutQuart',
+              },
+              // display y-axis scaled: each 10 raw units == 1 on axis labels
+              yScaleFactor: 10,
+            }}
+          />
+        </div>
 
         <div className="mt-4 grid grid-cols-1 gap-4 lg:mt-5">
-          <div className="w-full bg-slate-950/70 p-4">
+          <div className="hourly-panel w-full bg-slate-950/70 p-4">
             <div className="mb-3 flex items-center justify-between">
               <h4 className="text-sm font-medium text-sky-200">Hourly distribution</h4>
               <span className="text-[11px] uppercase tracking-[0.24em] text-slate-400">24h</span>

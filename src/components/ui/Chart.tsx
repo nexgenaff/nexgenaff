@@ -259,7 +259,7 @@ export function Chart({
 
   if (!safeLabels.length || safeDatasets.length === 0) {
     return (
-      <div className="w-full bg-white/5 rounded-xl p-6 text-center" style={{ height }}>
+      <div className="chart-empty-state w-full bg-white/5 rounded-xl p-6 text-center" style={{ height }}>
         <p className="text-white/40">No chart data available</p>
       </div>
     )

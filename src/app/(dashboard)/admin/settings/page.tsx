@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import { useEffect, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import AfficixoLoading from "@/components/ui/AfficixoLoading";
@@ -307,7 +306,7 @@ export default function SettingsPage() {
               </div>
               <button
                 onClick={toggleTheme}
-                className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
+                className={`theme-toggle relative inline-flex h-7 w-12 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
                   darkMode ? "bg-indigo-600" : "bg-slate-700"
                 }`}
               >
@@ -366,7 +365,7 @@ export default function SettingsPage() {
                     onClick={() => setShowClickRateForm((prev) => !prev)}
                     className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-500/20 bg-emerald-500/10 px-3 py-2 text-xs font-medium text-emerald-300 hover:bg-emerald-500/20"
                   >
-                    {userInfo.role === "ADMIN" ? "My USA click rate" : "USA click rate"}: ${Number(clickRate).toFixed(2)}
+                    USA click rate: ${Number(clickRate).toFixed(2)}
                   </button>
                 )}
                 {userInfo && (

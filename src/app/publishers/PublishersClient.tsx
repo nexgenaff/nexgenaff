@@ -145,14 +145,16 @@ export default function PublishersClient() {
     const ctx = canvas.getContext("2d")!;
 
     let can_w: number, can_h: number;
-    const BALL_NUM = window.innerWidth < 768 ? 20 : 35;
+    const BALL_NUM = window.innerWidth < 768 ? 16 : 28;
     const R = 2.5;
     const dis_limit = 280;
     const link_line_width = 1.0;
     const alpha_f = 0.025;
 
-    const ball_color = { r: 0, g: 255, b: 100 };
-    const line_color = { r: 255, g: 255, b: 255 };
+    const isLight = !document.documentElement.classList.contains("dark");
+    const ball_color = isLight ? { r: 14, g: 165, b: 233 } : { r: 0, g: 255, b: 100 };
+    const line_color = isLight ? { r: 99, g: 102, b: 241 } : { r: 255, g: 255, b: 255 };
+    const line_opacity = isLight ? 0.18 : 0.38;
 
     let balls: any[] = [];
     let animationId: number;
@@ -246,7 +248,7 @@ export default function PublishersClient() {
       canvas.style.height = window.innerHeight + "px";
       can_w = parseInt(canvas.getAttribute("width")!);
       can_h = parseInt(canvas.getAttribute("height")!);
-      ctx.scale(dpr, dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     }
 
     function initBalls(num: number) {
@@ -306,7 +308,7 @@ export default function PublishersClient() {
         for (let j = i + 1; j < balls.length; j++) {
           const fraction = getDisOf(balls[i], balls[j]) / dis_limit;
           if (fraction < 1) {
-            const alpha = (1 - fraction) * 0.6;
+            const alpha = (1 - fraction) * line_opacity;
             ctx.strokeStyle = `rgba(${line_color.r},${line_color.g},${line_color.b},${alpha})`;
             ctx.lineWidth = link_line_width;
             ctx.shadowColor = `rgba(${line_color.r},${line_color.g},${line_color.b},${alpha * 0.3})`;
@@ -352,6 +354,8 @@ export default function PublishersClient() {
       addBallIfy();
       animationId = window.requestAnimationFrame(render);
     }
+
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
     initCanvas();
     initBalls(BALL_NUM);

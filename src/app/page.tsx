@@ -1,9 +1,8 @@
 "use client";
 
-import Image from "next/image";
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import PublicLayout from "@/components/layout/PublicLayout";
 import {
   ArrowRight,
@@ -13,10 +12,6 @@ import {
   Sparkles,
   Check,
   Shield,
-  Twitter,
-  Linkedin,
-  Github,
-  MessageCircle,
   Award,
   TrendingUp,
   Clock,
@@ -30,8 +25,6 @@ import {
   Ticket,
   Layers,
   Eye,
-  Menu,
-  X,
 } from "lucide-react";
 
 const structuredData = [
@@ -74,18 +67,6 @@ const containerVariants = {
     transition: {
       staggerChildren: 0.08,
       delayChildren: 0.2,
-    },
-  },
-};
-
-const scaleInVariants = {
-  hidden: { opacity: 0, scale: 0.95 },
-  visible: {
-    opacity: 1,
-    scale: 1,
-    transition: {
-      duration: 0.7,
-      ease: [0.25, 0.46, 0.45, 0.94],
     },
   },
 };
@@ -145,116 +126,6 @@ const SectionHeading = ({
   </motion.div>
 );
 
-// ========== HEADER ==========
-
-const Header = () => {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
-  const navLinks = [
-    { href: "/about", label: "About" },
-    { href: "/offers", label: "Offers" },
-    { href: "/publishers", label: "Publishers" },
-    { href: "/faq", label: "FAQ" },
-  ];
-
-  return (
-    <motion.header
-      initial={{ y: -100 }}
-      animate={{ y: 0 }}
-      transition={{ duration: 0.5 }}
-      className="fixed top-0 left-0 right-0 z-40 backdrop-blur-md bg-[#05070b]/90"
-    >
-      <nav className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-14 md:h-16 flex items-center justify-between">
-        <Link
-          href="/"
-          className="flex items-center text-white shrink-0"
-          onClick={() => setMobileMenuOpen(false)}
-        >
-          <div className="relative h-16 w-16 md:h-28 md:w-28 rounded-lg overflow-hidden">
-            <Image
-              src="/afficixo-logo.png"
-              alt="Afficixo logo"
-              fill
-              className="object-contain"
-              priority
-            />
-          </div>
-        </Link>
-
-        {/* Desktop Navigation */}
-        <div className="hidden md:flex items-center gap-6 lg:gap-8 text-sm text-slate-300 whitespace-nowrap">
-          {navLinks.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              className="hover:text-white transition-colors"
-            >
-              {link.label}
-            </Link>
-          ))}
-        </div>
-
-        <div className="flex items-center gap-2 sm:gap-4">
-          <Link
-            href="/login"
-            className="hidden sm:block text-sm text-slate-300 hover:text-white transition-colors whitespace-nowrap"
-          >
-            Login
-          </Link>
-          <Link
-            href="/signup"
-            className="px-3 py-1.5 md:px-4 md:py-2 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-lg text-xs md:text-sm font-semibold text-white hover:shadow-lg hover:shadow-purple-500/30 transition-all duration-300 whitespace-nowrap"
-          >
-            Join Now
-          </Link>
-          <button
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="md:hidden p-1.5 text-slate-300 hover:text-white transition-colors"
-            aria-label="Toggle menu"
-          >
-            {mobileMenuOpen ? (
-              <X className="w-5 h-5" />
-            ) : (
-              <Menu className="w-5 h-5" />
-            )}
-          </button>
-        </div>
-      </nav>
-
-      {/* Mobile Navigation Menu */}
-      {mobileMenuOpen && (
-        <motion.div
-          initial={{ opacity: 0, height: 0 }}
-          animate={{ opacity: 1, height: "auto" }}
-          exit={{ opacity: 0, height: 0 }}
-          transition={{ duration: 0.3 }}
-          className="md:hidden bg-[#05070b]/95 backdrop-blur-md border-t border-white/10 overflow-hidden"
-        >
-          <div className="px-4 py-4 space-y-3">
-            {navLinks.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className="block text-sm text-slate-300 hover:text-white transition-colors py-1"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                {link.label}
-              </Link>
-            ))}
-            <Link
-              href="/login"
-              className="block text-sm text-slate-300 hover:text-white transition-colors py-1"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Login
-            </Link>
-          </div>
-        </motion.div>
-      )}
-    </motion.header>
-  );
-};
-
 // ========== MAIN PAGE ==========
 
 export default function HomePage() {
@@ -268,14 +139,16 @@ export default function HomePage() {
     const ctx = canvas.getContext("2d")!;
 
     let can_w: number, can_h: number;
-    const BALL_NUM = window.innerWidth < 768 ? 20 : 35;
+    const BALL_NUM = window.innerWidth < 768 ? 16 : 28;
     const R = 2.5;
     const dis_limit = 280;
     const link_line_width = 1.0;
     const alpha_f = 0.025;
 
-    const ball_color = { r: 0, g: 255, b: 100 };
-    const line_color = { r: 255, g: 255, b: 255 };
+    const isLight = !document.documentElement.classList.contains("dark");
+    const ball_color = isLight ? { r: 14, g: 165, b: 233 } : { r: 0, g: 255, b: 100 };
+    const line_color = isLight ? { r: 99, g: 102, b: 241 } : { r: 255, g: 255, b: 255 };
+    const line_opacity = isLight ? 0.18 : 0.38;
 
     let balls: any[] = [];
     let animationId: number;
@@ -369,7 +242,7 @@ export default function HomePage() {
       canvas.style.height = window.innerHeight + "px";
       can_w = parseInt(canvas.getAttribute("width")!);
       can_h = parseInt(canvas.getAttribute("height")!);
-      ctx.scale(dpr, dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     }
 
     function initBalls(num: number) {
@@ -429,7 +302,7 @@ export default function HomePage() {
         for (let j = i + 1; j < balls.length; j++) {
           const fraction = getDisOf(balls[i], balls[j]) / dis_limit;
           if (fraction < 1) {
-            const alpha = (1 - fraction) * 0.6;
+            const alpha = (1 - fraction) * line_opacity;
             ctx.strokeStyle = `rgba(${line_color.r},${line_color.g},${line_color.b},${alpha})`;
             ctx.lineWidth = link_line_width;
             ctx.shadowColor = `rgba(${line_color.r},${line_color.g},${line_color.b},${alpha * 0.3})`;
@@ -476,6 +349,8 @@ export default function HomePage() {
       animationId = window.requestAnimationFrame(render);
     }
 
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
     initCanvas();
     initBalls(BALL_NUM);
     render();
@@ -507,7 +382,7 @@ export default function HomePage() {
     <PublicLayout>
       <canvas
         ref={canvasRef}
-        className="fixed top-0 left-0 w-full h-full pointer-events-none z-0"
+        className="background-network fixed top-0 left-0 w-full h-full pointer-events-none z-0"
         style={{ opacity: 0.6 }}
       />
 
@@ -519,14 +394,14 @@ export default function HomePage() {
         />
 
         {/* ===== HERO ===== */}
-        <section className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-12 md:py-40 lg:py-48 w-full">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-20 items-center w-full">
+        <section className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-12 md:py-24 lg:py-28 w-full">
+          <div className="grid grid-cols-1 gap-10 items-center w-full">
             {/* Left */}
             <motion.div
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, ease: [0.25, 0.46, 0.45, 0.94] }}
-              className="w-full min-w-0"
+              className="w-full min-w-0 max-w-4xl"
             >
               <motion.div
                 initial={{ opacity: 0, scale: 0.9 }}
@@ -623,91 +498,6 @@ export default function HomePage() {
               </motion.div>
             </motion.div>
 
-            {/* Right – Stats Card */}
-            <motion.div
-              variants={scaleInVariants}
-              initial="hidden"
-              animate="visible"
-              transition={{ delay: 0.15 }}
-              className="relative mt-4 lg:mt-0 w-full"
-            >
-              <motion.div
-                className="absolute inset-0 bg-gradient-to-br from-indigo-500/30 via-purple-500/30 to-pink-500/30 blur-3xl rounded-3xl"
-                animate={{
-                  scale: [1, 1.05, 1],
-                  opacity: [0.3, 0.6, 0.3],
-                }}
-                transition={{ duration: 5, repeat: Infinity }}
-              />
-
-              <GlassCard className="relative p-5 md:p-10 border-slate-400/20 shadow-2xl shadow-slate-950/40 w-full">
-                <div className="grid grid-cols-3 gap-3 md:gap-6 text-center">
-                  <div>
-                    <p className="text-2xl md:text-4xl font-black bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent break-words">
-                      21K+
-                    </p>
-                    <p className="text-[10px] md:text-xs text-slate-400 mt-1 break-words">
-                      Affiliates
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-2xl md:text-4xl font-black bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent break-words">
-                      10+
-                    </p>
-                    <p className="text-[10px] md:text-xs text-slate-400 mt-1 break-words">
-                      Countries
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-2xl md:text-4xl font-black bg-gradient-to-r from-pink-400 to-amber-400 bg-clip-text text-transparent break-words">
-                      1K+
-                    </p>
-                    <p className="text-[10px] md:text-xs text-slate-400 mt-1 break-words">
-                      Offers
-                    </p>
-                  </div>
-                </div>
-
-                <div className="mt-4 md:mt-8 pt-4 md:pt-8 border-t border-white/10">
-                  <p className="text-[10px] md:text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3 md:mb-4 break-words">
-                    Top Countries for Leads
-                  </p>
-                  <div className="grid grid-cols-2 gap-2 md:gap-3">
-                    {[
-                      {
-                        country: "Canada",
-                        offer: "Health & Fitness",
-                        badge: "High Conversion",
-                      },
-                      { country: "Germany", offer: "Survey, Finance", badge: "Top" },
-                      { country: "New Zealand", offer: "Finance", badge: "Trending" },
-                      { country: "United Kingdom", offer: "Rewards", badge: "Top" },
-                      {
-                        country: "USA",
-                        offer: "Jobs, Credit Score",
-                        badge: "High Conversion",
-                      },
-                      { country: "Australia", offer: "Rewards, Sweeps", badge: "Trending" },
-                    ].map((item, idx) => (
-                      <div
-                        key={idx}
-                        className="rounded-lg bg-white/5 p-2 md:p-3 border border-white/5 hover:border-indigo-400/20 transition-colors overflow-hidden"
-                      >
-                        <p className="font-semibold text-xs md:text-sm break-words">
-                          {item.country}
-                        </p>
-                        <p className="text-[10px] md:text-xs text-slate-400 break-words">
-                          {item.offer}
-                        </p>
-                        <span className="inline-block mt-1 text-[8px] md:text-[10px] font-medium text-indigo-300 bg-indigo-500/20 px-1.5 py-0.5 md:px-2 md:py-0.5 rounded-full break-words">
-                          {item.badge}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </GlassCard>
-            </motion.div>
           </div>
         </section>
 
@@ -1036,69 +826,6 @@ export default function HomePage() {
                 </GlassCard>
               </motion.div>
             ))}
-          </motion.div>
-        </section>
-
-        {/* ===== FINAL CTA ===== */}
-        <section className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-32 w-full">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.7 }}
-            viewport={{ once: true }}
-            className="relative rounded-2xl border border-indigo-400/30 bg-gradient-to-br from-indigo-500/15 via-purple-500/15 to-pink-500/15 backdrop-blur-xl p-6 md:p-20 text-center overflow-hidden w-full"
-          >
-            <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/0 via-purple-500/10 to-pink-500/0 rounded-2xl" />
-            <div className="relative space-y-5 md:space-y-8">
-              <div>
-                <h2 className="text-2xl sm:text-3xl md:text-6xl font-black mb-3 md:mb-4 leading-tight tracking-tight break-words">
-                  Ready to Level Up?
-                  <br />
-                  <GradientText className="text-2xl sm:text-3xl md:text-6xl break-words">
-                    Join Afficixo Today
-                  </GradientText>
-                </h2>
-                <p className="text-sm md:text-xl text-slate-400 leading-relaxed font-light max-w-2xl mx-auto px-2 break-words">
-                  Get access to exclusive offers, reliable weekly payouts, and a
-                  support team that actually cares about your success.
-                </p>
-              </div>
-              <div className="flex flex-wrap items-center justify-center gap-3 md:gap-6 text-xs md:text-sm text-slate-300">
-                <span className="flex items-center gap-1.5 md:gap-2">
-                  <Check className="w-3.5 h-3.5 md:w-4 md:h-4 text-green-400 shrink-0" aria-hidden="true" />
-                  <span className="whitespace-nowrap">Weekly payouts</span>
-                </span>
-                <span className="flex items-center gap-1.5 md:gap-2">
-                  <Check className="w-3.5 h-3.5 md:w-4 md:h-4 text-green-400 shrink-0" aria-hidden="true" />
-                  <span className="whitespace-nowrap">Exclusive offers</span>
-                </span>
-                <span className="flex items-center gap-1.5 md:gap-2">
-                  <Check className="w-3.5 h-3.5 md:w-4 md:h-4 text-green-400 shrink-0" aria-hidden="true" />
-                  <span className="whitespace-nowrap">Dedicated support</span>
-                </span>
-              </div>
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-3 md:gap-4 pt-2 md:pt-4 w-full">
-                <Link
-                  href="/signup"
-                  className="group relative w-full sm:w-auto px-6 md:px-10 py-3 md:py-4 bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 rounded-lg font-bold text-white text-sm md:text-lg hover:shadow-2xl hover:shadow-purple-500/50 transition-all duration-300 hover:scale-105 flex items-center justify-center gap-2 md:gap-3 overflow-hidden min-w-[160px]"
-                >
-                  <span className="relative z-10 flex items-center gap-2">
-                    Join Now
-                    <ArrowRight
-                      className="w-4 h-4 md:w-5 md:h-5 group-hover:translate-x-1 transition-transform shrink-0"
-                      aria-hidden="true"
-                    />
-                  </span>
-                  <div className="absolute inset-0 bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 opacity-0 group-hover:opacity-100 transition-opacity" />
-                </Link>
-                <Link
-                  href="/offers"
-                  className="w-full sm:w-auto px-6 md:px-10 py-3 md:py-4 rounded-lg font-bold text-sm md:text-lg border-2 border-slate-400/30 text-white hover:bg-slate-400/10 hover:border-slate-300/60 transition-all duration-300 backdrop-blur-sm min-w-[160px] text-center"
-                >
-                  Browse Offers
-                </Link>
-              </div>
-            </div>
           </motion.div>
         </section>
 
