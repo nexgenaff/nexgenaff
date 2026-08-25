@@ -11,13 +11,18 @@ test('shows managers both their own link accounts and the shared owner set', () 
   assert.deepEqual(whereClause, { userId: { in: ['manager-1', 'owner-999'] } })
 })
 
-test('keeps owners on the unrestricted view', () => {
+test('owners see their own and manager-owned links, excluding admin-owned links', () => {
   const whereClause = getLinkAccountVisibilityWhereClause(
     { id: 'owner-1', role: 'OWNER', username: 'owner' },
     'owner-999'
   )
 
-  assert.deepEqual(whereClause, {})
+  assert.deepEqual(whereClause, {
+    OR: [
+      { userId: 'owner-999' },
+      { user: { role: 'MANAGER' } },
+    ],
+  })
 })
 
 test('keeps admins scoped to their own links', () => {

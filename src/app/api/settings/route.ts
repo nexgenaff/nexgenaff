@@ -39,9 +39,9 @@ export async function POST(request: Request) {
     const action = typeof body?.action === 'string' ? body.action : ''
 
     if (action === 'update-click-rate') {
-      if (user.role !== 'OWNER') {
+      if (!isOwner(user) && !isAdmin(user)) {
         return NextResponse.json(
-          { error: 'Only the owner can update the USA click rate.' },
+          { error: 'Only an owner or admin can update the USA click rate.' },
           { status: 403, headers: getCorsHeaders(origin) }
         )
       }
@@ -54,11 +54,20 @@ export async function POST(request: Request) {
         )
       }
 
+      const ownerUserId = await getOwnerUserId()
+      const where = isOwner(user)
+        ? {
+            OR: [
+              ...(ownerUserId ? [{ id: ownerUserId }] : []),
+              { role: 'OWNER' as const },
+              { role: 'MANAGER' as const },
+            ],
+          }
+        : { id: user.id }
+
       const updatedUsers = await prisma.user.updateMany({
-        data: {
-          clickRate,
-          updatedAt: new Date(),
-        },
+        where,
+        data: { clickRate, updatedAt: new Date() },
       })
 
       return NextResponse.json(
@@ -66,7 +75,9 @@ export async function POST(request: Request) {
           success: true,
           clickRate,
           updatedUsers: updatedUsers.count,
-          message: `USA click rate updated for all ${updatedUsers.count} user accounts.`,
+          message: isOwner(user)
+            ? `USA click rate updated for ${updatedUsers.count} owner and manager accounts.`
+            : 'USA click rate updated for your admin account.',
         },
         { headers: getCorsHeaders(origin) }
       )

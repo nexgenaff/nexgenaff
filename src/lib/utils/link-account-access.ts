@@ -1,4 +1,5 @@
 import { isManager, isOwner } from '@/lib/auth'
+import type { Prisma } from '@prisma/client'
 import type { UserRole } from '@/types'
 
 export type LinkAccountVisibilityUser = {
@@ -25,9 +26,14 @@ export function getLinkAccountUserId(
 export function getLinkAccountVisibilityWhereClause(
   user: LinkAccountVisibilityUser,
   ownerUserId: string | null | undefined
-) {
+): Prisma.LinkAccountWhereInput {
   if (isOwner(user)) {
-    return {}
+    return {
+      OR: [
+        { userId: ownerUserId || user.id },
+        { user: { role: 'MANAGER' } },
+      ],
+    }
   }
 
   if (isManager(user) && ownerUserId) {
