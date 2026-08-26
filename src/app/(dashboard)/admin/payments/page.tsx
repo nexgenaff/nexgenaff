@@ -96,7 +96,7 @@ export default function PaymentsPage() {
         const matchesQuery = !normalizedQuery || `${link.accountName} ${link.slug}`.toLowerCase().includes(normalizedQuery);
       const matchesFilter = filter === "all" || invoices.some((invoice) => !invoice.isPaid);
         return matchesQuery && matchesFilter;
-      });
+      }).sort((first, second) => second.accrued - first.accrued);
   }, [filter, paymentRows, query]);
 
   const totals = useMemo(() => paymentRows.reduce(
