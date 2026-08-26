@@ -23,7 +23,9 @@ interface DashboardStats {
   totalClicks: number;
   uniqueClicks: number;
   totalLinks: number;
-  botClicks: number;
+  totalEarned: number;
+  commission: number;
+  revenue: number;
   chartData: any;
   hourlyChartData: any;
   countryBreakdown: any[];
@@ -54,7 +56,9 @@ export default function DashboardPage() {
     totalClicks: 0,
     uniqueClicks: 0,
     totalLinks: 0,
-    botClicks: 0,
+    totalEarned: 0,
+    commission: 0,
+    revenue: 0,
     chartData: createDefaultChart(),
     hourlyChartData: createDefaultChart(),
     countryBreakdown: [],
@@ -129,7 +133,9 @@ export default function DashboardPage() {
             totalClicks: 0,
             uniqueClicks: 0,
             totalLinks: 0,
-            botClicks: 0,
+            totalEarned: 0,
+            commission: 0,
+            revenue: 0,
             chartData: createDefaultChart(),
             hourlyChartData: createDefaultChart(),
             countryBreakdown: [],
@@ -147,13 +153,28 @@ export default function DashboardPage() {
         }
 
         const data = await response.json();
+        const linksResponse = await fetch("/api/links", { credentials: "include" });
+        const paymentLinks = linksResponse.ok ? await linksResponse.json() : [];
+        const paymentSummary = Array.isArray(paymentLinks)
+          ? paymentLinks.filter((link) => link.isActive).reduce(
+              (summary, link) => {
+                const invoices = Array.isArray(link.invoiceHistory) ? link.invoiceHistory : [];
+                const current = Number(link.totalEarning) || 0;
+                const invoiceTotal = invoices.reduce((total: number, invoice: { totalEarning?: number }) => total + (Number(invoice.totalEarning) || 0), 0);
+                return { totalEarned: summary.totalEarned + current + invoiceTotal, commission: summary.commission + (current + invoiceTotal) * 0.2 };
+              },
+              { totalEarned: 0, commission: 0 },
+            )
+          : { totalEarned: 0, commission: 0 };
 
         // Safe assignment with defaults
         const safeData: DashboardStats = {
           totalClicks: data.totalClicks ?? 0,
           uniqueClicks: data.uniqueClicks ?? 0,
           totalLinks: data.totalLinks ?? 0,
-          botClicks: data.botClicks ?? 0,
+          totalEarned: paymentSummary.totalEarned,
+          commission: paymentSummary.commission,
+          revenue: paymentSummary.totalEarned + paymentSummary.commission,
           chartData: data.chartData || createDefaultChart(),
           hourlyChartData: data.hourlyChartData || createDefaultChart(),
           countryBreakdown: Array.isArray(data.countryBreakdown)

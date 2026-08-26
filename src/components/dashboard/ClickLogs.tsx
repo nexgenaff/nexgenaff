@@ -577,13 +577,13 @@ export default function ClickLogs({ filter }: ClickLogsProps) {
 
       <div className="border-b border-slate-800 bg-slate-950/40 px-4 py-4 sm:px-6">
         <div className="grid grid-cols-2 gap-2">
-          <div className="rounded-xl border border-slate-800 bg-slate-900/70 px-3 py-2">
-            <div className="text-[11px] uppercase tracking-[0.24em] text-slate-400">Unique</div>
-            <div className="mt-1 text-sm font-semibold text-white">{summary.unique}</div>
+          <div className="rounded-xl border border-sky-400/25 bg-sky-400/[0.08] px-3 py-2">
+            <div className="text-[11px] uppercase tracking-[0.24em] text-sky-700 dark:text-sky-200">Unique</div>
+            <div className="mt-1 text-sm font-semibold text-sky-800 dark:text-sky-100">{summary.unique}</div>
           </div>
-          <div className="rounded-xl border border-slate-800 bg-slate-900/70 px-3 py-2">
-            <div className="text-[11px] uppercase tracking-[0.24em] text-slate-400">Duplicates</div>
-            <div className="mt-1 text-sm font-semibold text-white">{summary.duplicate}</div>
+          <div className="rounded-xl border border-amber-400/25 bg-amber-400/[0.08] px-3 py-2">
+            <div className="text-[11px] uppercase tracking-[0.24em] text-amber-700 dark:text-amber-200">Duplicates</div>
+            <div className="mt-1 text-sm font-semibold text-amber-800 dark:text-amber-100">{summary.duplicate}</div>
           </div>
         </div>
       </div>

@@ -2,7 +2,7 @@
 
 import { StatsCard } from '@/components/ui/StatsCard'
 import { Chart } from '@/components/ui/Chart'
-import { MousePointerClick, Users, Link2, Bug } from 'lucide-react'
+import { MousePointerClick, Users, Link2, CircleDollarSign } from 'lucide-react'
 import { getCountryFlag } from '@/lib/utils/country'
 
 interface StatsCardsProps {
@@ -10,7 +10,7 @@ interface StatsCardsProps {
     totalClicks: number
     uniqueClicks: number
     totalLinks: number
-    botClicks: number
+    revenue?: number
   }
   chartData?: {
     labels: string[]
@@ -95,10 +95,10 @@ export default function StatsCards({
           delay={200}
         />
         <StatsCard
-          title="Bot Clicks"
-          value={stats.botClicks}
-          icon={Bug}
-          color="red"
+          title="Revenue"
+          value={stats.revenue ?? 0}
+          icon={CircleDollarSign}
+          color="green"
           delay={300}
         />
       </div>
