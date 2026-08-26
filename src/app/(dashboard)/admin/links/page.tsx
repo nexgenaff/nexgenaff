@@ -464,7 +464,6 @@ export default function LinksPage() {
   };
 
   const handleMarkInvoicePaid = async (id: string) => {
-    if (isManager) return;
     setBusyLinkId(id);
     setActionError("");
     setActionMessage("");
