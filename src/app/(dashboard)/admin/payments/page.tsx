@@ -91,7 +91,7 @@ export default function PaymentsPage() {
     { accrued: 0, invoices: 0, unpaid: 0, paid: 0 },
   ), [paymentRows]);
 
-  const commission = totals.accrued * 0.1;
+  const commission = totals.accrued * 0.2;
 
   const invoiceRows = useMemo(() => paymentRows
     .flatMap(({ link, invoices }) => invoices.map((invoice) => ({ link, invoice })))
