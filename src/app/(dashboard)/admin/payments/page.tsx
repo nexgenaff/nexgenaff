@@ -30,7 +30,7 @@ export default function PaymentsPage() {
   const router = useRouter();
   const [links, setLinks] = useState<PaymentLink[]>([]);
   const [query, setQuery] = useState("");
-  const [filter, setFilter] = useState<"all" | "unpaid" | "paid">("all");
+  const [filter, setFilter] = useState<"all" | "unpaid">("all");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [payingLinkId, setPayingLinkId] = useState<string | null>(null);
@@ -92,9 +92,9 @@ export default function PaymentsPage() {
 
   const rows = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
-    return paymentRows.filter(({ link, unpaidAmount, paidAmount }) => {
+    return paymentRows.filter(({ link, invoices }) => {
         const matchesQuery = !normalizedQuery || `${link.accountName} ${link.slug}`.toLowerCase().includes(normalizedQuery);
-        const matchesFilter = filter === "all" || (filter === "unpaid" ? unpaidAmount > 0 : paidAmount > 0);
+      const matchesFilter = filter === "all" || invoices.some((invoice) => !invoice.isPaid);
         return matchesQuery && matchesFilter;
       });
   }, [filter, paymentRows, query]);
@@ -110,10 +110,6 @@ export default function PaymentsPage() {
   ), [paymentRows]);
 
   const commission = totals.accrued * 0.2;
-
-  const invoiceRows = useMemo(() => paymentRows
-    .flatMap(({ link, invoices }) => invoices.map((invoice) => ({ link, invoice })))
-    .sort((a, b) => new Date(b.invoice.createdAt).getTime() - new Date(a.invoice.createdAt).getTime()), [paymentRows]);
 
   return (
     <div className="space-y-5 pb-8">
@@ -158,7 +154,7 @@ export default function PaymentsPage() {
               <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search links" className="h-9 w-full rounded-lg border border-white/10 bg-black/20 pl-8 pr-3 text-xs text-white outline-none placeholder:text-slate-500 focus:border-cyan-300/40 sm:w-44" />
             </label>
             <div className="flex rounded-lg border border-white/10 bg-black/20 p-0.5">
-              {(["all", "unpaid", "paid"] as const).map((option) => (
+              {(["all", "unpaid"] as const).map((option) => (
                 <button key={option} type="button" onClick={() => setFilter(option)} className={`rounded-md px-2.5 py-1.5 text-[10px] font-semibold capitalize transition ${filter === option ? "bg-cyan-300 text-slate-950" : "text-slate-400 hover:text-white"}`}>
                   {option}
                 </button>
@@ -205,31 +201,6 @@ export default function PaymentsPage() {
         )}
       </section>
 
-      <section className="overflow-hidden rounded-lg border border-white/10 bg-white/[0.03]">
-        <div className="border-b border-white/10 p-4">
-          <h2 className="text-sm font-bold text-white">Invoice ledger</h2>
-          <p className="mt-0.5 text-xs text-slate-500">Invoices generated from your active links.</p>
-        </div>
-        {invoiceRows.length === 0 ? (
-          <div className="p-7 text-center text-xs text-slate-500">No invoices have been generated for active links yet.</div>
-        ) : (
-          <div className="divide-y divide-white/5">
-            {invoiceRows.map(({ link, invoice }) => (
-              <div key={invoice.invoiceNumber} className="grid gap-3 p-4 sm:grid-cols-[minmax(0,1fr)_140px_110px_110px] sm:items-center">
-                <div className="min-w-0">
-                  <p className="truncate text-xs font-semibold text-white">{invoice.invoiceNumber}</p>
-                  <p className="mt-1 truncate text-[11px] text-slate-500">{link.accountName} · /{link.slug}</p>
-                </div>
-                <p className="text-[11px] text-slate-500">{new Date(invoice.createdAt).toLocaleDateString()}</p>
-                <p className="text-sm font-bold text-white">{money(Number(invoice.totalEarning) || 0)}</p>
-                <span className={`w-fit rounded-full border px-2 py-1 text-[9px] font-bold uppercase tracking-wider ${invoice.isPaid ? "border-emerald-300/20 bg-emerald-300/10 text-emerald-300" : "border-amber-300/20 bg-amber-300/10 text-amber-300"}`}>
-                  {invoice.isPaid ? "Paid" : "Unpaid"}
-                </span>
-              </div>
-            ))}
-          </div>
-        )}
-      </section>
     </div>
   );
 }
