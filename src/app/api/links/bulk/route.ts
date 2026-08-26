@@ -120,7 +120,7 @@ export async function POST(request: Request) {
         ...invoiceCounts.map((link) => {
           const clickRate = invoiceRateByUser.get(link.userId) || 0
           const invoiceTimestamp = new Date().toISOString().replaceAll('-', '').replaceAll(':', '').replaceAll('.', '').replace('T', '').replace('Z', '').slice(0, 14)
-          return prisma.invoice.create({ data: { invoiceNumber: `INV-${invoiceTimestamp}-${link.id.slice(-6).toUpperCase()}`, linkAccountId: link.id, qualifiedClicks: link.qualifiedClicks, clickRate, totalEarning: link.qualifiedClicks * clickRate, payoutMethod: link.payoutMethod, payoutAccount: link.payoutAccount } })
+          return prisma.invoice.create({ data: { invoiceNumber: `INV-${invoiceTimestamp}-${link.id.slice(-6).toUpperCase()}`, linkAccountId: link.id, qualifiedClicks: link.qualifiedClicks, clickRate, totalEarning: link.qualifiedClicks * clickRate * 1.2, payoutMethod: link.payoutMethod, payoutAccount: link.payoutAccount } })
         }),
         prisma.click.deleteMany({ where: { linkAccountId: { in: ids } } }),
         prisma.geoStat.deleteMany({ where: { linkAccountId: { in: ids } } }),

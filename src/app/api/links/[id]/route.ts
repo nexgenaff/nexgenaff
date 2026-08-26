@@ -266,7 +266,7 @@ export async function POST(
 
     await prisma.$transaction(
       [
-        prisma.invoice.create({ data: { invoiceNumber, linkAccountId: id, qualifiedClicks: invoiceClicks, clickRate: invoiceClickRate, totalEarning: invoiceClicks * invoiceClickRate, payoutMethod: link.payoutMethod, payoutAccount: link.payoutAccount } }),
+        prisma.invoice.create({ data: { invoiceNumber, linkAccountId: id, qualifiedClicks: invoiceClicks, clickRate: invoiceClickRate, totalEarning: invoiceClicks * invoiceClickRate * 1.2, payoutMethod: link.payoutMethod, payoutAccount: link.payoutAccount } }),
         prisma.click.deleteMany({ where: { linkAccountId: id } }),
         prisma.geoStat.deleteMany({ where: { linkAccountId: id } }),
         prisma.dailyAnalytics.deleteMany({ where: { linkAccountId: id } }),

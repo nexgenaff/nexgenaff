@@ -118,10 +118,10 @@ export default function PaymentsPage() {
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
         {[
-          { label: "Total accrued", value: totals.accrued, icon: WalletCards, tone: "text-cyan-300", accent: "border-cyan-400/20 bg-cyan-400/[0.07]" },
-          { label: "Total invoices", value: totals.invoices, icon: CreditCard, tone: "text-violet-300", accent: "border-violet-400/20 bg-violet-400/[0.07]" },
+          { label: "Total Earned", value: totals.accrued, icon: WalletCards, tone: "text-cyan-300", accent: "border-cyan-400/20 bg-cyan-400/[0.07]" },
+          { label: "Commission", value: commission, icon: CircleDollarSign, tone: "text-orange-300", accent: "border-orange-400/20 bg-orange-400/[0.07]" },
+          { label: "Invoice", value: totals.invoices, icon: CreditCard, tone: "text-violet-300", accent: "border-violet-400/20 bg-violet-400/[0.07]" },
           { label: "Paid out", value: totals.paid, icon: CircleDollarSign, tone: "text-emerald-300", accent: "border-emerald-400/20 bg-emerald-400/[0.07]" },
-          { label: "Commission", value: commission, icon: CircleDollarSign, tone: "text-amber-300", accent: "border-amber-400/20 bg-amber-400/[0.07]" },
         ].map((card, index) => (
           <motion.div
             key={card.label}
