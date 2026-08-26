@@ -19,6 +19,7 @@ import {
   BarChart3,
   ShieldCheck,
   Layers,
+  WalletCards,
 } from 'lucide-react'
 
 export default function Sidebar() {
@@ -74,6 +75,7 @@ export default function Sidebar() {
     { href: '/admin/links/create', label: 'Create Link', icon: Plus },
     { href: '/admin/links/create-turbo', label: 'Create Link - Turbo', icon: Plus },
     { href: '/admin/links', label: 'All Links', icon: Link2 },
+    { href: '/admin/payments', label: 'Payments', icon: WalletCards },
     ...(userRole !== 'MANAGER'
       ? [{ href: '/admin/offers', label: 'Offer Vault', icon: Package }]
       : []),
@@ -118,7 +120,7 @@ export default function Sidebar() {
         </button>
       )}
 
-      <nav className="relative z-10 flex-1 px-2.5 py-2.5 space-y-1 overflow-y-auto">
+      <nav className={`relative z-10 flex-1 overflow-y-auto ${isMobile ? 'space-y-0.5 px-2 py-2' : 'space-y-1 px-2.5 py-2.5'}`}>
         {menuItems.map((item) => {
           const isActive = pathname === item.href || pathname?.startsWith(item.href + '/')
           const Icon = item.icon
@@ -127,7 +129,7 @@ export default function Sidebar() {
               key={item.href}
               href={item.href}
               onClick={() => isMobile && setMobileOpen(false)}
-              className={`group flex items-center ${collapsed && !isMobile ? 'justify-center' : 'gap-2.5'} px-2.5 py-2.5 rounded-2xl border border-transparent transition-all duration-150 ${
+              className={`group flex items-center ${collapsed && !isMobile ? 'justify-center' : 'gap-2.5'} ${isMobile ? 'rounded-xl px-2 py-1.5' : 'rounded-2xl px-2.5 py-2.5'} border border-transparent transition-all duration-150 ${
                 isActive
                   ? 'bg-gradient-to-r from-cyan-500/15 via-cyan-500/10 to-violet-500/10 border-cyan-400/25 text-slate-50 font-medium shadow-[0_12px_30px_rgba(34,211,238,0.12)]'
                   : 'text-slate-400 hover:text-slate-100 hover:bg-white/[0.06] hover:border-white/10 hover:-translate-y-0.5 hover:shadow-[0_10px_24px_rgba(2,6,23,0.16)]'
@@ -143,10 +145,10 @@ export default function Sidebar() {
         })}
       </nav>
 
-      <div className="relative z-10 px-2.5 py-2.5 border-t border-white/10 space-y-1 flex-shrink-0">
+      <div className={`relative z-10 border-t border-white/10 flex-shrink-0 ${isMobile ? 'space-y-0.5 px-2 py-2' : 'space-y-1 px-2.5 py-2.5'}`}>
         <button
           onClick={handleLogout}
-          className={`w-full group flex items-center ${collapsed && !isMobile ? 'justify-center' : 'gap-2.5'} px-2.5 py-2.5 rounded-2xl border border-transparent transition-all duration-150 text-red-400/80 hover:text-red-300 hover:bg-red-500/10 hover:border-red-400/20 hover:-translate-y-0.5`}
+          className={`w-full group flex items-center ${collapsed && !isMobile ? 'justify-center' : 'gap-2.5'} ${isMobile ? 'rounded-xl px-2 py-1.5' : 'rounded-2xl px-2.5 py-2.5'} border border-transparent transition-all duration-150 text-red-400/80 hover:text-red-300 hover:bg-red-500/10 hover:border-red-400/20 hover:-translate-y-0.5`}
           aria-label="Logout"
           title="Logout"
         >

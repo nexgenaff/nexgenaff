@@ -593,6 +593,21 @@ html:not(.dark) [class*="text-[#E5E7EB]"] {
   border-color: rgba(203, 235, 222, 0.14) !important;
 }
 
+html:not(.dark) .public-site header .public-header-nav,
+html:not(.dark) .public-site header .public-header-login {
+  color: #d4fbe9 !important;
+}
+
+html:not(.dark) .public-site header .public-header-nav a:hover,
+html:not(.dark) .public-site header .public-header-login:hover,
+html:not(.dark) .public-site header .public-header-menu:hover {
+  color: #ecfff7 !important;
+}
+
+html:not(.dark) .public-site header .public-header-menu {
+  color: #d4eee5 !important;
+}
+
 .public-site h1,
 .public-site h2,
 .public-site h3,
