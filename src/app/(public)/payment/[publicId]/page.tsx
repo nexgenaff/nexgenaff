@@ -15,6 +15,7 @@ interface PaymentProfile {
     totalEarning: number
     payoutMethod: string | null
     payoutAccount: string | null
+    paymentReference: string | null
     isPaid: boolean
     createdAt: string
     paidAt: string | null
@@ -188,6 +189,11 @@ export default function PaymentPage({ params }: { params: Promise<{ publicId: st
                             {invoice.payoutMethod === 'BKASH' ? 'bKash' : invoice.payoutMethod === 'BINANCE' ? 'Binance' : 'Payment method not recorded'}
                             {invoice.payoutAccount ? ` · ${invoice.payoutAccount}` : ''}
                           </p>
+                          {invoice.isPaid && invoice.paymentReference && (
+                            <p className="mt-1 truncate text-[11px] text-emerald-300/80">
+                              {invoice.payoutMethod === 'BKASH' ? 'bKash transaction ID' : 'Binance order ID'}: {invoice.paymentReference}
+                            </p>
+                          )}
                         </div>
                         <div className="shrink-0 text-right">
                           <p className="text-sm font-bold text-emerald-300">${Number(invoice.totalEarning || 0).toFixed(2)}</p>

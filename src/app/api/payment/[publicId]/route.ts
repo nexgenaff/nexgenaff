@@ -92,6 +92,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ pub
         totalEarning: true,
         payoutMethod: true,
         payoutAccount: true,
+        paymentReference: true,
         isPaid: true,
         createdAt: true,
         paidAt: true,

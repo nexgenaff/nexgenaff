@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { CheckCircle, CircleDollarSign, CreditCard, Search, WalletCards } from "lucide-react";
+import { Check, CheckCircle, CircleDollarSign, Copy, CreditCard, Search, WalletCards, X } from "lucide-react";
 import { coerceArray } from "@/lib/utils/array-response";
 
 interface PaymentLink {
@@ -34,6 +34,9 @@ export default function PaymentsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [payingLinkId, setPayingLinkId] = useState<string | null>(null);
+  const [copiedPaymentAccount, setCopiedPaymentAccount] = useState<string | null>(null);
+  const [paymentLink, setPaymentLink] = useState<PaymentLink | null>(null);
+  const [paymentReference, setPaymentReference] = useState("");
 
   const fetchPayments = useCallback(async () => {
     setError("");
@@ -56,7 +59,7 @@ export default function PaymentsPage() {
     void fetchPayments();
   }, [fetchPayments]);
 
-  const markInvoicePaid = async (linkId: string) => {
+  const markInvoicePaid = async (linkId: string, reference: string) => {
     setPayingLinkId(linkId);
     setError("");
     try {
@@ -64,15 +67,37 @@ export default function PaymentsPage() {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "mark-paid" }),
+        body: JSON.stringify({ action: "mark-paid", paymentReference: reference }),
       });
       const data = await response.json().catch(() => null);
       if (!response.ok) throw new Error(data?.error || "Unable to mark invoice as paid");
       await fetchPayments();
+      return true;
     } catch (actionError) {
       setError(actionError instanceof Error ? actionError.message : "Unable to mark invoice as paid");
+      return false;
     } finally {
       setPayingLinkId(null);
+    }
+  };
+
+  const submitPayment = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!paymentLink || !paymentReference.trim()) return;
+    const success = await markInvoicePaid(paymentLink.id, paymentReference.trim());
+    if (success) {
+      setPaymentLink(null);
+      setPaymentReference("");
+    }
+  };
+
+  const copyPaymentAccount = async (linkId: string, account: string) => {
+    try {
+      await navigator.clipboard.writeText(account);
+      setCopiedPaymentAccount(linkId);
+      window.setTimeout(() => setCopiedPaymentAccount(null), 1600);
+    } catch {
+      setError("Unable to copy payment account");
     }
   };
 
@@ -119,7 +144,7 @@ export default function PaymentsPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
         {[
           { label: "Total Earned", value: totals.accrued, icon: WalletCards, tone: "text-cyan-300", accent: "border-cyan-400/20 bg-cyan-400/[0.07]" },
           { label: "Commission", value: commission, icon: CircleDollarSign, tone: "text-orange-300", accent: "border-orange-400/20 bg-orange-400/[0.07]" },
@@ -148,12 +173,12 @@ export default function PaymentsPage() {
             <h2 className="text-sm font-bold text-white">Active link earnings</h2>
             <p className="mt-0.5 text-xs text-slate-500">{rows.length === activeLinks.length ? `${activeLinks.length} active ${activeLinks.length === 1 ? "link" : "links"}` : `Showing ${rows.length} of ${activeLinks.length} active links`}</p>
           </div>
-          <div className="flex flex-col gap-2 sm:flex-row">
-            <label className="relative block">
+          <div className="flex items-center gap-2">
+            <label className="relative block min-w-0 flex-1">
               <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-500" />
               <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search links" className="h-9 w-full rounded-lg border border-white/10 bg-black/20 pl-8 pr-3 text-xs text-white outline-none placeholder:text-slate-500 focus:border-cyan-300/40 sm:w-44" />
             </label>
-            <div className="flex rounded-lg border border-white/10 bg-black/20 p-0.5">
+            <div className="flex shrink-0 rounded-lg border border-white/10 bg-black/20 p-0.5">
               {(["all", "unpaid"] as const).map((option) => (
                 <button key={option} type="button" onClick={() => setFilter(option)} className={`rounded-md px-2.5 py-1.5 text-[10px] font-semibold capitalize transition ${filter === option ? "bg-cyan-300 text-slate-950" : "text-slate-400 hover:text-white"}`}>
                   {option}
@@ -182,14 +207,19 @@ export default function PaymentsPage() {
                   </div>
                   <div className="min-w-0 text-xs text-slate-400">
                     <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Payment method</p>
-                    <p className="mt-1 truncate text-sm font-medium text-slate-200 sm:text-xs">{link.payoutMethod ? `${link.payoutMethod === "BKASH" ? "bKash" : link.payoutMethod} · ${link.payoutAccount || "Account not set"}` : "Not set"}</p>
+                    <div className="mt-1 flex min-w-0 items-center gap-1.5">
+                      <p className="truncate text-sm font-medium text-slate-200 sm:text-xs">{link.payoutMethod ? `${link.payoutMethod === "BKASH" ? "bKash" : link.payoutMethod} · ${link.payoutAccount || "Account not set"}` : "Not set"}</p>
+                      {link.payoutAccount && <button type="button" onClick={() => void copyPaymentAccount(link.id, link.payoutAccount!)} className="shrink-0 rounded p-1 text-slate-500 transition hover:bg-white/10 hover:text-cyan-300" aria-label={`Copy payment account for ${link.accountName}`} title="Copy payment account">
+                        {copiedPaymentAccount === link.id ? <Check className="h-3.5 w-3.5 text-emerald-300" /> : <Copy className="h-3.5 w-3.5" />}
+                      </button>}
+                    </div>
                   </div>
                   <div><p className="text-[9px] uppercase tracking-wider text-slate-500">Total earning</p><p className="mt-1 text-sm font-bold text-cyan-200">{money(current)}</p></div>
                   <div><p className="text-[9px] uppercase tracking-wider text-slate-500">Invoice</p><p className="mt-1 text-sm font-bold text-violet-300">{money(invoiceTotal)}</p></div>
                   <div><p className="text-[9px] uppercase tracking-wider text-slate-500">Total paid</p><p className="mt-1 text-sm font-bold text-emerald-300">{money(paidAmount)}</p></div>
                   <div className="flex items-center gap-2 sm:justify-end">
                     <span className={`text-[10px] font-semibold ${hasUnpaidInvoice || unpaidAmount > current ? "text-orange-300" : "text-slate-400"}`}>{hasUnpaidInvoice ? "Unpaid" : "Not Invoiced"}</span>
-                    {hasUnpaidInvoice && <button type="button" onClick={() => void markInvoicePaid(link.id)} disabled={payingLinkId === link.id} className="inline-flex shrink-0 items-center gap-1 rounded-md border border-emerald-300/25 bg-emerald-300/10 px-2 py-1.5 text-[10px] font-bold text-emerald-200 transition hover:bg-emerald-300/20 disabled:opacity-60" aria-label={`Mark invoice for ${link.accountName} as paid`}>
+                    {hasUnpaidInvoice && <button type="button" onClick={() => { setPaymentLink(link); setPaymentReference(""); }} disabled={payingLinkId === link.id} className="inline-flex shrink-0 items-center gap-1 rounded-md border border-emerald-300/25 bg-emerald-300/10 px-2 py-1.5 text-[10px] font-bold text-emerald-200 transition hover:bg-emerald-300/20 disabled:opacity-60" aria-label={`Mark invoice for ${link.accountName} as paid`}>
                       <CheckCircle className="h-3 w-3" />
                       {payingLinkId === link.id ? "Saving" : "Mark paid"}
                     </button>}
@@ -200,6 +230,29 @@ export default function PaymentsPage() {
           </div>
         )}
       </section>
+
+      {paymentLink && <div className="fixed inset-0 z-[70] flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="payment-dialog-title">
+        <form onSubmit={submitPayment} className="w-full max-w-sm rounded-lg border border-slate-700 bg-slate-900 p-5 shadow-2xl">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-emerald-300">Confirm payout</p>
+              <h2 id="payment-dialog-title" className="mt-1 text-base font-bold text-white">Mark invoice as paid</h2>
+              <p className="mt-1 text-xs text-slate-400">{paymentLink.accountName}</p>
+            </div>
+            <button type="button" onClick={() => setPaymentLink(null)} className="rounded p-1 text-slate-400 hover:bg-white/10 hover:text-white" aria-label="Close payment dialog">
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+          <label className="mt-5 block text-xs font-semibold text-slate-300" htmlFor="payment-reference">
+            {paymentLink.payoutMethod === "BKASH" ? "bKash transaction ID" : "Binance order ID"}
+            <input id="payment-reference" value={paymentReference} onChange={(event) => setPaymentReference(event.target.value)} autoFocus required placeholder={paymentLink.payoutMethod === "BKASH" ? "Enter bKash transaction ID" : "Enter Binance order ID"} className="mt-2 h-10 w-full rounded-md border border-slate-700 bg-slate-950 px-3 text-sm text-white outline-none placeholder:text-slate-500 focus:border-emerald-300/50" />
+          </label>
+          <div className="mt-5 flex justify-end gap-2">
+            <button type="button" onClick={() => setPaymentLink(null)} className="rounded-md border border-slate-700 px-3 py-2 text-xs font-semibold text-slate-300 hover:bg-white/5">Cancel</button>
+            <button type="submit" disabled={!paymentReference.trim() || payingLinkId === paymentLink.id} className="rounded-md bg-emerald-300 px-3 py-2 text-xs font-bold text-slate-950 hover:bg-emerald-200 disabled:opacity-60">{payingLinkId === paymentLink.id ? "Saving..." : "Confirm paid"}</button>
+          </div>
+        </form>
+      </div>}
 
     </div>
   );

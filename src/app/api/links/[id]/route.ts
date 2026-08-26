@@ -238,9 +238,16 @@ export async function POST(
 
     const body = await request.json()
     if (body.action === 'mark-paid') {
+      const paymentReference = typeof body.paymentReference === 'string' ? body.paymentReference.trim() : ''
+      if (!link.payoutMethod) {
+        return NextResponse.json({ error: 'Payout method must be configured before marking an invoice as paid' }, { status: 400, headers: getCorsHeaders(origin) })
+      }
+      if (!paymentReference) {
+        return NextResponse.json({ error: link.payoutMethod === 'BKASH' ? 'bKash transaction ID is required' : 'Binance order ID is required' }, { status: 400, headers: getCorsHeaders(origin) })
+      }
       const invoice = await prisma.invoice.findFirst({ where: { linkAccountId: id, isPaid: false }, orderBy: { createdAt: 'desc' } })
       if (!invoice) return NextResponse.json({ error: 'No unpaid invoice found' }, { status: 404, headers: getCorsHeaders(origin) })
-      await prisma.invoice.update({ where: { id: invoice.id }, data: { isPaid: true, paidAt: new Date() } })
+      await prisma.invoice.update({ where: { id: invoice.id }, data: { isPaid: true, paidAt: new Date(), paymentReference } })
       return NextResponse.json({ success: true, invoiceNumber: invoice.invoiceNumber }, { headers: getCorsHeaders(origin) })
     }
 

@@ -352,6 +352,7 @@ model Invoice {
   totalEarning         Float
   payoutMethod         String?
   payoutAccount        String?
+  paymentReference     String?
   isPaid               Boolean     @default(false)
   paidAt               DateTime?
   createdAt            DateTime    @default(now())
