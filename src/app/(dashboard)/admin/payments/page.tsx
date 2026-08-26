@@ -68,7 +68,8 @@ export default function PaymentsPage() {
         const current = Number(link.totalEarning) || 0;
         const unpaidAmount = unpaid.reduce((sum, invoice) => sum + (Number(invoice.totalEarning) || 0), 0) + current;
         const paidAmount = paid.reduce((sum, invoice) => sum + (Number(invoice.totalEarning) || 0), 0);
-        return { link, invoices, current, unpaidAmount, paidAmount, accrued: unpaidAmount + paidAmount };
+        const invoiceTotal = invoices.reduce((sum, invoice) => sum + (Number(invoice.totalEarning) || 0), 0);
+        return { link, invoices, current, unpaidAmount, paidAmount, invoiceTotal, accrued: unpaidAmount + paidAmount };
       }), [activeLinks]);
 
   const rows = useMemo(() => {
@@ -83,12 +84,14 @@ export default function PaymentsPage() {
   const totals = useMemo(() => paymentRows.reduce(
     (summary, row) => ({
       accrued: summary.accrued + row.accrued,
-      invoices: summary.invoices + row.paidAmount + (row.unpaidAmount - row.current),
+      invoices: summary.invoices + row.invoiceTotal,
       unpaid: summary.unpaid + row.unpaidAmount,
       paid: summary.paid + row.paidAmount,
     }),
     { accrued: 0, invoices: 0, unpaid: 0, paid: 0 },
   ), [paymentRows]);
+
+  const commission = totals.accrued * 0.1;
 
   const invoiceRows = useMemo(() => paymentRows
     .flatMap(({ link, invoices }) => invoices.map((invoice) => ({ link, invoice })))
@@ -117,15 +120,15 @@ export default function PaymentsPage() {
         {[
           { label: "Total accrued", value: totals.accrued, icon: WalletCards, tone: "text-cyan-300", accent: "border-cyan-400/20 bg-cyan-400/[0.07]" },
           { label: "Total invoices", value: totals.invoices, icon: CreditCard, tone: "text-violet-300", accent: "border-violet-400/20 bg-violet-400/[0.07]" },
-          { label: "Awaiting payout", value: totals.unpaid, icon: CircleDollarSign, tone: "text-amber-300", accent: "border-amber-400/20 bg-amber-400/[0.07]" },
           { label: "Paid out", value: totals.paid, icon: CircleDollarSign, tone: "text-emerald-300", accent: "border-emerald-400/20 bg-emerald-400/[0.07]" },
+          { label: "Commission", value: commission, icon: CircleDollarSign, tone: "text-amber-300", accent: "border-amber-400/20 bg-amber-400/[0.07]" },
         ].map((card, index) => (
           <motion.div
             key={card.label}
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.06 }}
-            className={`rounded-2xl border p-4 ${card.accent}`}
+            className={`rounded-lg border p-4 ${card.accent}`}
           >
             <div className="flex items-center justify-between">
               <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-slate-400">{card.label}</span>
@@ -136,7 +139,7 @@ export default function PaymentsPage() {
         ))}
       </div>
 
-      <section className="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03]">
+      <section className="overflow-hidden rounded-lg border border-white/10 bg-white/[0.03]">
         <div className="flex flex-col gap-3 border-b border-white/10 p-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h2 className="text-sm font-bold text-white">Active link earnings</h2>
@@ -190,7 +193,7 @@ export default function PaymentsPage() {
         )}
       </section>
 
-      <section className="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03]">
+      <section className="overflow-hidden rounded-lg border border-white/10 bg-white/[0.03]">
         <div className="border-b border-white/10 p-4">
           <h2 className="text-sm font-bold text-white">Invoice ledger</h2>
           <p className="mt-0.5 text-xs text-slate-500">Invoices generated from your active links.</p>
