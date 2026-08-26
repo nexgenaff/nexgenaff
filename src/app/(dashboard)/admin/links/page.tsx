@@ -148,6 +148,8 @@ export default function LinksPage() {
   const [busyLinkId, setBusyLinkId] = useState<string | null>(null);
   const [confirmInline, setConfirmInline] = useState<ConfirmInlineState | null>(null);
   const [invoiceHistoryLink, setInvoiceHistoryLink] = useState<LinkAccount | null>(null);
+  const [paymentLink, setPaymentLink] = useState<LinkAccount | null>(null);
+  const [paymentReference, setPaymentReference] = useState("");
 
   // ===== SORT & FILTER =====
   const [sortBy, setSortBy] = useState<"createdAt" | "totalClicks" | "uniqueClicks" | "totalEarning" | "accountName">("createdAt");
@@ -463,7 +465,7 @@ export default function LinksPage() {
     });
   };
 
-  const handleMarkInvoicePaid = async (id: string) => {
+  const handleMarkInvoicePaid = async (id: string, reference: string) => {
     setBusyLinkId(id);
     setActionError("");
     setActionMessage("");
@@ -472,16 +474,28 @@ export default function LinksPage() {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "mark-paid" }),
+        body: JSON.stringify({ action: "mark-paid", paymentReference: reference }),
       });
       const data = await response.json().catch(() => null);
       if (!response.ok) throw new Error(data?.error || "Failed to mark invoice as paid");
       setActionMessage("Invoice marked as paid.");
       await fetchLinks();
+      return true;
     } catch (error) {
       setActionError(error instanceof Error ? error.message : "Failed to mark invoice as paid");
+      return false;
     } finally {
       setBusyLinkId(null);
+    }
+  };
+
+  const submitPayment = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!paymentLink || !paymentReference.trim()) return;
+    const success = await handleMarkInvoicePaid(paymentLink.id, paymentReference.trim());
+    if (success) {
+      setPaymentLink(null);
+      setPaymentReference("");
     }
   };
 
@@ -1238,7 +1252,7 @@ export default function LinksPage() {
                           </div>
                           <span className="mt-0.5 block text-xs font-bold leading-none text-emerald-200">${Number(link.invoices[0].totalEarning || 0).toFixed(2)}</span>
                         </div>
-                        <button type="button" onClick={() => handleMarkInvoicePaid(link.id)} disabled={busyLinkId === link.id} className="inline-flex shrink-0 items-center justify-center gap-1 rounded border border-emerald-400/25 px-1.5 py-1 text-[8px] font-medium text-emerald-300 transition-colors hover:bg-emerald-400/10 disabled:opacity-60" aria-label={`Mark invoice for ${link.accountName} as paid`}>
+                        <button type="button" onClick={() => { setPaymentLink(link); setPaymentReference(""); }} disabled={busyLinkId === link.id} className="inline-flex shrink-0 items-center justify-center gap-1 rounded border border-emerald-400/25 px-1.5 py-1 text-[8px] font-medium text-emerald-300 transition-colors hover:bg-emerald-400/10 disabled:opacity-60" aria-label={`Mark invoice for ${link.accountName} as paid`}>
                             {busyLinkId === link.id ? "Saving..." : <><CheckCircle className="h-3 w-3" /> Paid</>}
                         </button>
                       </div> : null}
@@ -1312,6 +1326,31 @@ export default function LinksPage() {
               )}
             </article>
           ))}
+        </div>
+      )}
+
+      {paymentLink && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="payment-dialog-title">
+          <form onSubmit={submitPayment} className="w-full max-w-sm rounded-xl border border-slate-700 bg-slate-900 p-5 shadow-2xl">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-emerald-300">Confirm payout</p>
+                <h2 id="payment-dialog-title" className="mt-1 text-base font-bold text-white">Mark invoice as paid</h2>
+                <p className="mt-1 text-xs text-slate-400">{paymentLink.accountName}</p>
+              </div>
+              <button type="button" onClick={() => setPaymentLink(null)} className="rounded p-1 text-slate-400 hover:bg-white/10 hover:text-white" aria-label="Close payment dialog">
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+            <label className="mt-5 block text-xs font-semibold text-slate-300" htmlFor="payment-reference">
+              {paymentLink.payoutMethod === "BKASH" ? "bKash transaction ID" : "Binance order ID"}
+              <input id="payment-reference" value={paymentReference} onChange={(event) => setPaymentReference(event.target.value)} autoFocus required placeholder={paymentLink.payoutMethod === "BKASH" ? "Enter bKash transaction ID" : "Enter Binance order ID"} className="mt-2 h-10 w-full rounded-md border border-slate-700 bg-slate-950 px-3 text-sm text-white outline-none placeholder:text-slate-500 focus:border-emerald-300/50" />
+            </label>
+            <div className="mt-5 flex justify-end gap-2">
+              <button type="button" onClick={() => setPaymentLink(null)} className="rounded-md border border-slate-700 px-3 py-2 text-xs font-semibold text-slate-300 hover:bg-white/5">Cancel</button>
+              <button type="submit" disabled={!paymentReference.trim() || busyLinkId === paymentLink.id} className="rounded-md bg-emerald-300 px-3 py-2 text-xs font-bold text-slate-950 hover:bg-emerald-200 disabled:opacity-60">{busyLinkId === paymentLink.id ? "Saving..." : "Confirm paid"}</button>
+            </div>
+          </form>
         </div>
       )}
 
