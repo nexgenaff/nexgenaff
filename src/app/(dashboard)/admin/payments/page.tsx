@@ -83,11 +83,16 @@ export default function PaymentsPage() {
   const totals = useMemo(() => paymentRows.reduce(
     (summary, row) => ({
       accrued: summary.accrued + row.accrued,
+      invoices: summary.invoices + row.paidAmount + (row.unpaidAmount - row.current),
       unpaid: summary.unpaid + row.unpaidAmount,
       paid: summary.paid + row.paidAmount,
     }),
-    { accrued: 0, unpaid: 0, paid: 0 },
+    { accrued: 0, invoices: 0, unpaid: 0, paid: 0 },
   ), [paymentRows]);
+
+  const invoiceRows = useMemo(() => paymentRows
+    .flatMap(({ link, invoices }) => invoices.map((invoice) => ({ link, invoice })))
+    .sort((a, b) => new Date(b.invoice.createdAt).getTime() - new Date(a.invoice.createdAt).getTime()), [paymentRows]);
 
   return (
     <div className="space-y-5 pb-8">
@@ -108,11 +113,12 @@ export default function PaymentsPage() {
         </button>
       </div>
 
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
         {[
           { label: "Total accrued", value: totals.accrued, icon: WalletCards, tone: "text-cyan-300", accent: "border-cyan-400/20 bg-cyan-400/[0.07]" },
+          { label: "Total invoices", value: totals.invoices, icon: CreditCard, tone: "text-violet-300", accent: "border-violet-400/20 bg-violet-400/[0.07]" },
           { label: "Awaiting payout", value: totals.unpaid, icon: CircleDollarSign, tone: "text-amber-300", accent: "border-amber-400/20 bg-amber-400/[0.07]" },
-          { label: "Paid out", value: totals.paid, icon: CreditCard, tone: "text-emerald-300", accent: "border-emerald-400/20 bg-emerald-400/[0.07]" },
+          { label: "Paid out", value: totals.paid, icon: CircleDollarSign, tone: "text-emerald-300", accent: "border-emerald-400/20 bg-emerald-400/[0.07]" },
         ].map((card, index) => (
           <motion.div
             key={card.label}
@@ -180,6 +186,32 @@ export default function PaymentsPage() {
                 </div>
               );
             })}
+          </div>
+        )}
+      </section>
+
+      <section className="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03]">
+        <div className="border-b border-white/10 p-4">
+          <h2 className="text-sm font-bold text-white">Invoice ledger</h2>
+          <p className="mt-0.5 text-xs text-slate-500">Invoices generated from your active links.</p>
+        </div>
+        {invoiceRows.length === 0 ? (
+          <div className="p-7 text-center text-xs text-slate-500">No invoices have been generated for active links yet.</div>
+        ) : (
+          <div className="divide-y divide-white/5">
+            {invoiceRows.map(({ link, invoice }) => (
+              <div key={invoice.invoiceNumber} className="grid gap-3 p-4 sm:grid-cols-[minmax(0,1fr)_140px_110px_110px] sm:items-center">
+                <div className="min-w-0">
+                  <p className="truncate text-xs font-semibold text-white">{invoice.invoiceNumber}</p>
+                  <p className="mt-1 truncate text-[11px] text-slate-500">{link.accountName} · /{link.slug}</p>
+                </div>
+                <p className="text-[11px] text-slate-500">{new Date(invoice.createdAt).toLocaleDateString()}</p>
+                <p className="text-sm font-bold text-white">{money(Number(invoice.totalEarning) || 0)}</p>
+                <span className={`w-fit rounded-full border px-2 py-1 text-[9px] font-bold uppercase tracking-wider ${invoice.isPaid ? "border-emerald-300/20 bg-emerald-300/10 text-emerald-300" : "border-amber-300/20 bg-amber-300/10 text-amber-300"}`}>
+                  {invoice.isPaid ? "Paid" : "Unpaid"}
+                </span>
+              </div>
+            ))}
           </div>
         )}
       </section>
