@@ -65,7 +65,7 @@ const GradientText = ({
   className?: string;
 }) => (
   <span
-    className={`bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent ${className}`}
+    className={`bg-gradient-to-r from-emerald-300 via-cyan-300 to-white bg-clip-text text-transparent ${className}`}
   >
     {children}
   </span>
@@ -451,7 +451,7 @@ export default function FAQClient({ faqData }: FAQClientProps) {
   }, []);
 
   return (
-    <div className="relative min-h-screen w-full bg-[#05070b] text-white overflow-x-hidden">
+    <div className="public-page relative min-h-screen w-full bg-transparent text-white overflow-x-hidden">
       {/* ─── CANVAS BACKGROUND ─── */}
       <canvas
         ref={canvasRef}

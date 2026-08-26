@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import PublishersClient from "./PublishersClient";
+import PublicLayout from "@/components/layout/PublicLayout";
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://www.weebly.pro'),
@@ -58,5 +59,9 @@ export const metadata: Metadata = {
 };
 
 export default function PublishersPage() {
-  return <PublishersClient />;
+  return (
+    <PublicLayout>
+      <PublishersClient />
+    </PublicLayout>
+  );
 }

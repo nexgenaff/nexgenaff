@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import LoginClient from "./LoginClient";
+import AfficixoLoading from "@/components/ui/AfficixoLoading";
 
 export const metadata: Metadata = {
   title: 'Publisher Login — Afficixo',
@@ -46,7 +47,7 @@ export const metadata: Metadata = {
 
 export default function LoginPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-[#05070b] text-white">Loading...</div>}>
+    <Suspense fallback={<AfficixoLoading text="Loading sign in" />}>
       <LoginClient />
     </Suspense>
   );

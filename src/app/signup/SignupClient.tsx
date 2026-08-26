@@ -343,7 +343,7 @@ export default function SignupClient() {
   }
 
   return (
-    <div className="relative min-h-screen w-full bg-[#05070b] text-white overflow-hidden">
+    <div className="auth-site relative min-h-screen w-full bg-[#071014] text-white overflow-hidden">
       {/* Canvas background – particle network */}
       <canvas
         ref={canvasRef}
@@ -393,16 +393,16 @@ export default function SignupClient() {
           initial={{ opacity: 0, scale: 0.97, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           transition={{ duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }}
-          className="w-full max-w-[440px] rounded-3xl bg-white/5 backdrop-blur-xl p-5 shadow-2xl shadow-indigo-500/5 hover:shadow-indigo-500/10 transition-shadow duration-500 border border-white/5"
+          className="auth-card w-full max-w-[440px] rounded-lg bg-white/5 backdrop-blur-xl p-5 shadow-2xl shadow-indigo-500/5 hover:shadow-indigo-500/10 transition-shadow duration-500 border border-white/5"
         >
           <div className="space-y-4">
             <div className="flex items-center justify-center">
               <Image
                 src="/afficixo-logo.png"
                 alt="Afficixo logo"
-                width={72}
-                height={72}
-                className="object-cover"
+                width={120}
+                height={35}
+                className="object-contain"
                 priority
               />
             </div>
@@ -423,7 +423,7 @@ export default function SignupClient() {
               </div>
             )}
 
-              <p className="text-sm text-slate-400">Complete the secure registration form below. Your manager account will be reviewed and approved by the owner.</p>
+              <p className="auth-hint text-sm text-slate-400">Complete the secure registration form below. Your manager account will be reviewed and approved by the owner.</p>
 
             <form onSubmit={handleSubmit} className="space-y-2.5">
               {/* Full name */}
@@ -437,7 +437,7 @@ export default function SignupClient() {
                     autoComplete="name"
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
-                    className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 pl-10 text-white placeholder-slate-500 focus:border-indigo-400/50 focus:outline-none focus:ring-2 focus:ring-indigo-400/30 transition-all duration-300 hover:border-white/20"
+                    className="auth-input w-full rounded-md border border-white/10 bg-white/5 px-3 py-2 pl-10 text-white placeholder-slate-500 focus:border-indigo-400/50 focus:outline-none focus:ring-2 focus:ring-indigo-400/30 transition-all duration-300 hover:border-white/20"
                     placeholder="Full name"
                     required
                     disabled={loading}
@@ -602,7 +602,7 @@ export default function SignupClient() {
               <button
                 type="submit"
                 disabled={loading}
-                className="relative w-full overflow-hidden rounded-xl bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 px-6 py-3.5 text-sm font-semibold text-white transition-all duration-300 hover:from-indigo-600 hover:via-purple-600 hover:to-pink-600 hover:shadow-2xl hover:shadow-purple-500/40 disabled:opacity-60 disabled:cursor-not-allowed group"
+                className="auth-submit relative w-full overflow-hidden rounded-md bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 px-6 py-3.5 text-sm font-semibold text-white transition-all duration-300 hover:from-indigo-600 hover:via-purple-600 hover:to-pink-600 hover:shadow-2xl hover:shadow-purple-500/40 disabled:opacity-60 disabled:cursor-not-allowed group"
               >
                 <span className="relative z-10 flex items-center justify-center gap-2">
                   {loading ? (

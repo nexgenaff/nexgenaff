@@ -1,5 +1,6 @@
 ﻿import type { Metadata } from "next";
 import AboutClient from "./AboutClient";
+import PublicLayout from "@/components/layout/PublicLayout";
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://www.weebly.pro'),
@@ -57,5 +58,9 @@ export const metadata: Metadata = {
 };
 
 export default function AboutPage() {
-  return <AboutClient />;
+  return (
+    <PublicLayout>
+      <AboutClient />
+    </PublicLayout>
+  );
 }

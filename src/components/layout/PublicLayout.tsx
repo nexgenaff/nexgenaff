@@ -8,7 +8,6 @@ import { Menu, X, ArrowRight } from "lucide-react";
 
 const navLinks = [
   { href: "/about", label: "About" },
-  { href: "/offers", label: "Offers" },
   { href: "/publishers", label: "Publishers" },
   { href: "/faq", label: "FAQ" },
 ];
@@ -17,13 +16,10 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
-    <div className="relative min-h-screen w-full bg-[#05070b] text-white overflow-x-hidden">
+    <div className="public-site relative min-h-screen w-full bg-[#071014] text-white overflow-x-hidden">
       <div className="fixed inset-0 z-0 pointer-events-none">
-        <div className="absolute inset-0 bg-gradient-to-br from-[#05070b]/80 via-[#0d1724]/60 to-[#101827]/80" />
-        <div className="absolute top-0 left-1/4 w-[400px] h-[400px] md:w-[800px] md:h-[800px] bg-gradient-radial from-indigo-900/20 via-transparent to-transparent blur-3xl" />
-        <div className="absolute top-1/3 right-0 w-[300px] h-[300px] md:w-[600px] md:h-[600px] bg-gradient-radial from-purple-700/15 via-transparent to-transparent blur-3xl" />
-        <div className="absolute bottom-0 right-1/3 w-[350px] h-[350px] md:w-[700px] md:h-[700px] bg-gradient-radial from-pink-900/10 via-transparent to-transparent blur-3xl" />
-        <div className="absolute inset-0 opacity-[0.03] [background-image:linear-gradient(rgba(255,255,255,1)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,1)_1px,transparent_1px)] [background-size:60px_60px]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(35,197,154,0.14),transparent_38%),linear-gradient(180deg,#0b1b20_0%,#071014_55%,#061015_100%)]" />
+        <div className="absolute inset-0 opacity-[0.09] [background-image:linear-gradient(rgba(166,243,213,1)_1px,transparent_1px),linear-gradient(90deg,rgba(166,243,213,1)_1px,transparent_1px)] [background-size:72px_72px] [mask-image:linear-gradient(to_bottom,black,transparent_72%)]" />
       </div>
 
       <div className="relative z-10">
@@ -31,7 +27,7 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
           initial={{ y: -100 }}
           animate={{ y: 0 }}
           transition={{ duration: 0.5 }}
-          className="fixed top-0 left-0 right-0 z-40 backdrop-blur-md bg-[#05070b]/90 border-b border-white/5"
+          className="fixed top-0 left-0 right-0 z-40 border-b border-emerald-100/10 bg-[#071014]/90 backdrop-blur-md"
         >
           <nav className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8 md:h-20">
             <Link href="/" className="flex items-center shrink-0" onClick={() => setMobileMenuOpen(false)}>
@@ -47,21 +43,21 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
               </div>
             </Link>
 
-            <div className="hidden items-center gap-6 text-sm text-slate-300 md:flex">
+            <div className="hidden items-center gap-8 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400 md:flex">
               {navLinks.map((link) => (
-                <Link key={link.href} href={link.href} className="transition-colors hover:text-white">
+                <Link key={link.href} href={link.href} className="transition-colors hover:text-emerald-300">
                   {link.label}
                 </Link>
               ))}
             </div>
 
             <div className="flex items-center gap-2 sm:gap-4">
-              <Link href="/login" className="hidden text-sm text-slate-300 transition-colors hover:text-white sm:block">
+              <Link href="/login" className="hidden text-xs font-semibold uppercase tracking-[0.15em] text-slate-400 transition-colors hover:text-white sm:block">
                 Login
               </Link>
               <Link
                 href="/signup"
-                className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-indigo-500 to-purple-500 px-3 py-2 text-xs font-semibold text-white shadow-lg shadow-purple-500/20 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-purple-500/40 md:px-4 md:text-sm"
+                className="inline-flex items-center gap-2 rounded-md bg-emerald-300 px-3 py-2 text-xs font-bold uppercase tracking-[0.12em] text-[#071014] shadow-[0_0_24px_rgba(110,231,183,0.22)] transition-all duration-300 hover:bg-emerald-200 hover:-translate-y-0.5 md:px-4 md:text-sm"
               >
                 Join Now
                 <ArrowRight className="h-4 w-4" />
@@ -83,7 +79,7 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
               animate={{ opacity: 1, height: "auto" }}
               exit={{ opacity: 0, height: 0 }}
               transition={{ duration: 0.25 }}
-              className="border-t border-white/10 bg-[#05070b]/95 md:hidden"
+              className="border-t border-white/10 bg-[#071014]/95 md:hidden"
             >
               <div className="space-y-3 px-4 py-4">
                 {navLinks.map((link) => (
@@ -127,7 +123,6 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
 
             <div className="flex flex-wrap items-center justify-center gap-3 text-xs text-slate-400 md:gap-6 md:text-sm">
               <Link href="/about" className="transition-colors hover:text-white">About</Link>
-              <Link href="/offers" className="transition-colors hover:text-white">Offers</Link>
               <Link href="/publishers" className="transition-colors hover:text-white">Publishers</Link>
               <Link href="/faq" className="transition-colors hover:text-white">FAQ</Link>
               <Link href="/privacy-policy" className="transition-colors hover:text-white">Privacy Policy</Link>

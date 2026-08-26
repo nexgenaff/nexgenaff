@@ -81,7 +81,7 @@ const GradientText = ({
   className?: string;
 }) => (
   <span
-    className={`bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent ${className}`}
+    className={`bg-gradient-to-r from-emerald-300 via-cyan-300 to-white bg-clip-text text-transparent ${className}`}
   >
     {children}
   </span>
@@ -383,7 +383,7 @@ export default function HomePage() {
       <canvas
         ref={canvasRef}
         className="background-network fixed top-0 left-0 w-full h-full pointer-events-none z-0"
-        style={{ opacity: 0.6 }}
+        style={{ opacity: 0.18 }}
       />
 
       <main id="main-content" className="relative z-10 w-full max-w-full overflow-x-hidden">
@@ -394,40 +394,40 @@ export default function HomePage() {
         />
 
         {/* ===== HERO ===== */}
-        <section className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-12 md:py-24 lg:py-28 w-full">
-          <div className="grid grid-cols-1 gap-10 items-center w-full">
+        <section className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-32 pb-16 md:pt-40 md:pb-24 w-full">
+          <div className="grid grid-cols-1 gap-10 items-center text-center w-full">
             {/* Left */}
             <motion.div
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, ease: [0.25, 0.46, 0.45, 0.94] }}
-              className="w-full min-w-0 max-w-4xl"
+              className="w-full min-w-0 max-w-5xl mx-auto"
             >
               <motion.div
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.6, delay: 0.1 }}
-                className="inline-flex items-center gap-2 md:gap-3 mb-4 md:mb-8 px-3 py-1.5 md:px-4 md:py-2 rounded-full bg-gradient-to-r from-indigo-500/15 via-purple-500/15 to-pink-500/15 border border-indigo-400/30 backdrop-blur-md whitespace-nowrap"
+                className="inline-flex items-center gap-2 md:gap-3 mb-6 px-3 py-1.5 md:px-4 md:py-2 rounded-sm bg-emerald-300/10 border border-emerald-300/30 whitespace-nowrap"
               >
-                <div className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-indigo-400 shrink-0" />
-                <span className="text-[10px] md:text-xs font-bold tracking-widest uppercase text-slate-200">
+                <div className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-emerald-300 shrink-0 shadow-[0_0_10px_#6ee7b7]" />
+                <span className="text-[10px] md:text-xs font-bold tracking-[0.24em] uppercase text-emerald-200">
                   #1 CPC Network
                 </span>
               </motion.div>
 
-              <h1 className="text-3xl sm:text-4xl md:text-7xl lg:text-8xl font-black leading-[1.1] mb-3 md:mb-6 tracking-tight break-words">
+              <h1 className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-black leading-[0.98] mb-5 md:mb-7 tracking-[-0.04em] break-words">
                 Pay Per Click
                 <br />
-                <GradientText className="text-3xl sm:text-4xl md:text-7xl lg:text-8xl break-words">
+                <GradientText className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl break-words">
                   Affiliate Marketplace
                 </GradientText>
               </h1>
 
-              <p className="text-sm md:text-xl text-slate-400 mb-3 max-w-2xl leading-relaxed font-light break-words">
+              <p className="text-sm md:text-xl text-emerald-200/80 mb-3 max-w-2xl mx-auto leading-relaxed font-medium break-words">
                 Promote Offers. Generate Valid Clicks. Get Paid.
               </p>
 
-              <p className="text-sm md:text-xl text-slate-400 mb-6 md:mb-10 max-w-2xl leading-relaxed font-light break-words">
+              <p className="text-sm md:text-lg text-slate-400 mb-8 md:mb-10 max-w-2xl mx-auto leading-relaxed font-light break-words">
                 Afficixo is a modern pay-per-click affiliate marketplace built
                 for publishers who want to monetize their traffic through CPC
                 offers. Discover campaigns, promote offers, track your clicks,
@@ -438,11 +438,11 @@ export default function HomePage() {
                 initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, delay: 0.2 }}
-                className="flex flex-col sm:flex-row items-start gap-3 mb-6 md:mb-12 w-full"
+                className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-8 md:mb-12 w-full"
               >
                 <Link
                   href="/signup"
-                  className="group relative w-full sm:w-auto px-6 md:px-8 py-3 md:py-4 bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 rounded-lg font-semibold text-white text-sm md:text-lg hover:shadow-2xl hover:shadow-purple-500/40 transition-all duration-300 hover:scale-105 flex items-center justify-center gap-2 md:gap-3 overflow-hidden min-w-[140px]"
+                  className="group relative w-full sm:w-auto px-7 md:px-9 py-3.5 md:py-4 bg-emerald-300 rounded-md font-bold text-[#071014] text-sm md:text-base hover:bg-emerald-200 hover:shadow-[0_0_28px_rgba(110,231,183,0.24)] transition-all duration-300 flex items-center justify-center gap-2 md:gap-3 overflow-hidden min-w-[160px]"
                 >
                   <span className="relative z-10 flex items-center gap-2">
                     Join Now
@@ -454,10 +454,10 @@ export default function HomePage() {
                   <div className="absolute inset-0 bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 opacity-0 group-hover:opacity-100 transition-opacity" />
                 </Link>
                 <Link
-                  href="/offers"
-                  className="w-full sm:w-auto px-6 md:px-8 py-3 md:py-4 rounded-lg font-semibold text-sm md:text-lg border-2 border-slate-400/30 text-white hover:bg-slate-400/10 hover:border-slate-300/60 transition-all duration-300 backdrop-blur-sm min-w-[140px] text-center"
+                  href="/publishers"
+                  className="public-secondary-action w-full sm:w-auto px-7 md:px-9 py-3.5 md:py-4 rounded-md font-semibold text-sm md:text-base border border-emerald-100/20 text-white hover:bg-emerald-100/10 hover:border-emerald-200/50 transition-all duration-300 min-w-[160px] text-center"
                 >
-                  Browse Offers
+                  Explore Publishers
                 </Link>
               </motion.div>
 
@@ -644,7 +644,7 @@ export default function HomePage() {
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: idx * 0.05 }}
                 viewport={{ once: true }}
-                className="rounded-3xl border border-white/10 bg-white/5 p-5 md:p-8 hover:border-white/20 transition-colors w-full"
+                className="rounded-lg border border-emerald-100/10 bg-emerald-50/[0.03] p-5 md:p-8 hover:border-emerald-200/30 transition-colors w-full"
               >
                 <div className="inline-flex items-center justify-center mb-3 h-10 w-10 md:h-12 md:w-12 rounded-2xl bg-indigo-500/10 text-indigo-300 shrink-0">
                   <item.icon className="w-5 h-5 md:w-6 md:h-6 shrink-0" aria-hidden="true" />

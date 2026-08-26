@@ -1,6 +1,7 @@
 import type { Metadata } from "next"
 import { Suspense } from "react"
 import SignupClient from "./SignupClient"
+import AfficixoLoading from "@/components/ui/AfficixoLoading"
 
 export const metadata: Metadata = {
   title: 'Join Afficixo — Become a CPC Affiliate Publisher',
@@ -46,7 +47,7 @@ export const metadata: Metadata = {
 
 export default function SignupPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-[#05070b] text-white">Loading...</div>}>
+    <Suspense fallback={<AfficixoLoading text="Loading registration" />}>
       <SignupClient />
     </Suspense>
   )

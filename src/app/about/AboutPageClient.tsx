@@ -744,7 +744,7 @@ export default function AboutClient() {
                   <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                 </Link>
                 <Link
-                  href="/offers"
+                  href="/publishers"
                   className="px-8 py-4 rounded-lg font-bold border-2 border-slate-400/30 text-white hover:bg-slate-400/10 hover:border-slate-300/60 transition-all duration-300"
                 >
                   Browse Offers

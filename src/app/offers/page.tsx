@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import OffersClient from "./OffersClient";
+import { redirect } from "next/navigation";
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://www.weebly.pro'),
@@ -59,5 +59,5 @@ export const metadata: Metadata = {
 
 
 export default function OffersPage() {
-  return <OffersClient />;
+  redirect("/publishers");
 }

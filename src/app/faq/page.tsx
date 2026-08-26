@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import FAQClient from "./FAQClient";
+import PublicLayout from "@/components/layout/PublicLayout";
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://www.weebly.pro'),
@@ -101,5 +102,9 @@ const faqStructuredData = {
 }
 
 export default function FAQPage() {
-  return <FAQClient faqData={faqStructuredData} />;
+  return (
+    <PublicLayout>
+      <FAQClient faqData={faqStructuredData} />
+    </PublicLayout>
+  );
 }
