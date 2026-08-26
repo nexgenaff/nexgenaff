@@ -168,20 +168,21 @@ export default function PaymentsPage() {
             {rows.map(({ link, invoices, current, invoiceTotal, unpaidAmount, paidAmount }) => {
               const hasUnpaidInvoice = invoices.some((invoice) => !invoice.isPaid);
               return (
-                <div key={link.id} className="grid gap-4 p-4 transition hover:bg-white/[0.025] sm:grid-cols-[minmax(180px,1.35fr)_minmax(140px,1fr)_repeat(3,minmax(75px,0.7fr))_auto] sm:items-center">
+                <div key={link.id} className="mx-3 my-2 grid gap-3 rounded-lg border border-slate-700/40 bg-slate-900/35 p-3 transition hover:border-cyan-400/25 hover:bg-white/[0.04] sm:mx-0 sm:my-0 sm:gap-4 sm:rounded-none sm:border-0 sm:border-b sm:border-white/5 sm:bg-transparent sm:p-4 sm:hover:border-white/5 sm:hover:bg-white/[0.025] sm:grid-cols-[minmax(180px,1.35fr)_minmax(140px,1fr)_repeat(3,minmax(75px,0.7fr))_auto] sm:items-center">
                   <div className="min-w-0">
+                    <p className="mb-1 text-[9px] font-bold uppercase tracking-[0.16em] text-slate-500 sm:hidden">Account name</p>
                     <div className="flex items-center gap-2">
-                      <span className="truncate text-sm font-semibold text-white">{link.accountName}</span>
+                      <span className="truncate text-base font-bold text-white sm:text-sm sm:font-semibold">{link.accountName}</span>
                       <span className="rounded-full border border-emerald-300/20 bg-emerald-300/10 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-emerald-300">Active</span>
                     </div>
-                    <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-slate-500">
+                    <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-400 sm:text-[11px] sm:text-slate-500">
                       <span>/{link.slug}</span>
                       <span>{link.qualifiedClicks.toLocaleString()} qualified clicks</span>
                     </div>
                   </div>
                   <div className="min-w-0 text-xs text-slate-400">
-                    <p className="text-[9px] uppercase tracking-wider text-slate-500">Payment method</p>
-                    <p className="mt-1 truncate font-medium text-slate-200">{link.payoutMethod ? `${link.payoutMethod === "BKASH" ? "bKash" : link.payoutMethod} · ${link.payoutAccount || "Account not set"}` : "Not set"}</p>
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Payment method</p>
+                    <p className="mt-1 truncate text-sm font-medium text-slate-200 sm:text-xs">{link.payoutMethod ? `${link.payoutMethod === "BKASH" ? "bKash" : link.payoutMethod} · ${link.payoutAccount || "Account not set"}` : "Not set"}</p>
                   </div>
                   <div><p className="text-[9px] uppercase tracking-wider text-slate-500">Total earning</p><p className="mt-1 text-sm font-bold text-cyan-200">{money(current)}</p></div>
                   <div><p className="text-[9px] uppercase tracking-wider text-slate-500">Invoice</p><p className="mt-1 text-sm font-bold text-violet-300">{money(invoiceTotal)}</p></div>
