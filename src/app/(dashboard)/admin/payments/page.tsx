@@ -267,6 +267,7 @@ export default function PaymentsPage() {
     const invoices = manager.linkAccounts.flatMap((link) => link.invoices);
     const paid = invoices.filter((invoice) => invoice.isPaid).reduce((sum, invoice) => sum + Number(invoice.totalEarning || 0), 0);
     const unpaid = invoices.filter((invoice) => !invoice.isPaid).reduce((sum, invoice) => sum + Number(invoice.totalEarning || 0), 0);
+    const totalEarned = managerRevenueByUserId.get(manager.id) || 0;
     const firstLink = manager.linkAccounts.find((link) => link.payoutAccount || link.payoutMethod);
     const nextUnpaidInvoice = manager.linkAccounts
       .flatMap((link) => link.invoices.filter((invoice) => !invoice.isPaid && invoice.managerPayouts.length === 0).map((invoice) => ({ invoice, link })))
@@ -276,7 +277,7 @@ export default function PaymentsPage() {
       invoiceCount: invoices.length,
       paid,
       unpaid,
-      total: managerRevenueByUserId.get(manager.id) || 0,
+      total: totalEarned + totalEarned * 0.2,
       payoutMethod: manager.payoutMethod || firstLink?.payoutMethod || (manager.bkashNumber ? "BKASH" : null),
       payoutAccount: manager.payoutAccount || firstLink?.payoutAccount || manager.bkashNumber,
       nextUnpaidInvoice,
