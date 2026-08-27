@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { Check, CheckCircle, CircleDollarSign, Copy, CreditCard, Search, WalletCards, X } from "lucide-react";
+import { Check, CheckCircle, CircleDollarSign, Copy, CreditCard, Pencil, Search, WalletCards, X } from "lucide-react";
 import { coerceArray } from "@/lib/utils/array-response";
 
 interface PaymentLink {
@@ -37,6 +37,11 @@ export default function PaymentsPage() {
   const [copiedPaymentAccount, setCopiedPaymentAccount] = useState<string | null>(null);
   const [paymentLink, setPaymentLink] = useState<PaymentLink | null>(null);
   const [paymentReference, setPaymentReference] = useState("");
+  const [payoutMethod, setPayoutMethod] = useState("BKASH");
+  const [payoutAccount, setPayoutAccount] = useState("");
+  const [paymentPassword, setPaymentPassword] = useState("");
+  const [isEditingPaymentMethod, setIsEditingPaymentMethod] = useState(false);
+  const [bindingMessage, setBindingMessage] = useState("");
 
   const fetchPayments = useCallback(async () => {
     setError("");
@@ -58,6 +63,38 @@ export default function PaymentsPage() {
   useEffect(() => {
     void fetchPayments();
   }, [fetchPayments]);
+
+  useEffect(() => {
+    void fetch("/api/auth/me", { credentials: "include" })
+      .then((response) => response.ok ? response.json() : null)
+      .then((data) => {
+        if (data) {
+          setPayoutMethod(data.payoutMethod || "BKASH");
+          setPayoutAccount(data.payoutAccount || "");
+        }
+      });
+  }, []);
+
+  const handlePaymentBindingSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setError("");
+    setBindingMessage("");
+    try {
+      const response = await fetch("/api/settings", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "save-payment-binding", payoutMethod, payoutAccount, paymentPassword }),
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.error || "Unable to save payment binding");
+      setPaymentPassword("");
+      setIsEditingPaymentMethod(false);
+      setBindingMessage(data.message || "Payment method saved successfully.");
+    } catch (actionError) {
+      setError(actionError instanceof Error ? actionError.message : "Unable to save payment binding");
+    }
+  };
 
   const markInvoicePaid = async (linkId: string, reference: string) => {
     setPayingLinkId(linkId);
@@ -138,11 +175,74 @@ export default function PaymentsPage() {
 
   return (
     <div className="space-y-5 pb-8">
-      <div className="flex flex-col gap-4 border-b border-white/10 pb-5 sm:flex-row sm:items-end sm:justify-between">
+      <div className="flex flex-col gap-4 border-b border-slate-200 pb-5 dark:border-white/10 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-cyan-300">Finance overview</p>
+          <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-indigo-600">Finance overview</p>
+          <p className="mt-1 text-xs text-slate-500">Track earnings and manage where your payouts are sent.</p>
         </div>
       </div>
+
+      {bindingMessage && <p className="rounded-md border border-emerald-500/20 bg-emerald-500/10 px-3 py-2 text-xs text-emerald-700 dark:text-emerald-300">{bindingMessage}</p>}
+      <section className="space-y-4 rounded-lg border border-slate-200 bg-[var(--surface-card)] p-4 shadow-sm dark:border-white/10">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <div className="flex items-center gap-2">
+                <h2 className="text-sm font-semibold text-slate-900 dark:text-white">Payout details</h2>
+                <span className={`text-[11px] font-medium ${payoutAccount ? "text-emerald-700 dark:text-emerald-300" : "text-amber-700 dark:text-amber-300"}`}>
+                  {payoutAccount ? "Payable" : "Action needed"}
+                </span>
+              </div>
+              <p className="mt-1 max-w-2xl text-xs leading-5 text-slate-500">{payoutAccount ? "Your saved payout details are visible here. An access password is required only when you edit them." : "Add a payout method so your account is ready for payouts."}</p>
+            </div>
+            {!isEditingPaymentMethod && <button type="button" title={payoutAccount ? "Edit payment method" : "Set up payment method"} aria-label={payoutAccount ? "Edit payment method" : "Set up payment method"} onClick={() => setIsEditingPaymentMethod(true)} className="inline-flex shrink-0 items-center gap-1.5 rounded-md border border-indigo-500/25 bg-indigo-500/10 px-2.5 py-1.5 text-[11px] font-medium text-indigo-700 transition hover:bg-indigo-500/20 dark:text-indigo-300">
+              <Pencil className="h-3 w-3" />
+              {payoutAccount ? "Edit" : "Set up"}
+            </button>}
+          </div>
+          {!isEditingPaymentMethod ? (
+            payoutAccount ? (
+              <dl className="grid gap-4 border-t border-slate-200 pt-4 dark:border-white/10 sm:grid-cols-2">
+                <div>
+                  <dt className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">Payment method</dt>
+                  <dd className="mt-1 text-sm font-medium text-slate-900 dark:text-white">{payoutMethod === "BINANCE" ? "Binance" : "bKash"}</dd>
+                </div>
+                <div>
+                  <dt className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">Account</dt>
+                  <dd className="mt-1 break-all text-sm font-medium text-slate-900 dark:text-white">{payoutAccount}</dd>
+                </div>
+              </dl>
+            ) : (
+              <div className="border-t border-slate-200 pt-4 dark:border-white/10">
+                <p className="text-sm font-medium text-slate-700 dark:text-slate-200">No payout method configured</p>
+                <p className="mt-1 text-xs text-slate-500">Select Set up to add your payout method and account.</p>
+              </div>
+            )
+          ) : (
+            <form onSubmit={handlePaymentBindingSubmit} className="space-y-4">
+              <div className="grid gap-3 sm:grid-cols-2">
+                <label className="space-y-1.5 text-xs font-medium text-slate-600 dark:text-slate-300">
+                  Payment method
+                  <select value={payoutMethod} onChange={(event) => setPayoutMethod(event.target.value)} className="w-full rounded-md border border-slate-200 bg-[var(--surface-elevated)] px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-indigo-500 dark:border-slate-700 dark:text-white">
+                    <option value="BKASH">bKash</option>
+                    <option value="BINANCE">Binance</option>
+                  </select>
+                </label>
+                <label className="space-y-1.5 text-xs font-medium text-slate-600 dark:text-slate-300">
+                  {payoutMethod === "BINANCE" ? "Binance ID" : "bKash number"}
+                  <input value={payoutAccount} onChange={(event) => setPayoutAccount(event.target.value)} placeholder={payoutMethod === "BINANCE" ? "Enter your Binance ID" : "Enter your bKash number"} required className="w-full rounded-md border border-slate-200 bg-[var(--surface-elevated)] px-3 py-2 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-indigo-500 dark:border-slate-700 dark:text-white" />
+                </label>
+              </div>
+              <label className="block space-y-1.5 text-xs font-medium text-slate-600 dark:text-slate-300">
+                Access password to confirm changes
+                <input type="password" minLength={8} value={paymentPassword} onChange={(event) => setPaymentPassword(event.target.value)} placeholder="At least 8 characters" required className="w-full rounded-md border border-slate-200 bg-[var(--surface-elevated)] px-3 py-2 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-indigo-500 dark:border-slate-700 dark:text-white" />
+              </label>
+              <div className="flex justify-end gap-2">
+                <button type="button" onClick={() => { setIsEditingPaymentMethod(false); setPaymentPassword(""); }} className="rounded-md border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-600 transition hover:bg-slate-100 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-white/10">Cancel</button>
+                <button type="submit" className="rounded-md bg-indigo-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-indigo-500">Save payment method</button>
+              </div>
+            </form>
+          )}
+      </section>
 
       <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
         {[

@@ -16,7 +16,7 @@ export default function AfficixoLoading({
 }: AfficixoLoadingProps) {
   return (
     <div
-      className={`flex items-center justify-center ${compact ? "min-h-[260px]" : "min-h-screen"} bg-[#071014] ${className}`}
+      className={`flex items-center justify-center ${compact ? "min-h-[260px]" : "min-h-screen"} bg-[var(--page-bg)] text-[var(--text-primary)] ${className}`}
     >
       <div className="flex scale-[0.7] flex-col items-center justify-center gap-7">
         <motion.div
@@ -41,7 +41,7 @@ export default function AfficixoLoading({
         </motion.div>
 
         <div className="flex flex-col items-center gap-3">
-          <div className="relative h-1.5 w-24 overflow-hidden rounded-full border border-white/10 bg-white/5">
+          <div className="relative h-1.5 w-24 overflow-hidden rounded-full border border-slate-200 bg-slate-200 dark:border-white/10 dark:bg-white/5">
             <motion.div
               className="absolute inset-0 bg-gradient-to-r from-transparent via-emerald-300 to-transparent opacity-0"
               animate={{ x: ["-100%", "100%"], opacity: [0, 1, 0] }}

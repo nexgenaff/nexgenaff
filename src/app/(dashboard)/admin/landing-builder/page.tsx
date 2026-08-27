@@ -73,7 +73,6 @@ export default function LandingPageBuilder() {
   const [userId, setUserId] = useState<string | null>(null)
   const [userRole, setUserRole] = useState<string | null>(null)
   const [managerFilter, setManagerFilter] = useState('all')
-  const [statusFilter, setStatusFilter] = useState('all')
   const [searchFilter, setSearchFilter] = useState('')
   const [selectedPageIds, setSelectedPageIds] = useState<string[]>([])
 
@@ -275,7 +274,6 @@ export default function LandingPageBuilder() {
   const normalizedSearch = searchFilter.trim().toLowerCase()
   const filteredPages = landingPages.filter((page) => {
     const matchesManager = managerFilter === 'all' || page.user?.id === managerFilter || page.user?.username === managerFilter
-    const matchesStatus = statusFilter === 'all' || (statusFilter === 'published' ? page.isPublished : !page.isPublished)
     const searchableText = [
       page.subdomain,
       page.trackingUrl,
@@ -284,7 +282,7 @@ export default function LandingPageBuilder() {
       page.user?.username,
       page.user?.email,
     ].filter(Boolean).join(' ').toLowerCase()
-    return matchesManager && matchesStatus && (!normalizedSearch || searchableText.includes(normalizedSearch))
+    return matchesManager && (!normalizedSearch || searchableText.includes(normalizedSearch))
   })
   const visibleGroups = filteredPages.reduce<Record<string, LandingPage[]>>((groups, page) => {
     const groupName = page.user?.username || 'Unknown user'
@@ -348,7 +346,7 @@ export default function LandingPageBuilder() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 px-4 py-6 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-[var(--page-bg)] px-4 py-6 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-7xl">
         {/* Alerts */}
         {error && (
@@ -420,16 +418,6 @@ export default function LandingPageBuilder() {
                   ))}
                 </select>
               )}
-              <select
-                aria-label="Filter by publish status"
-                value={statusFilter}
-                onChange={(event) => setStatusFilter(event.target.value)}
-                className="rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white outline-none focus:border-cyan-400"
-              >
-                <option value="all">All statuses</option>
-                <option value="published">Published</option>
-                <option value="draft">Draft</option>
-              </select>
               <button
                 type="button"
                 onClick={toggleAllVisiblePages}
