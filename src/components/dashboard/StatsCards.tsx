@@ -35,6 +35,8 @@ interface StatsCardsProps {
     clicks: number
     uniqueClicks: number
   }[]
+  period?: 'week' | 'month' | 'year'
+  onPeriodChange?: (period: 'week' | 'month' | 'year') => void
 }
 
 export default function StatsCards({
@@ -42,6 +44,8 @@ export default function StatsCards({
   chartData,
   hourlyChartData,
   countryBreakdown = [],
+  period = 'week',
+  onPeriodChange,
 }: StatsCardsProps) {
   const defaultChartData = {
     labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
@@ -105,9 +109,28 @@ export default function StatsCards({
           <div>
             <p className="text-[10px] font-semibold uppercase tracking-[0.32em] text-sky-300">Performance</p>
             <h3 className="mt-1 text-base font-semibold text-slate-50 sm:text-lg">
-              All-time click activity
+              {onPeriodChange
+                ? `${period.charAt(0).toUpperCase()}${period.slice(1)} click activity`
+                : 'All-time click activity'}
             </h3>
           </div>
+          {onPeriodChange && (
+            <div className="flex flex-wrap gap-2">
+              {(['week', 'month', 'year'] as const).map((item) => (
+                <button
+                  key={item}
+                  onClick={() => onPeriodChange(item)}
+                  className={`rounded-full px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.2em] transition ${
+                    period === item
+                      ? 'bg-sky-500/20 text-sky-200 ring-1 ring-sky-500/30'
+                      : 'text-slate-400 hover:bg-slate-800/70 hover:text-slate-100'
+                  }`}
+                >
+                  {item}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         <div className="chart-surface mx-4 rounded-xl border border-slate-800/60 bg-white/5 p-2 sm:mx-6">
