@@ -112,9 +112,14 @@ const getDateRange = (period: Period, filters: DashboardFilters = {}): DateRange
       });
     }
   } else if (period === 'all') {
+    startDate = new Date(now.getFullYear(), now.getMonth(), 1);
     startDate.setHours(0, 0, 0, 0);
-    bucketCount = 1;
-    labels = [startDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })];
+    bucketCount = now.getDate();
+    labels = Array.from({ length: bucketCount }, (_, i) => {
+      const date = new Date(startDate);
+      date.setDate(startDate.getDate() + i);
+      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    });
   } else if (groupByWeekly) {
     startDate.setDate(startDate.getDate() - 6 * 7);
     startDate.setHours(0, 0, 0, 0);

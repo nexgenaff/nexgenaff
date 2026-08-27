@@ -112,7 +112,7 @@ export default function StatsCards({
             <h3 className="mt-1 text-base font-semibold text-slate-50 sm:text-lg">
               {onPeriodChange
                 ? `${period.charAt(0).toUpperCase()}${period.slice(1)} click activity`
-                : 'Daily click activity'}
+                : 'Monthly click activity'}
             </h3>
           </div>
           {onPeriodChange && (
