@@ -540,8 +540,10 @@ export default function AnalyticsPage() {
                     {Array.from({ length: blankColumns }).map((_, i) => (
                       <th
                         key={`blank-col-${i}`}
-                        className="px-2 py-1.5 border-r border-slate-700/30 last:border-r-0 min-w-[80px]"
-                      />
+                        className="px-2 py-1.5 border-r border-slate-700/30 last:border-r-0 min-w-[80px] text-center font-medium text-slate-500"
+                      >
+                        —
+                      </th>
                     ))}
                   </tr>
                 </thead>
@@ -573,7 +575,9 @@ export default function AnalyticsPage() {
                       })}
                       {/* Blank cells */}
                       {Array.from({ length: blankColumns }).map((_, i) => (
-                        <td key={`blank-${account.accountName}-${i}`} className="px-2 py-1.5 border-r border-slate-700/30 min-w-[80px]" />
+                        <td key={`blank-${account.accountName}-${i}`} className="px-2 py-1.5 border-r border-slate-700/30 min-w-[80px] text-center text-slate-600">
+                          —
+                        </td>
                       ))}
                     </tr>
                   ))}
@@ -588,7 +592,9 @@ export default function AnalyticsPage() {
                       ))}
                       {/* Blank cells */}
                       {Array.from({ length: blankColumns }).map((_, i) => (
-                        <td key={`total-blank-${i}`} className="px-2 py-1.5 border-r border-teal-600/30 min-w-[80px]" />
+                        <td key={`total-blank-${i}`} className="px-2 py-1.5 border-r border-teal-600/30 min-w-[80px] text-center text-teal-200/60">
+                          —
+                        </td>
                       ))}
                     </tr>
                   )}

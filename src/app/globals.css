@@ -716,6 +716,13 @@ html:not(.dark) [class*="text-sky-400"] {
   color: #0369a1 !important;
 }
 
+html:not(.dark) [class*="text-teal-100"],
+html:not(.dark) [class*="text-teal-200"],
+html:not(.dark) [class*="text-teal-300"],
+html:not(.dark) [class*="text-teal-400"] {
+  color: #0f766e !important;
+}
+
 html:not(.dark) [class*="text-amber-200"],
 html:not(.dark) [class*="text-amber-300"],
 html:not(.dark) [class*="text-amber-400"] {
