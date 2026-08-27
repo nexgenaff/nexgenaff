@@ -486,7 +486,7 @@ export default function LandingPageBuilder() {
                       </div>
                     </div>
 
-                    {/* Tracking & Clicks */}
+                    {/* Tracking & Views */}
                     <div className="mb-3 space-y-2 border-t border-slate-800 pt-3">
                       <div>
                         <p className="mb-0.5 text-xs text-slate-500">Redirects to</p>
@@ -495,7 +495,7 @@ export default function LandingPageBuilder() {
                         </p>
                       </div>
                       <div>
-                        <p className="mb-0.5 text-xs text-slate-500">Clicks</p>
+                        <p className="mb-0.5 text-xs text-slate-500">Views</p>
                         <p className="text-sm font-semibold text-white">{page.totalClicks}</p>
                       </div>
                     </div>

@@ -1,6 +1,7 @@
 import { PrismaClient } from '@prisma/client'
 import { NextRequest, NextResponse } from 'next/server'
 import { renderLandingPageHtml } from '@/lib/utils/landing-page-render'
+import { BotDetectionService } from '@/lib/services/bot-detection'
 
 const prisma = new PrismaClient()
 
@@ -162,11 +163,17 @@ export async function GET(
       })
     }
 
-    // Increment click count
-    await prisma.landingPage.update({
-      where: { id: landingPage.id },
-      data: { totalClicks: { increment: 1 } },
-    })
+    const userAgent = req.headers.get('user-agent') || ''
+    const forwardedFor = req.headers.get('x-forwarded-for')
+    const ipAddress = forwardedFor?.split(',')[0]?.trim() || req.headers.get('x-real-ip') || '0.0.0.0'
+    const botResult = await new BotDetectionService().detect(userAgent, ipAddress)
+
+    if (!botResult.isBot) {
+      await prisma.landingPage.update({
+        where: { id: landingPage.id },
+        data: { totalClicks: { increment: 1 } },
+      })
+    }
 
     // Render HTML with variables replaced, including tracking link
     const renderedHtml = renderLandingPageHtml(landingPage.template?.htmlContent || '', {
