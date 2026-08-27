@@ -43,7 +43,6 @@ export default function PaymentsPage() {
   const [showPaymentPassword, setShowPaymentPassword] = useState(false);
   const [isEditingPaymentMethod, setIsEditingPaymentMethod] = useState(false);
   const [bindingMessage, setBindingMessage] = useState("");
-  const [userRole, setUserRole] = useState<string | null>(null);
 
   const fetchPayments = useCallback(async () => {
     setError("");
@@ -71,7 +70,6 @@ export default function PaymentsPage() {
       .then((response) => response.ok ? response.json() : null)
       .then((data) => {
         if (data) {
-          setUserRole(data.role || null);
           setPayoutMethod(data.payoutMethod || "BKASH");
           setPayoutAccount(data.payoutAccount || "");
         }
@@ -280,12 +278,10 @@ export default function PaymentsPage() {
           <div>
             <h2 className="text-sm font-bold text-white">Active link earnings</h2>
             <p className="mt-0.5 text-xs text-slate-500">{rows.length === activeLinks.length ? `${activeLinks.length} active ${activeLinks.length === 1 ? "link" : "links"}` : `Showing ${rows.length} of ${activeLinks.length} active links`}</p>
-              {userRole && (
-                <div className="mt-3 flex max-w-2xl gap-2.5 border-l-2 border-indigo-500/30 bg-indigo-500/5 px-3 py-2.5 text-[11px] leading-5 text-slate-600 dark:border-indigo-400/30 dark:bg-indigo-400/5 dark:text-slate-300">
-                  <Info className="mt-0.5 h-3.5 w-3.5 shrink-0 text-indigo-600 dark:text-indigo-300" />
-                  <p>{userRole === "MANAGER" ? "Your manager receives payment for valid clicks and handles team payouts. Add your payment method from your public Stats link so your manager can pay you." : "You receive payment for valid clicks and manage payouts to your team. Members should add their payment method from their public Stats link so their details appear here."}</p>
-                </div>
-              )}
+              <div className="mt-3 flex max-w-2xl gap-2.5 border-l-2 border-indigo-500/30 bg-indigo-500/5 px-3 py-2.5 text-[11px] leading-5 text-slate-600 dark:border-indigo-400/30 dark:bg-indigo-400/5 dark:text-slate-300">
+                <Info className="mt-0.5 h-3.5 w-3.5 shrink-0 text-indigo-600 dark:text-indigo-300" />
+                <p>You receive payment for valid clicks and manage payouts to your team. Members should add their payment method from their public Stats link so their details appear here.</p>
+              </div>
           </div>
           <div className="flex items-center gap-2">
             <label className="relative block min-w-0 flex-1">
