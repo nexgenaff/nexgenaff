@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { Check, CheckCircle, CircleDollarSign, Copy, CreditCard, Eye, EyeOff, Info, Pencil, Search, WalletCards, X } from "lucide-react";
+import { Check, CheckCircle, ChevronDown, CircleDollarSign, Copy, CreditCard, Eye, EyeOff, Info, Pencil, Search, WalletCards, X } from "lucide-react";
 import { coerceArray } from "@/lib/utils/array-response";
 
 interface PaymentLink {
@@ -75,6 +75,7 @@ export default function PaymentsPage() {
   const [bindingMessage, setBindingMessage] = useState("");
   const [userRole, setUserRole] = useState<string | null>(null);
   const [managerPayments, setManagerPayments] = useState<ManagerPayment[]>([]);
+  const [showManagerPayments, setShowManagerPayments] = useState(false);
 
   const fetchPayments = useCallback(async () => {
     setError("");
@@ -303,14 +304,22 @@ export default function PaymentsPage() {
       {bindingMessage && <p className="rounded-md border border-emerald-500/20 bg-emerald-500/10 px-3 py-2 text-xs text-emerald-700 dark:text-emerald-300">{bindingMessage}</p>}
       {userRole === "OWNER" ? (
         <section className="overflow-hidden rounded-lg border border-slate-200 bg-[var(--surface-card)] shadow-sm dark:border-white/10">
-          <div className="border-b border-slate-200 p-4 dark:border-white/10">
-            <h2 className="text-sm font-semibold text-slate-900 dark:text-white">Manager payments</h2>
-            <p className="mt-1 text-xs text-slate-500">Invoice totals and payout details for your team members.</p>
-          </div>
-          {managerPaymentRows.length === 0 ? (
-            <p className="p-6 text-sm text-slate-500">No manager accounts found.</p>
+          <button
+            type="button"
+            onClick={() => setShowManagerPayments((current) => !current)}
+            aria-expanded={showManagerPayments}
+            className="flex w-full items-center justify-between gap-4 p-4 text-left transition hover:bg-slate-50 dark:hover:bg-white/[0.03]"
+          >
+            <span>
+              <span className="block text-sm font-semibold text-slate-900 dark:text-white">Manager payments</span>
+              <span className="mt-1 block text-xs text-slate-500">Invoice totals and payout details for your team members.</span>
+            </span>
+            <ChevronDown className={`h-4 w-4 shrink-0 text-slate-500 transition-transform ${showManagerPayments ? "rotate-180" : ""}`} />
+          </button>
+          {showManagerPayments && (managerPaymentRows.length === 0 ? (
+            <p className="border-t border-slate-200 p-6 text-sm text-slate-500 dark:border-white/10">No manager accounts found.</p>
           ) : (
-            <div className="divide-y divide-slate-200 dark:divide-white/10">
+            <div className="divide-y divide-slate-200 border-t border-slate-200 dark:divide-white/10 dark:border-white/10">
               {managerPaymentRows.map(({ manager, invoiceCount, paid, unpaid, total, commissionRate, payoutMethod, payoutAccount, nextUnpaidInvoice }) => (
                 <div key={manager.id} className="grid gap-3 p-4 sm:grid-cols-[1.3fr_repeat(3,0.7fr)_1.4fr] sm:items-center">
                   <div className="min-w-0">
@@ -333,7 +342,7 @@ export default function PaymentsPage() {
                 </div>
               ))}
             </div>
-          )}
+          ))}
         </section>
       ) : (
       <section className="space-y-4 rounded-lg border border-slate-200 bg-[var(--surface-card)] p-4 shadow-sm dark:border-white/10">
