@@ -1,1 +1,0 @@
-ALTER TABLE "landing_pages" ADD COLUMN IF NOT EXISTS "viewsResetAt" TIMESTAMP(3);

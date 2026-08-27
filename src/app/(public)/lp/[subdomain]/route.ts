@@ -5,15 +5,6 @@ import { BotDetectionService } from '@/lib/services/bot-detection'
 
 const prisma = new PrismaClient()
 
-const getMondayStart = (date: Date) => {
-  const monday = new Date(date)
-  const day = monday.getUTCDay()
-  const daysSinceMonday = day === 0 ? 6 : day - 1
-  monday.setUTCDate(monday.getUTCDate() - daysSinceMonday)
-  monday.setUTCHours(0, 0, 0, 0)
-  return monday
-}
-
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ subdomain: string }> }
@@ -178,24 +169,10 @@ export async function GET(
     const botResult = await new BotDetectionService().detect(userAgent, ipAddress)
 
     if (!botResult.isBot) {
-      const mondayStart = getMondayStart(new Date())
-      const resetResult = await prisma.landingPage.updateMany({
-        where: {
-          id: landingPage.id,
-          OR: [
-            { viewsResetAt: null },
-            { viewsResetAt: { lt: mondayStart } },
-          ],
-        },
-        data: { totalClicks: 1, viewsResetAt: mondayStart },
+      await prisma.landingPage.update({
+        where: { id: landingPage.id },
+        data: { totalClicks: { increment: 1 } },
       })
-
-      if (resetResult.count === 0) {
-        await prisma.landingPage.update({
-          where: { id: landingPage.id },
-          data: { totalClicks: { increment: 1 } },
-        })
-      }
     }
 
     // Render HTML with variables replaced, including tracking link
