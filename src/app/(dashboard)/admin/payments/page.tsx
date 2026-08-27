@@ -214,8 +214,8 @@ export default function PaymentsPage() {
               </dl>
             ) : (
               <div className="border-t border-slate-200 pt-4 dark:border-white/10">
-                <p className="text-sm font-medium text-slate-700 dark:text-slate-200">No payout method configured</p>
-                <p className="mt-1 text-xs text-slate-500">Select Set up to add your payout method and account.</p>
+                <p className="text-sm font-medium text-slate-700 dark:text-slate-200">No payout method added yet</p>
+                <p className="mt-1 text-xs text-slate-500">Select Set up to choose a payout method and add the account details needed for payments.</p>
               </div>
             )
           ) : (
@@ -280,7 +280,7 @@ export default function PaymentsPage() {
             <p className="mt-0.5 text-xs text-slate-500">{rows.length === activeLinks.length ? `${activeLinks.length} active ${activeLinks.length === 1 ? "link" : "links"}` : `Showing ${rows.length} of ${activeLinks.length} active links`}</p>
               <div className="mt-3 flex max-w-2xl gap-2.5 border-l-2 border-indigo-500/30 bg-indigo-500/5 px-3 py-2.5 text-[11px] leading-5 text-slate-600 dark:border-indigo-400/30 dark:bg-indigo-400/5 dark:text-slate-300">
                 <Info className="mt-0.5 h-3.5 w-3.5 shrink-0 text-indigo-600 dark:text-indigo-300" />
-                <p>You receive payment for valid clicks and manage payouts to your team. Members should add their payment method from their public Stats link so their details appear here.</p>
+                  <p><strong className="font-semibold text-slate-800 dark:text-slate-200">Team payout process:</strong> Valid-click earnings are paid to the account manager first. The manager then pays team members. Add payment details from your public Stats link so they appear here.</p>
               </div>
           </div>
           <div className="flex items-center gap-2">
