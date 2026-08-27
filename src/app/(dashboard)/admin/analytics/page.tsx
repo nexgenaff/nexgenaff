@@ -275,7 +275,7 @@ export default function AnalyticsPage() {
     return [...priorityVisible, ...otherCountries].slice(0, maxCountries);
   })();
 
-  const blankColumns = Math.max(0, MAX_COLUMNS - 1 - visibleLabels.length);
+  const blankColumns = 0;
 
   const totals = useMemo(() => {
     return visibleLabels.map((country) => {
@@ -568,7 +568,7 @@ export default function AnalyticsPage() {
                                 {countryValue.uniqueClicks}
                               </span>
                             ) : (
-                              <span className="text-slate-600">—</span>
+                              <span className="text-slate-500">0</span>
                             )}
                           </td>
                         );
@@ -576,7 +576,7 @@ export default function AnalyticsPage() {
                       {/* Blank cells */}
                       {Array.from({ length: blankColumns }).map((_, i) => (
                         <td key={`blank-${account.accountName}-${i}`} className="px-2 py-1.5 border-r border-slate-700/30 min-w-[80px] text-center text-slate-600">
-                          —
+                          0
                         </td>
                       ))}
                     </tr>
@@ -593,7 +593,7 @@ export default function AnalyticsPage() {
                       {/* Blank cells */}
                       {Array.from({ length: blankColumns }).map((_, i) => (
                         <td key={`total-blank-${i}`} className="px-2 py-1.5 border-r border-teal-600/30 min-w-[80px] text-center text-teal-200/60">
-                          —
+                          0
                         </td>
                       ))}
                     </tr>
