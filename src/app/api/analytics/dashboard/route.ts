@@ -354,6 +354,7 @@ export async function GET(request: Request) {
         select: {
           id: true,
           accountName: true,
+          invoices: { select: { totalEarning: true } },
           user: { select: { clickRate: true, commissionRate: true } },
         },
       });
@@ -367,6 +368,7 @@ export async function GET(request: Request) {
         select: {
           id: true,
           accountName: true,
+          invoices: { select: { totalEarning: true } },
           user: { select: { clickRate: true } },
         },
       });
@@ -470,19 +472,28 @@ export async function GET(request: Request) {
         commissionRate: Number(link.user?.commissionRate ?? 20) || 20,
       },
     ]));
-    const totalEarned = clicks.reduce((sum, click) => {
-      if (click.country !== 'US' || !click.isUnique || click.isBot || !click.referrer?.trim()) return sum;
-      const device = (click.deviceType || '').toLowerCase();
-      if (device === 'desktop' || device === 'computer') return sum;
-      return sum + (linkRateById.get(click.linkAccountId)?.clickRate || 0);
-    }, 0);
-    const commission = clicks.reduce((sum, click) => {
-      if (click.country !== 'US' || !click.isUnique || click.isBot || !click.referrer?.trim()) return sum;
-      const device = (click.deviceType || '').toLowerCase();
-      if (device === 'desktop' || device === 'computer') return sum;
-      const rates = linkRateById.get(click.linkAccountId);
-      return sum + (rates?.clickRate || 0) * ((rates?.commissionRate ?? 20) / 100);
-    }, 0);
+    const qualifiedClicks = await prisma.click.groupBy({
+      by: ['linkAccountId'],
+      where: {
+        linkAccountId: { in: linkIds },
+        country: 'US',
+        isUnique: true,
+        isBot: false,
+        referrer: { not: null },
+        deviceType: { notIn: ['desktop', 'computer'] },
+      },
+      _count: { _all: true },
+    });
+    const qualifiedClickMap = new Map(qualifiedClicks.map((item) => [item.linkAccountId, item._count._all]));
+    const revenueByLink = links.map((link) => {
+      const rates = linkRateById.get(link.id) || { clickRate: 0, commissionRate: 20 };
+      const current = (qualifiedClickMap.get(link.id) || 0) * rates.clickRate;
+      const invoiceTotal = (link.invoices || []).reduce((sum: number, invoice: { totalEarning: number }) => sum + (Number(invoice.totalEarning) || 0), 0);
+      const totalEarned = current + invoiceTotal;
+      return { totalEarned, commission: totalEarned * (rates.commissionRate / 100) };
+    });
+    const totalEarned = revenueByLink.reduce((sum, item) => sum + item.totalEarned, 0);
+    const commission = revenueByLink.reduce((sum, item) => sum + item.commission, 0);
 
     const countryBreakdown = Array.from(aggregated.geoMap.entries())
       .map(([country, values]) => ({ name: country, ...values }))
