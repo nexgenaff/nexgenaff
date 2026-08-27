@@ -11,6 +11,7 @@ interface StatsCardProps {
   trend?: number
   color?: 'indigo' | 'green' | 'purple' | 'red' | 'blue' | 'orange'
   subtitle?: string
+  prefix?: string
   delay?: number
 }
 
@@ -21,6 +22,7 @@ export function StatsCard({
   trend,
   color = 'indigo',
   subtitle,
+  prefix = '',
   delay = 0,
 }: StatsCardProps) {
   const colorClasses = {
@@ -47,7 +49,7 @@ export function StatsCard({
             {title}
           </p>
           <p className="mt-2 text-2xl sm:text-3xl font-bold text-white">
-            {formatNumber(value)}
+            {prefix}{formatNumber(value)}
           </p>
           {subtitle && (
             <p className="mt-1.5 text-xs text-slate-500">

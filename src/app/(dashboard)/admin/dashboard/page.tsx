@@ -74,7 +74,6 @@ export default function DashboardPage() {
   const [deviceBreakdown, setDeviceBreakdown] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [period, setPeriod] = useState<"week" | "month" | "year">("week");
   const [logFilter, setLogFilter] = useState<string>("all"); // ✅ was missing
   const [now, setNow] = useState(() => new Date());
   const [showTelegramPopup, setShowTelegramPopup] = useState(false);
@@ -118,7 +117,7 @@ export default function DashboardPage() {
       if (isManualRefresh) setRefreshing(true);
       try {
         const response = await fetch(
-          `/api/analytics/dashboard?period=${period}`,
+          "/api/analytics/dashboard?period=all",
           { credentials: "include" }
         );
 
@@ -205,7 +204,7 @@ export default function DashboardPage() {
         if (isManualRefresh) setRefreshing(false);
       }
     },
-    [period, router]
+    [router]
   );
 
   useEffect(() => {
@@ -405,25 +404,6 @@ export default function DashboardPage() {
           </div>
         ) : null}
 
-        {/* ─── Period selector ─── */}
-        <div className="flex items-center bg-[#0d111a]/85 border border-slate-800/80 p-1 rounded-2xl mb-4 sm:mb-6 shadow-md">
-          <div className="grid grid-cols-3 gap-1 w-full">
-            {(["week", "month", "year"] as const).map((p) => (
-              <button
-                key={p}
-                onClick={() => setPeriod(p)}
-                className={`min-h-[36px] flex items-center justify-center text-xs font-medium rounded-xl transition-all capitalize active:scale-[0.97] ${
-                  period === p
-                    ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/20"
-                    : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/40"
-                }`}
-              >
-                {p}
-              </button>
-            ))}
-          </div>
-        </div>
-
         {/* ─── Stats & Charts ─── */}
         <section className="mb-4 sm:mb-6 relative">
           <StatsCards
@@ -431,8 +411,6 @@ export default function DashboardPage() {
             chartData={chartData}
             hourlyChartData={hourlyChartData}
             countryBreakdown={countryBreakdown}
-            period={period}
-            onPeriodChange={setPeriod}
           />
         </section>
 

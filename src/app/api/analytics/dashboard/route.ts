@@ -6,7 +6,7 @@ import { getCorsHeaders } from '@/config/cors';
 import { buildAccountGeoReport } from '@/lib/utils/report-data';
 import { getLinkAccountVisibilityWhereClause } from '@/lib/utils/link-account-access';
 
-type Period = 'week' | 'month' | 'year' | 'weekly' | 'monthly';
+type Period = 'all' | 'week' | 'month' | 'year' | 'weekly' | 'monthly';
 
 type Granularity = 'daily' | 'weekly' | 'monthly' | 'yearly';
 
@@ -51,7 +51,7 @@ const getDateRange = (period: Period, filters: DashboardFilters = {}): DateRange
   let bucketCount = 7;
   let labels: string[] = [];
 
-  const granularity = filters.granularity || (period === 'year' ? 'yearly' : period === 'month' ? 'monthly' : 'daily');
+  const granularity = filters.granularity || (period === 'all' || period === 'year' ? 'yearly' : period === 'month' ? 'monthly' : 'daily');
   const groupByWeekly = granularity === 'weekly';
   const groupByMonthly = granularity === 'monthly' || granularity === 'yearly';
 
@@ -111,6 +111,11 @@ const getDateRange = (period: Period, filters: DashboardFilters = {}): DateRange
         return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
       });
     }
+  } else if (period === 'all') {
+    startDate = new Date(0);
+    startDate.setHours(0, 0, 0, 0);
+    bucketCount = now.getFullYear() - startDate.getFullYear() + 1;
+    labels = Array.from({ length: bucketCount }, (_, i) => String(startDate.getFullYear() + i));
   } else if (groupByWeekly) {
     startDate.setDate(startDate.getDate() - 6 * 7);
     startDate.setHours(0, 0, 0, 0);
@@ -321,7 +326,7 @@ export async function GET(request: Request) {
 
     const url = new URL(request.url);
     const periodParam = url.searchParams.get('period') || 'week';
-    const period = (['week', 'month', 'year', 'weekly', 'monthly'].includes(periodParam)
+    const period = (['all', 'week', 'month', 'year', 'weekly', 'monthly'].includes(periodParam)
       ? periodParam
       : 'week') as Period;
 

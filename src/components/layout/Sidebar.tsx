@@ -13,7 +13,6 @@ import {
   Settings,
   LogOut,
   Menu,
-  X,
   ChevronLeft,
   ChevronRight,
   BarChart3,
@@ -33,7 +32,7 @@ export default function Sidebar() {
 
   useEffect(() => {
     const checkMobile = () => {
-      const mobile = window.innerWidth < 768
+      const mobile = window.innerWidth < 1024
       setIsMobile(mobile)
       if (mobile) {
         setCollapsed(true)
@@ -51,6 +50,13 @@ export default function Sidebar() {
     setMobileOpen(false)
     setPopupOpen(false)
   }, [pathname])
+
+  useEffect(() => {
+    document.body.style.overflow = mobileOpen ? 'hidden' : ''
+    return () => {
+      document.body.style.overflow = ''
+    }
+  }, [mobileOpen])
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -73,7 +79,7 @@ export default function Sidebar() {
       : []),
     { href: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { href: '/admin/links/create', label: 'Create Link', icon: Plus },
-    { href: '/admin/links/create-turbo', label: 'Create Link - Turbo', icon: Plus },
+    { href: '/admin/links/create-turbo', label: 'Turbo Link', icon: Plus },
     { href: '/admin/links', label: 'All Links', icon: Link2 },
     { href: '/admin/payments', label: 'Payments', icon: WalletCards },
     ...(userRole !== 'MANAGER'
@@ -81,7 +87,7 @@ export default function Sidebar() {
       : []),
     { href: '/admin/domains', label: 'Custom Domains', icon: Globe2 },
     { href: '/admin/analytics', label: 'Analytics', icon: BarChart3 },
-    { href: '/admin/landing-builder', label: 'Landing page Builder', icon: Layers },
+    { href: '/admin/landing-builder', label: 'Page Builder', icon: Layers },
     ...(userRole === 'OWNER'
       ? [{ href: '/admin/templates', label: 'Templates', icon: Layers }]
       : []),
@@ -99,7 +105,7 @@ export default function Sidebar() {
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.2),transparent_36%),radial-gradient(circle_at_bottom_right,rgba(244,114,182,0.16),transparent_38%),linear-gradient(135deg,rgba(34,211,238,0.08),transparent_40%,rgba(129,140,248,0.08))]" />
       <div className="relative flex items-center justify-start p-0 w-full gap-2 flex-shrink-0">
         {!collapsed && (
-          <div className="relative h-12 flex-1 overflow-hidden">
+          <div className="relative h-10 flex-1 overflow-hidden">
             <Image
               src="/afficixo-logo.png"
               alt="Afficixo logo"
@@ -114,13 +120,13 @@ export default function Sidebar() {
       {!isMobile && (
         <button
           onClick={() => setCollapsed(!collapsed)}
-          className="relative z-10 hidden lg:flex items-center justify-center p-1.5 mx-3 mt-2 rounded-lg border border-white/10 bg-white/[0.04] text-slate-400 transition-all duration-200 hover:-translate-y-0.5 hover:border-cyan-400/20 hover:bg-cyan-400/10 hover:text-cyan-200 flex-shrink-0"
+          className="relative z-10 hidden lg:flex items-center justify-center p-1 mx-2 mt-1 rounded-md border border-white/10 bg-white/[0.04] text-slate-400 transition-colors duration-200 hover:border-cyan-400/20 hover:bg-cyan-400/10 hover:text-cyan-200 flex-shrink-0"
         >
           {collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
         </button>
       )}
 
-      <nav className={`relative z-10 flex-1 overflow-y-auto ${isMobile ? 'space-y-0.5 px-2 py-2' : 'space-y-1 px-2.5 py-2.5'}`}>
+      <nav className={`relative z-10 flex-1 overflow-y-auto ${isMobile ? 'space-y-0.5 px-2 py-2' : 'space-y-0.5 px-2 py-2'}`}>
         {menuItems.map((item) => {
           const isActive = pathname === item.href || pathname?.startsWith(item.href + '/')
           const Icon = item.icon
@@ -129,31 +135,31 @@ export default function Sidebar() {
               key={item.href}
               href={item.href}
               onClick={() => isMobile && setMobileOpen(false)}
-              className={`group flex items-center ${collapsed && !isMobile ? 'justify-center' : 'gap-2.5'} ${isMobile ? 'rounded-xl px-2 py-1.5' : 'rounded-2xl px-2.5 py-2.5'} border border-transparent transition-all duration-150 ${
+              className={`group flex items-center ${collapsed && !isMobile ? 'justify-center' : 'gap-2'} ${isMobile ? 'rounded-lg px-2 py-1.5' : 'rounded-lg px-2 py-1.5'} border border-transparent transition-colors duration-150 ${
                 isActive
-                  ? 'bg-gradient-to-r from-cyan-500/15 via-cyan-500/10 to-violet-500/10 border-cyan-400/25 text-slate-50 font-medium shadow-[0_12px_30px_rgba(34,211,238,0.12)]'
-                  : 'text-slate-400 hover:text-slate-100 hover:bg-white/[0.06] hover:border-white/10 hover:-translate-y-0.5 hover:shadow-[0_10px_24px_rgba(2,6,23,0.16)]'
+                  ? 'bg-cyan-400/10 border-cyan-400/20 text-slate-50 font-medium'
+                  : 'text-slate-400 hover:text-slate-100 hover:bg-white/[0.06] hover:border-white/10'
               }`}
             >
-              <Icon className={`${collapsed && !isMobile ? 'w-5 h-5' : 'w-4 h-4'} transition-transform duration-200 group-hover:scale-110 ${isActive ? 'text-cyan-300' : 'text-slate-500'}`} />
-              {(!collapsed || isMobile) && <span className="text-[13px] tracking-[0.01em]">{item.label}</span>}
+              <Icon className={`${collapsed && !isMobile ? 'w-4 h-4' : 'w-4 h-4'} transition-colors duration-200 ${isActive ? 'text-cyan-300' : 'text-slate-500'}`} />
+              {(!collapsed || isMobile) && <span className="text-xs tracking-[0.01em]">{item.label}</span>}
               {isActive && !collapsed && !isMobile && (
-                <span className="ml-auto h-6 w-1 rounded-full bg-gradient-to-b from-cyan-400 to-violet-500" />
+                <span className="ml-auto h-5 w-0.5 rounded-full bg-cyan-300" />
               )}
             </Link>
           )
         })}
       </nav>
 
-      <div className={`relative z-10 border-t border-white/10 flex-shrink-0 ${isMobile ? 'space-y-0.5 px-2 py-2' : 'space-y-1 px-2.5 py-2.5'}`}>
+      <div className={`relative z-10 border-t border-white/10 flex-shrink-0 ${isMobile ? 'space-y-0.5 px-2 py-2' : 'space-y-0.5 px-2 py-2'}`}>
         <button
           onClick={handleLogout}
-          className={`w-full group flex items-center ${collapsed && !isMobile ? 'justify-center' : 'gap-2.5'} ${isMobile ? 'rounded-xl px-2 py-1.5' : 'rounded-2xl px-2.5 py-2.5'} border border-transparent transition-all duration-150 text-red-400/80 hover:text-red-300 hover:bg-red-500/10 hover:border-red-400/20 hover:-translate-y-0.5`}
+          className={`w-full group flex items-center ${collapsed && !isMobile ? 'justify-center' : 'gap-2'} ${isMobile ? 'rounded-lg px-2 py-1.5' : 'rounded-lg px-2 py-1.5'} border border-transparent transition-colors duration-150 text-red-400/80 hover:text-red-300 hover:bg-red-500/10 hover:border-red-400/20`}
           aria-label="Logout"
           title="Logout"
         >
           <LogOut className={`${collapsed && !isMobile ? 'w-5 h-5' : 'w-4 h-4'} transition-transform duration-200 group-hover:scale-110`} />
-          {(!collapsed || isMobile) && <span className="text-[13px] tracking-[0.01em]">Logout</span>}
+          {(!collapsed || isMobile) && <span className="text-xs tracking-[0.01em]">Logout</span>}
         </button>
       </div>
     </div>
@@ -164,9 +170,12 @@ export default function Sidebar() {
       <>
         <button
           onClick={() => setMobileOpen(!mobileOpen)}
-          className="edge-toggle fixed top-0 right-0 z-[60] h-11 w-11 flex items-center justify-center rounded-none border-0 bg-transparent p-0 text-slate-100/80 shadow-none ring-0 md:hidden"
+          type="button"
+          className="edge-toggle fixed right-2 top-1 z-[60] flex h-10 w-10 items-center justify-center rounded-none !border-0 bg-transparent p-0 text-slate-700 !shadow-none outline-none backdrop-blur-none dark:bg-transparent dark:text-slate-100 lg:hidden"
+          aria-label={mobileOpen ? 'Close sidebar' : 'Open sidebar'}
+          title={mobileOpen ? 'Close sidebar' : 'Open sidebar'}
         >
-          {mobileOpen ? <X className="w-5 h-5 text-white" /> : <Menu className="w-5 h-5 text-white" />}
+          <Menu className="h-5 w-5" />
         </button>
 
         {mobileOpen && (
@@ -177,7 +186,7 @@ export default function Sidebar() {
         )}
 
         <aside
-          className={`panel-bleed fixed top-0 right-0 bottom-0 z-[50] flex flex-col w-60 h-screen overflow-hidden rounded-none border-0 transition-[transform,opacity,box-shadow] duration-300 ease-out lg:hidden ${
+            className={`panel-bleed fixed bottom-0 right-0 top-0 z-[50] flex h-screen w-[min(16rem,calc(100vw-1rem))] flex-col overflow-hidden rounded-none border-0 transition-[transform,opacity,box-shadow] duration-300 ease-out lg:hidden ${
             mobileOpen ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-90'
           }`}
         >
@@ -192,21 +201,21 @@ export default function Sidebar() {
       <button
         type="button"
         onClick={() => setPopupOpen(!popupOpen)}
-        className="edge-toggle fixed right-0 top-0 z-[60] hidden md:flex h-11 w-11 items-center justify-center rounded-none border-0 bg-transparent p-0 text-slate-100/80 shadow-none ring-0"
+        className="edge-toggle fixed right-0 top-0 z-[60] hidden h-11 w-11 items-center justify-center rounded-none border-0 bg-transparent p-0 text-slate-100/80 shadow-none ring-0 lg:flex"
         aria-label={popupOpen ? 'Close sidebar' : 'Open sidebar'}
       >
-        {popupOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
+        <Menu className="w-4 h-4" />
       </button>
 
       {popupOpen && (
         <div
-          className="fixed inset-0 z-[40] hidden bg-black/55 backdrop-blur-[2px] md:block"
+          className="fixed inset-0 z-[40] hidden bg-black/55 backdrop-blur-[2px] lg:block"
           onClick={() => setPopupOpen(false)}
         />
       )}
 
       <aside
-        className={`panel-bleed fixed right-0 top-0 bottom-0 z-[50] hidden md:flex flex-col ${collapsed ? 'w-20' : 'w-60'} h-screen overflow-hidden rounded-none border-0 ring-0 transition-[transform,opacity,box-shadow] duration-300 ease-out ${popupOpen ? 'translate-x-0 opacity-100' : 'translate-x-[120%] opacity-0 pointer-events-none'}`}
+        className={`panel-bleed fixed bottom-0 right-0 top-0 z-[50] hidden h-screen flex-col ${collapsed ? 'w-16' : 'w-52'} overflow-hidden rounded-none border-0 ring-0 transition-[transform,opacity,box-shadow] duration-300 ease-out lg:flex ${popupOpen ? 'translate-x-0 opacity-100' : 'translate-x-[120%] opacity-0 pointer-events-none'}`}
       >
         {sidebarContent}
       </aside>
