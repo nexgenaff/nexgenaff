@@ -80,6 +80,14 @@ export async function GET(request: Request) {
         break
       } catch (innerError: any) {
         const missingColumnRaw = String(innerError?.meta?.column || '')
+        if (innerError?.code === 'P2021') {
+          const missingTable = String(innerError?.meta?.table || '')
+          if (missingTable.includes('manager_payout') || missingTable.includes('ManagerPayout')) {
+            delete selectConfig.linkAccounts.select.invoices.select.managerPayouts
+            continue
+          }
+        }
+
         if (innerError?.code === 'P2022') {
           let missingField = ''
           if (missingColumnRaw) {

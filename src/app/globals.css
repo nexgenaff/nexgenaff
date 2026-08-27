@@ -830,6 +830,25 @@ html:not(.dark) .public-site .public-page div.absolute.inset-0[class*="bg-gradie
   border-radius: 6px !important;
 }
 
+.auth-site .auth-input:-webkit-autofill,
+.auth-site .auth-input:-webkit-autofill:hover,
+.auth-site .auth-input:-webkit-autofill:focus,
+.auth-site input:-webkit-autofill,
+.auth-site input:-webkit-autofill:hover,
+.auth-site input:-webkit-autofill:focus {
+  -webkit-text-fill-color: #f1f5f3 !important;
+  -webkit-box-shadow: 0 0 0 1000px #102126 inset !important;
+  box-shadow: 0 0 0 1000px #102126 inset !important;
+  caret-color: #f1f5f3 !important;
+}
+
+.auth-site .auth-input:-moz-autofill,
+.auth-site input:-moz-autofill {
+  color: #f1f5f3 !important;
+  background-color: #102126 !important;
+  caret-color: #f1f5f3 !important;
+}
+
 .auth-site .auth-field-icon {
   color: #8ee8c2 !important;
 }
