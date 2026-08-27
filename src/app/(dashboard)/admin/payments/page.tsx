@@ -303,7 +303,7 @@ export default function PaymentsPage() {
                     <p className="truncate text-sm font-semibold text-slate-900 dark:text-white">{manager.fullName || manager.username}</p>
                     <p className="mt-0.5 truncate text-xs text-slate-500">@{manager.username} · {invoiceCount} {invoiceCount === 1 ? "invoice" : "invoices"}</p>
                   </div>
-                  <div><p className="text-[10px] uppercase tracking-wide text-slate-500">Total</p><p className="mt-1 text-sm font-semibold text-slate-900 dark:text-white">{money(total)}</p></div>
+                  <div><p className="text-[10px] uppercase tracking-wide text-slate-500">Revenue</p><p className="mt-1 text-sm font-semibold text-slate-900 dark:text-white">{money(total)}</p></div>
                   <div><p className="text-[10px] uppercase tracking-wide text-slate-500">Paid</p><p className="mt-1 text-sm font-semibold text-emerald-700 dark:text-emerald-300">{money(paid)}</p></div>
                   <div><p className="text-[10px] uppercase tracking-wide text-slate-500">Due</p><p className="mt-1 text-sm font-semibold text-amber-700 dark:text-amber-300">{money(unpaid)}</p></div>
                   <div className="min-w-0">

@@ -228,20 +228,6 @@ export default function LandingPageBuilder() {
     }
   }
 
-  const copyLandingPageUrlOnly = async (page: LandingPage) => {
-    const url = `https://${page.subdomain}.${landingPageDomain}`
-
-    try {
-      await navigator.clipboard.writeText(url)
-      setSuccess(`Copied: ${url}`)
-      setTimeout(() => setSuccess(''), 3000)
-    } catch (err) {
-      console.error('Copy failed:', err)
-      setError('Failed to copy link')
-      setTimeout(() => setError(''), 2000)
-    }
-  }
-
   const deleteLandingPage = async (id: string) => {
     if (!confirm('Are you sure you want to delete this landing page?')) return
     if (!userId) return
@@ -374,9 +360,9 @@ export default function LandingPageBuilder() {
                 <Image
                   src="/afficixo-logo.png"
                   alt="Afficixo"
-                  width={40}
+                  width={120}
                   height={40}
-                  className="object-contain"
+                  className="h-auto w-[120px] object-contain sm:w-[140px]"
                 />
                 <div>
                   <h1 className="text-2xl font-bold text-white">Landing Pages</h1>
@@ -422,7 +408,7 @@ export default function LandingPageBuilder() {
                 type="button"
                 onClick={toggleAllVisiblePages}
                 disabled={visiblePageIds.length === 0}
-                className="rounded-lg border border-cyan-500/30 bg-cyan-500/10 px-3 py-2 text-sm font-medium text-cyan-200 transition-colors hover:bg-cyan-500/20 disabled:cursor-not-allowed disabled:opacity-40"
+                className="rounded-lg border border-cyan-500/30 bg-cyan-500/10 px-3 py-2 text-sm font-medium text-cyan-200 transition-colors hover:bg-cyan-500/20 disabled:cursor-not-allowed disabled:border-slate-300 disabled:bg-slate-200 disabled:text-slate-700 disabled:opacity-100 dark:disabled:border-slate-700 dark:disabled:bg-slate-800 dark:disabled:text-slate-300"
               >
                 {allVisibleSelected ? 'Clear visible selection' : 'Select all visible'}
               </button>
@@ -498,15 +484,6 @@ export default function LandingPageBuilder() {
                           {page.subdomain}.{landingPageDomain}
                         </h3>
                       </div>
-                      <button
-                        type="button"
-                        onClick={() => copyLandingPageUrlOnly(page)}
-                        title="Copy URL"
-                        className="rounded-md p-1.5 text-slate-400 hover:bg-white/10 hover:text-white transition-colors"
-                        aria-label={`Copy URL for ${page.subdomain}`}
-                      >
-                        <Copy className="h-4 w-4" />
-                      </button>
                     </div>
 
                     {/* Tracking & Clicks */}
