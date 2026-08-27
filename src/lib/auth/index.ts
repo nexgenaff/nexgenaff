@@ -272,6 +272,7 @@ type AuthUser = {
   status?: AccountStatus | null
   bkashNumber?: string | null
   clickRate?: number | null
+  commissionRate?: number | null
   payoutMethod?: string | null
   payoutAccount?: string | null
 }
@@ -312,6 +313,7 @@ export async function getUserFromToken(token: string): Promise<AuthUser | null> 
       role: true,
       bkashNumber: true,
       clickRate: true,
+      commissionRate: true,
       payoutMethod: true,
       payoutAccount: true,
       status: true,

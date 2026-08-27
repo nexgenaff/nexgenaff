@@ -25,6 +25,7 @@ interface DashboardStats {
   totalLinks: number;
   totalEarned: number;
   commission: number;
+  commissionRate: number;
   revenue: number;
   chartData: any;
   hourlyChartData: any;
@@ -58,6 +59,7 @@ export default function DashboardPage() {
     totalLinks: 0,
     totalEarned: 0,
     commission: 0,
+    commissionRate: 20,
     revenue: 0,
     chartData: createDefaultChart(),
     hourlyChartData: createDefaultChart(),
@@ -134,6 +136,7 @@ export default function DashboardPage() {
             totalLinks: 0,
             totalEarned: 0,
             commission: 0,
+            commissionRate: 20,
             revenue: 0,
             chartData: createDefaultChart(),
             hourlyChartData: createDefaultChart(),
@@ -154,6 +157,9 @@ export default function DashboardPage() {
         const data = await response.json();
         const linksResponse = await fetch("/api/links", { credentials: "include" });
         const paymentLinks = linksResponse.ok ? await linksResponse.json() : [];
+        const managerCommissionRate = Array.isArray(paymentLinks)
+          ? Number(paymentLinks.find((link: { isActive?: boolean }) => link.isActive)?.commissionRate ?? 20) || 20
+          : 20;
         const paymentSummary = Array.isArray(paymentLinks)
           ? paymentLinks.filter((link) => link.isActive).reduce(
               (summary, link) => {
@@ -174,6 +180,7 @@ export default function DashboardPage() {
           totalLinks: data.totalLinks ?? 0,
           totalEarned: paymentSummary.totalEarned,
           commission: paymentSummary.commission,
+          commissionRate: managerCommissionRate,
           revenue: paymentSummary.totalEarned + paymentSummary.commission,
           chartData: data.chartData || createDefaultChart(),
           hourlyChartData: data.hourlyChartData || createDefaultChart(),
@@ -401,6 +408,11 @@ export default function DashboardPage() {
 
         {/* ─── Stats & Charts ─── */}
         <section className="mb-4 sm:mb-6 relative">
+          {userRole === "MANAGER" && (
+            <div className="mb-3 inline-flex items-center rounded-lg border border-cyan-400/20 bg-cyan-400/10 px-3 py-2 text-xs font-medium text-cyan-200">
+              Commission rate: {stats.commissionRate.toFixed(2)}%
+            </div>
+          )}
           <StatsCards
             stats={stats}
             chartData={chartData}

@@ -14,6 +14,7 @@ interface PaymentLink {
   isActive: boolean;
   totalEarning: number;
   qualifiedClicks: number;
+  commissionRate?: number;
   payoutMethod: string | null;
   payoutAccount: string | null;
   selectedInvoiceNumber?: string;
@@ -236,7 +237,9 @@ export default function PaymentsPage() {
         const unpaidAmount = unpaid.reduce((sum, invoice) => sum + (Number(invoice.totalEarning) || 0), 0) + current;
         const paidAmount = paid.reduce((sum, invoice) => sum + (Number(invoice.totalEarning) || 0), 0);
         const invoiceTotal = invoices.reduce((sum, invoice) => sum + (Number(invoice.totalEarning) || 0), 0);
-        return { link, invoices, current, unpaidAmount, paidAmount, invoiceTotal, accrued: unpaidAmount + paidAmount };
+        const commissionRate = Number(link.commissionRate ?? 20) || 20;
+        const accrued = unpaidAmount + paidAmount;
+        return { link, invoices, current, unpaidAmount, paidAmount, invoiceTotal, accrued, commission: accrued * (commissionRate / 100) };
       }), [activeLinks]);
 
   const rows = useMemo(() => {
@@ -254,11 +257,12 @@ export default function PaymentsPage() {
       invoices: summary.invoices + row.invoiceTotal,
       unpaid: summary.unpaid + row.unpaidAmount,
       paid: summary.paid + row.paidAmount,
+      commission: summary.commission + row.commission,
     }),
-    { accrued: 0, invoices: 0, unpaid: 0, paid: 0 },
+    { accrued: 0, invoices: 0, unpaid: 0, paid: 0, commission: 0 },
   ), [paymentRows]);
 
-  const commission = totals.accrued * 0.2;
+  const commission = totals.commission;
   const managerRevenueByUserId = paymentRows.reduce((revenueByUserId, row) => {
     revenueByUserId.set(row.link.userId, (revenueByUserId.get(row.link.userId) || 0) + row.accrued);
     return revenueByUserId;
