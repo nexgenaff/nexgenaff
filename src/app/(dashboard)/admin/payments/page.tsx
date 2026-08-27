@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { Check, CheckCircle, CircleDollarSign, Copy, CreditCard, Pencil, Search, WalletCards, X } from "lucide-react";
+import { Check, CheckCircle, CircleDollarSign, Copy, CreditCard, Eye, EyeOff, Info, Pencil, Search, WalletCards, X } from "lucide-react";
 import { coerceArray } from "@/lib/utils/array-response";
 
 interface PaymentLink {
@@ -40,8 +40,10 @@ export default function PaymentsPage() {
   const [payoutMethod, setPayoutMethod] = useState("BKASH");
   const [payoutAccount, setPayoutAccount] = useState("");
   const [paymentPassword, setPaymentPassword] = useState("");
+  const [showPaymentPassword, setShowPaymentPassword] = useState(false);
   const [isEditingPaymentMethod, setIsEditingPaymentMethod] = useState(false);
   const [bindingMessage, setBindingMessage] = useState("");
+  const [userRole, setUserRole] = useState<string | null>(null);
 
   const fetchPayments = useCallback(async () => {
     setError("");
@@ -69,6 +71,7 @@ export default function PaymentsPage() {
       .then((response) => response.ok ? response.json() : null)
       .then((data) => {
         if (data) {
+          setUserRole(data.role || null);
           setPayoutMethod(data.payoutMethod || "BKASH");
           setPayoutAccount(data.payoutAccount || "");
         }
@@ -188,7 +191,7 @@ export default function PaymentsPage() {
             <div>
               <div className="flex items-center gap-2">
                 <h2 className="text-sm font-semibold text-slate-900 dark:text-white">Payout details</h2>
-                <span className={`text-[11px] font-medium ${payoutAccount ? "text-emerald-700 dark:text-emerald-300" : "text-amber-700 dark:text-amber-300"}`}>
+                <span className={`rounded-full border px-2 py-0.5 text-[11px] font-medium ${payoutAccount ? "border-emerald-500/25 bg-emerald-500/5 text-emerald-700 dark:text-emerald-300" : "border-amber-500/25 bg-amber-500/5 text-amber-700 dark:text-amber-300"}`}>
                   {payoutAccount ? "Payable" : "Action needed"}
                 </span>
               </div>
@@ -234,7 +237,12 @@ export default function PaymentsPage() {
               </div>
               <label className="block space-y-1.5 text-xs font-medium text-slate-600 dark:text-slate-300">
                 Access password to confirm changes
-                <input type="password" minLength={8} value={paymentPassword} onChange={(event) => setPaymentPassword(event.target.value)} placeholder="At least 8 characters" required className="w-full rounded-md border border-slate-200 bg-[var(--surface-elevated)] px-3 py-2 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-indigo-500 dark:border-slate-700 dark:text-white" />
+                <span className="relative block">
+                  <input type={showPaymentPassword ? "text" : "password"} minLength={8} value={paymentPassword} onChange={(event) => setPaymentPassword(event.target.value)} placeholder="At least 8 characters" required className="w-full rounded-md border border-slate-200 bg-[var(--surface-elevated)] px-3 py-2 pr-10 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-indigo-500 dark:border-slate-700 dark:text-white" />
+                  <button type="button" onClick={() => setShowPaymentPassword((previous) => !previous)} className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-white/10 dark:hover:text-white" aria-label={showPaymentPassword ? "Hide access password" : "Show access password"} title={showPaymentPassword ? "Hide password" : "Show password"}>
+                    {showPaymentPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </span>
               </label>
               <div className="flex justify-end gap-2">
                 <button type="button" onClick={() => { setIsEditingPaymentMethod(false); setPaymentPassword(""); }} className="rounded-md border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-600 transition hover:bg-slate-100 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-white/10">Cancel</button>
@@ -272,6 +280,12 @@ export default function PaymentsPage() {
           <div>
             <h2 className="text-sm font-bold text-white">Active link earnings</h2>
             <p className="mt-0.5 text-xs text-slate-500">{rows.length === activeLinks.length ? `${activeLinks.length} active ${activeLinks.length === 1 ? "link" : "links"}` : `Showing ${rows.length} of ${activeLinks.length} active links`}</p>
+              {userRole && (
+                <div className="mt-3 flex max-w-2xl gap-2.5 border-l-2 border-indigo-500/30 bg-indigo-500/5 px-3 py-2.5 text-[11px] leading-5 text-slate-600 dark:border-indigo-400/30 dark:bg-indigo-400/5 dark:text-slate-300">
+                  <Info className="mt-0.5 h-3.5 w-3.5 shrink-0 text-indigo-600 dark:text-indigo-300" />
+                  <p>{userRole === "MANAGER" ? "Your manager receives payment for valid clicks and handles team payouts. Add your payment method from your public Stats link so your manager can pay you." : "You receive payment for valid clicks and manage payouts to your team. Members should add their payment method from their public Stats link so their details appear here."}</p>
+                </div>
+              )}
           </div>
           <div className="flex items-center gap-2">
             <label className="relative block min-w-0 flex-1">
