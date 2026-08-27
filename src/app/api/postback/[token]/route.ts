@@ -27,7 +27,7 @@ export async function ingestPostback(request: Request, token: string, bodyParams
   const value = (names: string[]) => names.map((name) => firstValue(params.get(name))).find(Boolean) || null
   const payoutRaw = value(['payout', '#payout#'])
   if (isUnresolvedToken(payoutRaw)) {
-    return NextResponse.json({ error: 'Marketplace did not replace the payout token. Use a public URL and enable token substitution.' }, { status: 400 })
+    return NextResponse.json({ success: true, validation: true })
   }
   const payoutValue = Number(payoutRaw)
   const lead = await prisma.conversionLead.create({
