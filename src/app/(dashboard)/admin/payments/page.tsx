@@ -8,6 +8,7 @@ import { coerceArray } from "@/lib/utils/array-response";
 
 interface PaymentLink {
   id: string;
+  userId: string;
   accountName: string;
   slug: string;
   isActive: boolean;
@@ -257,6 +258,11 @@ export default function PaymentsPage() {
   ), [paymentRows]);
 
   const commission = totals.accrued * 0.2;
+  const managerRevenueByUserId = paymentRows.reduce((revenueByUserId, row) => {
+    revenueByUserId.set(row.link.userId, (revenueByUserId.get(row.link.userId) || 0) + row.accrued);
+    return revenueByUserId;
+  }, new Map<string, number>());
+
   const managerPaymentRows = managerPayments.map((manager) => {
     const invoices = manager.linkAccounts.flatMap((link) => link.invoices);
     const paid = invoices.filter((invoice) => invoice.isPaid).reduce((sum, invoice) => sum + Number(invoice.totalEarning || 0), 0);
@@ -270,7 +276,7 @@ export default function PaymentsPage() {
       invoiceCount: invoices.length,
       paid,
       unpaid,
-      total: paid + unpaid,
+      total: managerRevenueByUserId.get(manager.id) || 0,
       payoutMethod: manager.payoutMethod || firstLink?.payoutMethod || (manager.bkashNumber ? "BKASH" : null),
       payoutAccount: manager.payoutAccount || firstLink?.payoutAccount || manager.bkashNumber,
       nextUnpaidInvoice,
@@ -314,7 +320,7 @@ export default function PaymentsPage() {
                         {copiedPaymentAccount === manager.id ? <Check className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-300" /> : <Copy className="h-3.5 w-3.5" />}
                       </button>}
                     </div>
-                    {nextUnpaidInvoice && <button type="button" onClick={() => { setPaymentLink({ id: nextUnpaidInvoice.link.id, accountName: manager.fullName || manager.username, slug: "", isActive: true, totalEarning: 0, qualifiedClicks: 0, payoutMethod, payoutAccount, selectedInvoiceNumber: nextUnpaidInvoice.invoice.invoiceNumber, selectedManagerId: manager.id }); setPaymentReference(""); }} className="mt-2 inline-flex items-center gap-1 rounded-md bg-indigo-600 px-2 py-1.5 text-[10px] font-semibold text-white transition hover:bg-indigo-500">Mark manager paid</button>}
+                    {nextUnpaidInvoice && <button type="button" onClick={() => { setPaymentLink({ id: nextUnpaidInvoice.link.id, userId: manager.id, accountName: manager.fullName || manager.username, slug: "", isActive: true, totalEarning: 0, qualifiedClicks: 0, payoutMethod, payoutAccount, selectedInvoiceNumber: nextUnpaidInvoice.invoice.invoiceNumber, selectedManagerId: manager.id }); setPaymentReference(""); }} className="mt-2 inline-flex items-center gap-1 rounded-md bg-indigo-600 px-2 py-1.5 text-[10px] font-semibold text-white transition hover:bg-indigo-500">Mark manager paid</button>}
                   </div>
                 </div>
               ))}
