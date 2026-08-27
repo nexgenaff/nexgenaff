@@ -304,21 +304,42 @@ export async function getUserFromToken(token: string): Promise<AuthUser | null> 
     return { id: decoded.userId, username, role }
   }
 
-  return (await prisma.user.findUnique({
-    where: { id: decoded.userId },
-    select: {
-      id: true,
-      username: true,
-      email: true,
-      role: true,
-      bkashNumber: true,
-      clickRate: true,
-      commissionRate: true,
-      payoutMethod: true,
-      payoutAccount: true,
-      status: true,
-    },
-  })) as AuthUser | null
+  try {
+    return (await prisma.user.findUnique({
+      where: { id: decoded.userId },
+      select: {
+        id: true,
+        username: true,
+        email: true,
+        role: true,
+        bkashNumber: true,
+        clickRate: true,
+        commissionRate: true,
+        payoutMethod: true,
+        payoutAccount: true,
+        status: true,
+      },
+    })) as AuthUser | null
+  } catch (error: any) {
+    if (error?.code !== 'P2022' || !String(error?.meta?.column || '').includes('commissionRate')) {
+      throw error
+    }
+
+    return (await prisma.user.findUnique({
+      where: { id: decoded.userId },
+      select: {
+        id: true,
+        username: true,
+        email: true,
+        role: true,
+        bkashNumber: true,
+        clickRate: true,
+        payoutMethod: true,
+        payoutAccount: true,
+        status: true,
+      },
+    })) as AuthUser | null
+  }
 }
 
 export function getTokenFromCookie(cookieHeader: string): string | null {

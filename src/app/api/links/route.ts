@@ -29,23 +29,40 @@ export async function GET(request: Request) {
     const ownerUserId = await getOwnerUserId()
     const whereClause = getLinkAccountVisibilityWhereClause(user, ownerUserId)
 
-    const links = await prisma.linkAccount.findMany({
-      where: whereClause,
-      include: {
-        customDomain: true,
-        publicDashboard: true,
-        invoices: { orderBy: { createdAt: 'desc' }, take: 100 },
-        user: {
-          select: {
-            username: true,
-            clickRate: true,
-            commissionRate: true,
-            payoutMethod: true,
-          },
+    const linkInclude = {
+      customDomain: true,
+      publicDashboard: true,
+      invoices: { orderBy: { createdAt: 'desc' as const }, take: 100 },
+      user: {
+        select: {
+          username: true,
+          clickRate: true,
+          commissionRate: true,
+          payoutMethod: true,
         },
       },
-      orderBy: { createdAt: 'desc' },
-    })
+    }
+    let links: any[]
+    try {
+      links = await prisma.linkAccount.findMany({
+        where: whereClause,
+        include: linkInclude,
+        orderBy: { createdAt: 'desc' },
+      })
+    } catch (error: any) {
+      if (error?.code !== 'P2022' || !String(error?.meta?.column || '').includes('commissionRate')) {
+        throw error
+      }
+
+      links = await prisma.linkAccount.findMany({
+        where: whereClause,
+        include: {
+          ...linkInclude,
+          user: { select: { username: true, clickRate: true, payoutMethod: true } },
+        },
+        orderBy: { createdAt: 'desc' },
+      })
+    }
 
     const qualifiedClicks = await prisma.click.groupBy({
       by: ['linkAccountId'],
@@ -70,7 +87,7 @@ export async function GET(request: Request) {
         payoutMethod: link.payoutMethod || null,
         payoutAccount: link.payoutAccount || null,
         invoiceHistory: link.invoices,
-        invoices: link.invoices.filter((invoice) => !invoice.isPaid).slice(0, 1),
+        invoices: link.invoices.filter((invoice: { isPaid: boolean }) => !invoice.isPaid).slice(0, 1),
       })),
       { headers: getCorsHeaders(origin) }
     )
