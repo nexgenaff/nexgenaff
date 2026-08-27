@@ -4,11 +4,11 @@ import LoginClient from "./LoginClient";
 import AfficixoLoading from "@/components/ui/AfficixoLoading";
 
 export const metadata: Metadata = {
-  title: 'Publisher Login — Afficixo',
+  title: 'Manager Login — Afficixo',
   description:
     'Log in to your Afficixo publisher account to manage offers, affiliate links, traffic, clicks, analytics, and earnings.',
   keywords: [
-    'publisher login',
+    'manager login',
     'Afficixo login',
     'affiliate dashboard',
     'offer management login',
@@ -18,7 +18,7 @@ export const metadata: Metadata = {
     canonical: 'https://www.weebly.pro/login',
   },
   openGraph: {
-    title: 'Publisher Login — Afficixo',
+    title: 'Manager Login — Afficixo',
     description:
       'Log in to your Afficixo publisher account to manage offers, affiliate links, traffic, clicks, analytics, and earnings.',
     type: 'website',
@@ -37,7 +37,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Publisher Login — Afficixo',
+    title: 'Manager Login — Afficixo',
     description:
       'Log in to your Afficixo publisher account to manage offers, affiliate links, traffic, clicks, analytics, and earnings.',
     images: ['https://www.weebly.pro/og-image.png'],

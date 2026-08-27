@@ -85,7 +85,9 @@ export default function Sidebar() {
     ...(userRole !== 'MANAGER'
       ? [{ href: '/admin/offers', label: 'Offer Vault', icon: Package }]
       : []),
-    { href: '/admin/domains', label: 'Custom Domains', icon: Globe2 },
+    ...(userRole !== 'MANAGER'
+      ? [{ href: '/admin/domains', label: 'Custom Domains', icon: Globe2 }]
+      : []),
     { href: '/admin/analytics', label: 'Analytics', icon: BarChart3 },
     { href: '/admin/landing-builder', label: 'Landing page Builder', icon: Layers },
     ...(userRole === 'OWNER'

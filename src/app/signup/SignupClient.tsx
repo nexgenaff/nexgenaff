@@ -11,7 +11,6 @@ import {
   User,
   Mail,
   PhoneCall,
-  CreditCard,
   Send,
   Rocket,
   AlertCircle,
@@ -29,7 +28,6 @@ export default function SignupClient() {
   const [fullName, setFullName] = useState("")
   const [contractNumber, setContractNumber] = useState("")
   const [telegramUsername, setTelegramUsername] = useState("")
-  const [bkashNumber, setBkashNumber] = useState("") // renamed back to bkashNumber
   const [username, setUsername] = useState("")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -41,7 +39,6 @@ export default function SignupClient() {
   const [captchaError, setCaptchaError] = useState("")
   const [error, setError] = useState("")
   const [success, setSuccess] = useState("")
-  const [bkashError, setBkashError] = useState("")
   const [contractError, setContractError] = useState("")
   const [isMobile, setIsMobile] = useState(false)
 
@@ -249,14 +246,13 @@ export default function SignupClient() {
   useEffect(() => {
     setError("")
     setSuccess("")
-    setBkashError("")
     setContractError("")
   }, [router])
 
-  // Validate 11-digit fields
-  const validateDigits = (value: string, fieldName: string) => {
-    if (!/^\d{11}$/.test(value)) {
-      return `${fieldName} must be exactly 11 digits`
+  // Contract number length varies by geography and operator.
+  const validateContractNumber = (value: string) => {
+    if (!/^\d+$/.test(value)) {
+      return "Contract Number must contain digits only"
     }
     return ""
   }
@@ -265,15 +261,12 @@ export default function SignupClient() {
     event.preventDefault()
     setError("")
     setCaptchaError("")
-    setBkashError("")
     setContractError("")
 
-    const bkashErr = validateDigits(bkashNumber, "bKash number")
-    const contractErr = validateDigits(contractNumber, "Contract number")
+    const contractErr = validateContractNumber(contractNumber)
 
-    if (bkashErr) setBkashError(bkashErr)
     if (contractErr) setContractError(contractErr)
-    if (bkashErr || contractErr) return
+    if (contractErr) return
 
     const answer = Number(captchaAnswer)
     if (!Number.isInteger(answer) || answer !== captchaValue) {
@@ -292,7 +285,6 @@ export default function SignupClient() {
           fullName,
           contractNumber,
           telegramUsername,
-          bkashNumber,
           username,
           email,
           password,
@@ -309,7 +301,7 @@ export default function SignupClient() {
 
       if (data?.requiresApproval) {
         setSuccess(
-          "Account created. Your manager account is pending owner approval. You will be redirected to sign in after approval."
+          "Account created. Your manager account is awaiting owner approval. You can sign in after it has been approved."
         )
         window.setTimeout(() => {
           router.push("/login?approval_pending=1")
@@ -317,25 +309,19 @@ export default function SignupClient() {
         return
       }
 
-      setSuccess("Account created successfully. Redirecting you to your dashboard...")
+      setSuccess("Account created. Redirecting you to your dashboard...")
       window.setTimeout(() => {
         router.push("/admin/dashboard")
       }, 500)
     } catch (err: any) {
       setSuccess("")
-      setError(err.message || "We could not create your account right now. Please try again.")
+      setError(err.message || "We could not create your account. Check your details and try again.")
     } finally {
       setLoading(false)
     }
   }
 
-  // Handlers – strip non‑digit and clear errors
-  const handleBkashChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.replace(/\D/g, "")
-    setBkashNumber(value)
-    if (bkashError) setBkashError("")
-  }
-
+  // Handlers – strip non-digit and clear errors
   const handleContractChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.replace(/\D/g, "")
     setContractNumber(value)
@@ -409,7 +395,7 @@ export default function SignupClient() {
 
             {/* Error message */}
             {error && (
-              <div className="flex items-start gap-2 rounded-xl border border-red-500/20 bg-red-500/10 p-3 text-sm text-red-300 backdrop-blur">
+              <div role="alert" className="flex items-start gap-2 rounded-md border border-red-400/25 bg-red-500/10 p-3 text-sm text-red-200 backdrop-blur">
                 <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0" />
                 <span className="leading-6">{error}</span>
               </div>
@@ -417,7 +403,7 @@ export default function SignupClient() {
 
             {/* Success message */}
             {success && (
-              <div className="flex items-start gap-2 rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-3 text-sm text-emerald-300 backdrop-blur">
+              <div role="status" aria-live="polite" className="flex items-start gap-2 rounded-md border border-emerald-400/25 bg-emerald-500/10 p-3 text-sm text-emerald-200 backdrop-blur">
                 <CheckCircle2 className="mt-0.5 h-4 w-4 flex-shrink-0" />
                 <span className="leading-6">{success}</span>
               </div>
@@ -464,9 +450,9 @@ export default function SignupClient() {
                 </div>
               </div>
 
-              {/* Contract number – with call icon and 11‑digit validation */}
+              {/* Contract Number with variable length */}
               <div>
-                <label className="sr-only" htmlFor="contractNumber">Contract number (11 digits)</label>
+                <label className="sr-only" htmlFor="contractNumber">Contract Number</label>
                 <div className="relative group">
                   <PhoneCall className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                   <input
@@ -476,8 +462,7 @@ export default function SignupClient() {
                     value={contractNumber}
                     onChange={handleContractChange}
                     className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 pl-10 text-white placeholder-slate-500 focus:border-indigo-400/50 focus:outline-none focus:ring-2 focus:ring-indigo-400/30 transition-all duration-300 hover:border-white/20"
-                    placeholder="11-digit contract number"
-                    maxLength={11}
+                    placeholder="Enter your contract number"
                     required
                     disabled={loading}
                   />
@@ -501,28 +486,6 @@ export default function SignupClient() {
                     disabled={loading}
                   />
                 </div>
-              </div>
-
-              {/* bKash number – with payment icon and 11‑digit validation, improved text */}
-              <div>
-                <label className="sr-only" htmlFor="bkash">bKash number (11 digits)</label>
-                <div className="relative group">
-                  <CreditCard className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                  <input
-                    id="bkash"
-                    type="tel"
-                    inputMode="numeric"
-                    autoComplete="off"
-                    value={bkashNumber}
-                    onChange={handleBkashChange}
-                    className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 pl-10 text-white placeholder-slate-500 focus:border-indigo-400/50 focus:outline-none focus:ring-2 focus:ring-indigo-400/30 transition-all duration-300 hover:border-white/20"
-                    placeholder="bKash account number (11 digits)"
-                    maxLength={11}
-                    required
-                    disabled={loading}
-                  />
-                </div>
-                {bkashError && <p className="mt-1 text-xs text-rose-400">{bkashError}</p>}
               </div>
 
               {/* Username */}

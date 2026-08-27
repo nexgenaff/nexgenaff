@@ -6,7 +6,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { markManagerTelegramPopupPending } from "@/lib/utils/telegram-popup";
-import { User, Lock, ArrowLeft, AlertCircle, Rocket, ArrowRight, CheckCircle2 } from "lucide-react";
+import { User, Lock, ArrowLeft, AlertCircle, Rocket, ArrowRight, CheckCircle2, Clock3 } from "lucide-react";
 
 // Mobile‑optimised particle count (lower on small screens)
 const BALL_NUM = typeof window !== 'undefined' && window.innerWidth < 768 ? 20 : 35;
@@ -21,6 +21,7 @@ export default function LoginClient() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [approvalPendingNotice, setApprovalPendingNotice] = useState(false);
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
@@ -219,21 +220,22 @@ export default function LoginClient() {
     const errorParam = searchParams.get("error");
     const successParam = searchParams.get("success");
     const approvalPending = searchParams.get("approval_pending") === "1";
+    setApprovalPendingNotice(approvalPending);
 
     if (errorParam === "google_auth_failed") {
-      setError("Google sign-in could not be completed. Please try again or use your username and password.");
+      setError("Google sign-in could not be completed. Try again or sign in with your username and password.");
     } else if (errorParam === "missing_code") {
       setError("Google returned an incomplete sign-in response. Please try again.");
     } else if (errorParam === "google_account_not_found") {
-      setError("No approved account exists for that Google email. Please sign up first or use another sign-in method.");
+      setError("No approved account was found for that Google email. Sign up first or use another sign-in method.");
     } else if (approvalPending) {
-      setError("Your account is pending owner approval. You can log in only after approval.");
+      setError("Your manager account is awaiting owner approval. You can sign in once the owner approves it.");
     } else {
       setError("");
     }
 
     if (successParam === "google-authenticated") {
-      setSuccess("Google sign-in was successful. Taking you to your dashboard...");
+      setSuccess("Google sign-in complete. Redirecting you to your dashboard...");
       const redirectPath = searchParams.get("redirect") || "/admin/dashboard";
       const timer = window.setTimeout(() => {
         router.replace(redirectPath);
@@ -267,13 +269,13 @@ export default function LoginClient() {
         markManagerTelegramPopupPending(window);
       }
 
-      setSuccess("Signed in successfully. Redirecting you to the dashboard...");
+      setSuccess("Welcome back. Redirecting you to your dashboard...");
       window.setTimeout(() => {
         router.push("/admin/dashboard");
       }, 500);
     } catch (err: any) {
       setSuccess("");
-      setError(err.message || "We could not sign you in right now. Please try again.");
+      setError(err.message || "We could not sign you in. Check your details and try again.");
     } finally {
       setLoading(false);
     }
@@ -346,19 +348,18 @@ export default function LoginClient() {
                   priority
                 />
               </motion.div>
-              <h1 className="mt-4 text-xl font-semibold text-white">Publisher Login</h1>
               <p className="mt-1 text-sm text-slate-400">Use your credentials or continue with Google.</p>
             </div>
 
             {error && (
-              <div className="flex items-start gap-2 rounded-xl border border-red-500/20 bg-red-500/10 p-3 text-sm text-red-300 backdrop-blur">
-                <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0" />
+              <div role="alert" className={`flex items-start gap-2 rounded-md border p-3 text-sm backdrop-blur ${approvalPendingNotice ? "border-amber-400/25 bg-amber-500/10 text-amber-100" : "border-red-400/25 bg-red-500/10 text-red-200"}`}>
+                {approvalPendingNotice ? <Clock3 className="mt-0.5 h-4 w-4 flex-shrink-0 text-amber-300" /> : <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0" />}
                 <span className="leading-6">{error}</span>
               </div>
             )}
 
             {success && (
-              <div className="flex items-start gap-2 rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-3 text-sm text-emerald-300 backdrop-blur">
+              <div role="status" aria-live="polite" className="flex items-start gap-2 rounded-md border border-emerald-400/25 bg-emerald-500/10 p-3 text-sm text-emerald-200 backdrop-blur">
                 <CheckCircle2 className="mt-0.5 h-4 w-4 flex-shrink-0" />
                 <span className="leading-6">{success}</span>
               </div>
@@ -368,7 +369,7 @@ export default function LoginClient() {
               <div>
                 <label className="block text-sm font-medium text-slate-300 mb-1.5">Username</label>
                 <div className="relative group">
-                  <User className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-400 transition-colors" />
+                  <User strokeWidth={2.2} className="auth-field-icon pointer-events-none absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 transition-colors" />
                   <input
                     type="text"
                     value={username}
@@ -384,7 +385,7 @@ export default function LoginClient() {
               <div>
                 <label className="block text-sm font-medium text-slate-300 mb-1.5">Password</label>
                 <div className="relative group">
-                  <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-400 transition-colors" />
+                  <Lock strokeWidth={2.2} className="auth-field-icon pointer-events-none absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 transition-colors" />
                   <input
                     type="password"
                     value={password}

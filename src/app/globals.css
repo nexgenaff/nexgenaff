@@ -830,6 +830,14 @@ html:not(.dark) .public-site .public-page div.absolute.inset-0[class*="bg-gradie
   border-radius: 6px !important;
 }
 
+.auth-site .auth-field-icon {
+  color: #8ee8c2 !important;
+}
+
+.auth-site .group:focus-within .auth-field-icon {
+  color: #d1fae5 !important;
+}
+
 .auth-site .auth-input::placeholder,
 .auth-site input::placeholder {
   color: #6f8580 !important;
