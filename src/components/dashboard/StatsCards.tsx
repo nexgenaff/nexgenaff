@@ -134,7 +134,7 @@ export default function StatsCards({
           )}
         </div>
 
-        <div className="chart-surface mx-4 p-2 sm:mx-6">
+        <div className="chart-surface w-full px-2 sm:px-3">
           <Chart
             data={data}
             height={260}

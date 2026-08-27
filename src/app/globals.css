@@ -608,6 +608,24 @@ html:not(.dark) [class*="text-[#E5E7EB]"] {
   color: #475569 !important;
 }
 
+html:not(.dark) input,
+html:not(.dark) select,
+html:not(.dark) textarea {
+  color: #0f172a !important;
+  -webkit-text-fill-color: #0f172a !important;
+}
+
+html:not(.dark) input::placeholder,
+html:not(.dark) textarea::placeholder {
+  color: #64748b !important;
+  opacity: 1;
+}
+
+html:not(.dark) option {
+  background-color: #ffffff;
+  color: #0f172a;
+}
+
 /* Public pages use a deliberate ink theme, independent of dashboard mode. */
 .public-site,
 .public-site body {
@@ -678,6 +696,36 @@ html:not(.dark) [class*="bg-sky-500/20"] {
 html:not(.dark) [class*="text-indigo-300"],
 html:not(.dark) [class*="text-violet-300"] {
   color: #4338ca !important;
+}
+
+html:not(.dark) [class*="text-emerald-200"],
+html:not(.dark) [class*="text-emerald-300"],
+html:not(.dark) [class*="text-emerald-400"] {
+  color: #047857 !important;
+}
+
+html:not(.dark) [class*="text-cyan-200"],
+html:not(.dark) [class*="text-cyan-300"],
+html:not(.dark) [class*="text-cyan-400"] {
+  color: #0e7490 !important;
+}
+
+html:not(.dark) [class*="text-sky-200"],
+html:not(.dark) [class*="text-sky-300"],
+html:not(.dark) [class*="text-sky-400"] {
+  color: #0369a1 !important;
+}
+
+html:not(.dark) [class*="text-amber-200"],
+html:not(.dark) [class*="text-amber-300"],
+html:not(.dark) [class*="text-amber-400"] {
+  color: #b45309 !important;
+}
+
+html:not(.dark) [class*="text-red-200"],
+html:not(.dark) [class*="text-red-300"],
+html:not(.dark) [class*="text-red-400"] {
+  color: #b91c1c !important;
 }
 
 html:not(.dark) .chart-surface,

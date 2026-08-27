@@ -348,15 +348,17 @@ export default function TemplateManager() {
                 className="rounded-xl border border-slate-800 bg-slate-900/60 p-4 transition hover:border-slate-700"
               >
                 {template.thumbnail && (
-                  <img
-                    src={template.thumbnail}
-                    alt={template.name}
-                    className="mb-3 h-28 w-full rounded object-cover sm:h-32"
-                  />
+                  <div className="mb-3 flex aspect-video w-full items-center justify-center overflow-hidden rounded-lg border border-slate-800 bg-slate-950/70 p-2">
+                    <img
+                      src={template.thumbnail}
+                      alt={template.name}
+                      className="h-full w-full object-contain"
+                    />
+                  </div>
                 )}
                 <h3 className="text-base font-semibold text-white">{template.name}</h3>
                 {template.description && (
-                  <p className="mt-1 line-clamp-2 text-sm text-slate-400">{template.description}</p>
+                  <p className="mt-1 whitespace-pre-wrap break-words text-sm leading-6 text-slate-400">{template.description}</p>
                 )}
                 <p className="mt-2 text-xs text-slate-500">
                   HTML: {template.htmlContent.length} chars

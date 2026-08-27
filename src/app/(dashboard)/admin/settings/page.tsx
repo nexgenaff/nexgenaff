@@ -372,13 +372,15 @@ export default function SettingsPage() {
                     USA click rate: ${Number(clickRate).toFixed(2)}
                   </button>
                 )}
-                <button
-                  onClick={() => setShowDangerZone((prev) => !prev)}
-                  className="inline-flex items-center gap-1.5 rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-xs font-medium text-slate-300 hover:bg-slate-700"
-                >
-                  <AlertTriangle className="h-3.5 w-3.5" />
-                  {showDangerZone ? "Hide danger zone" : "Danger zone"}
-                </button>
+                {userInfo?.role !== "MANAGER" && (
+                  <button
+                    onClick={() => setShowDangerZone((prev) => !prev)}
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-xs font-medium text-slate-300 hover:bg-slate-700"
+                  >
+                    <AlertTriangle className="h-3.5 w-3.5" />
+                    {showDangerZone ? "Hide danger zone" : "Danger zone"}
+                  </button>
+                )}
                 <button
                   onClick={handleLogout}
                   className="inline-flex items-center gap-1.5 rounded-lg border border-red-500/20 bg-red-500/10 px-3 py-2 text-xs font-medium text-red-400 hover:bg-red-500/20"
@@ -588,18 +590,19 @@ export default function SettingsPage() {
           )}
 
           {/* Quick Actions */}
-          <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-5">
-            <h3 className="mb-4 text-sm font-semibold text-white">Quick Actions</h3>
-            <div className="space-y-2">
-              <button
-                onClick={() => setShowDangerZone((prev) => !prev)}
-                className="flex w-full items-center justify-between rounded-lg border border-slate-700 bg-slate-800 px-4 py-2.5 text-sm text-slate-300 hover:bg-slate-700"
-              >
-                <span className="flex items-center gap-2">
-                  <AlertTriangle className="h-4 w-4 text-red-400" />
-                  {showDangerZone ? "Hide" : "Show"} danger zone
-                </span>
-              </button>
+          {userInfo?.role !== "MANAGER" && (
+            <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-5">
+              <h3 className="mb-4 text-sm font-semibold text-white">Quick Actions</h3>
+              <div className="space-y-2">
+                <button
+                  onClick={() => setShowDangerZone((prev) => !prev)}
+                  className="flex w-full items-center justify-between rounded-lg border border-slate-700 bg-slate-800 px-4 py-2.5 text-sm text-slate-300 hover:bg-slate-700"
+                >
+                  <span className="flex items-center gap-2">
+                    <AlertTriangle className="h-4 w-4 text-red-400" />
+                    {showDangerZone ? "Hide" : "Show"} danger zone
+                  </span>
+                </button>
               <button
                 onClick={() => router.push("/admin/analytics")}
                 className="flex w-full items-center justify-between rounded-lg border border-slate-700 bg-slate-800 px-4 py-2.5 text-sm text-slate-300 hover:bg-slate-700"
@@ -609,8 +612,9 @@ export default function SettingsPage() {
                   View analytics
                 </span>
               </button>
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
     </div>

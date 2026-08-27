@@ -105,18 +105,18 @@ export default function Sidebar() {
     <div className="flex flex-col h-full">
       <div className="pointer-events-none absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-transparent via-cyan-400/70 to-transparent" />
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.2),transparent_36%),radial-gradient(circle_at_bottom_right,rgba(244,114,182,0.16),transparent_38%),linear-gradient(135deg,rgba(34,211,238,0.08),transparent_40%,rgba(129,140,248,0.08))]" />
-      <div className="relative flex items-center justify-start p-0 w-full gap-2 flex-shrink-0">
-        {!collapsed && (
-          <div className="relative h-10 flex-1 overflow-hidden">
-            <Image
-              src="/afficixo-logo.png"
-              alt="Afficixo logo"
-              fill
-              className="object-contain"
-              priority
-            />
-          </div>
-        )}
+      <div className={`relative flex w-full flex-shrink-0 items-center gap-3 ${isMobile ? 'h-16 px-4' : 'h-10 justify-start p-0'}`}>
+          {(!collapsed || isMobile) && (
+            <div className="relative h-9 w-28 overflow-hidden">
+              <Image
+                src="/afficixo-logo.png"
+                alt="Afficixo logo"
+                fill
+                className="object-contain"
+                priority
+              />
+            </div>
+          )}
       </div>
 
       {!isMobile && (
@@ -137,7 +137,7 @@ export default function Sidebar() {
               key={item.href}
               href={item.href}
               onClick={() => isMobile && setMobileOpen(false)}
-              className={`group flex items-center ${collapsed && !isMobile ? 'justify-center' : 'gap-2'} ${isMobile ? 'rounded-lg px-2 py-2' : 'rounded-lg px-2 py-1.5'} border border-transparent transition-colors duration-150 ${
+                className={`group flex items-center ${collapsed && !isMobile ? 'justify-center' : 'gap-3'} ${isMobile ? 'min-h-11 rounded-xl px-3 py-2.5' : 'rounded-lg px-2 py-1.5'} border border-transparent transition-colors duration-150 ${
                 isActive
                   ? 'bg-cyan-400/10 border-cyan-400/20 text-slate-50 font-medium'
                   : 'text-slate-400 hover:text-slate-100 hover:bg-white/[0.06] hover:border-white/10'
@@ -188,7 +188,7 @@ export default function Sidebar() {
         )}
 
         <aside
-            className={`panel-bleed fixed right-0 top-0 z-[50] flex h-auto max-h-screen w-[min(16rem,calc(100vw-1rem))] flex-col overflow-y-auto overflow-x-hidden rounded-none border-0 transition-[transform,opacity,box-shadow] duration-300 ease-out lg:hidden ${
+              className={`panel-bleed fixed right-0 top-0 z-[50] flex h-screen max-h-screen w-[min(20rem,calc(100vw-1rem))] flex-col overflow-hidden rounded-l-2xl border-0 border-l border-white/10 shadow-2xl transition-[transform,opacity,box-shadow] duration-300 ease-out lg:hidden ${
             mobileOpen ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-90'
           }`}
         >

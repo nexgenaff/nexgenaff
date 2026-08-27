@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Image from 'next/image'
 import {
   AlertTriangle,
   CheckCircle2,
@@ -382,20 +383,15 @@ export default function OwnerManagersPage() {
   return (
     <div className="min-h-screen bg-slate-950 px-4 py-6 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-7xl space-y-6">
-        {/* Header */}
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <div className="flex items-center gap-2">
-              <ShieldCheck className="h-5 w-5 text-indigo-400" />
-              <span className="text-sm font-semibold text-indigo-400">Owner Control Center</span>
-            </div>
-            <h1 className="mt-2 text-2xl font-bold tracking-tight text-white sm:text-3xl">
-              Manager Approvals
-            </h1>
-            <p className="mt-1 text-sm text-slate-400">
-              Oversee registrations, approve access, and manage manager status.
-            </p>
-          </div>
+        {/* Header controls */}
+        <div className="flex items-center justify-between gap-4">
+          <Image
+            src="/afficixo-logo.png"
+            alt="Afficixo"
+            width={120}
+            height={40}
+            className="h-auto w-[100px] object-contain sm:w-[120px]"
+          />
           <div className="flex items-center gap-3">
             <div
               className={`rounded-lg px-4 py-2 text-sm font-medium ${
