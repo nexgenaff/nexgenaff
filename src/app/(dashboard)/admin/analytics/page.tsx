@@ -560,7 +560,7 @@ export default function AnalyticsPage() {
                 <thead className="sticky top-0 bg-slate-900/60">
                   <tr className="border-b border-slate-700/50">
                     <th
-                      className="px-2.5 py-1.5 font-medium text-slate-300 cursor-pointer hover:text-slate-200 border-r border-slate-700/30 select-none min-w-max"
+                      className="w-[180px] min-w-[180px] max-w-[180px] px-2.5 py-1.5 font-medium text-slate-300 cursor-pointer hover:text-slate-200 border-r border-slate-700/30 select-none whitespace-normal break-words"
                       onClick={() => requestSort("accountName")}
                       title="Click to sort"
                     >
@@ -601,7 +601,7 @@ export default function AnalyticsPage() {
                       key={account.accountName}
                       className={`border-b border-slate-800/40 hover:bg-slate-900/30 transition-colors ${index % 2 === 0 ? "bg-slate-950/20" : ""}`}
                     >
-                      <td className="px-2.5 py-1.5 font-medium text-slate-200 border-r border-slate-700/30 min-w-max">
+                      <td className="w-[180px] min-w-[180px] max-w-[180px] px-2.5 py-1.5 font-medium text-slate-200 border-r border-slate-700/30 whitespace-normal break-words">
                         {account.accountName}
                       </td>
                       {visibleLabels.map((country) => {
@@ -630,7 +630,7 @@ export default function AnalyticsPage() {
                   {/* Totals row */}
                   {totals.some((t) => t > 0) && (
                     <tr className="border-t border-teal-600/50 bg-teal-500/15 font-semibold">
-                      <td className="px-2.5 py-1.5 text-teal-200 border-r border-teal-600/30 font-bold min-w-max">TOTAL</td>
+                      <td className="w-[180px] min-w-[180px] max-w-[180px] px-2.5 py-1.5 text-teal-200 border-r border-teal-600/30 font-bold">TOTAL</td>
                       {totals.map((total, idx) => (
                         <td key={`total-${idx}`} className="px-2 py-1.5 text-center border-r border-teal-600/30 last:border-r-0 text-teal-100 font-bold min-w-[80px]">
                           {total}

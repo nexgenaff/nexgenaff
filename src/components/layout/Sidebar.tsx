@@ -78,9 +78,9 @@ export default function Sidebar() {
       ? [{ href: '/owner/managers', label: 'Manager Approvals', icon: ShieldCheck }]
       : []),
     { href: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { href: '/admin/links/create', label: 'Create Link', icon: Plus },
-    { href: '/admin/links/create-turbo', label: 'Turbo Link', icon: Plus },
-    { href: '/admin/links', label: 'All Links', icon: Link2 },
+    { href: '/admin/links/create', label: 'Create Link Account', icon: Plus },
+    { href: '/admin/links/create-turbo', label: 'Create Link Account Turbo Mood', icon: Plus },
+    { href: '/admin/links', label: 'All Link Account', icon: Link2 },
     { href: '/admin/payments', label: 'Payments', icon: WalletCards },
     ...(userRole !== 'MANAGER'
       ? [{ href: '/admin/offers', label: 'Offer Vault', icon: Package }]

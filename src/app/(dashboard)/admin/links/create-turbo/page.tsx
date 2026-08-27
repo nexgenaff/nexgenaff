@@ -168,7 +168,7 @@ export default function CreateLinkTurboPage() {
 
   const createdTemplate = createdLinks.length
     ? createdLinks
-        .map((link) => `🆔 ${link.accountName}\n🔗 ${link.trackingUrl}\n📊 ${link.publicStatsUrl}`)
+        .map((link) => `Account Name: \`${link.accountName}\`\nPublic Analytics: ${link.publicStatsUrl}\nTracking URL: \`${link.trackingUrl}\``)
         .join("\n\n")
     : "";
 

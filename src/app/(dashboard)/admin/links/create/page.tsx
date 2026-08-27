@@ -8,8 +8,6 @@ import {
   CheckCircle2,
   Copy,
   Check,
-  Globe,
-  Layers,
   Rocket,
 } from "lucide-react";
 import { buildOfferGroupList } from "@/lib/utils/offer-groups";
@@ -113,10 +111,6 @@ export default function CreateLinkPage() {
   };
 
   const selectableDomains = domains.filter((domain) => domain.verified && domain.isActive);
-  const selectedDomain = selectableDomains.find((domain) => domain.id === customDomainId);
-  const previewUrl = selectedDomain
-    ? `https://${selectedDomain.domain}/${slug || "your-slug"}`
-    : `${getBaseUrl()}/${slug || "your-slug"}`;
 
   const handleBack = () => {
     if (typeof window !== "undefined" && window.history.length > 1) {
@@ -177,7 +171,7 @@ export default function CreateLinkPage() {
   };
 
   const templateText = createdAccount
-    ? `🆔 𝗣𝘂𝗯𝗹𝗶𝘀𝗵𝗲𝗿 𝗜𝗗\n\`${createdAccount.accountName}\`\n\n📊 𝗣𝘂𝗯𝗹𝗶𝗰 𝗔𝗻𝗮𝗹𝘆𝘁𝗶𝗰𝘀\n${createdAccount.publicStatsUrl}\n\n🔗 𝗧𝗿𝗮𝗰𝗸𝗶𝗻𝗴 𝗨𝗥𝗟\n\`${createdAccount.trackingUrl}\``
+    ? `Account Name: \`${createdAccount.accountName}\`\nPublic Analytics: ${createdAccount.publicStatsUrl}\nTracking URL: \`${createdAccount.trackingUrl}\``
     : "";
 
   const hasCustomizations = customDomainId || offerGroupName;
@@ -249,7 +243,7 @@ export default function CreateLinkPage() {
                   type="text"
                   value={accountName}
                   onChange={(e) => setAccountName(e.target.value)}
-                  placeholder="e.g., iPhone Campaign"
+                  placeholder="Enter Account Holder Name"
                   required
                   disabled={loading}
                   className="w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2.5 text-sm text-white placeholder-slate-500 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
@@ -285,7 +279,6 @@ export default function CreateLinkPage() {
                     </option>
                   ))}
                 </select>
-                <p className="mt-1 text-xs text-slate-500">Only verified domains are eligible</p>
               </div>
 
               <div>
@@ -303,29 +296,7 @@ export default function CreateLinkPage() {
                     </option>
                   ))}
                 </select>
-                <p className="mt-1 text-xs text-slate-500">Optional. Overrides default geo routing</p>
-              </div>
-
-              {/* Preview */}
-              <div className="rounded-lg border border-slate-800 bg-slate-800/50 p-3">
-                <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-wider text-slate-400">
-                  <Globe className="h-3.5 w-3.5 text-indigo-400" />
-                  Preview
-                </div>
-                <div className="mt-2 break-all rounded-md bg-slate-900 px-3 py-2 font-mono text-sm text-indigo-300">
-                  {previewUrl}
-                </div>
-                <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-slate-500">
-                  <span className="flex items-center gap-1">
-                    <Globe className="h-3 w-3" />
-                    {selectedDomain ? "Custom domain" : "Default domain"}
-                  </span>
-                  <span className="h-3 w-px bg-slate-700" />
-                  <span className="flex items-center gap-1">
-                    <Layers className="h-3 w-3" />
-                    {offerGroupName || "Default routing"}
-                  </span>
-                </div>
+                <p className="mt-1 text-xs text-slate-500">Select an offer group</p>
               </div>
 
               <button

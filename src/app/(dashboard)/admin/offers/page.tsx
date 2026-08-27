@@ -13,13 +13,13 @@ import {
   X,
   Power,
   PowerOff,
-  Sparkles,
   ShieldCheck,
   MapPinned,
   Flag,
   RotateCcw,
   AlertTriangle,
   Globe,
+  Globe2,
   Layers,
   ChevronDown,
   Zap,
@@ -820,21 +820,19 @@ export default function OffersPage() {
               initial="hidden"
               animate="visible"
               exit="exit"
-              className="w-full sm:max-w-lg rounded-t-2xl sm:rounded-xl border border-white/10 bg-[#0d1724] p-5 sm:p-6 shadow-2xl shadow-indigo-500/10 max-h-[90vh] overflow-y-auto"
+              className="w-full sm:max-w-lg rounded-t-2xl sm:rounded-xl border border-slate-200 bg-white p-5 text-slate-900 shadow-2xl shadow-slate-900/10 max-h-[90vh] overflow-y-auto dark:border-white/10 dark:bg-[#0d1724] dark:text-slate-100 sm:p-6 dark:shadow-indigo-500/10"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex items-center justify-between mb-5">
                 <div className="flex items-center gap-2.5">
-                  <div className="p-2 rounded-lg bg-indigo-500/10">
-                    <Sparkles className="w-5 h-5 text-indigo-300" />
-                  </div>
-                  <h2 className="text-lg font-semibold text-white">
-                    {editingId ? "Edit Offer" : "Create Offer"}
+                  <Plus className="h-5 w-5 text-indigo-500 dark:text-indigo-300" />
+                  <h2 className="text-lg font-semibold text-slate-900 dark:!text-white">
+                    {editingId ? "Edit Offer" : "Add Offer"}
                   </h2>
                 </div>
                 <button
                   onClick={closeFormModal}
-                  className="p-2 rounded-lg hover:bg-white/5 transition text-slate-400 hover:text-white"
+                  className="p-2 rounded-lg text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-white/5 dark:hover:!text-white"
                   aria-label="Close"
                 >
                   <X className="w-5 h-5" />
@@ -850,7 +848,7 @@ export default function OffersPage() {
 
                 <div className="grid gap-4 md:grid-cols-2">
                   <div>
-                    <label className="block text-sm font-medium text-slate-300 mb-1.5">Country</label>
+                    <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:!text-slate-200">Country</label>
                     <div ref={countryPickerRef} className="relative">
                       <button
                         type="button"
@@ -863,13 +861,17 @@ export default function OffersPage() {
                         <span className="flex items-center gap-2.5">
                           {selectedCountry ? (
                             <>
-                              <Image
-                                src={getFlagImageUrl(selectedCountry.code)}
-                                alt={selectedCountry.code}
-                                width={24}
-                                height={16}
-                                className="rounded-sm"
-                              />
+                              {selectedCountry.code === "GLOBAL" ? (
+                                  <Globe2 className="h-4 w-4 text-slate-400" />
+                                ) : (
+                                  <Image
+                                    src={getFlagImageUrl(selectedCountry.code)}
+                                    alt={selectedCountry.code}
+                                    width={24}
+                                    height={16}
+                                    className="rounded-sm"
+                                  />
+                                )}
                               <span>{selectedCountry.code}</span>
                             </>
                           ) : (
@@ -896,13 +898,17 @@ export default function OffersPage() {
                                 onClick={() => handleCountrySelect(country.code)}
                                 className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-white hover:bg-white/5 transition min-h-[44px]"
                               >
-                                <Image
-                                  src={getFlagImageUrl(country.code)}
-                                  alt={country.code}
-                                  width={20}
-                                  height={14}
-                                  className="rounded-sm"
-                                />
+                                {country.code === "GLOBAL" ? (
+                                  <Globe2 className="h-4 w-4 text-slate-400" />
+                                ) : (
+                                  <Image
+                                    src={getFlagImageUrl(country.code)}
+                                    alt={country.code}
+                                    width={20}
+                                    height={14}
+                                    className="rounded-sm"
+                                  />
+                                )}
                                 <span>{country.code}</span>
                                 <span className="text-xs text-slate-400 truncate">{country.name}</span>
                               </button>
@@ -914,7 +920,7 @@ export default function OffersPage() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-slate-300 mb-1.5">Routing Pool</label>
+                    <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:!text-slate-200">Routing Pool</label>
                     <div className="flex gap-2">
                       <input
                         type="text"
@@ -976,7 +982,7 @@ export default function OffersPage() {
 
                 <div className="grid gap-4 md:grid-cols-2">
                   <div>
-                    <label className="block text-sm font-medium text-slate-300 mb-1.5">Priority</label>
+                    <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:!text-slate-200">Priority</label>
                     <div className="flex items-center gap-4">
                       <input
                         type="range"
@@ -984,7 +990,7 @@ export default function OffersPage() {
                         max="999"
                         value={formData.priority}
                         onChange={(e) => setFormData({ ...formData, priority: Number(e.target.value) })}
-                        className="flex-1 h-1.5 bg-white/10 rounded-full appearance-none [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-indigo-500 cursor-pointer"
+                        className="priority-slider flex-1 h-1.5 rounded-full appearance-none cursor-pointer"
                       />
                       <span className="text-sm font-semibold text-white min-w-[3rem] text-center">
                         {formData.priority}
@@ -992,7 +998,7 @@ export default function OffersPage() {
                     </div>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-slate-300 mb-1.5">Rotation</label>
+                    <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:!text-slate-200">Rotation</label>
                     <select
                       value={formData.rotationMode}
                       onChange={(e) =>
@@ -1010,7 +1016,7 @@ export default function OffersPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-1.5">Offer URL</label>
+                  <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:!text-slate-200">Offer URL</label>
                   <input
                     type="url"
                     value={formData.offerUrl}
@@ -1122,30 +1128,22 @@ export default function OffersPage() {
         className="space-y-5"
       >
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-2.5 text-indigo-300">
-              <Sparkles className="w-4 h-4" />
-              <span className="text-[10px] font-semibold uppercase tracking-[0.25em]">Offer Vault</span>
-            </div>
-            <h1 className="text-xl md:text-2xl font-bold text-white tracking-tight mt-0.5">Premium Geo Offer Routing</h1>
-            <p className="text-sm text-slate-400 mt-0.5">Build smart fallback offers with country targeting.</p>
-          </div>
           <div className="flex flex-wrap gap-2">
             <button
               onClick={() => {
                 setIsQuickGroupOpen((prev) => !prev);
                 setQuickGroupName("");
               }}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-indigo-400/30 bg-indigo-500/10 text-indigo-300 text-sm font-medium hover:bg-indigo-500/20 transition min-h-[44px]"
+              className="inline-flex min-h-8 items-center gap-1 rounded-md border border-indigo-400/30 bg-indigo-500/10 px-2.5 py-1 text-xs font-medium text-indigo-300 transition hover:bg-indigo-500/20"
             >
-              <Plus className="w-4 h-4" />
+              <Plus className="h-3.5 w-3.5" />
               Add Group
             </button>
             <button
               onClick={() => openOfferForm()}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-indigo-500 text-sm font-medium text-white hover:bg-indigo-600 transition min-h-[44px]"
+              className="inline-flex min-h-8 items-center gap-1 rounded-md bg-indigo-500 px-2.5 py-1 text-xs font-medium text-white transition hover:bg-indigo-600"
             >
-              <Plus className="w-4 h-4" />
+              <Plus className="h-3.5 w-3.5" />
               Add Offer
             </button>
           </div>
@@ -1200,25 +1198,25 @@ export default function OffersPage() {
               label: "Active", 
               value: activeOffers, 
               icon: Zap, 
-              color: "border-emerald-500/20 bg-emerald-500/5" 
+              color: "border-white/10 bg-white/5"
             },
             { 
               label: "Pools", 
               value: geoPoolCount, 
               icon: Layers, 
-              color: "border-blue-500/20 bg-blue-500/5" 
+              color: "border-white/10 bg-white/5"
             },
             { 
               label: "Global", 
               value: globalOffers, 
               icon: Globe, 
-              color: "border-amber-500/20 bg-amber-500/5" 
+              color: "border-white/10 bg-white/5"
             },
             { 
               label: "Score", 
               value: `${vaultScore}%`, 
               icon: TrendingUp, 
-              color: "border-purple-500/20 bg-purple-500/5" 
+              color: "border-white/10 bg-white/5"
             },
           ].map((stat) => (
             <div
@@ -1361,13 +1359,17 @@ export default function OffersPage() {
                           <div className="min-w-0 flex-1">
                             <div className="flex flex-wrap items-center gap-2">
                               <span className="inline-flex items-center gap-1.5 text-sm font-medium text-white">
-                                <Image
-                                  src={getFlagImageUrl(offer.country)}
-                                  alt={offer.country}
-                                  width={18}
-                                  height={12}
-                                  className="rounded-sm"
-                                />
+                                {offer.isGlobal ? (
+                                  <Globe2 className="h-4 w-4 text-slate-400" />
+                                ) : (
+                                  <Image
+                                    src={getFlagImageUrl(offer.country)}
+                                    alt={offer.country}
+                                    width={24}
+                                    height={16}
+                                    className="rounded-sm"
+                                  />
+                                )}
                                 {offer.isGlobal ? "🌍 Global" : offer.country}
                               </span>
                               {offer.groupName && (

@@ -406,6 +406,46 @@ body {
   -webkit-text-fill-color: #E5E7EB !important;
 }
 
+.priority-slider {
+  height: 6px;
+  background: transparent;
+}
+
+.priority-slider::-webkit-slider-runnable-track {
+  height: 6px;
+  border-radius: 9999px;
+  background: #cbd5e1;
+}
+
+.priority-slider::-webkit-slider-thumb {
+  width: 20px;
+  height: 20px;
+  margin-top: -7px;
+  appearance: none;
+  border: 0;
+  border-radius: 9999px;
+  background: #6366f1;
+}
+
+.priority-slider::-moz-range-track {
+  height: 6px;
+  border-radius: 9999px;
+  background: #cbd5e1;
+}
+
+.priority-slider::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border: 0;
+  border-radius: 9999px;
+  background: #6366f1;
+}
+
+.dark .priority-slider::-webkit-slider-runnable-track,
+.dark .priority-slider::-moz-range-track {
+  background: rgba(255, 255, 255, 0.2);
+}
+
 /* ──────────────────────────────────────────────
    SCROLLBAR
    ────────────────────────────────────────────── */

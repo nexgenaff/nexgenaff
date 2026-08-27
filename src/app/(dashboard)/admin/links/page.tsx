@@ -7,7 +7,6 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
   Search,
-  Plus,
   MousePointerClick,
   Users,
   Bot,
@@ -29,7 +28,6 @@ import {
   ChevronDown,
   Filter,
   ArrowUpDown,
-  RefreshCw,
 } from "lucide-react";
 import { formatNumber } from "@/lib/utils/helpers";
 import { buildOfferGroupList } from "@/lib/utils/offer-groups";
@@ -149,6 +147,17 @@ export default function LinksPage() {
   const [confirmInline, setConfirmInline] = useState<ConfirmInlineState | null>(null);
   const [invoiceHistoryLink, setInvoiceHistoryLink] = useState<LinkAccount | null>(null);
   const [paymentLink, setPaymentLink] = useState<LinkAccount | null>(null);
+
+  useEffect(() => {
+    if (!actionError && !actionMessage) return;
+
+    const timer = window.setTimeout(() => {
+      setActionError("");
+      setActionMessage("");
+    }, 4000);
+
+    return () => window.clearTimeout(timer);
+  }, [actionError, actionMessage]);
   const [paymentReference, setPaymentReference] = useState("");
 
   // ===== SORT & FILTER =====
@@ -160,7 +169,6 @@ export default function LinksPage() {
   const [filterPaymentMethod, setFilterPaymentMethod] = useState<"all" | "BKASH" | "BINANCE">("all");
   const [filterCreatedBy, setFilterCreatedBy] = useState<string>("all");
   const [showFilters, setShowFilters] = useState(false);
-  const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
 
   // Offer group options for filter
   const offerGroupFilterOptions = useMemo(() => {
@@ -190,7 +198,6 @@ export default function LinksPage() {
       }
       const data = await response.json();
       setLinks(coerceArray<LinkAccount>(data));
-      setLastUpdated(new Date());
     } catch (error) {
       console.error("Failed to fetch links:", error);
     }
@@ -757,44 +764,8 @@ export default function LinksPage() {
 
   return (
     <div className="space-y-6">
-      {/* ===== MESSAGES ===== */}
-      {(actionError || actionMessage) && (
-        <div
-          className={`rounded-lg px-4 py-3 text-sm ${
-            actionError
-              ? "bg-red-500/10 text-red-200 border border-red-500/20"
-              : "bg-emerald-500/10 text-emerald-200 border border-emerald-500/20"
-          }`}
-        >
-          {actionError || actionMessage}
-        </div>
-      )}
-
-      {/* ===== HEADER ===== */}
-      <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-5 sm:p-6">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <div className="flex items-center gap-2 text-indigo-400">
-              <Sparkles className="h-4 w-4" />
-              <span className="text-xs font-medium uppercase tracking-wider">Link Control Center</span>
-            </div>
-            <h1 className="mt-1 text-2xl font-bold text-white">All Link Accounts</h1>
-            <p className="mt-0.5 text-sm text-slate-400">
-              Monitor and manage every smart tracking link from one workspace.
-            </p>
-          </div>
-          <Link
-            href="/admin/links/create"
-            className="inline-flex items-center justify-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-indigo-500 whitespace-nowrap"
-          >
-            <Plus className="h-4 w-4" />
-            Create New Link
-          </Link>
-        </div>
-      </div>
-
       {/* ===== STATS ===== */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+      <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
         {stats.map((stat, idx) => (
           <div
             key={idx}
@@ -980,10 +951,6 @@ export default function LinksPage() {
                 <span className="text-sm text-slate-500">
                   {filteredLinks.length} of {links.length}
                 </span>
-                <span className="flex items-center gap-1.5 text-xs text-slate-500">
-                  <RefreshCw className="h-3 w-3" />
-                  {lastUpdated.toLocaleTimeString()}
-                </span>
               </div>
             </div>
           )}
@@ -1077,6 +1044,19 @@ export default function LinksPage() {
           </div>
         )}
       </div>
+
+      {/* ===== MESSAGES ===== */}
+      {(actionError || actionMessage) && (
+        <div
+          className={`relative z-10 rounded-lg px-4 py-3 text-sm ${
+            actionError
+              ? "border border-red-500/25 bg-red-50 text-red-800 dark:bg-red-500/10 dark:text-red-200"
+              : "border border-emerald-500/25 bg-emerald-50 text-emerald-800 dark:bg-emerald-500/10 dark:text-emerald-200"
+          }`}
+        >
+          {actionError || actionMessage}
+        </div>
+      )}
 
       {/* ===== CONFIRMATION (INLINE) ===== */}
       {confirmInline && (confirmInline.id === "bulk-reset" || confirmInline.id === "bulk-delete") && (
