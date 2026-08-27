@@ -24,6 +24,27 @@ interface PaymentLink {
   }>;
 }
 
+interface ManagerPayment {
+  id: string;
+  username: string;
+  fullName: string | null;
+  status: string;
+  payoutMethod: string | null;
+  payoutAccount: string | null;
+  bkashNumber: string | null;
+  linkAccounts: Array<{
+    id: string;
+    accountName: string;
+    payoutMethod: string | null;
+    payoutAccount: string | null;
+    invoices: Array<{
+      invoiceNumber: string;
+      totalEarning: number;
+      isPaid: boolean;
+    }>;
+  }>;
+}
+
 const money = (value: number) => `$${value.toFixed(2)}`;
 
 export default function PaymentsPage() {
@@ -43,6 +64,8 @@ export default function PaymentsPage() {
   const [showPaymentPassword, setShowPaymentPassword] = useState(false);
   const [isEditingPaymentMethod, setIsEditingPaymentMethod] = useState(false);
   const [bindingMessage, setBindingMessage] = useState("");
+  const [userRole, setUserRole] = useState<string | null>(null);
+  const [managerPayments, setManagerPayments] = useState<ManagerPayment[]>([]);
 
   const fetchPayments = useCallback(async () => {
     setError("");
@@ -65,16 +88,29 @@ export default function PaymentsPage() {
     void fetchPayments();
   }, [fetchPayments]);
 
-  useEffect(() => {
-    void fetch("/api/auth/me", { credentials: "include" })
-      .then((response) => response.ok ? response.json() : null)
-      .then((data) => {
-        if (data) {
-          setPayoutMethod(data.payoutMethod || "BKASH");
-          setPayoutAccount(data.payoutAccount || "");
-        }
-      });
+  const fetchManagerPayments = useCallback(async () => {
+    const response = await fetch("/api/owner/managers", { credentials: "include" });
+    if (!response.ok) return;
+    const data = await response.json();
+    setManagerPayments(data.managers || []);
   }, []);
+
+  useEffect(() => {
+    const loadAccountData = async () => {
+      const response = await fetch("/api/auth/me", { credentials: "include" });
+      if (!response.ok) return;
+      const data = await response.json();
+      setUserRole(data.role || null);
+      setPayoutMethod(data.payoutMethod || "BKASH");
+      setPayoutAccount(data.payoutAccount || "");
+
+      if (data.role === "OWNER") {
+        await fetchManagerPayments();
+      }
+    };
+
+    void loadAccountData();
+  }, [fetchManagerPayments]);
 
   const handlePaymentBindingSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -110,6 +146,7 @@ export default function PaymentsPage() {
       const data = await response.json().catch(() => null);
       if (!response.ok) throw new Error(data?.error || "Unable to mark invoice as paid");
       await fetchPayments();
+      if (userRole === "OWNER") await fetchManagerPayments();
       return true;
     } catch (actionError) {
       setError(actionError instanceof Error ? actionError.message : "Unable to mark invoice as paid");
@@ -173,6 +210,25 @@ export default function PaymentsPage() {
   ), [paymentRows]);
 
   const commission = totals.accrued * 0.2;
+  const managerPaymentRows = managerPayments.map((manager) => {
+    const invoices = manager.linkAccounts.flatMap((link) => link.invoices);
+    const paid = invoices.filter((invoice) => invoice.isPaid).reduce((sum, invoice) => sum + Number(invoice.totalEarning || 0), 0);
+    const unpaid = invoices.filter((invoice) => !invoice.isPaid).reduce((sum, invoice) => sum + Number(invoice.totalEarning || 0), 0);
+    const firstLink = manager.linkAccounts.find((link) => link.payoutAccount || link.payoutMethod);
+    const nextUnpaidInvoice = manager.linkAccounts
+      .flatMap((link) => link.invoices.filter((invoice) => !invoice.isPaid).map((invoice) => ({ invoice, link })))
+      .sort((firstInvoice, secondInvoice) => firstInvoice.invoice.invoiceNumber.localeCompare(secondInvoice.invoice.invoiceNumber))[0];
+    return {
+      manager,
+      invoiceCount: invoices.length,
+      paid,
+      unpaid,
+      total: paid + unpaid,
+      payoutMethod: manager.payoutMethod || firstLink?.payoutMethod || (manager.bkashNumber ? "BKASH" : null),
+      payoutAccount: manager.payoutAccount || firstLink?.payoutAccount || manager.bkashNumber,
+      nextUnpaidInvoice,
+    };
+  });
 
   return (
     <div className="space-y-5 pb-8">
@@ -184,6 +240,41 @@ export default function PaymentsPage() {
       </div>
 
       {bindingMessage && <p className="rounded-md border border-emerald-500/20 bg-emerald-500/10 px-3 py-2 text-xs text-emerald-700 dark:text-emerald-300">{bindingMessage}</p>}
+      {userRole === "OWNER" ? (
+        <section className="overflow-hidden rounded-lg border border-slate-200 bg-[var(--surface-card)] shadow-sm dark:border-white/10">
+          <div className="border-b border-slate-200 p-4 dark:border-white/10">
+            <h2 className="text-sm font-semibold text-slate-900 dark:text-white">Manager payments</h2>
+            <p className="mt-1 text-xs text-slate-500">Invoice totals and payout details for your team members.</p>
+          </div>
+          {managerPaymentRows.length === 0 ? (
+            <p className="p-6 text-sm text-slate-500">No manager accounts found.</p>
+          ) : (
+            <div className="divide-y divide-slate-200 dark:divide-white/10">
+              {managerPaymentRows.map(({ manager, invoiceCount, paid, unpaid, total, payoutMethod, payoutAccount, nextUnpaidInvoice }) => (
+                <div key={manager.id} className="grid gap-3 p-4 sm:grid-cols-[1.3fr_repeat(3,0.7fr)_1.4fr] sm:items-center">
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-semibold text-slate-900 dark:text-white">{manager.fullName || manager.username}</p>
+                    <p className="mt-0.5 truncate text-xs text-slate-500">@{manager.username} · {invoiceCount} {invoiceCount === 1 ? "invoice" : "invoices"}</p>
+                  </div>
+                  <div><p className="text-[10px] uppercase tracking-wide text-slate-500">Total</p><p className="mt-1 text-sm font-semibold text-slate-900 dark:text-white">{money(total)}</p></div>
+                  <div><p className="text-[10px] uppercase tracking-wide text-slate-500">Paid</p><p className="mt-1 text-sm font-semibold text-emerald-700 dark:text-emerald-300">{money(paid)}</p></div>
+                  <div><p className="text-[10px] uppercase tracking-wide text-slate-500">Due</p><p className="mt-1 text-sm font-semibold text-amber-700 dark:text-amber-300">{money(unpaid)}</p></div>
+                  <div className="min-w-0">
+                    <p className="text-[10px] uppercase tracking-wide text-slate-500">Payment details</p>
+                    <div className="mt-1 flex min-w-0 items-center gap-1.5">
+                      <p className="truncate text-sm font-medium text-slate-900 dark:text-white">{payoutMethod ? `${payoutMethod === "BKASH" ? "bKash" : payoutMethod} · ${payoutAccount || "Account missing"}` : "Payment method missing"}</p>
+                      {payoutAccount && <button type="button" onClick={() => void copyPaymentAccount(manager.id, payoutAccount)} className="shrink-0 rounded p-1 text-slate-500 transition hover:bg-slate-100 hover:text-indigo-600 dark:hover:bg-white/10 dark:hover:text-indigo-300" aria-label={`Copy payment account for ${manager.username}`} title={copiedPaymentAccount === manager.id ? "Copied" : "Copy payment account"}>
+                        {copiedPaymentAccount === manager.id ? <Check className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-300" /> : <Copy className="h-3.5 w-3.5" />}
+                      </button>}
+                    </div>
+                    {nextUnpaidInvoice && <button type="button" onClick={() => { setPaymentLink({ id: nextUnpaidInvoice.link.id, accountName: manager.fullName || manager.username, slug: "", isActive: true, totalEarning: 0, qualifiedClicks: 0, payoutMethod: payoutMethod, payoutAccount: payoutAccount }); setPaymentReference(""); }} className="mt-2 inline-flex items-center gap-1 rounded-md bg-indigo-600 px-2 py-1.5 text-[10px] font-semibold text-white transition hover:bg-indigo-500">Mark invoice paid</button>}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+      ) : (
       <section className="space-y-4 rounded-lg border border-slate-200 bg-[var(--surface-card)] p-4 shadow-sm dark:border-white/10">
           <div className="flex items-start justify-between gap-4">
             <div>
@@ -249,6 +340,7 @@ export default function PaymentsPage() {
             </form>
           )}
       </section>
+      )}
 
       <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
         {[

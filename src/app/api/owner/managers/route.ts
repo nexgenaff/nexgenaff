@@ -33,6 +33,8 @@ export async function GET(request: Request) {
       contractNumber: true,
       telegramUsername: true,
       bkashNumber: true,
+      payoutMethod: true,
+      payoutAccount: true,
       role: true,
       status: true,
       createdAt: true,
@@ -41,7 +43,28 @@ export async function GET(request: Request) {
     }
 
     let managers = null
-    let selectConfig = { ...selectFields }
+    let selectConfig: Record<string, any> = { ...selectFields }
+    selectConfig = {
+      ...selectConfig,
+      linkAccounts: {
+        select: {
+          id: true,
+          accountName: true,
+          payoutMethod: true,
+          payoutAccount: true,
+          invoices: {
+            orderBy: { createdAt: 'desc' },
+            select: {
+              invoiceNumber: true,
+              totalEarning: true,
+              isPaid: true,
+              createdAt: true,
+              paidAt: true,
+            },
+          },
+        },
+      },
+    }
     while (true) {
       try {
         managers = await prisma.user.findMany({
