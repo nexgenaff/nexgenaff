@@ -126,7 +126,7 @@ export default function Sidebar() {
         </button>
       )}
 
-      <nav className={`relative z-10 flex-1 overflow-y-auto ${isMobile ? 'space-y-0.5 px-2 py-2' : 'space-y-0.5 px-2 py-2'}`}>
+      <nav className={`relative z-10 flex-1 overflow-y-auto ${isMobile ? 'space-y-2 px-2 py-2' : 'space-y-1 px-2 py-2'}`}>
         {menuItems.map((item) => {
           const isActive = pathname === item.href || pathname?.startsWith(item.href + '/')
           const Icon = item.icon
@@ -135,7 +135,7 @@ export default function Sidebar() {
               key={item.href}
               href={item.href}
               onClick={() => isMobile && setMobileOpen(false)}
-              className={`group flex items-center ${collapsed && !isMobile ? 'justify-center' : 'gap-2'} ${isMobile ? 'rounded-lg px-2 py-1.5' : 'rounded-lg px-2 py-1.5'} border border-transparent transition-colors duration-150 ${
+              className={`group flex items-center ${collapsed && !isMobile ? 'justify-center' : 'gap-2'} ${isMobile ? 'rounded-lg px-2 py-2' : 'rounded-lg px-2 py-1.5'} border border-transparent transition-colors duration-150 ${
                 isActive
                   ? 'bg-cyan-400/10 border-cyan-400/20 text-slate-50 font-medium'
                   : 'text-slate-400 hover:text-slate-100 hover:bg-white/[0.06] hover:border-white/10'
@@ -186,7 +186,7 @@ export default function Sidebar() {
         )}
 
         <aside
-            className={`panel-bleed fixed bottom-0 right-0 top-0 z-[50] flex h-screen w-[min(16rem,calc(100vw-1rem))] flex-col overflow-hidden rounded-none border-0 transition-[transform,opacity,box-shadow] duration-300 ease-out lg:hidden ${
+            className={`panel-bleed fixed right-0 top-0 z-[50] flex h-auto max-h-screen w-[min(16rem,calc(100vw-1rem))] flex-col overflow-y-auto overflow-x-hidden rounded-none border-0 transition-[transform,opacity,box-shadow] duration-300 ease-out lg:hidden ${
             mobileOpen ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-90'
           }`}
         >

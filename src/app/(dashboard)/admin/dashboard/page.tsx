@@ -333,22 +333,16 @@ export default function DashboardPage() {
   return (
     // ─── Main container with overflow protection ───
     <div className="min-h-screen bg-[#07090e] text-slate-100 selection:bg-indigo-500 selection:text-white pb-20 overflow-x-hidden w-full max-w-full">
-      {/* Background Grid Texture */}
-      <div className="fixed inset-0 pointer-events-none z-0">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(99,102,241,0.06),rgba(255,255,255,0))]" />
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#1e293b12_1px,transparent_1px),linear-gradient(to_bottom,#1e293b12_1px,transparent_1px)] bg-[size:3rem_3rem]" />
-      </div>
-
       <div className="relative z-10 mx-auto w-full max-w-[1280px] px-2 pt-4 sm:px-3 sm:pt-6 lg:px-3">
         {/* ─── Header ─── */}
-        <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-[#0d111a]/95 rounded-2xl p-4 sm:p-5 backdrop-blur-md shadow-xl mb-4 sm:mb-6">
+        <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-2xl bg-cyan-50/80 p-4 shadow-[0_10px_30px_rgba(6,182,212,0.14)] backdrop-blur-md mb-4 sm:mb-6 sm:p-5 dark:bg-slate-900/95 dark:shadow-[0_10px_30px_rgba(34,211,238,0.1)]">
           <div className="flex items-center gap-3">
             <div className="flex-shrink-0">
               <Image
                 src="/afficixo-logo.png"
                 alt="Afficixo logo"
-                width={64}
-                height={64}
+                width={96}
+                height={96}
                 className="object-cover"
                 priority
               />

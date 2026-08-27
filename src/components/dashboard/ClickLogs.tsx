@@ -601,7 +601,6 @@ export default function ClickLogs({ filter }: ClickLogsProps) {
           </div>
         ) : (
           clicks.map((click) => {
-            const referrerInfo = getReferrerInfo(click.referrer)
             return (
               <div
                 key={click.id}
@@ -658,8 +657,8 @@ export default function ClickLogs({ filter }: ClickLogsProps) {
                   </div>
                   <div className="flex justify-between py-1.5">
                     <span className="text-slate-500">Referrer:</span>
-                    <span className="truncate text-slate-400">
-                      {click.referrer ? referrerInfo.hostname : 'Direct'}
+                    <span className="max-w-[75%] break-all text-right text-slate-400">
+                      {click.referrer || 'Direct'}
                     </span>
                   </div>
                   <button onClick={() => setShowGeoInfo(showGeoInfo === click.id ? null : click.id)} className="flex justify-between w-full text-slate-300 hover:text-slate-200 cursor-pointer transition py-1.5" title="More details">
@@ -764,7 +763,7 @@ export default function ClickLogs({ filter }: ClickLogsProps) {
                       </button>
                     </div>
                   </td>
-                  <td className="px-4 py-2 text-sm max-w-[150px] truncate text-cyan-200">
+                  <td className="px-4 py-2 text-sm max-w-[260px] break-all text-cyan-200">
                     {click.referrer ? (() => {
                       const referrerInfo = getReferrerInfo(click.referrer)
                       return (
@@ -777,7 +776,7 @@ export default function ClickLogs({ filter }: ClickLogsProps) {
                             if (!referrerInfo.href) event.preventDefault()
                           }}
                         >
-                          {referrerInfo.hostname}
+                          <span className="break-all">{click.referrer}</span>
                           <ExternalLink className="w-3 h-3 flex-shrink-0" />
                         </a>
                       )
