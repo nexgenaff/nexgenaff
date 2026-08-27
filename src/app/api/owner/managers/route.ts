@@ -107,7 +107,18 @@ export async function GET(request: Request) {
       }
     }
 
-    return NextResponse.json({ managers }, { headers: getCorsHeaders(origin) })
+    const normalizedManagers = (managers || []).map((manager: any) => ({
+      ...manager,
+      linkAccounts: (manager.linkAccounts || []).map((linkAccount: any) => ({
+        ...linkAccount,
+        invoices: (linkAccount.invoices || []).map((invoice: any) => ({
+          ...invoice,
+          managerPayouts: invoice.managerPayouts || [],
+        })),
+      })),
+    }))
+
+    return NextResponse.json({ managers: normalizedManagers }, { headers: getCorsHeaders(origin) })
   } catch (error) {
     console.error('Owner managers GET error:', error)
     return NextResponse.json(
