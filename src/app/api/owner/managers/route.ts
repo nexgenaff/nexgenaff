@@ -58,6 +58,8 @@ export async function GET(request: Request) {
               invoiceNumber: true,
               totalEarning: true,
               isPaid: true,
+              payoutMethod: true,
+              payoutAccount: true,
               createdAt: true,
               paidAt: true,
             },

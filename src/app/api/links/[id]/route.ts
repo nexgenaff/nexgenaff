@@ -239,14 +239,19 @@ export async function POST(
     const body = await request.json()
     if (body.action === 'mark-paid') {
       const paymentReference = typeof body.paymentReference === 'string' ? body.paymentReference.trim() : ''
-      if (!link.payoutMethod) {
-        return NextResponse.json({ error: 'Payout method must be configured before marking an invoice as paid' }, { status: 400, headers: getCorsHeaders(origin) })
+      const invoiceNumber = typeof body.invoiceNumber === 'string' ? body.invoiceNumber.trim() : ''
+      const invoice = await prisma.invoice.findFirst({
+        where: { linkAccountId: id, isPaid: false, ...(invoiceNumber ? { invoiceNumber } : {}) },
+        orderBy: { createdAt: 'desc' },
+      })
+      if (!invoice) return NextResponse.json({ error: 'No unpaid invoice found' }, { status: 404, headers: getCorsHeaders(origin) })
+      const payoutMethod = invoice.payoutMethod || link.payoutMethod
+      if (!payoutMethod) {
+        return NextResponse.json({ error: 'This invoice has no payment method configured' }, { status: 400, headers: getCorsHeaders(origin) })
       }
       if (!paymentReference) {
-        return NextResponse.json({ error: link.payoutMethod === 'BKASH' ? 'bKash transaction ID is required' : 'Binance order ID is required' }, { status: 400, headers: getCorsHeaders(origin) })
+        return NextResponse.json({ error: payoutMethod === 'BKASH' ? 'bKash transaction ID is required' : 'Binance order ID is required' }, { status: 400, headers: getCorsHeaders(origin) })
       }
-      const invoice = await prisma.invoice.findFirst({ where: { linkAccountId: id, isPaid: false }, orderBy: { createdAt: 'desc' } })
-      if (!invoice) return NextResponse.json({ error: 'No unpaid invoice found' }, { status: 404, headers: getCorsHeaders(origin) })
       await prisma.invoice.update({ where: { id: invoice.id }, data: { isPaid: true, paidAt: new Date(), paymentReference } })
       return NextResponse.json({ success: true, invoiceNumber: invoice.invoiceNumber }, { headers: getCorsHeaders(origin) })
     }

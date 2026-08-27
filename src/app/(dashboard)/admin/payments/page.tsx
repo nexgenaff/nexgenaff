@@ -15,6 +15,7 @@ interface PaymentLink {
   qualifiedClicks: number;
   payoutMethod: string | null;
   payoutAccount: string | null;
+  selectedInvoiceNumber?: string;
   invoiceHistory?: Array<{
     invoiceNumber: string;
     totalEarning: number;
@@ -41,6 +42,8 @@ interface ManagerPayment {
       invoiceNumber: string;
       totalEarning: number;
       isPaid: boolean;
+      payoutMethod: string | null;
+      payoutAccount: string | null;
     }>;
   }>;
 }
@@ -141,7 +144,7 @@ export default function PaymentsPage() {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "mark-paid", paymentReference: reference }),
+        body: JSON.stringify({ action: "mark-paid", paymentReference: reference, invoiceNumber: paymentLink?.selectedInvoiceNumber }),
       });
       const data = await response.json().catch(() => null);
       if (!response.ok) throw new Error(data?.error || "Unable to mark invoice as paid");
@@ -267,7 +270,7 @@ export default function PaymentsPage() {
                         {copiedPaymentAccount === manager.id ? <Check className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-300" /> : <Copy className="h-3.5 w-3.5" />}
                       </button>}
                     </div>
-                    {nextUnpaidInvoice && <button type="button" onClick={() => { setPaymentLink({ id: nextUnpaidInvoice.link.id, accountName: manager.fullName || manager.username, slug: "", isActive: true, totalEarning: 0, qualifiedClicks: 0, payoutMethod: payoutMethod, payoutAccount: payoutAccount }); setPaymentReference(""); }} className="mt-2 inline-flex items-center gap-1 rounded-md bg-indigo-600 px-2 py-1.5 text-[10px] font-semibold text-white transition hover:bg-indigo-500">Mark invoice paid</button>}
+                    {nextUnpaidInvoice && <button type="button" onClick={() => { setPaymentLink({ id: nextUnpaidInvoice.link.id, accountName: manager.fullName || manager.username, slug: "", isActive: true, totalEarning: 0, qualifiedClicks: 0, payoutMethod: nextUnpaidInvoice.invoice.payoutMethod, payoutAccount: nextUnpaidInvoice.invoice.payoutAccount, selectedInvoiceNumber: nextUnpaidInvoice.invoice.invoiceNumber }); setPaymentReference(""); }} className="mt-2 inline-flex items-center gap-1 rounded-md bg-indigo-600 px-2 py-1.5 text-[10px] font-semibold text-white transition hover:bg-indigo-500">Mark invoice paid</button>}
                   </div>
                 </div>
               ))}
