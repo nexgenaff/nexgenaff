@@ -17,6 +17,7 @@ model User {
   telegramUsername String?
   bkashNumber      String?
   clickRate        Float?      @default(0)
+  commissionRate   Float?      @default(20)
   payoutMethod     String?
   payoutAccount    String?
   paymentPasswordHash String?

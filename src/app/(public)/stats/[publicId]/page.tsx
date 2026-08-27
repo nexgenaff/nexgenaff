@@ -252,6 +252,7 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
 
   const [isDark, setIsDark] = useState(true)
   const [themeLoaded, setThemeLoaded] = useState(false)
+  const originalDarkClass = useRef<boolean | null>(null)
 
   useEffect(() => {
     const stored = localStorage.getItem('theme')
@@ -263,6 +264,20 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
 
   useEffect(() => {
     if (themeLoaded) localStorage.setItem('theme', isDark ? 'dark' : 'light')
+  }, [isDark, themeLoaded])
+
+  useEffect(() => {
+    if (!themeLoaded) return
+
+    const root = document.documentElement
+    if (originalDarkClass.current === null) {
+      originalDarkClass.current = root.classList.contains('dark')
+    }
+    root.classList.toggle('dark', isDark)
+
+    return () => {
+      root.classList.toggle('dark', originalDarkClass.current === true)
+    }
   }, [isDark, themeLoaded])
 
   const toggleTheme = () => setIsDark(!isDark)

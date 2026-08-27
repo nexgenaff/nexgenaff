@@ -40,6 +40,7 @@ export async function GET(request: Request) {
       email: user.email,
       status: user.status,
       clickRate: user.clickRate ?? 0,
+      commissionRate: user.commissionRate ?? 20,
       payoutMethod: user.payoutMethod || 'BKASH',
       payoutAccount: user.payoutAccount || user.bkashNumber || '',
     }, { headers: getCorsHeaders(origin) })

@@ -39,6 +39,7 @@ export async function GET(request: Request) {
           select: {
             username: true,
             clickRate: true,
+            commissionRate: true,
             payoutMethod: true,
           },
         },
@@ -65,6 +66,7 @@ export async function GET(request: Request) {
         ...link,
         qualifiedClicks: qualifiedClickMap.get(link.id) || 0,
         totalEarning: (qualifiedClickMap.get(link.id) || 0) * (Number(link.user?.clickRate ?? 0) || 0),
+        commissionRate: Number(link.user?.commissionRate ?? 20) || 20,
         payoutMethod: link.payoutMethod || null,
         payoutAccount: link.payoutAccount || null,
         invoiceHistory: link.invoices,

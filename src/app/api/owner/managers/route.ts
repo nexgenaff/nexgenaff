@@ -35,6 +35,8 @@ export async function GET(request: Request) {
       bkashNumber: true,
       payoutMethod: true,
       payoutAccount: true,
+      clickRate: true,
+      commissionRate: true,
       role: true,
       status: true,
       createdAt: true,

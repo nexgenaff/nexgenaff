@@ -160,7 +160,8 @@ export default function DashboardPage() {
                 const invoices = Array.isArray(link.invoiceHistory) ? link.invoiceHistory : [];
                 const current = Number(link.totalEarning) || 0;
                 const invoiceTotal = invoices.reduce((total: number, invoice: { totalEarning?: number }) => total + (Number(invoice.totalEarning) || 0), 0);
-                return { totalEarned: summary.totalEarned + current + invoiceTotal, commission: summary.commission + (current + invoiceTotal) * 0.2 };
+                const commissionRate = Number(link.commissionRate ?? 20) || 20;
+                return { totalEarned: summary.totalEarned + current + invoiceTotal, commission: summary.commission + (current + invoiceTotal) * (commissionRate / 100) };
               },
               { totalEarned: 0, commission: 0 },
             )

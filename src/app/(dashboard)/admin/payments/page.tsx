@@ -35,6 +35,7 @@ interface ManagerPayment {
   payoutMethod: string | null;
   payoutAccount: string | null;
   bkashNumber: string | null;
+  commissionRate: number;
   linkAccounts: Array<{
     id: string;
     accountName: string;
@@ -268,6 +269,7 @@ export default function PaymentsPage() {
     const paid = invoices.filter((invoice) => invoice.isPaid).reduce((sum, invoice) => sum + Number(invoice.totalEarning || 0), 0);
     const unpaid = invoices.filter((invoice) => !invoice.isPaid).reduce((sum, invoice) => sum + Number(invoice.totalEarning || 0), 0);
     const totalEarned = managerRevenueByUserId.get(manager.id) || 0;
+    const commissionRate = Number(manager.commissionRate ?? 20) || 0;
     const firstLink = manager.linkAccounts.find((link) => link.payoutAccount || link.payoutMethod);
     const nextUnpaidInvoice = manager.linkAccounts
       .flatMap((link) => link.invoices.filter((invoice) => !invoice.isPaid && invoice.managerPayouts.length === 0).map((invoice) => ({ invoice, link })))
@@ -277,7 +279,8 @@ export default function PaymentsPage() {
       invoiceCount: invoices.length,
       paid,
       unpaid,
-      total: totalEarned + totalEarned * 0.2,
+      total: totalEarned + totalEarned * (commissionRate / 100),
+      commissionRate,
       payoutMethod: manager.payoutMethod || firstLink?.payoutMethod || (manager.bkashNumber ? "BKASH" : null),
       payoutAccount: manager.payoutAccount || firstLink?.payoutAccount || manager.bkashNumber,
       nextUnpaidInvoice,
@@ -304,13 +307,13 @@ export default function PaymentsPage() {
             <p className="p-6 text-sm text-slate-500">No manager accounts found.</p>
           ) : (
             <div className="divide-y divide-slate-200 dark:divide-white/10">
-              {managerPaymentRows.map(({ manager, invoiceCount, paid, unpaid, total, payoutMethod, payoutAccount, nextUnpaidInvoice }) => (
+              {managerPaymentRows.map(({ manager, invoiceCount, paid, unpaid, total, commissionRate, payoutMethod, payoutAccount, nextUnpaidInvoice }) => (
                 <div key={manager.id} className="grid gap-3 p-4 sm:grid-cols-[1.3fr_repeat(3,0.7fr)_1.4fr] sm:items-center">
                   <div className="min-w-0">
                     <p className="truncate text-sm font-semibold text-slate-900 dark:text-white">{manager.fullName || manager.username}</p>
                     <p className="mt-0.5 truncate text-xs text-slate-500">@{manager.username} · {invoiceCount} {invoiceCount === 1 ? "invoice" : "invoices"}</p>
                   </div>
-                  <div><p className="text-[10px] uppercase tracking-wide text-slate-500">Revenue</p><p className="mt-1 text-sm font-semibold text-slate-900 dark:text-white">{money(total)}</p></div>
+                  <div><p className="text-[10px] uppercase tracking-wide text-slate-500">Revenue</p><p className="mt-1 text-sm font-semibold text-slate-900 dark:text-white">{money(total)}</p><p className="mt-0.5 text-[10px] text-slate-500">{commissionRate.toFixed(2)}% commission</p></div>
                   <div><p className="text-[10px] uppercase tracking-wide text-slate-500">Paid</p><p className="mt-1 text-sm font-semibold text-emerald-700 dark:text-emerald-300">{money(paid)}</p></div>
                   <div><p className="text-[10px] uppercase tracking-wide text-slate-500">Due</p><p className="mt-1 text-sm font-semibold text-amber-700 dark:text-amber-300">{money(unpaid)}</p></div>
                   <div className="min-w-0">
