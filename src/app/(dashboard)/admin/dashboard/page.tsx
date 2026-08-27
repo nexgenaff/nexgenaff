@@ -27,6 +27,7 @@ interface DashboardStats {
   commission: number;
   commissionRate: number;
   revenue: number;
+  totalConversions: number;
   chartData: any;
   hourlyChartData: any;
   countryBreakdown: any[];
@@ -61,6 +62,7 @@ export default function DashboardPage() {
     commission: 0,
     commissionRate: 20,
     revenue: 0,
+    totalConversions: 0,
     chartData: createDefaultChart(),
     hourlyChartData: createDefaultChart(),
     countryBreakdown: [],
@@ -138,6 +140,7 @@ export default function DashboardPage() {
             commission: 0,
             commissionRate: 20,
             revenue: 0,
+            totalConversions: 0,
             chartData: createDefaultChart(),
             hourlyChartData: createDefaultChart(),
             countryBreakdown: [],
@@ -155,6 +158,8 @@ export default function DashboardPage() {
         }
 
         const data = await response.json();
+        const postbacksResponse = await fetch("/api/postbacks", { credentials: "include" });
+        const postbacksData = postbacksResponse.ok ? await postbacksResponse.json() : null;
         const linksResponse = await fetch("/api/links", { credentials: "include" });
         const paymentLinks = linksResponse.ok ? await linksResponse.json() : [];
         const managerCommissionRate = Array.isArray(paymentLinks)
@@ -182,6 +187,7 @@ export default function DashboardPage() {
           commission: paymentSummary.commission,
           commissionRate: managerCommissionRate,
           revenue: paymentSummary.totalEarned + paymentSummary.commission,
+          totalConversions: Number(postbacksData?.totalConversions) || 0,
           chartData: data.chartData || createDefaultChart(),
           hourlyChartData: data.hourlyChartData || createDefaultChart(),
           countryBreakdown: Array.isArray(data.countryBreakdown)
@@ -418,6 +424,8 @@ export default function DashboardPage() {
             chartData={chartData}
             hourlyChartData={hourlyChartData}
             countryBreakdown={countryBreakdown}
+            totalConversions={stats.totalConversions}
+            showConversions={userRole !== "MANAGER"}
           />
         </section>
 

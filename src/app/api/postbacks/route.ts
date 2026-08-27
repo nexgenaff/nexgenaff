@@ -15,12 +15,13 @@ export async function GET(request: Request) {
   const user = await getAuthenticatedUser(request)
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401, headers: getCorsHeaders(origin) })
   if (!isAdminOrOwner(user)) return NextResponse.json({ error: 'Only owners and admins can access postbacks.' }, { status: 403, headers: getCorsHeaders(origin) })
-  const [configs, leads] = await Promise.all([
+  const [configs, leads, totalConversions] = await Promise.all([
     prisma.postbackConfig.findMany({ where: { userId: user.id }, orderBy: { provider: 'asc' } }),
     prisma.conversionLead.findMany({ where: { userId: user.id }, orderBy: { createdAt: 'desc' }, take: 100, include: { postback: { select: { provider: true } } } }),
+    prisma.conversionLead.count({ where: { userId: user.id } }),
   ])
   const telegram = await prisma.telegramNotification.findUnique({ where: { userId: user.id }, select: { channelId: true, isActive: true } })
-  return NextResponse.json({ configs, leads, telegram }, { headers: getCorsHeaders(origin) })
+  return NextResponse.json({ configs, leads, totalConversions, telegram }, { headers: getCorsHeaders(origin) })
 }
 
 export async function POST(request: Request) {
