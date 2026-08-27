@@ -60,6 +60,9 @@ export async function GET(request: Request) {
               isPaid: true,
               payoutMethod: true,
               payoutAccount: true,
+              managerPayouts: {
+                select: { payoutId: true },
+              },
               createdAt: true,
               paidAt: true,
             },

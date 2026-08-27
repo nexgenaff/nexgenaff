@@ -32,6 +32,7 @@ model User {
   customDomains CustomDomain[]
   landingPageTemplates    LandingPageTemplate[] @relation("TemplateCreatedBy")
   landingPages           LandingPage[] @relation("LandingPagesCreatedBy")
+  managerPayouts         ManagerPayout[]
   
   @@map("users")
 }
@@ -356,7 +357,38 @@ model Invoice {
   isPaid               Boolean     @default(false)
   paidAt               DateTime?
   createdAt            DateTime    @default(now())
+  managerPayouts       ManagerPayoutInvoice[]
 
   @@index([linkAccountId, createdAt])
   @@map("invoices")
+}
+
+model ManagerPayout {
+  id               String               @id @default(cuid())
+  payoutNumber     String               @unique
+  managerId        String
+  manager          User                 @relation(fields: [managerId], references: [id], onDelete: Cascade)
+  totalEarning     Float
+  invoiceCount     Int
+  payoutMethod     String?
+  payoutAccount    String?
+  paymentReference String?
+  isPaid           Boolean              @default(false)
+  paidAt           DateTime?
+  createdAt        DateTime             @default(now())
+  invoices         ManagerPayoutInvoice[]
+
+  @@index([managerId, createdAt])
+  @@map("manager_payouts")
+}
+
+model ManagerPayoutInvoice {
+  payoutId  String
+  invoiceId String
+  payout    ManagerPayout @relation(fields: [payoutId], references: [id], onDelete: Cascade)
+  invoice   Invoice       @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  @@id([payoutId, invoiceId])
+  @@unique([invoiceId])
+  @@map("manager_payout_invoices")
 }

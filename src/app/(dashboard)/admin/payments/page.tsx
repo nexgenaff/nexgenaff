@@ -16,6 +16,7 @@ interface PaymentLink {
   payoutMethod: string | null;
   payoutAccount: string | null;
   selectedInvoiceNumber?: string;
+  selectedManagerId?: string;
   invoiceHistory?: Array<{
     invoiceNumber: string;
     totalEarning: number;
@@ -42,8 +43,10 @@ interface ManagerPayment {
       invoiceNumber: string;
       totalEarning: number;
       isPaid: boolean;
+      paidAt: string | null;
       payoutMethod: string | null;
       payoutAccount: string | null;
+      managerPayouts: Array<{ payoutId: string }>;
     }>;
   }>;
 }
@@ -148,6 +151,23 @@ export default function PaymentsPage() {
       });
       const data = await response.json().catch(() => null);
       if (!response.ok) throw new Error(data?.error || "Unable to mark invoice as paid");
+      const paidAt = new Date().toISOString();
+      const selectedInvoiceNumber = paymentLink?.selectedInvoiceNumber || data?.invoiceNumber;
+      setLinks((currentLinks) => currentLinks.map((link) => ({
+        ...link,
+        invoiceHistory: link.invoiceHistory?.map((invoice) => invoice.invoiceNumber === selectedInvoiceNumber
+          ? { ...invoice, isPaid: true, paidAt }
+          : invoice),
+      })));
+      setManagerPayments((currentManagers) => currentManagers.map((manager) => ({
+        ...manager,
+        linkAccounts: manager.linkAccounts.map((account) => ({
+          ...account,
+          invoices: account.invoices.map((invoice) => invoice.invoiceNumber === selectedInvoiceNumber
+            ? { ...invoice, isPaid: true, paidAt }
+            : invoice),
+        })),
+      })));
       await fetchPayments();
       if (userRole === "OWNER") await fetchManagerPayments();
       return true;
@@ -159,10 +179,34 @@ export default function PaymentsPage() {
     }
   };
 
+  const recordManagerPayout = async (managerId: string, reference: string) => {
+    setPayingLinkId(managerId);
+    setError("");
+    try {
+      const response = await fetch(`/api/owner/managers/${managerId}/payout`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ paymentReference: reference }),
+      });
+      const data = await response.json().catch(() => null);
+      if (!response.ok) throw new Error(data?.error || "Unable to record manager payout");
+      await fetchManagerPayments();
+      return true;
+    } catch (actionError) {
+      setError(actionError instanceof Error ? actionError.message : "Unable to record manager payout");
+      return false;
+    } finally {
+      setPayingLinkId(null);
+    }
+  };
+
   const submitPayment = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!paymentLink || !paymentReference.trim()) return;
-    const success = await markInvoicePaid(paymentLink.id, paymentReference.trim());
+    const success = paymentLink.selectedManagerId
+      ? await recordManagerPayout(paymentLink.selectedManagerId, paymentReference.trim())
+      : await markInvoicePaid(paymentLink.id, paymentReference.trim());
     if (success) {
       setPaymentLink(null);
       setPaymentReference("");
@@ -219,7 +263,7 @@ export default function PaymentsPage() {
     const unpaid = invoices.filter((invoice) => !invoice.isPaid).reduce((sum, invoice) => sum + Number(invoice.totalEarning || 0), 0);
     const firstLink = manager.linkAccounts.find((link) => link.payoutAccount || link.payoutMethod);
     const nextUnpaidInvoice = manager.linkAccounts
-      .flatMap((link) => link.invoices.filter((invoice) => !invoice.isPaid).map((invoice) => ({ invoice, link })))
+      .flatMap((link) => link.invoices.filter((invoice) => !invoice.isPaid && invoice.managerPayouts.length === 0).map((invoice) => ({ invoice, link })))
       .sort((firstInvoice, secondInvoice) => firstInvoice.invoice.invoiceNumber.localeCompare(secondInvoice.invoice.invoiceNumber))[0];
     return {
       manager,
@@ -270,7 +314,7 @@ export default function PaymentsPage() {
                         {copiedPaymentAccount === manager.id ? <Check className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-300" /> : <Copy className="h-3.5 w-3.5" />}
                       </button>}
                     </div>
-                    {nextUnpaidInvoice && <button type="button" onClick={() => { setPaymentLink({ id: nextUnpaidInvoice.link.id, accountName: manager.fullName || manager.username, slug: "", isActive: true, totalEarning: 0, qualifiedClicks: 0, payoutMethod, payoutAccount, selectedInvoiceNumber: nextUnpaidInvoice.invoice.invoiceNumber }); setPaymentReference(""); }} className="mt-2 inline-flex items-center gap-1 rounded-md bg-indigo-600 px-2 py-1.5 text-[10px] font-semibold text-white transition hover:bg-indigo-500">Mark invoice paid</button>}
+                    {nextUnpaidInvoice && <button type="button" onClick={() => { setPaymentLink({ id: nextUnpaidInvoice.link.id, accountName: manager.fullName || manager.username, slug: "", isActive: true, totalEarning: 0, qualifiedClicks: 0, payoutMethod, payoutAccount, selectedInvoiceNumber: nextUnpaidInvoice.invoice.invoiceNumber, selectedManagerId: manager.id }); setPaymentReference(""); }} className="mt-2 inline-flex items-center gap-1 rounded-md bg-indigo-600 px-2 py-1.5 text-[10px] font-semibold text-white transition hover:bg-indigo-500">Mark manager paid</button>}
                   </div>
                 </div>
               ))}
