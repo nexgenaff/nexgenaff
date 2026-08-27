@@ -245,12 +245,9 @@ export async function POST(
         orderBy: { createdAt: 'desc' },
       })
       if (!invoice) return NextResponse.json({ error: 'No unpaid invoice found' }, { status: 404, headers: getCorsHeaders(origin) })
-      const payoutMethod = invoice.payoutMethod || link.payoutMethod
-      if (!payoutMethod) {
-        return NextResponse.json({ error: 'This invoice has no payment method configured' }, { status: 400, headers: getCorsHeaders(origin) })
-      }
       if (!paymentReference) {
-        return NextResponse.json({ error: payoutMethod === 'BKASH' ? 'bKash transaction ID is required' : 'Binance order ID is required' }, { status: 400, headers: getCorsHeaders(origin) })
+        const payoutMethod = invoice.payoutMethod || link.payoutMethod
+        return NextResponse.json({ error: payoutMethod === 'BKASH' ? 'bKash transaction ID is required' : payoutMethod === 'BINANCE' ? 'Binance order ID is required' : 'Payment reference is required' }, { status: 400, headers: getCorsHeaders(origin) })
       }
       await prisma.invoice.update({ where: { id: invoice.id }, data: { isPaid: true, paidAt: new Date(), paymentReference } })
       return NextResponse.json({ success: true, invoiceNumber: invoice.invoiceNumber }, { headers: getCorsHeaders(origin) })

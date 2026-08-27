@@ -270,7 +270,7 @@ export default function PaymentsPage() {
                         {copiedPaymentAccount === manager.id ? <Check className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-300" /> : <Copy className="h-3.5 w-3.5" />}
                       </button>}
                     </div>
-                    {nextUnpaidInvoice && <button type="button" onClick={() => { setPaymentLink({ id: nextUnpaidInvoice.link.id, accountName: manager.fullName || manager.username, slug: "", isActive: true, totalEarning: 0, qualifiedClicks: 0, payoutMethod: nextUnpaidInvoice.invoice.payoutMethod, payoutAccount: nextUnpaidInvoice.invoice.payoutAccount, selectedInvoiceNumber: nextUnpaidInvoice.invoice.invoiceNumber }); setPaymentReference(""); }} className="mt-2 inline-flex items-center gap-1 rounded-md bg-indigo-600 px-2 py-1.5 text-[10px] font-semibold text-white transition hover:bg-indigo-500">Mark invoice paid</button>}
+                    {nextUnpaidInvoice && <button type="button" onClick={() => { setPaymentLink({ id: nextUnpaidInvoice.link.id, accountName: manager.fullName || manager.username, slug: "", isActive: true, totalEarning: 0, qualifiedClicks: 0, payoutMethod, payoutAccount, selectedInvoiceNumber: nextUnpaidInvoice.invoice.invoiceNumber }); setPaymentReference(""); }} className="mt-2 inline-flex items-center gap-1 rounded-md bg-indigo-600 px-2 py-1.5 text-[10px] font-semibold text-white transition hover:bg-indigo-500">Mark invoice paid</button>}
                   </div>
                 </div>
               ))}
@@ -449,8 +449,8 @@ export default function PaymentsPage() {
             </button>
           </div>
           <label className="mt-5 block text-xs font-semibold text-slate-300" htmlFor="payment-reference">
-            {paymentLink.payoutMethod === "BKASH" ? "bKash transaction ID" : "Binance order ID"}
-            <input id="payment-reference" value={paymentReference} onChange={(event) => setPaymentReference(event.target.value)} autoFocus required placeholder={paymentLink.payoutMethod === "BKASH" ? "Enter bKash transaction ID" : "Enter Binance order ID"} className="mt-2 h-10 w-full rounded-md border border-slate-700 bg-slate-950 px-3 text-sm text-white outline-none placeholder:text-slate-500 focus:border-emerald-300/50" />
+            {paymentLink.payoutMethod === "BKASH" ? "bKash transaction ID" : paymentLink.payoutMethod === "BINANCE" ? "Binance order ID" : "Payment reference"}
+            <input id="payment-reference" value={paymentReference} onChange={(event) => setPaymentReference(event.target.value)} autoFocus required placeholder={paymentLink.payoutMethod === "BKASH" ? "Enter bKash transaction ID" : paymentLink.payoutMethod === "BINANCE" ? "Enter Binance order ID" : "Enter payment reference"} className="mt-2 h-10 w-full rounded-md border border-slate-700 bg-slate-950 px-3 text-sm text-white outline-none placeholder:text-slate-500 focus:border-emerald-300/50" />
           </label>
           <div className="mt-5 flex justify-end gap-2">
             <button type="button" onClick={() => setPaymentLink(null)} className="rounded-md border border-slate-700 px-3 py-2 text-xs font-semibold text-slate-300 hover:bg-white/5">Cancel</button>
