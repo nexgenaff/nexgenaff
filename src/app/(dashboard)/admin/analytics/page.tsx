@@ -19,6 +19,9 @@ interface DashboardStats {
   uniqueClicks: number;
   totalLinks: number;
   botClicks: number;
+  totalEarned: number;
+  commission: number;
+  revenue: number;
   accountGeoReport?: {
     labels: string[];
     datasets: {
@@ -83,6 +86,9 @@ export default function AnalyticsPage() {
     uniqueClicks: 0,
     botClicks: 0,
     totalLinks: 0,
+    totalEarned: 0,
+    commission: 0,
+    revenue: 0,
   });
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);

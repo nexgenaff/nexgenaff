@@ -347,10 +347,30 @@ export async function GET(request: Request) {
     const ownerUserId = await getOwnerUserId();
     const linkWhere = getLinkAccountVisibilityWhereClause(user, ownerUserId) as Prisma.LinkAccountWhereInput;
 
-    const links = await prisma.linkAccount.findMany({
-      where: linkWhere,
-      select: { id: true, accountName: true },
-    });
+    let links: any[];
+    try {
+      links = await prisma.linkAccount.findMany({
+        where: linkWhere,
+        select: {
+          id: true,
+          accountName: true,
+          user: { select: { clickRate: true, commissionRate: true } },
+        },
+      });
+    } catch (error: any) {
+      if (error?.code !== 'P2022' || !String(error?.meta?.column || '').includes('commissionRate')) {
+        throw error;
+      }
+
+      links = await prisma.linkAccount.findMany({
+        where: linkWhere,
+        select: {
+          id: true,
+          accountName: true,
+          user: { select: { clickRate: true } },
+        },
+      });
+    }
 
     const linkIds = links.map((l) => l.id);
     const linkAccounts = links.map((l) => ({ id: l.id, accountName: l.accountName }));
@@ -363,6 +383,9 @@ export async function GET(request: Request) {
           uniqueClicks: 0,
           botClicks: 0,
           totalLinks: 0,
+          totalEarned: 0,
+          commission: 0,
+          revenue: 0,
           geoData: [],
           chartData: { labels: dateRange.labels, datasets: [] },
           hourlyChartData: {
@@ -439,6 +462,27 @@ export async function GET(request: Request) {
     const uniqueIPs = new Set(clicks.map((c) => c.ipAddress).filter((ip) => ip && ip.trim() !== ''));
     const uniqueClicks = uniqueIPs.size;
     const botClicks = clicks.filter((c) => c.isBot).length;
+
+    const linkRateById = new Map(links.map((link) => [
+      link.id,
+      {
+        clickRate: Number(link.user?.clickRate ?? 0) || 0,
+        commissionRate: Number(link.user?.commissionRate ?? 20) || 20,
+      },
+    ]));
+    const totalEarned = clicks.reduce((sum, click) => {
+      if (click.country !== 'US' || !click.isUnique || click.isBot || !click.referrer?.trim()) return sum;
+      const device = (click.deviceType || '').toLowerCase();
+      if (device === 'desktop' || device === 'computer') return sum;
+      return sum + (linkRateById.get(click.linkAccountId)?.clickRate || 0);
+    }, 0);
+    const commission = clicks.reduce((sum, click) => {
+      if (click.country !== 'US' || !click.isUnique || click.isBot || !click.referrer?.trim()) return sum;
+      const device = (click.deviceType || '').toLowerCase();
+      if (device === 'desktop' || device === 'computer') return sum;
+      const rates = linkRateById.get(click.linkAccountId);
+      return sum + (rates?.clickRate || 0) * ((rates?.commissionRate ?? 20) / 100);
+    }, 0);
 
     const countryBreakdown = Array.from(aggregated.geoMap.entries())
       .map(([country, values]) => ({ name: country, ...values }))
@@ -537,6 +581,9 @@ export async function GET(request: Request) {
         uniqueClicks,
         botClicks,
         totalLinks: links.length,
+        totalEarned,
+        commission,
+        revenue: totalEarned + commission,
         countryBreakdown,
         geoData,
         referrerBreakdown,
