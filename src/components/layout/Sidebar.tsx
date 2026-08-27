@@ -19,6 +19,7 @@ import {
   ShieldCheck,
   Layers,
   WalletCards,
+  Webhook,
 } from 'lucide-react'
 
 export default function Sidebar() {
@@ -89,6 +90,9 @@ export default function Sidebar() {
       ? [{ href: '/admin/domains', label: 'Custom Domains', icon: Globe2 }]
       : []),
     { href: '/admin/analytics', label: 'Analytics', icon: BarChart3 },
+    ...(userRole !== 'MANAGER'
+      ? [{ href: '/admin/postbacks', label: 'S2S Postbacks', icon: Webhook }]
+      : []),
     { href: '/admin/landing-builder', label: 'Landing page Builder', icon: Layers },
     ...(userRole === 'OWNER'
       ? [{ href: '/admin/templates', label: 'Templates', icon: Layers }]

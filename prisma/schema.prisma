@@ -34,6 +34,9 @@ model User {
   landingPageTemplates    LandingPageTemplate[] @relation("TemplateCreatedBy")
   landingPages           LandingPage[] @relation("LandingPagesCreatedBy")
   managerPayouts         ManagerPayout[]
+  postbackConfigs         PostbackConfig[]
+  conversionLeads         ConversionLead[]
+  telegramNotification    TelegramNotification?
   
   @@map("users")
 }
@@ -392,4 +395,57 @@ model ManagerPayoutInvoice {
   @@id([payoutId, invoiceId])
   @@unique([invoiceId])
   @@map("manager_payout_invoices")
+}
+
+enum PostbackProvider {
+  AFFMINE
+  ADBLUMEDIA
+}
+
+model PostbackConfig {
+  id          String           @id @default(cuid())
+  userId      String
+  user        User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  provider    PostbackProvider
+  label       String
+  token       String           @unique
+  isActive    Boolean          @default(true)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  leads       ConversionLead[]
+
+  @@unique([userId, provider])
+  @@index([token, isActive])
+  @@map("postback_configs")
+}
+
+model ConversionLead {
+  id             String         @id @default(cuid())
+  userId         String
+  user           User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  postbackId     String
+  postback       PostbackConfig @relation(fields: [postbackId], references: [id], onDelete: Cascade)
+  payout         Float?
+  sub1           String?
+  sub2           String?
+  sub3           String?
+  sub4           String?
+  createdAt      DateTime       @default(now())
+
+  @@index([userId, createdAt])
+  @@index([postbackId, createdAt])
+  @@map("conversion_leads")
+}
+
+model TelegramNotification {
+  id                String   @id @default(cuid())
+  userId            String   @unique
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  channelId         String
+  botTokenEncrypted String
+  isActive          Boolean  @default(true)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@map("telegram_notifications")
 }
