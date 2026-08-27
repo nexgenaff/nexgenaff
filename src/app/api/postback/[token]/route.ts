@@ -43,7 +43,7 @@ export async function ingestPostback(request: Request, token: string, bodyParams
     const subIds = [lead.sub1, lead.sub2, lead.sub3, lead.sub4].filter(Boolean).join(' | ') || '-'
     try {
       const telegramToken = decryptTelegramToken(telegram.botTokenEncrypted)
-      void sendTelegramMessage(telegramToken, telegram.channelId, `New ${config.label} conversion\nPayout: $${(lead.payout || 0).toFixed(2)}\nSubIDs: ${subIds}`).catch((error) => console.error('Telegram notification failed:', error))
+      await sendTelegramMessage(telegramToken, telegram.channelId, `New ${config.label} conversion\nPayout: $${(lead.payout || 0).toFixed(2)}\nSubIDs: ${subIds}`)
     } catch (error) {
       console.error('Telegram token decryption failed:', error)
     }
