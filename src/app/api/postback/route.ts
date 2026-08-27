@@ -15,6 +15,13 @@ export async function GET(request: Request) {
   return ingestPostback(request, token)
 }
 
+export async function HEAD(request: Request) {
+  const token = new URL(request.url).searchParams.get('secret') || new URL(request.url).searchParams.get('token')
+  if (!token) return new NextResponse(null, { status: 400 })
+  const config = await import('@/lib/db/prisma').then(({ prisma }) => prisma.postbackConfig.findFirst({ where: { token, isActive: true }, select: { id: true } }))
+  return new NextResponse(null, { status: config ? 200 : 404 })
+}
+
 export async function POST(request: Request) {
   const params = await getBodyParams(request)
   const token = params.get('secret') || params.get('token')
