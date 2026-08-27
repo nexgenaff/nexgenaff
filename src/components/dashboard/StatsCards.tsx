@@ -100,6 +100,7 @@ export default function StatsCards({
           icon={CircleDollarSign}
           color="green"
           prefix="$"
+          decimalPlaces={3}
           delay={300}
         />
       </div>
@@ -111,7 +112,7 @@ export default function StatsCards({
             <h3 className="mt-1 text-base font-semibold text-slate-50 sm:text-lg">
               {onPeriodChange
                 ? `${period.charAt(0).toUpperCase()}${period.slice(1)} click activity`
-                : 'All-time click activity'}
+                : 'Daily click activity'}
             </h3>
           </div>
           {onPeriodChange && (

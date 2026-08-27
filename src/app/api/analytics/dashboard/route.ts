@@ -51,7 +51,7 @@ const getDateRange = (period: Period, filters: DashboardFilters = {}): DateRange
   let bucketCount = 7;
   let labels: string[] = [];
 
-  const granularity = filters.granularity || (period === 'all' || period === 'year' ? 'yearly' : period === 'month' ? 'monthly' : 'daily');
+  const granularity = filters.granularity || (period === 'year' ? 'yearly' : period === 'month' ? 'monthly' : 'daily');
   const groupByWeekly = granularity === 'weekly';
   const groupByMonthly = granularity === 'monthly' || granularity === 'yearly';
 
@@ -112,10 +112,9 @@ const getDateRange = (period: Period, filters: DashboardFilters = {}): DateRange
       });
     }
   } else if (period === 'all') {
-    startDate = new Date(0);
     startDate.setHours(0, 0, 0, 0);
-    bucketCount = now.getFullYear() - startDate.getFullYear() + 1;
-    labels = Array.from({ length: bucketCount }, (_, i) => String(startDate.getFullYear() + i));
+    bucketCount = 1;
+    labels = [startDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })];
   } else if (groupByWeekly) {
     startDate.setDate(startDate.getDate() - 6 * 7);
     startDate.setHours(0, 0, 0, 0);

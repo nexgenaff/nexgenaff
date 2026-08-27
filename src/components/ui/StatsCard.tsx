@@ -12,6 +12,7 @@ interface StatsCardProps {
   color?: 'indigo' | 'green' | 'purple' | 'red' | 'blue' | 'orange'
   subtitle?: string
   prefix?: string
+  decimalPlaces?: number
   delay?: number
 }
 
@@ -23,6 +24,7 @@ export function StatsCard({
   color = 'indigo',
   subtitle,
   prefix = '',
+  decimalPlaces,
   delay = 0,
 }: StatsCardProps) {
   const colorClasses = {
@@ -49,7 +51,11 @@ export function StatsCard({
             {title}
           </p>
           <p className="mt-2 text-2xl sm:text-3xl font-bold text-white">
-            {prefix}{formatNumber(value)}
+            {prefix}{decimalPlaces !== undefined
+              ? value === 0
+                ? '0'
+                : value.toFixed(decimalPlaces)
+              : formatNumber(value)}
           </p>
           {subtitle && (
             <p className="mt-1.5 text-xs text-slate-500">
