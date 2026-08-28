@@ -89,6 +89,7 @@ export async function GET(request: Request) {
         if (innerError?.code === 'P2021') {
           const missingTable = String(innerError?.meta?.table || '')
           if (missingTable.includes('manager_payout') || missingTable.includes('ManagerPayout')) {
+            delete selectConfig.managerPayouts
             delete selectConfig.linkAccounts.select.invoices.select.managerPayouts
             continue
           }
@@ -115,6 +116,7 @@ export async function GET(request: Request) {
 
     const normalizedManagers = (managers || []).map((manager: any) => ({
       ...manager,
+      managerPayouts: manager.managerPayouts || [],
       linkAccounts: (manager.linkAccounts || []).map((linkAccount: any) => ({
         ...linkAccount,
         invoices: (linkAccount.invoices || []).map((invoice: any) => ({

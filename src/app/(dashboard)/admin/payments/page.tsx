@@ -86,6 +86,7 @@ export default function PaymentsPage() {
   const [userRole, setUserRole] = useState<string | null>(null);
   const [managerPayments, setManagerPayments] = useState<ManagerPayment[]>([]);
   const [showManagerPayments, setShowManagerPayments] = useState(false);
+  const [managerPaymentsError, setManagerPaymentsError] = useState("");
 
   const fetchPayments = useCallback(async () => {
     setError("");
@@ -109,10 +110,16 @@ export default function PaymentsPage() {
   }, [fetchPayments]);
 
   const fetchManagerPayments = useCallback(async () => {
-    const response = await fetch("/api/owner/managers", { credentials: "include" });
-    if (!response.ok) return;
-    const data = await response.json();
-    setManagerPayments(data.managers || []);
+    try {
+      const response = await fetch("/api/owner/managers", { credentials: "include" });
+      if (!response.ok) throw new Error("Unable to load manager payment data");
+      const data = await response.json();
+      setManagerPayments(data.managers || []);
+      setManagerPaymentsError("");
+    } catch (managerError) {
+      setManagerPayments([]);
+      setManagerPaymentsError(managerError instanceof Error ? managerError.message : "Unable to load manager payment data");
+    }
   }, []);
 
   useEffect(() => {
@@ -332,7 +339,9 @@ export default function PaymentsPage() {
             </span>
             <ChevronDown className={`h-4 w-4 shrink-0 text-slate-500 transition-transform ${showManagerPayments ? "rotate-180" : ""}`} />
           </button>
-          {showManagerPayments && (managerPaymentRows.length === 0 ? (
+          {showManagerPayments && managerPaymentsError ? (
+            <p className="border-t border-slate-200 p-6 text-sm text-rose-600 dark:border-white/10 dark:text-rose-300">{managerPaymentsError}</p>
+          ) : showManagerPayments && (managerPaymentRows.length === 0 ? (
             <p className="border-t border-slate-200 p-6 text-sm text-slate-500 dark:border-white/10">No manager accounts found.</p>
           ) : (
             <div className="divide-y divide-slate-200 border-t border-slate-200 dark:divide-white/10 dark:border-white/10">
