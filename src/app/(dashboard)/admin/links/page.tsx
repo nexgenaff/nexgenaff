@@ -45,6 +45,7 @@ interface LinkAccount {
   offerGroupName: string | null;
   qualifiedClicks: number;
   totalEarning: number;
+  subIdPayout: number;
   payoutMethod: string | null;
   payoutAccount: string | null;
   invoices?: Array<{
@@ -360,6 +361,7 @@ export default function LinksPage() {
 
   const isManager = userRole === 'MANAGER';
   const isOwner = userRole === 'OWNER';
+  const canViewSubIdPayout = isOwner || userRole === 'ADMIN';
 
   const handleSaveEdit = async () => {
     if (!editingLinkId) return;
@@ -440,7 +442,7 @@ export default function LinksPage() {
     setConfirmInline({
       id,
       tone: "warning",
-      message: "This will clear all recorded statistics for this link. The link will remain active.",
+      message: "This will clear all recorded statistics and matching SubID postbacks for this link. The link will remain active.",
       confirmLabel: "Reset stats",
       onConfirm: async () => {
         setActionError("");
@@ -511,7 +513,7 @@ export default function LinksPage() {
     setConfirmInline({
       id: "bulk-reset",
       tone: "warning",
-      message: `This will clear statistics for ${selectedIds.length} selected link(s).`,
+      message: `This will clear statistics and matching SubID postbacks for ${selectedIds.length} selected link(s).`,
       confirmLabel: "Reset selected",
       onConfirm: async () => {
         setActionError("");
@@ -1169,12 +1171,18 @@ export default function LinksPage() {
                   </div>
 
                   <div className="absolute bottom-3 left-3 right-[112px] flex w-auto flex-nowrap items-center gap-1.5 overflow-hidden text-xs sm:left-4 sm:right-[112px]">
-                    <span className="inline-flex min-w-0 flex-1 items-center gap-1 rounded-md border border-slate-800 bg-slate-800/40 px-1.5 py-0.5 text-slate-400">
-                      <Link2 className="h-3.5 w-3.5 text-indigo-400" />
-                      <span className="min-w-0 flex-1 truncate">{getPreviewUrl(link)}</span>
+                    <span
+                      className="inline-flex shrink-0 items-center gap-1 rounded-md border border-slate-800 bg-slate-800/40 px-1.5 py-0.5 text-slate-400"
+                      title="Tracking link: copy this link to send traffic for this account"
+                    >
+                      <Link2 className="h-3.5 w-3.5 text-indigo-400" aria-label="Tracking link" />
+                      <span className="text-[10px] font-medium text-slate-500 sm:hidden">Link</span>
                       <CopyIcon text={getPreviewUrl(link)} label="Copy tracking link" onCopy={() => setCopiedKey(`tracking-${link.id}`)} />
                     </span>
-                    <span className="inline-flex shrink-0 items-center gap-1 rounded-md border border-slate-800 bg-slate-800/40 px-1.5 py-0.5 text-slate-400">
+                    <span
+                      className="inline-flex shrink-0 items-center gap-1 rounded-md border border-slate-800 bg-slate-800/40 px-1.5 py-0.5 text-slate-400"
+                      title="Public stats: open this account's performance dashboard"
+                    >
                       <Globe2 className="h-3.5 w-3.5 text-emerald-400" />
                       <a
                         href={getPublicStatsUrl(link)}
@@ -1193,16 +1201,20 @@ export default function LinksPage() {
 
                 {/* RIGHT: STATS + ACTIONS */}
                 <div className="flex w-full flex-wrap items-start justify-end gap-2 sm:w-auto sm:flex-nowrap">
-                  <div className="grid w-full grid-cols-4 gap-1.5 sm:w-auto sm:min-w-[430px]">
+                  <div className={`grid w-full gap-1.5 sm:w-auto ${canViewSubIdPayout ? "grid-cols-5 sm:min-w-[540px]" : "grid-cols-4 sm:min-w-[430px]"}`}>
                     <div className="contents">
                       {[
                         { label: "Clicks", value: formatNumber(link.totalClicks), color: "text-indigo-400" },
                         { label: "Unique", value: formatNumber(link.uniqueClicks), color: "text-emerald-400" },
                         { label: "Bots", value: formatNumber(link.botClicks), color: "text-rose-400" },
                         { label: "Earnings", value: `$${Number(link.totalEarning || 0).toFixed(2)}`, color: "text-emerald-300" },
+                        ...(canViewSubIdPayout
+                          ? [{ label: "SubID payout", value: `$${Number(link.subIdPayout || 0).toFixed(2)}`, color: "text-cyan-300" }]
+                          : []),
                       ].map((stat) => (
                         <div
                           key={stat.label}
+                          title={stat.label === "SubID payout" ? `Total postback payout where sub1 matches slug: ${link.slug}` : undefined}
                           className="min-h-[46px] min-w-0 rounded-md border border-slate-800 bg-slate-800/50 px-1.5 py-1 text-center"
                         >
                           <div className="text-[9px] uppercase tracking-wider text-slate-500">{stat.label}</div>
@@ -1210,7 +1222,7 @@ export default function LinksPage() {
                         </div>
                       ))}
                     </div>
-                    <div className="col-span-4 flex min-w-0 items-stretch gap-1.5">
+                    <div className={`${canViewSubIdPayout ? "col-span-5" : "col-span-4"} flex min-w-0 items-stretch gap-1.5`}>
                       <div className="flex h-[46px] min-w-0 flex-1 flex-col items-start justify-center rounded-md border border-slate-800 bg-slate-800/50 px-2 py-1 text-[10px] leading-tight text-slate-400">
                       <span className={link.payoutMethod ? "font-semibold text-cyan-300" : "text-slate-500"}>
                         {link.payoutMethod ? (link.payoutMethod === "BKASH" ? "bKash" : "Binance") : "Not set"}
@@ -1243,7 +1255,6 @@ export default function LinksPage() {
                     ) : null}
                     </div>
                   </div>
-
                   {!isManager ? (
                     <div className="absolute bottom-3 right-3 flex shrink-0 gap-1 rounded-md bg-slate-900/80 p-0.5">
                       <button

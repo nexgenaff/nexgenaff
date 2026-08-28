@@ -104,7 +104,7 @@ export async function POST(request: Request) {
     if (action === 'reset') {
       const invoiceLinks = await prisma.linkAccount.findMany({
         where: { id: { in: ids } },
-        select: { id: true, userId: true, payoutMethod: true, payoutAccount: true },
+        select: { id: true, userId: true, slug: true, payoutMethod: true, payoutAccount: true },
       })
       const invoiceUsers = await prisma.user.findMany({ where: { id: { in: invoiceLinks.map((link) => link.userId) } }, select: { id: true, clickRate: true } })
       const invoiceRateByUser = new Map(invoiceUsers.map((user) => [user.id, Number(user.clickRate ?? 0) || 0]))
@@ -116,12 +116,16 @@ export async function POST(request: Request) {
           return device !== 'desktop' && device !== 'computer'
         }).length,
       })))
+      const invoiceCreates = invoiceCounts.flatMap((link) => {
+        const clickRate = invoiceRateByUser.get(link.userId) || 0
+        const totalEarning = link.qualifiedClicks * clickRate
+        if (totalEarning <= 0) return []
+
+        const invoiceTimestamp = new Date().toISOString().replaceAll('-', '').replaceAll(':', '').replaceAll('.', '').replace('T', '').replace('Z', '').slice(0, 14)
+        return [prisma.invoice.create({ data: { invoiceNumber: `INV-${invoiceTimestamp}-${link.id.slice(-6).toUpperCase()}`, linkAccountId: link.id, qualifiedClicks: link.qualifiedClicks, clickRate, totalEarning, payoutMethod: link.payoutMethod, payoutAccount: link.payoutAccount } })]
+      })
       await prisma.$transaction([
-        ...invoiceCounts.map((link) => {
-          const clickRate = invoiceRateByUser.get(link.userId) || 0
-          const invoiceTimestamp = new Date().toISOString().replaceAll('-', '').replaceAll(':', '').replaceAll('.', '').replace('T', '').replace('Z', '').slice(0, 14)
-          return prisma.invoice.create({ data: { invoiceNumber: `INV-${invoiceTimestamp}-${link.id.slice(-6).toUpperCase()}`, linkAccountId: link.id, qualifiedClicks: link.qualifiedClicks, clickRate, totalEarning: link.qualifiedClicks * clickRate * 1.2, payoutMethod: link.payoutMethod, payoutAccount: link.payoutAccount } })
-        }),
+        ...invoiceCreates,
         prisma.click.deleteMany({ where: { linkAccountId: { in: ids } } }),
         prisma.geoStat.deleteMany({ where: { linkAccountId: { in: ids } } }),
         prisma.dailyAnalytics.deleteMany({ where: { linkAccountId: { in: ids } } }),
@@ -130,6 +134,11 @@ export async function POST(request: Request) {
         prisma.oSStat.deleteMany({ where: { linkAccountId: { in: ids } } }),
         prisma.deviceStat.deleteMany({ where: { linkAccountId: { in: ids } } }),
         prisma.referrerStat.deleteMany({ where: { linkAccountId: { in: ids } } }),
+        prisma.conversionLead.deleteMany({
+          where: {
+            OR: invoiceLinks.map((link) => ({ userId: link.userId, sub1: link.slug })),
+          },
+        }),
         prisma.linkAccount.updateMany({
           where: { id: { in: ids } },
           data: {

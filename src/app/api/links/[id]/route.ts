@@ -272,10 +272,13 @@ export async function POST(
     const invoiceClickRate = Number((await prisma.user.findUnique({ where: { id: link.userId }, select: { clickRate: true } }))?.clickRate ?? 0) || 0
     const invoiceTimestamp = new Date().toISOString().replaceAll('-', '').replaceAll(':', '').replaceAll('.', '').replace('T', '').replace('Z', '').slice(0, 14)
     const invoiceNumber = `INV-${invoiceTimestamp}-${id.slice(-6).toUpperCase()}`
+    const invoiceTotalEarning = invoiceClicks * invoiceClickRate
 
     await prisma.$transaction(
       [
-        prisma.invoice.create({ data: { invoiceNumber, linkAccountId: id, qualifiedClicks: invoiceClicks, clickRate: invoiceClickRate, totalEarning: invoiceClicks * invoiceClickRate * 1.2, payoutMethod: link.payoutMethod, payoutAccount: link.payoutAccount } }),
+        ...(invoiceTotalEarning > 0
+          ? [prisma.invoice.create({ data: { invoiceNumber, linkAccountId: id, qualifiedClicks: invoiceClicks, clickRate: invoiceClickRate, totalEarning: invoiceTotalEarning, payoutMethod: link.payoutMethod, payoutAccount: link.payoutAccount } })]
+          : []),
         prisma.click.deleteMany({ where: { linkAccountId: id } }),
         prisma.geoStat.deleteMany({ where: { linkAccountId: id } }),
         prisma.dailyAnalytics.deleteMany({ where: { linkAccountId: id } }),
@@ -284,6 +287,7 @@ export async function POST(
         prisma.oSStat.deleteMany({ where: { linkAccountId: id } }),
         prisma.deviceStat.deleteMany({ where: { linkAccountId: id } }),
         prisma.referrerStat.deleteMany({ where: { linkAccountId: id } }),
+        prisma.conversionLead.deleteMany({ where: { userId: link.userId, sub1: link.slug } }),
         prisma.linkAccount.update({
           where: { id },
           data: {
