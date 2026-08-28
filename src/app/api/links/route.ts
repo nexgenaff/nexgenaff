@@ -82,12 +82,13 @@ export async function GET(request: Request) {
     const subIdStatsMap = new Map<string, number>()
     if (canViewSubIdPayout && links.length) {
       const conversionLeads = await prisma.conversionLead.findMany({
-        where: { userId: { in: links.map((link) => link.userId) }, sub1: { not: null } },
-        select: { userId: true, sub1: true, payout: true },
+        where: { sub1: { not: null } },
+        select: { sub1: true, payout: true },
       })
 
       for (const lead of conversionLeads) {
-        const key = `${lead.userId}:${lead.sub1?.trim().toLowerCase()}`
+        const key = lead.sub1?.trim().toLowerCase()
+        if (!key) continue
         subIdStatsMap.set(key, (subIdStatsMap.get(key) || 0) + Number(lead.payout || 0))
       }
     }
@@ -98,7 +99,7 @@ export async function GET(request: Request) {
         qualifiedClicks: qualifiedClickMap.get(link.id) || 0,
         totalEarning: (qualifiedClickMap.get(link.id) || 0) * (Number(link.user?.clickRate ?? 0) || 0),
         ...(canViewSubIdPayout
-          ? { subIdPayout: subIdStatsMap.get(`${link.userId}:${link.slug.trim().toLowerCase()}`) || 0 }
+          ? { subIdPayout: subIdStatsMap.get(link.slug.trim().toLowerCase()) || 0 }
           : {}),
         commissionRate: Number(link.user?.commissionRate ?? 20) || 20,
         payoutMethod: link.payoutMethod || null,
