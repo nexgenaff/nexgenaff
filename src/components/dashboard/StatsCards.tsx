@@ -83,7 +83,7 @@ export default function StatsCards({
 
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2">
+      <div className="grid grid-cols-2 gap-2 sm:gap-4">
         <StatsCard
           title="Total Clicks"
           value={stats.totalClicks}
@@ -110,16 +110,16 @@ export default function StatsCards({
             initial={{ opacity: 0, y: 16, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             transition={{ duration: 0.45, delay: 0.3 }}
-            className="min-w-0 rounded-lg border border-slate-200 bg-white p-4 shadow-sm transition-colors duration-200 hover:bg-slate-50 dark:border-slate-700/30 dark:bg-slate-800/30 dark:hover:bg-slate-800/40"
+            className="col-span-2 min-w-0 rounded-lg border border-slate-200 bg-white p-3 shadow-sm transition-colors duration-200 hover:bg-slate-50 sm:col-span-1 sm:p-4 dark:border-slate-700/30 dark:bg-slate-800/30 dark:hover:bg-slate-800/40"
           >
-            <div className="grid grid-cols-1 divide-y divide-slate-200 dark:divide-slate-700/50 min-[420px]:grid-cols-2 min-[420px]:divide-y-0 min-[420px]:divide-x">
-              <div className="min-w-0 pb-3 min-[420px]:pr-3 min-[420px]:pb-0">
+            <div className="grid grid-cols-2 divide-x divide-slate-200 dark:divide-slate-700/50">
+              <div className="min-w-0 pr-2 sm:pr-3">
                 <div className="flex items-center justify-between gap-2"><p className="text-[10px] uppercase tracking-wide text-slate-500">{showConversions ? 'Total Cost' : 'Revenue'}</p><CircleDollarSign className="h-4 w-4 text-emerald-600 dark:text-emerald-300" /></div>
-                <p className="mt-0.5 text-2xl font-bold text-slate-900 dark:text-white">{formatCurrency(stats.revenue, 3)}</p>
+                <p className="mt-0.5 text-xl font-bold text-slate-900 dark:text-white sm:text-2xl">{formatCurrency(stats.revenue, 3)}</p>
               </div>
-              <div className="min-w-0 pt-3 min-[420px]:pl-3 min-[420px]:pt-0">
+              <div className="min-w-0 pl-2 sm:pl-3">
                 <div className="flex items-center justify-between gap-2"><p className="text-[10px] uppercase tracking-wide text-slate-500">Total payout</p><CircleDollarSign className="h-4 w-4 text-emerald-600 dark:text-emerald-300" /></div>
-                <p className="mt-0.5 text-2xl font-bold text-slate-900 dark:text-white">{formatCurrency(totalPayout)}</p>
+                <p className="mt-0.5 text-xl font-bold text-slate-900 dark:text-white sm:text-2xl">{formatCurrency(totalPayout)}</p>
               </div>
             </div>
           </motion.div>
