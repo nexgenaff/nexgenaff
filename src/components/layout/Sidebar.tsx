@@ -22,7 +22,7 @@ import {
   Webhook,
   Zap,
 } from 'lucide-react'
-import { getDashboardPath } from '@/lib/auth/dashboard-path'
+import { getDashboardBasePath, getDashboardPath } from '@/lib/auth/dashboard-path'
 
 export default function Sidebar() {
   const pathname = usePathname()
@@ -30,7 +30,6 @@ export default function Sidebar() {
   const [collapsed, setCollapsed] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
-  const [popupOpen, setPopupOpen] = useState(false)
   const [userRole, setUserRole] = useState<string | null>(null)
 
   useEffect(() => {
@@ -39,7 +38,6 @@ export default function Sidebar() {
       setIsMobile(mobile)
       if (mobile) {
         setCollapsed(true)
-        setPopupOpen(false)
       } else {
         setCollapsed(false)
       }
@@ -51,7 +49,6 @@ export default function Sidebar() {
 
   useEffect(() => {
     setMobileOpen(false)
-    setPopupOpen(false)
   }, [pathname])
 
   useEffect(() => {
@@ -69,6 +66,7 @@ export default function Sidebar() {
     fetchUser()
   }, [])
 
+  const dashboardBasePath = getDashboardBasePath(userRole)
   const menuGroups = [
     {
       label: 'Overview',
@@ -82,42 +80,42 @@ export default function Sidebar() {
     {
       label: 'Link accounts',
       items: [
-        { href: '/admin/links/create', label: 'New Link Account', icon: Plus },
-        { href: '/admin/links/create-turbo', label: 'Turbo Link Account', icon: Zap },
-        { href: '/admin/links', label: 'Link Accounts', icon: Link2 },
+        { href: `${dashboardBasePath}/links/create`, label: 'New Link Account', icon: Plus },
+        { href: `${dashboardBasePath}/links/create-turbo`, label: 'Turbo Link Account', icon: Zap },
+        { href: `${dashboardBasePath}/links`, label: 'Link Accounts', icon: Link2 },
       ],
     },
     {
       label: 'Operations',
       items: [
         ...(userRole !== 'MANAGER'
-          ? [{ href: '/admin/offers', label: 'Offer Vault', icon: Package }]
+          ? [{ href: `${dashboardBasePath}/offers`, label: 'Offer Vault', icon: Package }]
           : []),
         ...(userRole !== 'MANAGER'
-          ? [{ href: '/admin/domains', label: 'Custom Domains', icon: Globe2 }]
+          ? [{ href: `${dashboardBasePath}/domains`, label: 'Custom Domains', icon: Globe2 }]
           : []),
-        { href: '/admin/analytics', label: 'Analytics', icon: BarChart3 },
+        { href: `${dashboardBasePath}/analytics`, label: 'Analytics', icon: BarChart3 },
         ...(userRole !== 'MANAGER'
-          ? [{ href: '/admin/postbacks', label: 'S2S Postbacks', icon: Webhook }]
+          ? [{ href: `${dashboardBasePath}/postbacks`, label: 'S2S Postbacks', icon: Webhook }]
           : []),
       ],
     },
     {
       label: 'Workspace',
       items: [
-        { href: '/admin/landing-builder', label: 'Landing Builder', icon: Layers },
+        { href: `${dashboardBasePath}/landing-builder`, label: 'Landing Builder', icon: Layers },
         ...(userRole === 'OWNER'
-          ? [{ href: '/admin/templates', label: 'Templates', icon: Layers }]
+          ? [{ href: `${dashboardBasePath}/templates`, label: 'Templates', icon: Layers }]
           : []),
       ],
     },
     {
       label: 'Finance',
-      items: [{ href: '/admin/payments', label: 'Payments', icon: WalletCards }],
+      items: [{ href: `${dashboardBasePath}/payments`, label: 'Payments', icon: WalletCards }],
     },
     {
       label: 'System',
-      items: [{ href: '/admin/settings', label: 'Settings', icon: Settings }],
+      items: [{ href: `${dashboardBasePath}/settings`, label: 'Settings', icon: Settings }],
     },
   ]
 

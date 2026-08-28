@@ -41,6 +41,19 @@ export function proxy(request: NextRequest) {
     return NextResponse.redirect(dashboardUrl)
   }
 
+  const dashboardAlias = path.match(/^\/(owner|publisher)(\/.*)?$/)
+  const hasDedicatedRoute =
+    path === '/owner/dashboard' ||
+    path === '/owner/managers' ||
+    path.startsWith('/owner/managers/') ||
+    path === '/publisher/dashboard'
+
+  if (dashboardAlias && !hasDedicatedRoute) {
+    const rewrittenUrl = request.nextUrl.clone()
+    rewrittenUrl.pathname = `/admin${dashboardAlias[2] || '/dashboard'}`
+    return NextResponse.rewrite(rewrittenUrl)
+  }
+
   return response
 }
 

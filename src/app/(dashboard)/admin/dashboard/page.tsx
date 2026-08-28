@@ -10,13 +10,11 @@ import ClickLogs from "@/components/dashboard/ClickLogs";
 import { TrafficBreakdown } from "@/components/dashboard/TrafficBreakdown";
 import TelegramCommunityPopup from "@/components/ui/TelegramCommunityPopup";
 import { consumeManagerTelegramPopupPending } from "@/lib/utils/telegram-popup";
+import { getDashboardBasePath } from "@/lib/auth/dashboard-path";
 import {
   Plus,
   Clock,
   Calendar,
-  ShieldCheck,
-  Activity,
-  TrendingUp,
 } from "lucide-react";
 
 interface DashboardStats {
@@ -77,13 +75,14 @@ export default function DashboardPage() {
   const [browserBreakdown, setBrowserBreakdown] = useState<any[]>([]);
   const [deviceBreakdown, setDeviceBreakdown] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-  const [logFilter, setLogFilter] = useState<string>("all"); // ✅ was missing
+  const [, setRefreshing] = useState(false);
+  const [logFilter] = useState<string>("all");
   const [now, setNow] = useState(() => new Date());
   const [showTelegramPopup, setShowTelegramPopup] = useState(false);
   const [userRole, setUserRole] = useState<string | null>(null);
   const [authIdentity, setAuthIdentity] = useState<string | null>(null);
   const [isHelpPopoverOpen, setIsHelpPopoverOpen] = useState(false);
+  const dashboardBasePath = getDashboardBasePath(userRole);
 
   // ─── ZOOM FIX: ensure viewport meta is correct ───
   useEffect(() => {
@@ -390,7 +389,7 @@ export default function DashboardPage() {
               </button>
             ) : null}
             <Link
-              href="/admin/links/create"
+              href={`${dashboardBasePath}/links/create`}
               aria-label="Create new link"
               className="min-h-[36px] flex items-center justify-center gap-1.5 px-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-[10px] font-medium text-white shadow-md shadow-indigo-600/25 transition-all active:scale-[0.97] w-full sm:w-auto"
             >
