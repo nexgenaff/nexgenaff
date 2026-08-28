@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createGoogleAuthResponse, exchangeGoogleCode, getGoogleUserInfo, findGoogleUserByEmail, normalizeGoogleRedirectPath } from '@/lib/auth/google'
+import { generateGooglePasswordResetToken } from '@/lib/auth'
 import { getGoogleOAuthConfig } from '@/lib/auth/google'
 import { getDashboardPath } from '@/lib/auth/dashboard-path'
 
@@ -19,12 +20,14 @@ export async function GET(request: Request) {
 
   try {
     let redirectPath = getDashboardPath(null)
+    let isPasswordReset = false
     if (state) {
       try {
         const decoded = JSON.parse(Buffer.from(state, 'base64url').toString('utf-8'))
         if (typeof decoded.redirect === 'string' && decoded.redirect) {
           redirectPath = normalizeGoogleRedirectPath(decoded.redirect)
         }
+        isPasswordReset = decoded.purpose === 'password-reset'
       } catch {
         // ignore invalid state and fall back to the default path
       }
@@ -52,11 +55,15 @@ export async function GET(request: Request) {
       return NextResponse.redirect(new URL('/login?approval_pending=1', request.url))
     }
 
-    redirectPath = getDashboardPath(user.role)
+    if (!isPasswordReset) redirectPath = getDashboardPath(user.role)
 
     const authResponse = await createGoogleAuthResponse(user)
 
-    const response = NextResponse.redirect(new URL(`/login?success=google-authenticated&redirect=${encodeURIComponent(redirectPath)}`, request.url))
+    const destination = isPasswordReset
+      ? new URL(redirectPath, request.url)
+      : new URL(`/login?success=google-authenticated&redirect=${encodeURIComponent(redirectPath)}`, request.url)
+    if (isPasswordReset) destination.searchParams.set('google_reset', '1')
+    const response = NextResponse.redirect(destination)
     response.cookies.set('auth-token', authResponse.token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
@@ -64,6 +71,16 @@ export async function GET(request: Request) {
       maxAge: 60 * 60 * 24,
       path: '/',
     })
+
+    if (isPasswordReset) {
+      response.cookies.set('google-password-reset', generateGooglePasswordResetToken(user.id), {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge: 600,
+        path: '/',
+      })
+    }
 
     return response
   } catch (error) {

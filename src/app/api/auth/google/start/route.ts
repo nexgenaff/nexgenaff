@@ -4,7 +4,8 @@ import { buildGoogleAuthUrl, getGoogleOAuthConfig, normalizeGoogleRedirectPath }
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
   const redirect = normalizeGoogleRedirectPath(searchParams.get('redirect'))
-  const state = Buffer.from(JSON.stringify({ redirect })).toString('base64url')
+  const purpose = searchParams.get('purpose') === 'password-reset' ? 'password-reset' : undefined
+  const state = Buffer.from(JSON.stringify({ redirect, purpose })).toString('base64url')
   const { clientId, redirectUri } = getGoogleOAuthConfig()
 
   if (!clientId || !redirectUri) {

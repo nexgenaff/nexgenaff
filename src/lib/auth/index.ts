@@ -248,15 +248,15 @@ export async function verifyCredentials(username: string, password: string) {
   return user
 }
 
-export function generateToken(userId: string): string {
+export function generateToken(userId: string, purpose?: string, expiresIn: number | undefined = JWT_EXPIRY): string {
   return jwt.sign(
-    { userId, iat: Math.floor(Date.now() / 1000) },
+    { userId, purpose, iat: Math.floor(Date.now() / 1000) },
     JWT_SECRET,
-    { expiresIn: JWT_EXPIRY, algorithm: 'HS256' }
+    { expiresIn, algorithm: 'HS256' }
   )
 }
 
-export function verifyToken(token: string): { userId: string } | null {
+export function verifyToken(token: string): { userId: string; purpose?: string } | null {
   try {
     return jwt.verify(token, JWT_SECRET, { algorithms: ['HS256'] }) as { userId: string }
   } catch {
@@ -363,4 +363,14 @@ export function getTokenFromCookie(cookieHeader: string): string | null {
   }
 
   return null
+}
+
+export function generateGooglePasswordResetToken(userId: string): string {
+  return generateToken(userId, 'google-password-reset', 600)
+}
+
+export function verifyGooglePasswordResetToken(token: string): { userId: string } | null {
+  const decoded = verifyToken(token)
+  if (!decoded || decoded.purpose !== 'google-password-reset') return null
+  return { userId: decoded.userId }
 }

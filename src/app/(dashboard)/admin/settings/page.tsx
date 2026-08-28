@@ -14,6 +14,7 @@ import {
   RefreshCw,
   CheckCircle2,
   XCircle,
+  ShieldCheck,
 } from "lucide-react";
 
 interface FeedbackState {
@@ -40,6 +41,7 @@ export default function SettingsPage() {
   const [managerCommissionRate, setManagerCommissionRate] = useState("20");
   const [showClickRateForm, setShowClickRateForm] = useState(false);
   const [showPasswordForm, setShowPasswordForm] = useState(false);
+  const [googleResetReady, setGoogleResetReady] = useState(false);
   const [showEmailForm, setShowEmailForm] = useState(false);
   const [emailDraft, setEmailDraft] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -84,6 +86,10 @@ export default function SettingsPage() {
 
     readTheme();
     fetchAccount();
+    if (new URLSearchParams(window.location.search).get("google_reset") === "1") {
+      setGoogleResetReady(true);
+      setShowPasswordForm(true);
+    }
 
     const handleThemeChange = () => readTheme();
     window.addEventListener("storage", handleThemeChange);
@@ -197,7 +203,7 @@ export default function SettingsPage() {
         credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          action: "change-password",
+          action: googleResetReady ? "reset-password-google" : "change-password",
           currentPassword: passwordForm.currentPassword,
           newPassword: passwordForm.newPassword,
           confirmPassword: passwordForm.confirmPassword,
@@ -211,6 +217,7 @@ export default function SettingsPage() {
 
       setFeedback({ type: "success", message: data.message || "Password updated successfully." });
       setPasswordForm({ currentPassword: "", newPassword: "", confirmPassword: "" });
+      setGoogleResetReady(false);
       setShowPasswordForm(false);
     } catch (error) {
       setFeedback({
@@ -352,6 +359,13 @@ export default function SettingsPage() {
                   <Key className="h-3.5 w-3.5" />
                   {showPasswordForm ? "Hide" : "Change password"}
                 </button>
+                <button
+                  onClick={() => window.location.assign(`/api/auth/google/start?redirect=${encodeURIComponent(window.location.pathname)}&purpose=password-reset`)}
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-cyan-500/25 bg-cyan-500/10 px-3 py-2 text-xs font-medium text-cyan-300 hover:bg-cyan-500/20"
+                >
+                  <ShieldCheck className="h-3.5 w-3.5" />
+                  Forget Password? Reset Now
+                </button>
                 {userInfo?.role !== "MANAGER" && (
                   <button
                     onClick={() => {
@@ -485,8 +499,13 @@ export default function SettingsPage() {
                   onSubmit={handlePasswordSubmit}
                   className="mt-3 space-y-3 rounded-lg border border-slate-800 bg-slate-800/30 p-4"
                 >
+                  {googleResetReady && (
+                    <div className="rounded-lg border border-cyan-500/20 bg-cyan-500/10 px-3 py-2 text-xs text-cyan-200">
+                      Google verified your account. Choose a new password below.
+                    </div>
+                  )}
                   <div className="grid gap-3 md:grid-cols-2">
-                    <div>
+                    {!googleResetReady && <div>
                       <label className="mb-1 block text-xs font-medium text-slate-400">
                         Current password
                       </label>
@@ -499,7 +518,7 @@ export default function SettingsPage() {
                         required
                         className="w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-white placeholder-slate-500 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
                       />
-                    </div>
+                    </div>}
                     <div>
                       <label className="mb-1 block text-xs font-medium text-slate-400">
                         New password

@@ -29,7 +29,7 @@ export default function Sidebar() {
   const pathname = usePathname()
   const router = useRouter()
   const [collapsed, setCollapsed] = useState(false)
-  const [isMobile, setIsMobile] = useState(false)
+  const [isMobile, setIsMobile] = useState<boolean | null>(null)
   const [mobileOpen, setMobileOpen] = useState(false)
   const [userRole, setUserRole] = useState<string | null>(null)
 
@@ -119,6 +119,10 @@ export default function Sidebar() {
       items: [{ href: `${dashboardBasePath}/settings`, label: 'Settings', icon: Settings }],
     },
   ]
+
+  if (isMobile === null) {
+    return <div className="hidden shrink-0 lg:block lg:w-52" aria-hidden="true" />
+  }
 
   const handleLogout = async () => {
     await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' })

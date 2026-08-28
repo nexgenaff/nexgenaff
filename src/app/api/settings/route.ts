@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import bcrypt from 'bcryptjs'
 import { getCorsHeaders } from '@/config/cors'
-import { getTokenFromCookie, getUserFromToken, getOwnerUserId, isAdmin, isOwner } from '@/lib/auth'
+import { getTokenFromCookie, getUserFromToken, getOwnerUserId, isAdmin, isOwner, verifyGooglePasswordResetToken } from '@/lib/auth'
 import { getLinkAccountVisibilityWhereClause } from '@/lib/utils/link-account-access'
 import { prisma } from '@/lib/db/prisma'
 
@@ -134,12 +134,13 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: true, message: 'Payment binding saved for your link account.' }, { headers: getCorsHeaders(origin) })
     }
 
-    if (action === 'change-password') {
+    if (action === 'change-password' || action === 'reset-password-google') {
+      const isGoogleReset = action === 'reset-password-google'
       const currentPassword = typeof body?.currentPassword === 'string' ? body.currentPassword : ''
       const newPassword = typeof body?.newPassword === 'string' ? body.newPassword : ''
       const confirmPassword = typeof body?.confirmPassword === 'string' ? body.confirmPassword : ''
 
-      if (!currentPassword || !newPassword || !confirmPassword) {
+      if ((!isGoogleReset && !currentPassword) || !newPassword || !confirmPassword) {
         return NextResponse.json(
           { error: 'All password fields are required.' },
           { status: 400, headers: getCorsHeaders(origin) }
@@ -185,12 +186,23 @@ export async function POST(request: Request) {
         )
       }
 
-      const isValid = await bcrypt.compare(currentPassword, dbUser.password)
-      if (!isValid) {
-        return NextResponse.json(
-          { error: 'Current password is incorrect.' },
-          { status: 400, headers: getCorsHeaders(origin) }
-        )
+      if (isGoogleReset) {
+        const resetToken = cookieHeader.split(';').map((cookie) => cookie.trim()).find((cookie) => cookie.startsWith('google-password-reset='))?.slice('google-password-reset='.length)
+        const resetUser = resetToken ? verifyGooglePasswordResetToken(decodeURIComponent(resetToken)) : null
+        if (!resetUser || resetUser.userId !== dbUser.id) {
+          return NextResponse.json(
+            { error: 'Google verification has expired. Start the reset again.' },
+            { status: 403, headers: getCorsHeaders(origin) }
+          )
+        }
+      } else {
+        const isValid = await bcrypt.compare(currentPassword, dbUser.password)
+        if (!isValid) {
+          return NextResponse.json(
+            { error: 'Current password is incorrect.' },
+            { status: 400, headers: getCorsHeaders(origin) }
+          )
+        }
       }
 
       const hashed = await bcrypt.hash(newPassword, 10)
@@ -199,10 +211,12 @@ export async function POST(request: Request) {
         data: { password: hashed, updatedAt: new Date() },
       })
 
-      return NextResponse.json(
+      const response = NextResponse.json(
         { success: true, message: 'Password updated successfully.' },
         { headers: getCorsHeaders(origin) }
       )
+      if (isGoogleReset) response.cookies.delete('google-password-reset')
+      return response
     }
 
     if (action === 'update-email') {
