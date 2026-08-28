@@ -7,7 +7,6 @@ import {
   Sun,
   Moon,
   User,
-  Mail,
   Key,
   LogOut,
   AlertTriangle,
@@ -15,7 +14,6 @@ import {
   RefreshCw,
   CheckCircle2,
   XCircle,
-  Settings,
 } from "lucide-react";
 
 interface FeedbackState {
@@ -354,16 +352,17 @@ export default function SettingsPage() {
                   <Key className="h-3.5 w-3.5" />
                   {showPasswordForm ? "Hide" : "Change password"}
                 </button>
-                <button
-                  onClick={() => {
-                    setShowEmailForm((prev) => !prev);
-                    if (!showEmailForm) setEmailDraft(userInfo?.email || "");
-                  }}
-                  className="inline-flex items-center gap-1.5 rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-xs font-medium text-slate-300 hover:bg-slate-700"
-                >
-                  <Mail className="h-3.5 w-3.5" />
-                  {userInfo?.email ? "Update email" : "Add email"}
-                </button>
+                {userInfo?.role !== "MANAGER" && (
+                  <button
+                    onClick={() => {
+                      setShowEmailForm((prev) => !prev);
+                      if (!showEmailForm) setEmailDraft(userInfo?.email || "");
+                    }}
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-xs font-medium text-slate-300 hover:bg-slate-700"
+                  >
+                    {userInfo?.email ? "Update email" : "Add email"}
+                  </button>
+                )}
                 {(userInfo?.role === "OWNER" || userInfo?.role === "ADMIN") && (
                   <button
                     onClick={() => setShowClickRateForm((prev) => !prev)}
@@ -416,7 +415,7 @@ export default function SettingsPage() {
                 </div>
               )}
 
-              {showEmailForm && (
+              {showEmailForm && userInfo?.role !== "MANAGER" && (
                 <form
                   onSubmit={async (event) => {
                     event.preventDefault();
@@ -557,7 +556,7 @@ export default function SettingsPage() {
         {/* Right Column */}
         <div className="space-y-6">
           {/* Danger Zone */}
-          {showDangerZone && (
+          {showDangerZone && userInfo?.role !== "MANAGER" && (
             <div className="rounded-xl border border-red-500/20 bg-red-500/5 p-5">
               <div className="mb-4 flex items-center gap-2">
                 <AlertTriangle className="h-4 w-4 text-red-400" />
@@ -589,32 +588,6 @@ export default function SettingsPage() {
             </div>
           )}
 
-          {/* Quick Actions */}
-          {userInfo?.role !== "MANAGER" && (
-            <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-5">
-              <h3 className="mb-4 text-sm font-semibold text-white">Quick Actions</h3>
-              <div className="space-y-2">
-                <button
-                  onClick={() => setShowDangerZone((prev) => !prev)}
-                  className="flex w-full items-center justify-between rounded-lg border border-slate-700 bg-slate-800 px-4 py-2.5 text-sm text-slate-300 hover:bg-slate-700"
-                >
-                  <span className="flex items-center gap-2">
-                    <AlertTriangle className="h-4 w-4 text-red-400" />
-                    {showDangerZone ? "Hide" : "Show"} danger zone
-                  </span>
-                </button>
-              <button
-                onClick={() => router.push("/admin/analytics")}
-                className="flex w-full items-center justify-between rounded-lg border border-slate-700 bg-slate-800 px-4 py-2.5 text-sm text-slate-300 hover:bg-slate-700"
-              >
-                <span className="flex items-center gap-2">
-                  <Settings className="h-4 w-4 text-indigo-400" />
-                  View analytics
-                </span>
-              </button>
-              </div>
-            </div>
-          )}
         </div>
       </div>
     </div>
