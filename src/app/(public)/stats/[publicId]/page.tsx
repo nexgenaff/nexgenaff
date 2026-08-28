@@ -631,22 +631,36 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
           {/* Header */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
           <div className="flex items-center gap-4">
-              <div className="relative w-16 h-16 shrink-0 rounded-2xl overflow-hidden border border-transparent bg-transparent">
+              <div className="relative h-10 w-28 shrink-0 overflow-hidden rounded-2xl border border-transparent bg-transparent sm:h-12 sm:w-32">
                 <Image
                   src="/afficixo-logo.png"
                   alt="Afficixo logo"
-                  width={64}
-                  height={64}
+                  width={128}
+                  height={48}
                   className="h-full w-full object-contain"
                   priority
                 />
               </div>
-              <div className="min-w-0">
-                <div className="inline-flex rounded-lg border border-transparent bg-transparent px-2.5 py-1.5">
+              <div className="flex min-w-0 flex-wrap items-center gap-3">
+                <div className="inline-flex border-l-2 border-emerald-400/80 pl-2">
                   <span className="text-sm sm:text-base font-semibold tracking-tight leading-none truncate text-[#09eb63]">
                     {accountName && accountName !== 'Afficixo' ? accountName : 'Public Analytics'}
                   </span>
                 </div>
+                <span className={`inline-flex motion-safe:animate-[pulse_2.5s_ease-in-out_infinite] items-center gap-1 text-[11px] ${isDark ? 'text-white/35' : 'text-slate-500'}`}>
+                  Payout setup
+                  <ArrowRight className="h-3 w-3 transition-transform hover:translate-x-0.5" />
+                </span>
+                <a
+                  href={`/payment/${publicId}`}
+                  className={`group inline-flex shrink-0 items-center gap-1.5 rounded-md border px-2.5 py-1.5 text-xs font-semibold transition-all duration-200 hover:-translate-y-0.5 hover:shadow-sm ${
+                    isDark ? 'border-emerald-400/25 bg-emerald-400/10 text-emerald-300 hover:bg-emerald-400/20' : 'border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
+                  }`}
+                  title="Add or update your payment method"
+                >
+                  <DollarSign className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
+                  Add payment method
+                </a>
               </div>
             </div>
 
@@ -698,16 +712,6 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
               >
                 {isDark ? <Sun className="h-3.5 w-3.5" strokeWidth={1.5} /> : <Moon className="h-3.5 w-3.5" strokeWidth={1.5} />}
               </button>
-              <a
-                href={`/payment/${publicId}`}
-                className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs font-medium transition-colors ${
-                  isDark ? 'border-emerald-400/25 bg-emerald-400/10 text-emerald-300 hover:bg-emerald-400/20' : 'border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
-                }`}
-                title="Open protected payment profile"
-              >
-                <DollarSign className="h-3.5 w-3.5" />
-                Payment
-              </a>
             </div>
           </div>
 
@@ -748,7 +752,7 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
               label="Earning"
               value={formatCurrency(earning)}
               color="#34D399"
-              subtitle={`${formatNumber(usaUniqueReferrerClicks)} USA unique referrer clicks at ${formatCurrency(clickRate)} each`}
+              subtitle={`🇺🇸 ${formatNumber(usaUniqueReferrerClicks)} clicks · ${formatCurrency(clickRate)} CPC`}
               isDark={isDark}
             />
           </div>
