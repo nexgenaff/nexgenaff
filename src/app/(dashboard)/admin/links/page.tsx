@@ -834,14 +834,16 @@ export default function LinksPage() {
                 <Filter className="h-4 w-4" />
                 Filters
               </button>
-              <button
-                onClick={toggleSelectAllVisible}
-                className="rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm font-medium text-slate-300 hover:bg-slate-700"
-              >
-                {filteredLinks.length > 0 && filteredLinks.every((l) => selectedIds.includes(l.id))
-                  ? "Clear"
-                  : "Select All"}
-              </button>
+              {!isManager && (
+                <button
+                  onClick={toggleSelectAllVisible}
+                  className="rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm font-medium text-slate-300 hover:bg-slate-700"
+                >
+                  {filteredLinks.length > 0 && filteredLinks.every((l) => selectedIds.includes(l.id))
+                    ? "Clear"
+                    : "Select All"}
+                </button>
+              )}
               {hasActiveFilters && (
                 <button
                   onClick={clearFilters}
@@ -1273,7 +1275,7 @@ export default function LinksPage() {
                     ) : null}
                     </div>
                   </div>
-                  {!isManager ? (
+                  {!isManager && (
                     <div className="absolute bottom-3 right-3 flex shrink-0 gap-1 rounded-md bg-slate-900/80 p-0.5">
                       <button
                         onClick={() => openEdit(link)}
@@ -1301,10 +1303,6 @@ export default function LinksPage() {
                       >
                         <Trash2 className="h-3.5 w-3.5" />
                       </button>
-                    </div>
-                  ) : (
-                    <div className="rounded-md bg-slate-800 px-2 py-1 text-xs uppercase tracking-wider text-slate-500">
-                      read-only
                     </div>
                   )}
                 </div>
