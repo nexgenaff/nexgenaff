@@ -26,7 +26,7 @@ interface ConversionLead {
 function getPostbackTemplate(origin: string, config: PostbackConfig) {
   const receiverUrl = `${origin}/api/postback?secret=${config.token}`;
   return config.provider === "AFFMINE"
-    ? `${receiverUrl}&payout=%23payout%23&subid=%23s1%23&subid2=%23s2%23&subid3=%23s3%23&subid4=%23s4%23`
+    ? `${receiverUrl}&payout=%23payout%23&subid1=%23s1%23&subid2=%23s2%23&subid3=%23s3%23&subid4=%23s4%23`
     : `${receiverUrl}&payout={payout}&s1={s1}&s2={s2}&s3={s3}&s4={s4}`;
 }
 
