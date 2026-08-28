@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
@@ -325,12 +326,50 @@ export default function PaymentsPage() {
     <div className="space-y-5 pb-8">
       <div className="flex flex-col gap-4 border-b border-slate-200 pb-5 dark:border-white/10 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-indigo-600">Finance overview</p>
-          <p className="mt-1 text-xs text-slate-500">Track earnings and manage where your payouts are sent.</p>
+          <Image
+            src="/afficixo-logo.png"
+            alt="Afficixo"
+            width={150}
+            height={40}
+            className="h-10 w-auto object-contain object-left"
+            priority
+          />
         </div>
       </div>
 
       {bindingMessage && <p className="rounded-md border border-emerald-500/20 bg-emerald-500/10 px-3 py-2 text-xs text-emerald-700 dark:text-emerald-300">{bindingMessage}</p>}
+      <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
+        {[
+          { label: "Total Earned", value: totals.accrued, icon: WalletCards, tone: "text-cyan-300", accent: "border-cyan-400/20 bg-cyan-400/[0.07]" },
+          { label: "Commission", value: commission, icon: CircleDollarSign, tone: "text-orange-300", accent: "border-orange-400/20 bg-orange-400/[0.07]" },
+          { label: "Pending", value: pendingSummary, icon: CreditCard, tone: "text-violet-300", accent: "border-violet-400/20 bg-violet-400/[0.07]" },
+          { label: "Paid out", value: paidOutSummary, icon: CircleDollarSign, tone: "text-emerald-300", accent: "border-emerald-400/20 bg-emerald-400/[0.07]" },
+        ].map((card, index) => (
+          <motion.div
+            key={card.label}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: index * 0.06 }}
+            className={`rounded-lg border p-4 ${card.accent} ${card.label === "Paid out" && userRole === "OWNER" ? "cursor-pointer transition hover:border-emerald-400/50" : ""}`}
+            role={card.label === "Paid out" && userRole === "OWNER" ? "button" : undefined}
+            tabIndex={card.label === "Paid out" && userRole === "OWNER" ? 0 : undefined}
+            onClick={card.label === "Paid out" && userRole === "OWNER" ? () => setShowPayoutTransactions(true) : undefined}
+            onKeyDown={card.label === "Paid out" && userRole === "OWNER" ? (event) => {
+              if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault();
+                setShowPayoutTransactions(true);
+              }
+            } : undefined}
+            aria-label={card.label === "Paid out" && userRole === "OWNER" ? "View paid out transactions" : undefined}
+          >
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-slate-400">{card.label}</span>
+              <card.icon className={`h-4 w-4 ${card.tone}`} />
+            </div>
+            <div className={`mt-3 text-2xl font-bold ${card.tone}`}>{money(card.value)}</div>
+          </motion.div>
+        ))}
+      </div>
       {userRole === "OWNER" ? (
         <section className="overflow-hidden rounded-lg border border-slate-200 bg-[var(--surface-card)] shadow-sm dark:border-white/10">
           <button
@@ -443,39 +482,6 @@ export default function PaymentsPage() {
       </section>
       )}
 
-      <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
-        {[
-          { label: "Total Earned", value: totals.accrued, icon: WalletCards, tone: "text-cyan-300", accent: "border-cyan-400/20 bg-cyan-400/[0.07]" },
-          { label: "Commission", value: commission, icon: CircleDollarSign, tone: "text-orange-300", accent: "border-orange-400/20 bg-orange-400/[0.07]" },
-          { label: "Pending", value: pendingSummary, icon: CreditCard, tone: "text-violet-300", accent: "border-violet-400/20 bg-violet-400/[0.07]" },
-          { label: "Paid out", value: paidOutSummary, icon: CircleDollarSign, tone: "text-emerald-300", accent: "border-emerald-400/20 bg-emerald-400/[0.07]" },
-        ].map((card, index) => (
-          <motion.div
-            key={card.label}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.06 }}
-            className={`rounded-lg border p-4 ${card.accent} ${card.label === "Paid out" && userRole === "OWNER" ? "cursor-pointer transition hover:border-emerald-400/50" : ""}`}
-            role={card.label === "Paid out" && userRole === "OWNER" ? "button" : undefined}
-            tabIndex={card.label === "Paid out" && userRole === "OWNER" ? 0 : undefined}
-            onClick={card.label === "Paid out" && userRole === "OWNER" ? () => setShowPayoutTransactions(true) : undefined}
-            onKeyDown={card.label === "Paid out" && userRole === "OWNER" ? (event) => {
-              if (event.key === "Enter" || event.key === " ") {
-                event.preventDefault();
-                setShowPayoutTransactions(true);
-              }
-            } : undefined}
-            aria-label={card.label === "Paid out" && userRole === "OWNER" ? "View paid out transactions" : undefined}
-          >
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-slate-400">{card.label}</span>
-              <card.icon className={`h-4 w-4 ${card.tone}`} />
-            </div>
-            <div className={`mt-3 text-2xl font-bold ${card.tone}`}>{money(card.value)}</div>
-          </motion.div>
-        ))}
-      </div>
-
       {showPayoutTransactions && userRole === "OWNER" && (
         <div className="fixed inset-0 z-[70] flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="payout-transactions-title">
           <div className="w-full max-w-2xl overflow-hidden rounded-xl border border-slate-700 bg-slate-900 shadow-2xl">
@@ -519,9 +525,10 @@ export default function PaymentsPage() {
               </div>
           </div>
           <div className="flex items-center gap-2">
-            <label className="relative block min-w-0 flex-1">
+            <label className="relative block min-w-0 flex-1" htmlFor="payment-link-search">
               <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-500" />
-              <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search links" className="h-9 w-full rounded-lg border border-white/10 bg-black/20 pl-8 pr-3 text-xs text-white outline-none placeholder:text-slate-500 focus:border-cyan-300/40 sm:w-44" />
+              <input id="payment-link-search" type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search account or slug" aria-label="Search links by account name or slug" autoComplete="off" className="h-9 w-full rounded-lg border border-white/10 bg-black/20 pl-8 pr-8 text-xs text-white outline-none placeholder:text-slate-500 focus:border-cyan-300/40 sm:w-56" />
+              {query && <button type="button" onClick={() => setQuery("")} className="absolute right-1.5 top-1/2 -translate-y-1/2 rounded p-1 text-slate-500 transition hover:bg-white/10 hover:text-white" aria-label="Clear link search" title="Clear search"><X className="h-3.5 w-3.5" /></button>}
             </label>
             <div className="flex shrink-0 rounded-lg border border-white/10 bg-black/20 p-0.5">
               {(["all", "unpaid"] as const).map((option) => (
