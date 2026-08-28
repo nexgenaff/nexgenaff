@@ -22,6 +22,7 @@ import {
   Webhook,
   Zap,
 } from 'lucide-react'
+import { getDashboardPath } from '@/lib/auth/dashboard-path'
 
 export default function Sidebar() {
   const pathname = usePathname()
@@ -75,7 +76,7 @@ export default function Sidebar() {
         ...(userRole === 'OWNER'
           ? [{ href: '/owner/managers', label: 'Manager Approvals', icon: ShieldCheck }]
           : []),
-        { href: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+        { href: getDashboardPath(userRole), label: 'Dashboard', icon: LayoutDashboard },
       ],
     },
     {

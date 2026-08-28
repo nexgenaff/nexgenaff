@@ -4,6 +4,7 @@ import { useEffect, useState, useRef, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import Image from "next/image"
+import { getDashboardPath } from "@/lib/auth/dashboard-path"
 import {
   ArrowLeft,
   ArrowRight,
@@ -311,7 +312,7 @@ export default function SignupClient() {
 
       setSuccess("Account created. Redirecting you to your dashboard...")
       window.setTimeout(() => {
-        router.push("/admin/dashboard")
+        router.push(getDashboardPath(data?.user?.role))
       }, 500)
     } catch (err: any) {
       setSuccess("")

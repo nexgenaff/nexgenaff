@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import type { User } from '@/types'
+import { getDashboardPath } from '@/lib/auth/dashboard-path'
 
 interface UseAuthReturn {
   user: User | null
@@ -65,7 +66,7 @@ export function useAuth(): UseAuthReturn {
       }
 
       await fetchUser()
-      router.push('/admin/dashboard')
+      router.push(getDashboardPath(data?.user?.role))
       return { success: true }
     } catch {
       return { success: false, error: 'An unexpected error occurred' }

@@ -357,7 +357,7 @@ export default function DashboardPage() {
                 alt="Afficixo logo"
                 width={96}
                 height={96}
-                className="object-cover"
+                className="h-auto w-24 object-contain"
                 priority
               />
             </div>

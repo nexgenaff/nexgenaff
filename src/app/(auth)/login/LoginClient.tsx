@@ -6,6 +6,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { markManagerTelegramPopupPending } from "@/lib/utils/telegram-popup";
+import { getDashboardPath } from "@/lib/auth/dashboard-path";
 import { User, Lock, ArrowLeft, AlertCircle, Rocket, ArrowRight, CheckCircle2, Clock3 } from "lucide-react";
 
 // Mobile‑optimised particle count (lower on small screens)
@@ -236,7 +237,7 @@ export default function LoginClient() {
 
     if (successParam === "google-authenticated") {
       setSuccess("Google sign-in complete. Redirecting you to your dashboard...");
-      const redirectPath = searchParams.get("redirect") || "/admin/dashboard";
+      const redirectPath = searchParams.get("redirect") || getDashboardPath(null);
       const timer = window.setTimeout(() => {
         router.replace(redirectPath);
       }, 1000);
@@ -271,7 +272,7 @@ export default function LoginClient() {
 
       setSuccess("Welcome back. Redirecting you to your dashboard...");
       window.setTimeout(() => {
-        router.push("/admin/dashboard");
+        router.push(getDashboardPath(data?.user?.role));
       }, 500);
     } catch (err: any) {
       setSuccess("");

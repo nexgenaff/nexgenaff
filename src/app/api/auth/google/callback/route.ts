@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createGoogleAuthResponse, exchangeGoogleCode, getGoogleUserInfo, findGoogleUserByEmail, normalizeGoogleRedirectPath } from '@/lib/auth/google'
 import { getGoogleOAuthConfig } from '@/lib/auth/google'
+import { getDashboardPath } from '@/lib/auth/dashboard-path'
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
@@ -17,7 +18,7 @@ export async function GET(request: Request) {
   }
 
   try {
-    let redirectPath = '/admin/dashboard'
+    let redirectPath = getDashboardPath(null)
     if (state) {
       try {
         const decoded = JSON.parse(Buffer.from(state, 'base64url').toString('utf-8'))
@@ -50,6 +51,8 @@ export async function GET(request: Request) {
     if (user.status !== 'ACTIVE') {
       return NextResponse.redirect(new URL('/login?approval_pending=1', request.url))
     }
+
+    redirectPath = getDashboardPath(user.role)
 
     const authResponse = await createGoogleAuthResponse(user)
 
