@@ -114,7 +114,7 @@ export default function StatsCards({
           >
             <div className="grid grid-cols-1 divide-y divide-slate-200 dark:divide-slate-700/50 min-[420px]:grid-cols-2 min-[420px]:divide-y-0 min-[420px]:divide-x">
               <div className="min-w-0 pb-3 min-[420px]:pr-3 min-[420px]:pb-0">
-                <div className="flex items-center justify-between gap-2"><p className="text-[10px] uppercase tracking-wide text-slate-500">Revenue</p><CircleDollarSign className="h-4 w-4 text-emerald-600 dark:text-emerald-300" /></div>
+                <div className="flex items-center justify-between gap-2"><p className="text-[10px] uppercase tracking-wide text-slate-500">{showConversions ? 'Total Cost' : 'Revenue'}</p><CircleDollarSign className="h-4 w-4 text-emerald-600 dark:text-emerald-300" /></div>
                 <p className="mt-0.5 text-2xl font-bold text-slate-900 dark:text-white">{formatCurrency(stats.revenue, 3)}</p>
               </div>
               <div className="min-w-0 pt-3 min-[420px]:pl-3 min-[420px]:pt-0">
