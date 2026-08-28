@@ -282,12 +282,18 @@ export default function PaymentsPage() {
   ), [paymentRows]);
 
   const commission = totals.commission;
+  const managerRevenueByUserId = paymentRows.reduce((revenueByUserId, row) => {
+    revenueByUserId.set(row.link.userId, (revenueByUserId.get(row.link.userId) || 0) + row.accrued);
+    return revenueByUserId;
+  }, new Map<string, number>());
+
   const managerPaymentRows = managerPayments.map((manager) => {
     const invoices = manager.linkAccounts.flatMap((link) => link.invoices);
     const commissionRate = Number(manager.commissionRate ?? 20) || 0;
     const paid = manager.managerPayouts.filter((payout) => payout.isPaid).reduce((sum, payout) => sum + Number(payout.totalEarning || 0), 0);
     const pendingInvoices = invoices.filter((invoice) => !invoice.isPaid && invoice.managerPayouts.length === 0);
     const pending = pendingInvoices.reduce((sum, invoice) => sum + Number(invoice.totalEarning || 0), 0) * (commissionRate / 100);
+    const revenue = managerRevenueByUserId.get(manager.id) || 0;
     const firstLink = manager.linkAccounts.find((link) => link.payoutAccount || link.payoutMethod);
     const nextUnpaidInvoice = manager.linkAccounts
       .flatMap((link) => link.invoices.filter((invoice) => !invoice.isPaid && invoice.managerPayouts.length === 0).map((invoice) => ({ invoice, link })))
@@ -296,7 +302,7 @@ export default function PaymentsPage() {
       manager,
       invoiceCount: invoices.length,
       paid,
-      total: paid + pending,
+      total: revenue,
       pending,
       commissionRate,
       payoutMethod: manager.payoutMethod || firstLink?.payoutMethod || (manager.bkashNumber ? "BKASH" : null),
