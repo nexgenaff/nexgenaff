@@ -21,6 +21,7 @@ import {
   WalletCards,
   Webhook,
   Zap,
+  X,
 } from 'lucide-react'
 import { getDashboardBasePath, getDashboardPath } from '@/lib/auth/dashboard-path'
 
@@ -128,7 +129,7 @@ export default function Sidebar() {
     <div className="flex flex-col h-full">
       <div className="pointer-events-none absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-transparent via-cyan-400/70 to-transparent" />
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.2),transparent_36%),radial-gradient(circle_at_bottom_right,rgba(244,114,182,0.16),transparent_38%),linear-gradient(135deg,rgba(34,211,238,0.08),transparent_40%,rgba(129,140,248,0.08))]" />
-      <div className={`relative flex w-full flex-shrink-0 items-center gap-3 ${isMobile ? 'h-16 px-4' : 'h-10 justify-start p-0'}`}>
+      <div className={`relative flex w-full flex-shrink-0 items-center gap-3 ${isMobile ? 'h-[4.5rem] border-b border-slate-200/70 px-5 dark:border-white/10' : 'h-10 justify-start p-0'}`}>
           {(!collapsed || isMobile) && (
             <div className="relative h-9 w-28 overflow-hidden">
               <Image
@@ -151,11 +152,11 @@ export default function Sidebar() {
         </button>
       )}
 
-      <nav className={`relative z-10 flex-1 overflow-y-auto ${isMobile ? 'space-y-2 px-2 py-2' : 'space-y-2 px-2 py-2'}`}>
+      <nav className={`relative z-10 min-h-0 flex-1 overflow-y-auto overscroll-contain ${isMobile ? 'space-y-3 px-3 py-3' : 'space-y-2 px-2 py-2'}`}>
         {menuGroups.map((group) => group.items.length > 0 && (
-          <div key={group.label} className="space-y-1">
+          <div key={group.label} className="space-y-1.5">
             {(!collapsed || isMobile) && (
-              <div className="px-2 pt-2 text-[9px] font-semibold uppercase tracking-[0.16em] text-slate-500 first:pt-0">
+              <div className="px-2 pt-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500 first:pt-0 dark:text-slate-400">
                 {group.label}
               </div>
             )}
@@ -167,10 +168,10 @@ export default function Sidebar() {
                   key={item.href}
                   href={item.href}
                   onClick={() => isMobile && setMobileOpen(false)}
-                  className={`group flex items-center ${collapsed && !isMobile ? 'justify-center' : 'gap-3'} ${isMobile ? 'min-h-11 rounded-xl px-3 py-2.5' : 'rounded-lg px-2 py-1.5'} border border-transparent transition-colors duration-150 ${
+                  className={`group flex items-center ${collapsed && !isMobile ? 'justify-center' : 'gap-3'} ${isMobile ? 'min-h-10 rounded-lg px-3 py-2' : 'rounded-lg px-2 py-1.5'} border border-transparent transition-colors duration-150 ${
                     isActive
-                      ? 'bg-cyan-400/10 border-cyan-400/20 text-slate-50 font-medium'
-                      : 'text-slate-400 hover:text-slate-100 hover:bg-white/[0.06] hover:border-white/10'
+                      ? 'border-cyan-500/25 bg-cyan-500/[0.12] font-medium text-slate-800 dark:text-slate-50'
+                      : 'text-slate-600 hover:border-slate-300/70 hover:bg-slate-100/70 hover:text-slate-900 dark:text-slate-400 dark:hover:border-white/10 dark:hover:bg-white/[0.06] dark:hover:text-slate-100'
                   }`}
                 >
                   <Icon className={`h-4 w-4 shrink-0 transition-colors duration-200 ${isActive ? 'text-cyan-300' : 'text-slate-500'}`} />
@@ -185,7 +186,7 @@ export default function Sidebar() {
         ))}
       </nav>
 
-      <div className={`relative z-10 border-t border-white/10 flex-shrink-0 ${isMobile ? 'space-y-0.5 px-2 py-2' : 'space-y-0.5 px-2 py-2'}`}>
+      <div className={`relative z-10 flex-shrink-0 border-t border-white/10 ${isMobile ? 'space-y-0.5 px-3 pb-[calc(1.25rem+env(safe-area-inset-bottom))] pt-3' : 'space-y-0.5 px-2 py-2'}`}>
         <button
           onClick={handleLogout}
           className={`w-full group flex items-center ${collapsed && !isMobile ? 'justify-center' : 'gap-2'} ${isMobile ? 'rounded-lg px-2 py-1.5' : 'rounded-lg px-2 py-1.5'} border border-transparent transition-colors duration-150 text-red-400/80 hover:text-red-300 hover:bg-red-500/10 hover:border-red-400/20`}
@@ -209,12 +210,12 @@ export default function Sidebar() {
           aria-label={mobileOpen ? 'Close sidebar' : 'Open sidebar'}
           title={mobileOpen ? 'Close sidebar' : 'Open sidebar'}
         >
-          <Menu className="h-5 w-5" />
+          {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
         </button>
 
         <aside
-              className={`panel-bleed fixed right-0 top-0 z-[50] flex h-screen max-h-screen w-[min(20rem,calc(100vw-1rem))] flex-col overflow-hidden rounded-l-2xl border-0 border-l border-white/10 bg-[var(--surface-bg)] shadow-2xl transition-[transform,opacity,box-shadow] duration-300 ease-out lg:hidden ${
-            mobileOpen ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-90'
+          className={`panel-bleed fixed inset-x-0 top-0 z-[50] flex h-[100dvh] max-h-[100dvh] w-full flex-col overflow-hidden rounded-b-2xl border-0 border-b border-white/10 bg-[var(--surface-bg)] shadow-2xl transition-[transform,opacity,box-shadow] duration-300 ease-out lg:hidden ${
+            mobileOpen ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-90'
           }`}
         >
           {sidebarContent}
