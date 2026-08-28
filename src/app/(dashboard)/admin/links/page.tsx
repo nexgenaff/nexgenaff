@@ -25,7 +25,6 @@ import {
   ArrowUpRight,
   Rocket,
   Layers,
-  ChevronDown,
   Filter,
   ArrowUpDown,
 } from "lucide-react";
@@ -95,14 +94,13 @@ const getBaseUrl = () => {
 };
 
 // ===== COPY BUTTON (simplified, no tooltip) =====
-const CopyIcon = ({ text, onCopy, label = "Copy link" }: { text: string; onCopy: () => void; label?: string }) => {
+const CopyIcon = ({ text, label = "Copy link" }: { text: string; label?: string }) => {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = async () => {
     try {
       await navigator.clipboard.writeText(text);
       setCopied(true);
-      onCopy();
       setTimeout(() => setCopied(false), 2000);
     } catch (error) {
       console.error("Failed to copy:", error);
@@ -129,7 +127,6 @@ export default function LinksPage() {
   const [userRole, setUserRole] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const [copiedKey, setCopiedKey] = useState<string | null>(null);
   const [actionError, setActionError] = useState("");
   const [actionMessage, setActionMessage] = useState("");
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
@@ -357,6 +354,39 @@ export default function LinksPage() {
     setEditingCustomDomainId("");
     setEditingOfferGroupName("");
     setEditingIsActive(true);
+  };
+
+  const handleToggleStatus = async (link: LinkAccount) => {
+    if (busyLinkId === link.id) return;
+
+    setActionError("");
+    setActionMessage("");
+    setBusyLinkId(link.id);
+
+    try {
+      const response = await fetch(`/api/links/${link.id}`, {
+        method: "PUT",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          accountName: link.accountName,
+          slug: link.slug,
+          customDomainId: link.customDomainId ?? null,
+          offerGroupName: link.offerGroupName ?? null,
+          isActive: !link.isActive,
+        }),
+      });
+
+      const data = await response.json().catch(() => null);
+      if (!response.ok) throw new Error(data?.error || "Failed to update link status");
+
+      setLinks((current) => current.map((item) => item.id === link.id ? { ...item, isActive: !link.isActive } : item));
+      setActionMessage(`${link.accountName} is now ${link.isActive ? "paused" : "active"}.`);
+    } catch (error) {
+      setActionError(error instanceof Error ? error.message : "Failed to update link status");
+    } finally {
+      setBusyLinkId(null);
+    }
   };
 
   const isManager = userRole === 'MANAGER';
@@ -622,16 +652,6 @@ export default function LinksPage() {
       setActionError(error instanceof Error ? error.message : "Failed to update selected links");
     } finally {
       setBusyLinkId(null);
-    }
-  };
-
-  const copyToClipboard = async (text: string, key: string) => {
-    try {
-      await navigator.clipboard.writeText(text);
-      setCopiedKey(key);
-      window.setTimeout(() => setCopiedKey(null), 1600);
-    } catch (error) {
-      console.error("Failed to copy:", error);
     }
   };
 
@@ -1117,43 +1137,45 @@ export default function LinksPage() {
           {filteredLinks.map((link) => (
             <article
               key={link.id}
-              className={`relative rounded-xl border border-slate-800 bg-slate-900/60 p-3 pb-12 transition hover:border-slate-700 sm:p-4 sm:pb-12 ${
-                link.isActive ? "border-l-2 border-l-emerald-500" : "border-l-2 border-l-amber-500"
+              className={`relative rounded-xl border bg-slate-900/60 p-3 pb-12 transition sm:p-4 sm:pb-12 ${
+                link.isActive
+                  ? "border-emerald-500/30 border-l-2 border-l-emerald-500 hover:border-emerald-500/50"
+                  : "border-amber-500/30 border-l-2 border-l-amber-500 hover:border-amber-500/50"
               }`}
             >
               <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                 {/* LEFT: INFO */}
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-1.5">
-                    <label className="flex items-center gap-1.5 rounded-md border border-slate-700 bg-slate-800 px-2 py-0.5 text-[10px] font-medium text-slate-300 cursor-pointer hover:bg-slate-700">
-                      <input
-                        type="checkbox"
-                        checked={selectedIds.includes(link.id)}
-                        onChange={() => toggleSelectedId(link.id)}
-                        disabled={isManager}
-                        className="h-3.5 w-3.5 accent-indigo-500 disabled:opacity-40"
-                      />
-                      Select
-                    </label>
-                    <span
-                      className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium ${
-                        link.isActive
-                          ? "bg-emerald-500/10 text-emerald-400"
-                          : "bg-amber-500/10 text-amber-400"
-                      }`}
-                    >
-                      <span
-                        className={`h-1.5 w-1.5 rounded-full ${
-                          link.isActive ? "bg-emerald-400" : "bg-amber-400"
-                        }`}
-                      />
-                      {link.isActive ? "Active" : "Paused"}
-                    </span>
-                    {link.customDomain?.domain && (
-                      <span className="rounded-full bg-cyan-500/10 px-2 py-0.5 text-[10px] font-medium text-cyan-400">
-                        Custom
-                      </span>
+                    {!isManager && (
+                      <label className="inline-flex h-5 cursor-pointer items-center gap-1 rounded-md border border-indigo-200 bg-indigo-50 px-1.5 text-[9px] font-semibold text-indigo-700 shadow-sm transition-colors hover:border-indigo-300 hover:bg-indigo-100 dark:border-indigo-400/20 dark:bg-indigo-500/10 dark:text-indigo-200 dark:hover:border-indigo-400/40 dark:hover:bg-indigo-500/20">
+                        <input
+                          type="checkbox"
+                          checked={selectedIds.includes(link.id)}
+                          onChange={() => toggleSelectedId(link.id)}
+                          className="h-3 w-3 rounded border-indigo-300 accent-indigo-600"
+                        />
+                        Select
+                      </label>
                     )}
+                    <button
+                      type="button"
+                      onClick={() => handleToggleStatus(link)}
+                      disabled={busyLinkId === link.id}
+                      aria-label={`${link.isActive ? "Pause" : "Activate"} ${link.accountName}`}
+                      role="switch"
+                      aria-checked={link.isActive}
+                      title={link.isActive ? "Pause account" : "Activate account"}
+                      className={`inline-flex items-center gap-1 rounded-md border px-1.5 py-0.5 text-[9px] font-semibold shadow-sm transition-colors ${
+                        link.isActive
+                          ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-500 hover:border-emerald-500/60 hover:bg-emerald-500/20"
+                          : "border-amber-500/30 bg-amber-500/10 text-amber-600 hover:border-amber-500/60 hover:bg-amber-500/20"
+                      } disabled:cursor-wait disabled:opacity-60`}>
+                      <span className={`relative h-3.5 w-6 rounded-full p-0.5 transition-colors ${link.isActive ? "bg-emerald-500" : "bg-slate-500"}`}>
+                        <span className={`block h-2.5 w-2.5 rounded-full bg-white shadow-sm transition-transform ${link.isActive ? "translate-x-2.5" : "translate-x-0"}`} />
+                      </span>
+                      {link.isActive ? "Active" : "Paused"}
+                    </button>
                     {link.offerGroupName && (
                       <span className="rounded-full bg-violet-500/10 px-2 py-0.5 text-[10px] font-medium text-violet-400">
                         {link.offerGroupName}
@@ -1176,8 +1198,8 @@ export default function LinksPage() {
                       title="Tracking link: copy this link to send traffic for this account"
                     >
                       <Link2 className="h-3.5 w-3.5 text-indigo-400" aria-label="Tracking link" />
-                      <span className="text-[10px] font-medium text-slate-500 sm:hidden">Link</span>
-                      <CopyIcon text={getPreviewUrl(link)} label="Copy tracking link" onCopy={() => setCopiedKey(`tracking-${link.id}`)} />
+                      <span className="text-[10px] font-medium text-slate-500">Tracking link</span>
+                      <CopyIcon text={getPreviewUrl(link)} label="Copy tracking link" />
                     </span>
                     <span
                       className="inline-flex shrink-0 items-center gap-1 rounded-md border border-slate-800 bg-slate-800/40 px-1.5 py-0.5 text-slate-400"
@@ -1193,8 +1215,8 @@ export default function LinksPage() {
                       >
                         <ArrowUpRight className="h-3.5 w-3.5" />
                       </a>
-                      <span className="text-[10px] font-medium text-slate-500">Stats</span>
-                      <CopyIcon text={getPublicStatsUrl(link)} label="Copy public stats link" onCopy={() => setCopiedKey(`stats-${link.id}`)} />
+                      <span className="text-[10px] font-medium text-slate-500">Public stats</span>
+                      <CopyIcon text={getPublicStatsUrl(link)} label="Copy public stats link" />
                     </span>
                   </div>
                 </div>
@@ -1214,26 +1236,25 @@ export default function LinksPage() {
                       ].map((stat) => (
                         <div
                           key={stat.label}
-                          title={stat.label === "SubID payout" ? `Total postback payout where sub1 matches slug: ${link.slug}` : undefined}
-                          className="min-h-[46px] min-w-0 rounded-md border border-slate-800 bg-slate-800/50 px-1.5 py-1 text-center"
+                          title={stat.label === "Earnings" && link.invoiceHistory?.length ? "View invoice history" : stat.label === "SubID payout" ? `Total postback payout where sub1 matches slug: ${link.slug}` : undefined}
+                          className={`min-h-[46px] min-w-0 rounded-md border border-slate-800 bg-slate-800/50 px-1.5 py-1 text-center ${stat.label === "Earnings" && link.invoiceHistory?.length ? "cursor-pointer transition-colors hover:border-emerald-400/40 hover:bg-emerald-500/10" : ""}`}
+                          onClick={stat.label === "Earnings" && link.invoiceHistory?.length ? () => setInvoiceHistoryLink(link) : undefined}
+                          onKeyDown={stat.label === "Earnings" && link.invoiceHistory?.length ? (event) => {
+                            if (event.key === "Enter" || event.key === " ") {
+                              event.preventDefault();
+                              setInvoiceHistoryLink(link);
+                            }
+                          } : undefined}
+                          role={stat.label === "Earnings" && link.invoiceHistory?.length ? "button" : undefined}
+                          tabIndex={stat.label === "Earnings" && link.invoiceHistory?.length ? 0 : undefined}
+                          aria-label={stat.label === "Earnings" && link.invoiceHistory?.length ? `View invoice history for ${link.accountName}` : undefined}
                         >
                           <div className="text-[9px] uppercase tracking-wider text-slate-500">{stat.label}</div>
                           <div className={`text-xs font-bold ${stat.color}`}>{stat.value}</div>
                         </div>
                       ))}
                     </div>
-                    <div className={`${canViewSubIdPayout ? "col-span-5" : "col-span-4"} flex min-w-0 items-stretch gap-1.5`}>
-                      <div className="flex h-[46px] min-w-0 flex-1 flex-col items-start justify-center rounded-md border border-slate-800 bg-slate-800/50 px-2 py-1 text-[10px] leading-tight text-slate-400">
-                      <span className={link.payoutMethod ? "font-semibold text-cyan-300" : "text-slate-500"}>
-                        {link.payoutMethod ? (link.payoutMethod === "BKASH" ? "bKash" : "Binance") : "Not set"}
-                      </span>
-                      {link.payoutMethod && link.payoutAccount && (
-                        <span className="mt-0.5 flex max-w-[110px] items-center gap-0.5">
-                          <span className="max-w-[88px] truncate text-[9px] text-slate-500">{link.payoutAccount}</span>
-                          <CopyIcon text={link.payoutAccount} label="Copy payment account" onCopy={() => setCopiedKey(`payment-${link.id}`)} />
-                        </span>
-                      )}
-                      </div>
+                    <div className={`${canViewSubIdPayout ? "col-span-5" : "col-span-4"} flex min-w-0 items-stretch justify-end gap-1.5`}>
                     {(link.invoices?.length || link.invoiceHistory?.length) ? (
                       <div className="flex min-w-0 flex-[2] items-stretch gap-1.5">
                         {link.invoices?.length ? <div className="flex min-w-0 flex-1 items-center justify-between gap-1 rounded-md border border-emerald-500/20 bg-emerald-500/5 px-2 py-1 text-[10px] leading-tight">
@@ -1248,9 +1269,6 @@ export default function LinksPage() {
                             {busyLinkId === link.id ? "Saving..." : <><CheckCircle className="h-3 w-3" /> Paid</>}
                         </button>
                       </div> : null}
-                      {link.invoiceHistory?.length ? <button type="button" onClick={() => setInvoiceHistoryLink(link)} className="inline-flex h-[46px] shrink-0 items-center justify-center gap-1 rounded-md border border-slate-700 bg-slate-800/50 px-3 text-[9px] font-medium text-slate-300 transition-colors hover:border-slate-600 hover:bg-slate-800 hover:text-white" aria-label={`View invoice history for ${link.accountName}`} title="View invoice history">
-                        History
-                      </button> : null}
                       </div>
                     ) : null}
                     </div>

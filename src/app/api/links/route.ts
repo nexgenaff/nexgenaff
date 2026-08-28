@@ -79,22 +79,18 @@ export async function GET(request: Request) {
     const qualifiedClickMap = new Map(qualifiedClicks.map((item) => [item.linkAccountId, item._count._all]))
 
     const canViewSubIdPayout = isAdmin(user) || isOwner(user)
-    const subIdPayouts = canViewSubIdPayout && links.length
-      ? await prisma.conversionLead.groupBy({
-          by: ['userId', 'sub1'],
-          where: {
-            userId: { in: links.map((link) => link.userId) },
-            sub1: { in: links.map((link) => link.slug) },
-          },
-          _sum: { payout: true },
-        })
-      : []
-    const subIdStatsMap = new Map(
-      subIdPayouts.map((item) => [
-        `${item.userId}:${item.sub1}`,
-        Number(item._sum.payout || 0),
-      ])
-    )
+    const subIdStatsMap = new Map<string, number>()
+    if (canViewSubIdPayout && links.length) {
+      const conversionLeads = await prisma.conversionLead.findMany({
+        where: { userId: { in: links.map((link) => link.userId) }, sub1: { not: null } },
+        select: { userId: true, sub1: true, payout: true },
+      })
+
+      for (const lead of conversionLeads) {
+        const key = `${lead.userId}:${lead.sub1?.trim().toLowerCase()}`
+        subIdStatsMap.set(key, (subIdStatsMap.get(key) || 0) + Number(lead.payout || 0))
+      }
+    }
 
     return NextResponse.json(
       links.map((link) => ({
@@ -102,7 +98,7 @@ export async function GET(request: Request) {
         qualifiedClicks: qualifiedClickMap.get(link.id) || 0,
         totalEarning: (qualifiedClickMap.get(link.id) || 0) * (Number(link.user?.clickRate ?? 0) || 0),
         ...(canViewSubIdPayout
-          ? { subIdPayout: subIdStatsMap.get(`${link.userId}:${link.slug}`) || 0 }
+          ? { subIdPayout: subIdStatsMap.get(`${link.userId}:${link.slug.trim().toLowerCase()}`) || 0 }
           : {}),
         commissionRate: Number(link.user?.commissionRate ?? 20) || 20,
         payoutMethod: link.payoutMethod || null,

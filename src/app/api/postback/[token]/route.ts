@@ -34,7 +34,7 @@ export async function ingestPostback(request: Request, token: string, bodyParams
     data: {
       userId: config.userId, postbackId: config.id,
       payout: Number.isFinite(payoutValue) ? payoutValue : null,
-      sub1: value(['s1', 'subid', '#s1#']),
+      sub1: value(['s1', 'sub1', 'subid', '#s1#']),
       sub2: value(['s2', 'subid2', '#s2#']), sub3: value(['s3', 'subid3', '#s3#']), sub4: value(['s4', 'subid4', '#s4#']),
     },
   })

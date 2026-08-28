@@ -85,24 +85,25 @@ export default function StatsCards({
     <div className="space-y-4">
       <div className="grid grid-cols-2 gap-2 sm:gap-4">
         <StatsCard
+          title="Total Links"
+          value={stats.totalLinks}
+          icon={Link2}
+          color="purple"
+          delay={0}
+          className="col-span-2 sm:col-span-1"
+        />
+        <StatsCard
           title="Total Clicks"
           value={stats.totalClicks}
           icon={MousePointerClick}
           color="indigo"
-          delay={0}
+          delay={100}
         />
         <StatsCard
           title="Unique Visitors"
           value={stats.uniqueClicks}
           icon={Users}
           color="green"
-          delay={100}
-        />
-        <StatsCard
-          title="Total Links"
-          value={stats.totalLinks}
-          icon={Link2}
-          color="purple"
           delay={200}
         />
         {showConversions ? (

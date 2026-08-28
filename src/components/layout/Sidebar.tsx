@@ -203,6 +203,15 @@ export default function Sidebar() {
     return (
       <>
         <button
+          onClick={handleLogout}
+          type="button"
+          className="edge-toggle fixed right-14 top-1 z-[60] flex h-10 w-10 items-center justify-center rounded-none !border-0 bg-transparent p-0 text-red-700 !shadow-none outline-none backdrop-blur-none dark:bg-transparent dark:text-red-300 lg:hidden"
+          aria-label="Logout"
+          title="Logout"
+        >
+          <LogOut className="h-5 w-5" />
+        </button>
+        <button
           onClick={() => setMobileOpen(!mobileOpen)}
           type="button"
           className="edge-toggle fixed right-2 top-1 z-[60] flex h-10 w-10 items-center justify-center rounded-none !border-0 bg-transparent p-0 text-slate-700 !shadow-none outline-none backdrop-blur-none dark:bg-transparent dark:text-slate-100 lg:hidden"
