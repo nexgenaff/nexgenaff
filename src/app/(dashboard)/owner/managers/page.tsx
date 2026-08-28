@@ -384,15 +384,21 @@ export default function OwnerManagersPage() {
     <div className="min-h-screen bg-slate-950 px-4 py-6 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-7xl space-y-6">
         {/* Header controls */}
-        <div className="flex items-center justify-between gap-4">
-          <Image
-            src="/afficixo-logo.png"
-            alt="Afficixo"
-            width={120}
-            height={40}
-            className="h-auto w-[100px] object-contain sm:w-[120px]"
-          />
-          <div className="flex items-center gap-3">
+        <div className="flex flex-col gap-4 border-b border-slate-800 pb-5 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center gap-4">
+            <Image
+              src="/afficixo-logo.png"
+              alt="Afficixo"
+              width={120}
+              height={40}
+              className="h-auto w-[100px] object-contain sm:w-[120px]"
+            />
+            <div>
+              <h1 className="text-lg font-semibold text-white sm:text-xl">Manager approvals</h1>
+              <p className="mt-0.5 text-xs text-slate-500">Review access, payment details, and account status.</p>
+            </div>
+          </div>
+          <div className="flex items-center justify-between gap-3 sm:justify-end">
             <div
               className={`rounded-lg px-4 py-2 text-sm font-medium ${
                 summary.pending > 0 ? 'bg-amber-500/10 text-amber-400' : 'bg-slate-800 text-slate-400'
@@ -442,6 +448,7 @@ export default function OwnerManagersPage() {
             <div className="relative">
               <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
               <input
+                aria-label="Search managers by username, email, or Telegram"
                 type="text"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
@@ -453,6 +460,8 @@ export default function OwnerManagersPage() {
                   type="button"
                   onClick={() => setSearch('')}
                   className="absolute right-3 top-1/2 -translate-y-1/2 rounded p-1 text-slate-400 hover:bg-slate-700 hover:text-white"
+                  aria-label="Clear manager search"
+                  title="Clear search"
                 >
                   <X className="h-4 w-4" />
                 </button>

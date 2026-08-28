@@ -20,6 +20,7 @@ import {
   Layers,
   WalletCards,
   Webhook,
+  Zap,
 } from 'lucide-react'
 
 export default function Sidebar() {
@@ -53,13 +54,6 @@ export default function Sidebar() {
   }, [pathname])
 
   useEffect(() => {
-    document.body.style.overflow = mobileOpen ? 'hidden' : ''
-    return () => {
-      document.body.style.overflow = ''
-    }
-  }, [mobileOpen])
-
-  useEffect(() => {
     const fetchUser = async () => {
       try {
         const response = await fetch('/api/auth/me', { credentials: 'include' })
@@ -74,30 +68,56 @@ export default function Sidebar() {
     fetchUser()
   }, [])
 
-  const menuItems = [
-    ...(userRole === 'OWNER'
-      ? [{ href: '/owner/managers', label: 'Manager Approvals', icon: ShieldCheck }]
-      : []),
-    { href: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { href: '/admin/links/create', label: 'Create Link Account', icon: Plus },
-    { href: '/admin/links/create-turbo', label: 'Create Link Account Turbo Mood', icon: Plus },
-    { href: '/admin/links', label: 'All Link Account', icon: Link2 },
-    { href: '/admin/payments', label: 'Payments', icon: WalletCards },
-    ...(userRole !== 'MANAGER'
-      ? [{ href: '/admin/offers', label: 'Offer Vault', icon: Package }]
-      : []),
-    ...(userRole !== 'MANAGER'
-      ? [{ href: '/admin/domains', label: 'Custom Domains', icon: Globe2 }]
-      : []),
-    { href: '/admin/analytics', label: 'Analytics', icon: BarChart3 },
-    ...(userRole !== 'MANAGER'
-      ? [{ href: '/admin/postbacks', label: 'S2S Postbacks', icon: Webhook }]
-      : []),
-    { href: '/admin/landing-builder', label: 'Landing page Builder', icon: Layers },
-    ...(userRole === 'OWNER'
-      ? [{ href: '/admin/templates', label: 'Templates', icon: Layers }]
-      : []),
-    { href: '/admin/settings', label: 'Settings', icon: Settings },
+  const menuGroups = [
+    {
+      label: 'Overview',
+      items: [
+        ...(userRole === 'OWNER'
+          ? [{ href: '/owner/managers', label: 'Manager Approvals', icon: ShieldCheck }]
+          : []),
+        { href: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+      ],
+    },
+    {
+      label: 'Link accounts',
+      items: [
+        { href: '/admin/links/create', label: 'New Link Account', icon: Plus },
+        { href: '/admin/links/create-turbo', label: 'Turbo Link Account', icon: Zap },
+        { href: '/admin/links', label: 'Link Accounts', icon: Link2 },
+      ],
+    },
+    {
+      label: 'Operations',
+      items: [
+        ...(userRole !== 'MANAGER'
+          ? [{ href: '/admin/offers', label: 'Offer Vault', icon: Package }]
+          : []),
+        ...(userRole !== 'MANAGER'
+          ? [{ href: '/admin/domains', label: 'Custom Domains', icon: Globe2 }]
+          : []),
+        { href: '/admin/analytics', label: 'Analytics', icon: BarChart3 },
+        ...(userRole !== 'MANAGER'
+          ? [{ href: '/admin/postbacks', label: 'S2S Postbacks', icon: Webhook }]
+          : []),
+      ],
+    },
+    {
+      label: 'Workspace',
+      items: [
+        { href: '/admin/landing-builder', label: 'Landing Builder', icon: Layers },
+        ...(userRole === 'OWNER'
+          ? [{ href: '/admin/templates', label: 'Templates', icon: Layers }]
+          : []),
+      ],
+    },
+    {
+      label: 'Finance',
+      items: [{ href: '/admin/payments', label: 'Payments', icon: WalletCards }],
+    },
+    {
+      label: 'System',
+      items: [{ href: '/admin/settings', label: 'Settings', icon: Settings }],
+    },
   ]
 
   const handleLogout = async () => {
@@ -132,29 +152,38 @@ export default function Sidebar() {
         </button>
       )}
 
-      <nav className={`relative z-10 flex-1 overflow-y-auto ${isMobile ? 'space-y-2 px-2 py-2' : 'space-y-1 px-2 py-2'}`}>
-        {menuItems.map((item) => {
-          const isActive = pathname === item.href || pathname?.startsWith(item.href + '/')
-          const Icon = item.icon
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              onClick={() => isMobile && setMobileOpen(false)}
-                className={`group flex items-center ${collapsed && !isMobile ? 'justify-center' : 'gap-3'} ${isMobile ? 'min-h-11 rounded-xl px-3 py-2.5' : 'rounded-lg px-2 py-1.5'} border border-transparent transition-colors duration-150 ${
-                isActive
-                  ? 'bg-cyan-400/10 border-cyan-400/20 text-slate-50 font-medium'
-                  : 'text-slate-400 hover:text-slate-100 hover:bg-white/[0.06] hover:border-white/10'
-              }`}
-            >
-              <Icon className={`${collapsed && !isMobile ? 'w-4 h-4' : 'w-4 h-4'} transition-colors duration-200 ${isActive ? 'text-cyan-300' : 'text-slate-500'}`} />
-              {(!collapsed || isMobile) && <span className="text-xs tracking-[0.01em]">{item.label}</span>}
-              {isActive && !collapsed && !isMobile && (
-                <span className="ml-auto h-5 w-0.5 rounded-full bg-cyan-300" />
-              )}
-            </Link>
-          )
-        })}
+      <nav className={`relative z-10 flex-1 overflow-y-auto ${isMobile ? 'space-y-2 px-2 py-2' : 'space-y-2 px-2 py-2'}`}>
+        {menuGroups.map((group) => group.items.length > 0 && (
+          <div key={group.label} className="space-y-1">
+            {(!collapsed || isMobile) && (
+              <div className="px-2 pt-2 text-[9px] font-semibold uppercase tracking-[0.16em] text-slate-500 first:pt-0">
+                {group.label}
+              </div>
+            )}
+            {group.items.map((item) => {
+              const isActive = pathname === item.href || pathname?.startsWith(item.href + '/')
+              const Icon = item.icon
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={() => isMobile && setMobileOpen(false)}
+                  className={`group flex items-center ${collapsed && !isMobile ? 'justify-center' : 'gap-3'} ${isMobile ? 'min-h-11 rounded-xl px-3 py-2.5' : 'rounded-lg px-2 py-1.5'} border border-transparent transition-colors duration-150 ${
+                    isActive
+                      ? 'bg-cyan-400/10 border-cyan-400/20 text-slate-50 font-medium'
+                      : 'text-slate-400 hover:text-slate-100 hover:bg-white/[0.06] hover:border-white/10'
+                  }`}
+                >
+                  <Icon className={`h-4 w-4 shrink-0 transition-colors duration-200 ${isActive ? 'text-cyan-300' : 'text-slate-500'}`} />
+                  {(!collapsed || isMobile) && <span className="text-xs tracking-[0.01em]">{item.label}</span>}
+                  {isActive && !collapsed && !isMobile && (
+                    <span className="ml-auto h-5 w-0.5 rounded-full bg-cyan-300" />
+                  )}
+                </Link>
+              )
+            })}
+          </div>
+        ))}
       </nav>
 
       <div className={`relative z-10 border-t border-white/10 flex-shrink-0 ${isMobile ? 'space-y-0.5 px-2 py-2' : 'space-y-0.5 px-2 py-2'}`}>
@@ -184,15 +213,8 @@ export default function Sidebar() {
           <Menu className="h-5 w-5" />
         </button>
 
-        {mobileOpen && (
-          <div
-            className="fixed inset-0 z-[45] bg-black/55 backdrop-blur-[2px] lg:hidden"
-            onClick={() => setMobileOpen(false)}
-          />
-        )}
-
         <aside
-              className={`panel-bleed fixed right-0 top-0 z-[50] flex h-screen max-h-screen w-[min(20rem,calc(100vw-1rem))] flex-col overflow-hidden rounded-l-2xl border-0 border-l border-white/10 shadow-2xl transition-[transform,opacity,box-shadow] duration-300 ease-out lg:hidden ${
+              className={`panel-bleed fixed right-0 top-0 z-[50] flex h-screen max-h-screen w-[min(20rem,calc(100vw-1rem))] flex-col overflow-hidden rounded-l-2xl border-0 border-l border-white/10 bg-[var(--surface-bg)] shadow-2xl transition-[transform,opacity,box-shadow] duration-300 ease-out lg:hidden ${
             mobileOpen ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-90'
           }`}
         >
@@ -206,22 +228,15 @@ export default function Sidebar() {
     <>
       <button
         type="button"
-        onClick={() => setPopupOpen(!popupOpen)}
+        onClick={() => setCollapsed(!collapsed)}
         className="edge-toggle fixed right-0 top-0 z-[60] hidden h-11 w-11 items-center justify-center rounded-none border-0 bg-transparent p-0 text-slate-100/80 shadow-none ring-0 lg:flex"
-        aria-label={popupOpen ? 'Close sidebar' : 'Open sidebar'}
+        aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
       >
         <Menu className="w-4 h-4" />
       </button>
 
-      {popupOpen && (
-        <div
-          className="fixed inset-0 z-[40] hidden bg-black/55 backdrop-blur-[2px] lg:block"
-          onClick={() => setPopupOpen(false)}
-        />
-      )}
-
       <aside
-        className={`panel-bleed fixed bottom-0 right-0 top-0 z-[50] hidden h-screen flex-col ${collapsed ? 'w-16' : 'w-52'} overflow-hidden rounded-none border-0 ring-0 transition-[transform,opacity,box-shadow] duration-300 ease-out lg:flex ${popupOpen ? 'translate-x-0 opacity-100' : 'translate-x-[120%] opacity-0 pointer-events-none'}`}
+        className={`panel-bleed sticky top-0 order-last z-[50] hidden h-screen shrink-0 flex-col ${collapsed ? 'w-16' : 'w-52'} overflow-hidden rounded-none border-0 bg-[var(--surface-bg)] ring-0 transition-[width,box-shadow] duration-300 ease-out lg:flex`}
       >
         {sidebarContent}
       </aside>
