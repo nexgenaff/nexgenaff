@@ -83,14 +83,13 @@ export default function StatsCards({
 
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-2 gap-2 sm:gap-4">
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-4">
         <StatsCard
           title="Total Links"
           value={stats.totalLinks}
           icon={Link2}
           color="purple"
           delay={0}
-          className="col-span-2 sm:col-span-1"
         />
         <StatsCard
           title="Total Clicks"
@@ -111,7 +110,7 @@ export default function StatsCards({
             initial={{ opacity: 0, y: 16, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             transition={{ duration: 0.45, delay: 0.3 }}
-            className="col-span-2 min-w-0 rounded-lg border border-slate-200 bg-white p-3 shadow-sm transition-colors duration-200 hover:bg-slate-50 sm:col-span-1 sm:p-4 dark:border-slate-700/30 dark:bg-slate-800/30 dark:hover:bg-slate-800/40"
+            className="min-w-0 rounded-lg border border-slate-200 bg-white p-3 shadow-sm transition-colors duration-200 hover:bg-slate-50 sm:p-4 dark:border-slate-700/30 dark:bg-slate-800/30 dark:hover:bg-slate-800/40"
           >
             <div className="grid grid-cols-2 divide-x divide-slate-200 dark:divide-slate-700/50">
               <div className="min-w-0 pr-2 sm:pr-3">
