@@ -37,6 +37,15 @@ interface ManagerPayment {
   payoutAccount: string | null;
   bkashNumber: string | null;
   commissionRate: number;
+  managerPayouts: Array<{
+    payoutNumber: string;
+    totalEarning: number;
+    payoutMethod: string | null;
+    paymentReference: string | null;
+    isPaid: boolean;
+    paidAt: string | null;
+    createdAt: string;
+  }>;
   linkAccounts: Array<{
     id: string;
     accountName: string;
@@ -67,6 +76,7 @@ export default function PaymentsPage() {
   const [copiedPaymentAccount, setCopiedPaymentAccount] = useState<string | null>(null);
   const [paymentLink, setPaymentLink] = useState<PaymentLink | null>(null);
   const [paymentReference, setPaymentReference] = useState("");
+  const [showPayoutTransactions, setShowPayoutTransactions] = useState(false);
   const [payoutMethod, setPayoutMethod] = useState("BKASH");
   const [payoutAccount, setPayoutAccount] = useState("");
   const [paymentPassword, setPaymentPassword] = useState("");
@@ -239,8 +249,9 @@ export default function PaymentsPage() {
         const paidAmount = paid.reduce((sum, invoice) => sum + (Number(invoice.totalEarning) || 0), 0);
         const invoiceTotal = invoices.reduce((sum, invoice) => sum + (Number(invoice.totalEarning) || 0), 0);
         const commissionRate = Number(link.commissionRate ?? 20) || 20;
+        const pendingTotal = invoiceTotal * (commissionRate / 100);
         const accrued = unpaidAmount + paidAmount;
-        return { link, invoices, current, unpaidAmount, paidAmount, invoiceTotal, accrued, commission: accrued * (commissionRate / 100) };
+        return { link, invoices, current, unpaidAmount, paidAmount, invoiceTotal, pendingTotal, accrued, commission: accrued * (commissionRate / 100) };
       }), [activeLinks]);
 
   const rows = useMemo(() => {
@@ -255,7 +266,7 @@ export default function PaymentsPage() {
   const totals = useMemo(() => paymentRows.reduce(
     (summary, row) => ({
       accrued: summary.accrued + row.accrued,
-      invoices: summary.invoices + row.invoiceTotal,
+      invoices: summary.invoices + row.pendingTotal,
       unpaid: summary.unpaid + row.unpaidAmount,
       paid: summary.paid + row.paidAmount,
       commission: summary.commission + row.commission,
@@ -264,17 +275,12 @@ export default function PaymentsPage() {
   ), [paymentRows]);
 
   const commission = totals.commission;
-  const managerRevenueByUserId = paymentRows.reduce((revenueByUserId, row) => {
-    revenueByUserId.set(row.link.userId, (revenueByUserId.get(row.link.userId) || 0) + row.accrued);
-    return revenueByUserId;
-  }, new Map<string, number>());
-
   const managerPaymentRows = managerPayments.map((manager) => {
     const invoices = manager.linkAccounts.flatMap((link) => link.invoices);
-    const paid = invoices.filter((invoice) => invoice.isPaid).reduce((sum, invoice) => sum + Number(invoice.totalEarning || 0), 0);
-    const unpaid = invoices.filter((invoice) => !invoice.isPaid).reduce((sum, invoice) => sum + Number(invoice.totalEarning || 0), 0);
-    const totalEarned = managerRevenueByUserId.get(manager.id) || 0;
     const commissionRate = Number(manager.commissionRate ?? 20) || 0;
+    const paid = manager.managerPayouts.filter((payout) => payout.isPaid).reduce((sum, payout) => sum + Number(payout.totalEarning || 0), 0);
+    const pendingInvoices = invoices.filter((invoice) => !invoice.isPaid && invoice.managerPayouts.length === 0);
+    const pending = pendingInvoices.reduce((sum, invoice) => sum + Number(invoice.totalEarning || 0), 0) * (commissionRate / 100);
     const firstLink = manager.linkAccounts.find((link) => link.payoutAccount || link.payoutMethod);
     const nextUnpaidInvoice = manager.linkAccounts
       .flatMap((link) => link.invoices.filter((invoice) => !invoice.isPaid && invoice.managerPayouts.length === 0).map((invoice) => ({ invoice, link })))
@@ -283,14 +289,24 @@ export default function PaymentsPage() {
       manager,
       invoiceCount: invoices.length,
       paid,
-      unpaid,
-      total: totalEarned + totalEarned * (commissionRate / 100),
+      total: paid + pending,
+      pending,
       commissionRate,
       payoutMethod: manager.payoutMethod || firstLink?.payoutMethod || (manager.bkashNumber ? "BKASH" : null),
       payoutAccount: manager.payoutAccount || firstLink?.payoutAccount || manager.bkashNumber,
       nextUnpaidInvoice,
     };
   });
+  const pendingSummary = userRole === "OWNER"
+    ? managerPaymentRows.reduce((sum, row) => sum + row.pending, 0)
+    : totals.invoices;
+  const paidOutSummary = userRole === "OWNER"
+    ? managerPaymentRows.reduce((sum, row) => sum + row.paid, 0)
+    : totals.paid;
+  const payoutTransactions = managerPayments.flatMap((manager) => manager.managerPayouts
+    .filter((payout) => payout.isPaid)
+    .map((payout) => ({ manager, payout })))
+    .sort((first, second) => new Date(second.payout.paidAt || second.payout.createdAt).getTime() - new Date(first.payout.paidAt || first.payout.createdAt).getTime());
 
   return (
     <div className="space-y-5 pb-8">
@@ -312,7 +328,7 @@ export default function PaymentsPage() {
           >
             <span>
               <span className="block text-sm font-semibold text-slate-900 dark:text-white">Manager payments</span>
-              <span className="mt-1 block text-xs text-slate-500">Invoice totals and payout details for your team members.</span>
+              <span className="mt-1 block text-xs text-slate-500">Track pending commission and permanently recorded manager payouts.</span>
             </span>
             <ChevronDown className={`h-4 w-4 shrink-0 text-slate-500 transition-transform ${showManagerPayments ? "rotate-180" : ""}`} />
           </button>
@@ -320,15 +336,15 @@ export default function PaymentsPage() {
             <p className="border-t border-slate-200 p-6 text-sm text-slate-500 dark:border-white/10">No manager accounts found.</p>
           ) : (
             <div className="divide-y divide-slate-200 border-t border-slate-200 dark:divide-white/10 dark:border-white/10">
-              {managerPaymentRows.map(({ manager, invoiceCount, paid, unpaid, total, commissionRate, payoutMethod, payoutAccount, nextUnpaidInvoice }) => (
+              {managerPaymentRows.map(({ manager, invoiceCount, paid, pending, total, commissionRate, payoutMethod, payoutAccount, nextUnpaidInvoice }) => (
                 <div key={manager.id} className="grid gap-3 p-4 sm:grid-cols-[1.3fr_repeat(3,0.7fr)_1.4fr] sm:items-center">
                   <div className="min-w-0">
                     <p className="truncate text-sm font-semibold text-slate-900 dark:text-white">{manager.fullName || manager.username}</p>
                     <p className="mt-0.5 truncate text-xs text-slate-500">@{manager.username} · {invoiceCount} {invoiceCount === 1 ? "invoice" : "invoices"}</p>
                   </div>
                   <div><p className="text-[10px] uppercase tracking-wide text-slate-500">Revenue</p><p className="mt-1 text-sm font-semibold text-slate-900 dark:text-white">{money(total)}</p><p className="mt-0.5 text-[10px] text-slate-500">{commissionRate.toFixed(2)}% commission</p></div>
-                  <div><p className="text-[10px] uppercase tracking-wide text-slate-500">Paid</p><p className="mt-1 text-sm font-semibold text-emerald-700 dark:text-emerald-300">{money(paid)}</p></div>
-                  <div><p className="text-[10px] uppercase tracking-wide text-slate-500">Due</p><p className="mt-1 text-sm font-semibold text-amber-700 dark:text-amber-300">{money(unpaid)}</p></div>
+                  <div><p className="text-[10px] uppercase tracking-wide text-slate-500">Paid out</p><p className="mt-1 text-sm font-semibold text-emerald-700 dark:text-emerald-300">{money(paid)}</p></div>
+                  <div><p className="text-[10px] uppercase tracking-wide text-slate-500">Pending</p><p className="mt-1 text-sm font-semibold text-amber-700 dark:text-amber-300">{money(pending)}</p></div>
                   <div className="min-w-0">
                     <p className="text-[10px] uppercase tracking-wide text-slate-500">Payment details</p>
                     <div className="mt-1 flex min-w-0 items-center gap-1.5">
@@ -416,15 +432,25 @@ export default function PaymentsPage() {
         {[
           { label: "Total Earned", value: totals.accrued, icon: WalletCards, tone: "text-cyan-300", accent: "border-cyan-400/20 bg-cyan-400/[0.07]" },
           { label: "Commission", value: commission, icon: CircleDollarSign, tone: "text-orange-300", accent: "border-orange-400/20 bg-orange-400/[0.07]" },
-          { label: "Invoice", value: totals.invoices, icon: CreditCard, tone: "text-violet-300", accent: "border-violet-400/20 bg-violet-400/[0.07]" },
-          { label: "Paid out", value: totals.paid, icon: CircleDollarSign, tone: "text-emerald-300", accent: "border-emerald-400/20 bg-emerald-400/[0.07]" },
+          { label: "Pending", value: pendingSummary, icon: CreditCard, tone: "text-violet-300", accent: "border-violet-400/20 bg-violet-400/[0.07]" },
+          { label: "Paid out", value: paidOutSummary, icon: CircleDollarSign, tone: "text-emerald-300", accent: "border-emerald-400/20 bg-emerald-400/[0.07]" },
         ].map((card, index) => (
           <motion.div
             key={card.label}
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.06 }}
-            className={`rounded-lg border p-4 ${card.accent}`}
+            className={`rounded-lg border p-4 ${card.accent} ${card.label === "Paid out" && userRole === "OWNER" ? "cursor-pointer transition hover:border-emerald-400/50" : ""}`}
+            role={card.label === "Paid out" && userRole === "OWNER" ? "button" : undefined}
+            tabIndex={card.label === "Paid out" && userRole === "OWNER" ? 0 : undefined}
+            onClick={card.label === "Paid out" && userRole === "OWNER" ? () => setShowPayoutTransactions(true) : undefined}
+            onKeyDown={card.label === "Paid out" && userRole === "OWNER" ? (event) => {
+              if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault();
+                setShowPayoutTransactions(true);
+              }
+            } : undefined}
+            aria-label={card.label === "Paid out" && userRole === "OWNER" ? "View paid out transactions" : undefined}
           >
             <div className="flex items-center justify-between">
               <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-slate-400">{card.label}</span>
@@ -434,6 +460,38 @@ export default function PaymentsPage() {
           </motion.div>
         ))}
       </div>
+
+      {showPayoutTransactions && userRole === "OWNER" && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="payout-transactions-title">
+          <div className="w-full max-w-2xl overflow-hidden rounded-xl border border-slate-700 bg-slate-900 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-white/10 px-4 py-3">
+              <div>
+                <h2 id="payout-transactions-title" className="text-sm font-bold text-white">History</h2>
+                <p className="mt-0.5 text-[11px] text-slate-400">Here is your all Pay Out Record</p>
+              </div>
+              <button type="button" onClick={() => setShowPayoutTransactions(false)} className="rounded p-1 text-slate-400 hover:bg-white/10 hover:text-white" aria-label="Close paid out transactions">
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+            {payoutTransactions.length === 0 ? (
+              <p className="p-6 text-sm text-slate-400">No paid out transactions yet.</p>
+            ) : (
+              <div className="max-h-[60vh] divide-y divide-white/10 overflow-y-auto">
+                {payoutTransactions.map(({ manager, payout }) => (
+                  <div key={payout.payoutNumber} className="grid gap-2 px-4 py-3 sm:grid-cols-[1fr_auto] sm:items-center">
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-semibold text-white">{manager.fullName || manager.username}</p>
+                      <p className="mt-0.5 text-[11px] text-slate-500">{payout.payoutNumber} · {new Date(payout.paidAt || payout.createdAt).toLocaleString()}</p>
+                      <p className="mt-0.5 text-[11px] text-slate-400">Method: {payout.payoutMethod || "Not provided"} · Transaction ID: {payout.paymentReference || "Not provided"}</p>
+                    </div>
+                    <p className="text-sm font-bold text-emerald-300">{money(Number(payout.totalEarning || 0))}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       <section className="overflow-hidden rounded-lg border border-white/10 bg-white/[0.03]">
         <div className="flex flex-col gap-3 border-b border-white/10 p-4 sm:flex-row sm:items-center sm:justify-between">

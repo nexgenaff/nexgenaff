@@ -27,7 +27,7 @@ export async function POST(
 
     const manager = await prisma.user.findUnique({
       where: { id: managerId, role: 'MANAGER' },
-      select: { id: true, payoutMethod: true, payoutAccount: true, bkashNumber: true },
+      select: { id: true, payoutMethod: true, payoutAccount: true, bkashNumber: true, commissionRate: true },
     })
     if (!manager) return NextResponse.json({ error: 'Manager account not found' }, { status: 404, headers: getCorsHeaders(origin) })
 
@@ -46,7 +46,8 @@ export async function POST(
 
     const payoutMethod = manager.payoutMethod || invoices.find((invoice) => invoice.payoutMethod)?.payoutMethod || (manager.bkashNumber ? 'BKASH' : null)
     const payoutAccount = manager.payoutAccount || invoices.find((invoice) => invoice.payoutAccount)?.payoutAccount || manager.bkashNumber || null
-    const totalEarning = invoices.reduce((sum, invoice) => sum + Number(invoice.totalEarning || 0), 0)
+    const commissionRate = Number(manager.commissionRate ?? 20) || 0
+    const totalEarning = invoices.reduce((sum, invoice) => sum + Number(invoice.totalEarning || 0), 0) * (commissionRate / 100)
     const payoutNumber = `MP-${new Date().toISOString().replace(/\D/g, '').slice(0, 14)}-${crypto.randomBytes(3).toString('hex').toUpperCase()}`
 
     const payout = await prisma.$transaction(async (transaction) => {

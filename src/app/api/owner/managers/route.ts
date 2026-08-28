@@ -24,7 +24,7 @@ export async function GET(request: Request) {
   }
 
   try {
-    const selectFields: Record<string, boolean> = {
+    const selectFields: Record<string, any> = {
       id: true,
       username: true,
       email: true,
@@ -42,6 +42,10 @@ export async function GET(request: Request) {
       createdAt: true,
       updatedAt: true,
       lastLogin: true,
+      managerPayouts: {
+        orderBy: { createdAt: 'desc' },
+        select: { payoutNumber: true, totalEarning: true, payoutMethod: true, paymentReference: true, isPaid: true, paidAt: true, createdAt: true },
+      },
     }
 
     let managers = null
