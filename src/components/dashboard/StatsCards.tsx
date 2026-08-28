@@ -2,7 +2,7 @@
 
 import { StatsCard } from '@/components/ui/StatsCard'
 import { Chart } from '@/components/ui/Chart'
-import { MousePointerClick, Users, Link2, CircleDollarSign, BadgeCheck } from 'lucide-react'
+import { MousePointerClick, Users, Link2, CircleDollarSign } from 'lucide-react'
 import { getCountryFlag } from '@/lib/utils/country'
 import { motion } from 'framer-motion'
 
@@ -12,7 +12,7 @@ interface StatsCardsProps {
     uniqueClicks: number
     totalLinks: number
     revenue?: number
-    totalConversions?: number
+    totalPayout?: number
   }
   chartData?: {
     labels: string[]
@@ -39,8 +39,13 @@ interface StatsCardsProps {
   }[]
   period?: 'week' | 'month' | 'year'
   onPeriodChange?: (period: 'week' | 'month' | 'year') => void
-  totalConversions?: number
+  totalPayout?: number
   showConversions?: boolean
+}
+
+function formatCurrency(value: number | undefined, decimalPlaces = 2) {
+  const amount = Number(value)
+  return Number.isFinite(amount) ? `$${amount.toFixed(decimalPlaces)}` : '$0.00'
 }
 
 export default function StatsCards({
@@ -50,7 +55,7 @@ export default function StatsCards({
   countryBreakdown = [],
   period = 'week',
   onPeriodChange,
-  totalConversions = 0,
+  totalPayout = 0,
   showConversions = false,
 }: StatsCardsProps) {
   const defaultChartData = {
@@ -105,16 +110,16 @@ export default function StatsCards({
             initial={{ opacity: 0, y: 16, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             transition={{ duration: 0.45, delay: 0.3 }}
-            className="min-w-0 rounded-lg border border-slate-700/30 bg-slate-800/30 p-4 transition-colors duration-200 hover:bg-slate-800/40"
+            className="min-w-0 rounded-lg border border-slate-200 bg-white p-4 shadow-sm transition-colors duration-200 hover:bg-slate-50 dark:border-slate-700/30 dark:bg-slate-800/30 dark:hover:bg-slate-800/40"
           >
-            <div className="grid grid-cols-2 divide-x divide-slate-700/50">
-              <div className="min-w-0 pr-3">
-                <div className="flex items-center justify-between gap-2"><p className="text-[10px] uppercase tracking-wide text-slate-500">Revenue</p><CircleDollarSign className="h-4 w-4 text-emerald-300" /></div>
-                <p className="mt-0.5 text-2xl font-bold text-white">${(stats.revenue ?? 0) === 0 ? '0' : (stats.revenue ?? 0).toFixed(3)}</p>
+            <div className="grid grid-cols-1 divide-y divide-slate-200 dark:divide-slate-700/50 min-[420px]:grid-cols-2 min-[420px]:divide-y-0 min-[420px]:divide-x">
+              <div className="min-w-0 pb-3 min-[420px]:pr-3 min-[420px]:pb-0">
+                <div className="flex items-center justify-between gap-2"><p className="text-[10px] uppercase tracking-wide text-slate-500">Revenue</p><CircleDollarSign className="h-4 w-4 text-emerald-600 dark:text-emerald-300" /></div>
+                <p className="mt-0.5 text-2xl font-bold text-slate-900 dark:text-white">{formatCurrency(stats.revenue, 3)}</p>
               </div>
-              <div className="min-w-0 pl-3">
-                <div className="flex items-center justify-between gap-2"><p className="text-[10px] uppercase tracking-wide text-slate-500">Conversions</p><BadgeCheck className="h-4 w-4 text-sky-300" /></div>
-                <p className="mt-0.5 text-2xl font-bold text-white">{totalConversions}</p>
+              <div className="min-w-0 pt-3 min-[420px]:pl-3 min-[420px]:pt-0">
+                <div className="flex items-center justify-between gap-2"><p className="text-[10px] uppercase tracking-wide text-slate-500">Total payout</p><CircleDollarSign className="h-4 w-4 text-emerald-600 dark:text-emerald-300" /></div>
+                <p className="mt-0.5 text-2xl font-bold text-slate-900 dark:text-white">{formatCurrency(totalPayout)}</p>
               </div>
             </div>
           </motion.div>

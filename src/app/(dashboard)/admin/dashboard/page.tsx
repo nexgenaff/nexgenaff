@@ -27,7 +27,7 @@ interface DashboardStats {
   commission: number;
   commissionRate: number;
   revenue: number;
-  totalConversions: number;
+  totalPayout: number;
   chartData: any;
   hourlyChartData: any;
   countryBreakdown: any[];
@@ -62,7 +62,7 @@ export default function DashboardPage() {
     commission: 0,
     commissionRate: 20,
     revenue: 0,
-    totalConversions: 0,
+    totalPayout: 0,
     chartData: createDefaultChart(),
     hourlyChartData: createDefaultChart(),
     countryBreakdown: [],
@@ -140,7 +140,7 @@ export default function DashboardPage() {
             commission: 0,
             commissionRate: 20,
             revenue: 0,
-            totalConversions: 0,
+            totalPayout: 0,
             chartData: createDefaultChart(),
             hourlyChartData: createDefaultChart(),
             countryBreakdown: [],
@@ -187,7 +187,7 @@ export default function DashboardPage() {
           commission: paymentSummary.commission,
           commissionRate: managerCommissionRate,
           revenue: paymentSummary.totalEarned + paymentSummary.commission,
-          totalConversions: Number(postbacksData?.totalConversions) || 0,
+          totalPayout: Number(postbacksData?.totalPayout) || 0,
           chartData: data.chartData || createDefaultChart(),
           hourlyChartData: data.hourlyChartData || createDefaultChart(),
           countryBreakdown: Array.isArray(data.countryBreakdown)
@@ -424,7 +424,7 @@ export default function DashboardPage() {
             chartData={chartData}
             hourlyChartData={hourlyChartData}
             countryBreakdown={countryBreakdown}
-            totalConversions={stats.totalConversions}
+            totalPayout={stats.totalPayout}
             showConversions={userRole !== "MANAGER"}
           />
         </section>

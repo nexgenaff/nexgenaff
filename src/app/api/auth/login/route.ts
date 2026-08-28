@@ -120,7 +120,10 @@ export async function POST(request: Request) {
               user = { id: `local-${ADMIN_ENV_USERNAME}`, username: ADMIN_ENV_USERNAME, role: 'ADMIN' } as any
             }
           } else {
-            user = existingAdmin
+            return NextResponse.json(
+              { error: 'Invalid credentials' },
+              { status: 401, headers: getCorsHeaders(origin) }
+            )
           }
         }
       } else if (
@@ -151,7 +154,10 @@ export async function POST(request: Request) {
               user = { id: `local-${OWNER_ENV_USERNAME}`, username: OWNER_ENV_USERNAME, role: 'OWNER' } as any
             }
           } else {
-            user = existingOwner
+            return NextResponse.json(
+              { error: 'Invalid credentials' },
+              { status: 401, headers: getCorsHeaders(origin) }
+            )
           }
         }
       } else {
