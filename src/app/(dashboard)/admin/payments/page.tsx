@@ -257,7 +257,7 @@ export default function PaymentsPage() {
         const paidAmount = paid.reduce((sum, invoice) => sum + (Number(invoice.totalEarning) || 0), 0);
         const invoiceTotal = invoices.reduce((sum, invoice) => sum + (Number(invoice.totalEarning) || 0), 0);
         const commissionRate = Number(link.commissionRate ?? 20) || 20;
-        const pendingTotal = invoiceTotal * (commissionRate / 100);
+        const pendingTotal = invoiceTotal + (invoiceTotal * (commissionRate / 100));
         const accrued = unpaidAmount + paidAmount;
         return { link, invoices, current, unpaidAmount, paidAmount, invoiceTotal, pendingTotal, accrued, commission: accrued * (commissionRate / 100) };
       }), [activeLinks]);
@@ -293,7 +293,8 @@ export default function PaymentsPage() {
     const commissionRate = Number(manager.commissionRate ?? 20) || 0;
     const paid = manager.managerPayouts.filter((payout) => payout.isPaid).reduce((sum, payout) => sum + Number(payout.totalEarning || 0), 0);
     const pendingInvoices = invoices.filter((invoice) => !invoice.isPaid && invoice.managerPayouts.length === 0);
-    const pending = pendingInvoices.reduce((sum, invoice) => sum + Number(invoice.totalEarning || 0), 0) * (commissionRate / 100);
+    const pendingInvoiceTotal = pendingInvoices.reduce((sum, invoice) => sum + Number(invoice.totalEarning || 0), 0);
+    const pending = pendingInvoiceTotal + (pendingInvoiceTotal * (commissionRate / 100));
     const revenue = managerRevenueByUserId.get(manager.id) || 0;
     const firstLink = manager.linkAccounts.find((link) => link.payoutAccount || link.payoutMethod);
     const nextUnpaidInvoice = manager.linkAccounts
