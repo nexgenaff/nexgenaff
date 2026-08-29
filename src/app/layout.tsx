@@ -48,6 +48,7 @@ export const metadata: Metadata = {
     capable: true,
     statusBarStyle: 'black-translucent',
     title: 'Afficixo',
+    startupImage: '/web-app-manifest-512x512.png',
   },
   alternates: {
     canonical: 'https://www.weebly.pro',
@@ -108,9 +109,10 @@ export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
   themeColor: [
-    { media: '(prefers-color-scheme: dark)', color: '#05070b' },
-    { media: '(prefers-color-scheme: light)', color: '#ffffff' },
+    { media: '(prefers-color-scheme: dark)', color: '#34d399' },
+    { media: '(prefers-color-scheme: light)', color: '#34d399' },
   ],
+  viewportFit: 'cover',
 }
 
 export default function RootLayout({

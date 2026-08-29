@@ -1260,9 +1260,9 @@ export default function OffersPage() {
       </div>
 
       {/* ===== MAIN CONTENT ===== */}
-      <div className="grid gap-5 lg:grid-cols-[1.25fr_0.75fr]">
+      <div className="grid gap-3 sm:gap-5 lg:grid-cols-[1.25fr_0.75fr]">
         {/* Left Column */}
-        <div className="space-y-4">
+        <div className="space-y-3 sm:space-y-4">
           {/* Groups */}
           {groupSummaries.length > 0 && (
             <div className="space-y-3">
@@ -1470,27 +1470,27 @@ export default function OffersPage() {
         </div>
 
         {/* Right Column */}
-        <div className="space-y-4">
-          <div className="rounded-lg border border-white/5 bg-white/3 p-4">
-            <div className="flex items-center gap-2 text-indigo-300 mb-4">
-              <ShieldCheck className="w-4 h-4" />
-              <span className="text-xs font-medium uppercase tracking-wider">Vault Health</span>
+        <div className="grid gap-3 sm:gap-4 lg:flex lg:flex-col lg:space-y-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-1">
+          <div className="rounded-lg border border-white/5 bg-white/3 p-3 sm:p-4">
+            <div className="flex items-center gap-2 text-indigo-300 mb-3 sm:mb-4">
+              <ShieldCheck className="w-3 h-3 sm:w-4 sm:h-4" />
+              <span className="text-[10px] sm:text-xs font-medium uppercase tracking-wider">Vault Health</span>
             </div>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between rounded-lg border border-white/5 bg-white/5 px-3 py-3 text-sm">
+            <div className="space-y-2 sm:space-y-3">
+              <div className="flex items-center justify-between rounded-lg border border-white/5 bg-white/5 px-2.5 sm:px-3 py-2 sm:py-3 text-xs sm:text-sm">
                 <span className="text-slate-400">Regional</span>
                 <span className="font-semibold text-white">{regionalOffers}</span>
               </div>
-              <div className="flex items-center justify-between rounded-lg border border-white/5 bg-white/5 px-3 py-3 text-sm">
+              <div className="flex items-center justify-between rounded-lg border border-white/5 bg-white/5 px-2.5 sm:px-3 py-2 sm:py-3 text-xs sm:text-sm">
                 <span className="text-slate-400">Fallback</span>
                 <span className="font-semibold text-white">{globalOffers}</span>
               </div>
-              <div className="flex items-center justify-between rounded-lg border border-white/5 bg-white/5 px-3 py-3 text-sm">
+              <div className="flex items-center justify-between rounded-lg border border-white/5 bg-white/5 px-2.5 sm:px-3 py-2 sm:py-3 text-xs sm:text-sm">
                 <span className="text-slate-400">Geo pools</span>
                 <span className="font-semibold text-white">{geoPoolCount}</span>
               </div>
-              <div className="rounded-lg border border-white/5 bg-white/5 p-3">
-                <div className="flex items-center justify-between text-sm mb-1.5">
+              <div className="rounded-lg border border-white/5 bg-white/5 p-2 sm:p-3">
+                <div className="flex items-center justify-between text-xs sm:text-sm mb-1.5">
                   <span className="text-slate-400">Coverage</span>
                   <span className="font-semibold text-white">{vaultScore}%</span>
                 </div>
@@ -1510,26 +1510,26 @@ export default function OffersPage() {
             </div>
           </div>
 
-          <div className="rounded-lg border border-white/5 bg-white/3 p-4">
-            <div className="flex items-center gap-2 text-slate-400 mb-4">
-              <Layers className="w-4 h-4" />
-              <span className="text-xs font-medium uppercase tracking-wider">How It Works</span>
+          <div className="rounded-lg border border-white/5 bg-white/3 p-3 sm:p-4">
+            <div className="flex items-center gap-2 text-slate-400 mb-3 sm:mb-4">
+              <Layers className="w-3 h-3 sm:w-4 sm:h-4" />
+              <span className="text-[10px] sm:text-xs font-medium uppercase tracking-wider">How It Works</span>
             </div>
-            <ul className="space-y-3 text-sm text-slate-400">
-              <li className="flex items-start gap-3">
-                <span className="text-indigo-400 mt-0.5">•</span>
+            <ul className="space-y-2 sm:space-y-3 text-xs sm:text-sm text-slate-400">
+              <li className="flex items-start gap-2.5 sm:gap-3">
+                <span className="text-indigo-400 mt-0.5 flex-shrink-0">•</span>
                 <span>Create a <span className="text-white">routing pool</span> for offers.</span>
               </li>
-              <li className="flex items-start gap-3">
-                <span className="text-indigo-400 mt-0.5">•</span>
+              <li className="flex items-start gap-2.5 sm:gap-3">
+                <span className="text-indigo-400 mt-0.5 flex-shrink-0">•</span>
                 <span>Add offers with <span className="text-white">country targeting</span>.</span>
               </li>
-              <li className="flex items-start gap-3">
-                <span className="text-indigo-400 mt-0.5">•</span>
+              <li className="flex items-start gap-2.5 sm:gap-3">
+                <span className="text-indigo-400 mt-0.5 flex-shrink-0">•</span>
                 <span><span className="text-white">Global fallback</span> covers unmapped countries.</span>
               </li>
-              <li className="flex items-start gap-3">
-                <span className="text-indigo-400 mt-0.5">•</span>
+              <li className="flex items-start gap-2.5 sm:gap-3">
+                <span className="text-indigo-400 mt-0.5 flex-shrink-0">•</span>
                 <span><span className="text-white">Priority</span> or <span className="text-white">random</span> rotation.</span>
               </li>
             </ul>
