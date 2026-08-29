@@ -1476,33 +1476,33 @@ export default function OffersPage() {
               <ShieldCheck className="w-3 h-3 sm:w-4 sm:h-4" />
               <span className="text-[10px] sm:text-xs font-medium uppercase tracking-wider">Vault Health</span>
             </div>
-            <div className="space-y-2 sm:space-y-3">
-              <div className="flex items-center justify-between rounded-lg border border-white/5 bg-white/5 px-2.5 sm:px-3 py-2 sm:py-3 text-xs sm:text-sm">
-                <span className="text-slate-400">Regional</span>
-                <span className="font-semibold text-white">{regionalOffers}</span>
+            <div className="space-y-3 sm:space-y-3">
+              <div className="flex items-center justify-between rounded-lg border border-slate-300/30 dark:border-white/10 bg-slate-50/50 dark:bg-white/5 px-3 sm:px-3 py-2.5 sm:py-3 text-xs sm:text-sm hover:border-slate-400/50 dark:hover:border-white/20 transition">
+                <span className="text-slate-600 dark:text-slate-400 font-medium">Regional</span>
+                <span className="font-bold text-slate-900 dark:text-white text-sm">{regionalOffers}</span>
               </div>
-              <div className="flex items-center justify-between rounded-lg border border-white/5 bg-white/5 px-2.5 sm:px-3 py-2 sm:py-3 text-xs sm:text-sm">
-                <span className="text-slate-400">Fallback</span>
-                <span className="font-semibold text-white">{globalOffers}</span>
+              <div className="flex items-center justify-between rounded-lg border border-slate-300/30 dark:border-white/10 bg-slate-50/50 dark:bg-white/5 px-3 sm:px-3 py-2.5 sm:py-3 text-xs sm:text-sm hover:border-slate-400/50 dark:hover:border-white/20 transition">
+                <span className="text-slate-600 dark:text-slate-400 font-medium">Fallback</span>
+                <span className="font-bold text-slate-900 dark:text-white text-sm">{globalOffers}</span>
               </div>
-              <div className="flex items-center justify-between rounded-lg border border-white/5 bg-white/5 px-2.5 sm:px-3 py-2 sm:py-3 text-xs sm:text-sm">
-                <span className="text-slate-400">Geo pools</span>
-                <span className="font-semibold text-white">{geoPoolCount}</span>
+              <div className="flex items-center justify-between rounded-lg border border-slate-300/30 dark:border-white/10 bg-slate-50/50 dark:bg-white/5 px-3 sm:px-3 py-2.5 sm:py-3 text-xs sm:text-sm hover:border-slate-400/50 dark:hover:border-white/20 transition">
+                <span className="text-slate-600 dark:text-slate-400 font-medium">Geo pools</span>
+                <span className="font-bold text-slate-900 dark:text-white text-sm">{geoPoolCount}</span>
               </div>
-              <div className="rounded-lg border border-white/5 bg-white/5 p-2 sm:p-3">
-                <div className="flex items-center justify-between text-xs sm:text-sm mb-1.5">
-                  <span className="text-slate-400">Coverage</span>
-                  <span className="font-semibold text-white">{vaultScore}%</span>
+              <div className="rounded-lg border border-slate-300/30 dark:border-white/10 bg-slate-50/50 dark:bg-white/5 p-3 sm:p-3">
+                <div className="flex items-center justify-between text-xs sm:text-sm mb-2">
+                  <span className="text-slate-600 dark:text-slate-400 font-medium">Coverage</span>
+                  <span className="font-bold text-slate-900 dark:text-white">{vaultScore}%</span>
                 </div>
-                <div className="w-full h-2 bg-white/10 rounded-full overflow-hidden">
+                <div className="w-full h-3 bg-slate-300 dark:bg-white/10 rounded-full overflow-hidden">
                   <motion.div
                     initial={{ width: 0 }}
                     animate={{ width: `${vaultScore}%` }}
                     transition={{ duration: 0.6, ease: "easeOut" }}
-                    className={`h-full rounded-full ${
-                      vaultScore > 70 ? "bg-emerald-400" :
-                      vaultScore > 40 ? "bg-amber-400" :
-                      "bg-rose-400"
+                    className={`h-full rounded-full shadow-lg ${
+                      vaultScore > 70 ? "bg-emerald-500" :
+                      vaultScore > 40 ? "bg-amber-500" :
+                      "bg-rose-500"
                     }`}
                   />
                 </div>
@@ -1515,22 +1515,22 @@ export default function OffersPage() {
               <Layers className="w-3 h-3 sm:w-4 sm:h-4" />
               <span className="text-[10px] sm:text-xs font-medium uppercase tracking-wider">How It Works</span>
             </div>
-            <ul className="space-y-2 sm:space-y-3 text-xs sm:text-sm text-slate-400">
-              <li className="flex items-start gap-2.5 sm:gap-3">
-                <span className="text-indigo-400 mt-0.5 flex-shrink-0">•</span>
-                <span>Create a <span className="text-white">routing pool</span> for offers.</span>
+            <ul className="space-y-3 sm:space-y-3.5 text-xs sm:text-sm text-slate-600 dark:text-slate-400">
+              <li className="flex items-start gap-3">
+                <span className="text-indigo-500 dark:text-indigo-400 mt-0.5 flex-shrink-0 font-bold">✓</span>
+                <span className="leading-relaxed">Create a <span className="text-slate-900 dark:text-white font-medium">routing pool</span> for offers.</span>
               </li>
-              <li className="flex items-start gap-2.5 sm:gap-3">
-                <span className="text-indigo-400 mt-0.5 flex-shrink-0">•</span>
-                <span>Add offers with <span className="text-white">country targeting</span>.</span>
+              <li className="flex items-start gap-3">
+                <span className="text-indigo-500 dark:text-indigo-400 mt-0.5 flex-shrink-0 font-bold">✓</span>
+                <span className="leading-relaxed">Add offers with <span className="text-slate-900 dark:text-white font-medium">country targeting</span>.</span>
               </li>
-              <li className="flex items-start gap-2.5 sm:gap-3">
-                <span className="text-indigo-400 mt-0.5 flex-shrink-0">•</span>
-                <span><span className="text-white">Global fallback</span> covers unmapped countries.</span>
+              <li className="flex items-start gap-3">
+                <span className="text-indigo-500 dark:text-indigo-400 mt-0.5 flex-shrink-0 font-bold">✓</span>
+                <span className="leading-relaxed"><span className="text-slate-900 dark:text-white font-medium">Global fallback</span> covers unmapped countries.</span>
               </li>
-              <li className="flex items-start gap-2.5 sm:gap-3">
-                <span className="text-indigo-400 mt-0.5 flex-shrink-0">•</span>
-                <span><span className="text-white">Priority</span> or <span className="text-white">random</span> rotation.</span>
+              <li className="flex items-start gap-3">
+                <span className="text-indigo-500 dark:text-indigo-400 mt-0.5 flex-shrink-0 font-bold">✓</span>
+                <span className="leading-relaxed"><span className="text-slate-900 dark:text-white font-medium">Priority</span> or <span className="text-slate-900 dark:text-white font-medium">random</span> rotation.</span>
               </li>
             </ul>
           </div>
