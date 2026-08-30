@@ -259,7 +259,8 @@ export default function PaymentsPage() {
         const commissionRate = Number(link.commissionRate ?? 20) || 20;
         const pendingTotal = invoiceTotal + (invoiceTotal * (commissionRate / 100));
         const accrued = unpaidAmount + paidAmount;
-        return { link, invoices, current, unpaidAmount, paidAmount, invoiceTotal, pendingTotal, accrued, commission: accrued * (commissionRate / 100) };
+        const revenue = accrued + (accrued * (commissionRate / 100));
+        return { link, invoices, current, unpaidAmount, paidAmount, invoiceTotal, pendingTotal, accrued, revenue, commission: accrued * (commissionRate / 100) };
       }), [activeLinks]);
 
   const rows = useMemo(() => {
@@ -284,7 +285,7 @@ export default function PaymentsPage() {
 
   const commission = totals.commission;
   const managerRevenueByUserId = paymentRows.reduce((revenueByUserId, row) => {
-    revenueByUserId.set(row.link.userId, (revenueByUserId.get(row.link.userId) || 0) + row.accrued);
+    revenueByUserId.set(row.link.userId, (revenueByUserId.get(row.link.userId) || 0) + row.revenue);
     return revenueByUserId;
   }, new Map<string, number>());
 
