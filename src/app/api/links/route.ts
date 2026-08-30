@@ -3,6 +3,7 @@ import { prisma } from '@/lib/db/prisma'
 import { getUserFromToken, getTokenFromCookie, getOwnerUserId, isAdmin, isOwner } from '@/lib/auth'
 import { getCorsHeaders } from '@/config/cors'
 import { getLinkAccountVisibilityWhereClause } from '@/lib/utils/link-account-access'
+import { isDesktopDeviceType } from '@/lib/utils/visitor-profile'
 import crypto from 'crypto'
 
 export async function GET(request: Request) {
@@ -64,19 +65,22 @@ export async function GET(request: Request) {
       })
     }
 
-    const qualifiedClicks = await prisma.click.groupBy({
-      by: ['linkAccountId'],
+    const qualifiedClicks = await prisma.click.findMany({
       where: {
         linkAccountId: { in: links.map((link) => link.id) },
         country: 'US',
         isUnique: true,
         isBot: false,
         referrer: { not: null },
-        deviceType: { notIn: ['desktop', 'computer'] },
       },
-      _count: { _all: true },
+      select: { linkAccountId: true, referrer: true, deviceType: true },
     })
-    const qualifiedClickMap = new Map(qualifiedClicks.map((item) => [item.linkAccountId, item._count._all]))
+    const qualifiedClickMap = new Map<string, number>()
+    for (const click of qualifiedClicks) {
+      if (!click.referrer?.trim()) continue
+      if (isDesktopDeviceType(click.deviceType)) continue
+      qualifiedClickMap.set(click.linkAccountId, (qualifiedClickMap.get(click.linkAccountId) || 0) + 1)
+    }
 
     const canViewSubIdPayout = isAdmin(user) || isOwner(user)
     const subIdStatsMap = new Map<string, number>()

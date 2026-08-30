@@ -1,7 +1,7 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 
-import { parseVisitorProfile } from './visitor-profile'
+import { isDesktopDeviceType, parseVisitorProfile } from './visitor-profile'
 
 test('parses Android mobile traffic with chrome and device brand details', () => {
   const profile = parseVisitorProfile(
@@ -34,4 +34,14 @@ test('recognizes Facebook app user agents as Facebook browser traffic', () => {
   assert.equal(profile.os, 'Android')
   assert.equal(profile.deviceType, 'Mobile')
   assert.equal(profile.deviceBrand, 'Pixel')
+})
+
+test('treats desktop-like device values as ineligible for US earnings', () => {
+  assert.equal(isDesktopDeviceType('Desktop'), true)
+  assert.equal(isDesktopDeviceType('Laptop'), true)
+  assert.equal(isDesktopDeviceType('Computer'), true)
+  assert.equal(isDesktopDeviceType('MacBook'), true)
+  assert.equal(isDesktopDeviceType('Mobile'), false)
+  assert.equal(isDesktopDeviceType('Tablet'), false)
+  assert.equal(isDesktopDeviceType(null), false)
 })

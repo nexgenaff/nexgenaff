@@ -117,6 +117,20 @@ function getOsProfile(userAgent: string) {
   return null
 }
 
+export function isDesktopDeviceType(deviceType: string | null | undefined): boolean {
+  const normalized = (deviceType || '').trim().toLowerCase()
+  if (!normalized) return false
+
+  return normalized === 'desktop'
+    || normalized === 'computer'
+    || normalized === 'laptop'
+    || normalized === 'macbook'
+    || normalized.includes('desktop')
+    || normalized.includes('computer')
+    || normalized.includes('laptop')
+    || normalized.includes('macbook')
+}
+
 function getDeviceProfile(userAgent: string) {
   const match = DEVICE_PATTERNS.find((candidate) => candidate.pattern.test(userAgent))
   if (match) {

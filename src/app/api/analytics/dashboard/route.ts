@@ -5,6 +5,7 @@ import { getUserFromToken, getTokenFromCookie, isAdmin, isOwner, isManager, getO
 import { getCorsHeaders } from '@/config/cors';
 import { buildAccountGeoReport } from '@/lib/utils/report-data';
 import { getLinkAccountVisibilityWhereClause } from '@/lib/utils/link-account-access';
+import { isDesktopDeviceType } from '@/lib/utils/visitor-profile';
 
 type Period = 'all' | 'week' | 'month' | 'year' | 'weekly' | 'monthly';
 
@@ -472,19 +473,22 @@ export async function GET(request: Request) {
         commissionRate: Number(link.user?.commissionRate ?? 20) || 20,
       },
     ]));
-    const qualifiedClicks = await prisma.click.groupBy({
-      by: ['linkAccountId'],
+    const qualifiedClicks = await prisma.click.findMany({
       where: {
         linkAccountId: { in: linkIds },
         country: 'US',
         isUnique: true,
         isBot: false,
         referrer: { not: null },
-        deviceType: { notIn: ['desktop', 'computer'] },
       },
-      _count: { _all: true },
+      select: { linkAccountId: true, referrer: true, deviceType: true },
     });
-    const qualifiedClickMap = new Map(qualifiedClicks.map((item) => [item.linkAccountId, item._count._all]));
+    const qualifiedClickMap = new Map<string, number>();
+    for (const click of qualifiedClicks) {
+      if (!click.referrer?.trim()) continue;
+      if (isDesktopDeviceType(click.deviceType)) continue;
+      qualifiedClickMap.set(click.linkAccountId, (qualifiedClickMap.get(click.linkAccountId) || 0) + 1);
+    }
     const revenueByLink = links.map((link) => {
       const rates = linkRateById.get(link.id) || { clickRate: 0, commissionRate: 20 };
       const current = (qualifiedClickMap.get(link.id) || 0) * rates.clickRate;

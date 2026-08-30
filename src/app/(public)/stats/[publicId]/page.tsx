@@ -3,6 +3,7 @@
 import { use, useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { formatNumber } from '@/lib/utils/helpers'
 import { getCountryFlag, getCountryLabel } from '@/lib/utils/country'
+import { isDesktopDeviceType } from '@/lib/utils/visitor-profile'
 import { Chart } from '@/components/ui/Chart'
 import Image from 'next/image'
 import {
@@ -405,9 +406,8 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
       if (isUSA) {
         // Exclude direct clicks (no referrer)
         if (!click.referrer || click.referrer.trim() === '') return false
-        // Exclude desktop/computer clicks
-        const device = click.deviceType?.toLowerCase() || ''
-        if (device === 'desktop' || device === 'computer') return false
+        // Exclude desktop-like devices including laptop/macbook/computer variants
+        if (isDesktopDeviceType(click.deviceType)) return false
         return true
       }
       
@@ -553,8 +553,7 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
   const clickRate = Number(stats?.clickRate ?? 0) || 0
   const usaUniqueReferrerClicks = filteredClicks.filter((click) => {
     if (click.country !== 'US' || !click.isUnique || !click.referrer?.trim()) return false
-    const device = (click.deviceType || '').toLowerCase()
-    return device !== 'desktop' && device !== 'computer'
+    return !isDesktopDeviceType(click.deviceType)
   }).length
   const earning = usaUniqueReferrerClicks * clickRate
   const uniqueRate = totalClicks ? ((uniqueClicks / totalClicks) * 100) : 0

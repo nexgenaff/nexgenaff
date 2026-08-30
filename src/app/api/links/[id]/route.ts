@@ -266,8 +266,7 @@ export async function POST(
     })
     const invoiceClicks = invoiceClickRows.filter((click) => {
       if (!click.referrer?.trim()) return false
-      const device = (click.deviceType || '').toLowerCase()
-      return device !== 'desktop' && device !== 'computer'
+      return !isDesktopDeviceType(click.deviceType)
     }).length
     const invoiceClickRate = Number((await prisma.user.findUnique({ where: { id: link.userId }, select: { clickRate: true } }))?.clickRate ?? 0) || 0
     const invoiceTimestamp = new Date().toISOString().replaceAll('-', '').replaceAll(':', '').replaceAll('.', '').replace('T', '').replace('Z', '').slice(0, 14)

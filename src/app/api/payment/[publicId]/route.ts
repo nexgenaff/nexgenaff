@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import bcrypt from 'bcryptjs'
 import { prisma } from '@/lib/db/prisma'
+import { isDesktopDeviceType } from '@/lib/utils/visitor-profile'
 
 export async function GET(_request: Request, { params }: { params: Promise<{ publicId: string }> }) {
   try {
@@ -79,8 +80,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ pub
     })
     const qualifiedClicks = clicks.filter((click) => {
       if (!click.referrer?.trim()) return false
-      const device = (click.deviceType || '').toLowerCase()
-      return device !== 'desktop' && device !== 'computer'
+      return !isDesktopDeviceType(click.deviceType)
     }).length
     const clickRate = Number(user.clickRate ?? 0) || 0
     const invoices = await prisma.invoice.findMany({

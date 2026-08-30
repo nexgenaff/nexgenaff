@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db/prisma'
+import { isDesktopDeviceType } from '@/lib/utils/visitor-profile'
 import { getUserFromToken, getTokenFromCookie, isAdmin, isOwner, isManager, getOwnerUserId } from '@/lib/auth'
 import { getCorsHeaders } from '@/config/cors'
 
@@ -112,8 +113,7 @@ export async function POST(request: Request) {
         ...link,
         qualifiedClicks: (await prisma.click.findMany({ where: { linkAccountId: link.id, country: 'US', isUnique: true, isBot: false }, select: { referrer: true, deviceType: true } })).filter((click) => {
           if (!click.referrer?.trim()) return false
-          const device = (click.deviceType || '').toLowerCase()
-          return device !== 'desktop' && device !== 'computer'
+          return !isDesktopDeviceType(click.deviceType)
         }).length,
       })))
       const invoiceCreates = invoiceCounts.flatMap((link) => {
