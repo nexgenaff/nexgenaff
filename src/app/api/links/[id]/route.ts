@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { prisma } from '@/lib/db/prisma'
 import { getUserFromToken, getTokenFromCookie, isAdmin, isOwner, isManager, getOwnerUserId } from '@/lib/auth'
 import { getCorsHeaders } from '@/config/cors'
+import { isDesktopDeviceType } from '@/lib/utils/visitor-profile'
 
 const normalizeSlug = (value: unknown) => {
   return typeof value === 'string'
