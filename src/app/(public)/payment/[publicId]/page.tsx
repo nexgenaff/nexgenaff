@@ -172,7 +172,7 @@ export default function PaymentPage({ params }: { params: Promise<{ publicId: st
               </div>
               {error && <p className="mt-3 text-sm text-rose-300">{error}</p>}
               {saved && <p className="mt-3 text-sm text-emerald-300">{saved}</p>}
-              <button type="submit" disabled={loading} className="mt-5 w-full rounded-lg bg-emerald-400 px-4 py-2.5 text-sm font-semibold text-slate-950 transition hover:bg-emerald-300 disabled:opacity-60">{loading ? 'Saving...' : 'Save'}</button>
+              <button type="submit" disabled={loading} className="mt-5 w-full rounded-lg bg-emerald-400 px-4 py-2.5 text-sm font-semibold text-slate-950 transition hover:bg-emerald-300 disabled:opacity-60">{loading ? 'Updating...' : 'Update'}</button>
               <p className="mt-4 flex items-center justify-center gap-1.5 text-xs text-slate-500"><ShieldCheck className="h-3.5 w-3.5" /> Your asset password protects these changes.</p>
               {profile.invoices?.length ? (
                 <div className="mt-8 border-t border-white/10 pt-6">
