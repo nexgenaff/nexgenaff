@@ -159,7 +159,7 @@ export default function LinksPage() {
   const [paymentReference, setPaymentReference] = useState("");
 
   // ===== SORT & FILTER =====
-  const [sortBy, setSortBy] = useState<"createdAt" | "totalClicks" | "uniqueClicks" | "totalEarning" | "accountName">("createdAt");
+  const [sortBy, setSortBy] = useState<"createdAt" | "totalClicks" | "uniqueClicks" | "totalEarning" | "subIdPayout" | "accountName">("createdAt");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const [filterStatus, setFilterStatus] = useState<"all" | "active" | "paused">("all");
   const [filterOfferGroup, setFilterOfferGroup] = useState<string>("all");
@@ -780,6 +780,7 @@ export default function LinksPage() {
     { value: "totalClicks", label: "Clicks" },
     { value: "uniqueClicks", label: "Unique" },
     { value: "totalEarning", label: "Highest earnings" },
+    { value: "subIdPayout", label: "Highest credit" },
   ];
 
   const hasActiveFilters = search !== "" || filterStatus !== "all" || filterOfferGroup !== "all" || filterInvoice !== "all" || filterPaymentMethod !== "all" || filterCreatedBy !== "all";
