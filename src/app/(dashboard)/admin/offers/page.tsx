@@ -1004,7 +1004,7 @@ export default function OffersPage() {
                     </div>
                   </div>
                   <div>
-                    <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:!text-slate-200">Rotation</label>
+                    <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:!text-slate-200">Rotator Mood</label>
                     <select
                       value={formData.rotationMode}
                       onChange={(e) =>
