@@ -115,10 +115,10 @@ export default function StatsCards({
             <div className="grid grid-cols-2 divide-x divide-slate-200 dark:divide-slate-700/50">
               <div className="min-w-0 pr-2 sm:pr-3">
                 <div className="flex items-center justify-between gap-2"><p className="text-[10px] uppercase tracking-wide text-slate-500">{showConversions ? 'Total Cost' : 'Revenue'}</p><CircleDollarSign className="h-4 w-4 text-emerald-600 dark:text-emerald-300" /></div>
-                <p className="mt-0.5 text-xl font-bold text-slate-900 dark:text-white sm:text-2xl">{formatCurrency(stats.revenue, 3)}</p>
+                <p className="mt-0.5 text-xl font-bold text-slate-900 dark:text-white sm:text-2xl">{formatCurrency(stats.revenue)}</p>
               </div>
               <div className="min-w-0 pl-2 sm:pl-3">
-                <div className="flex items-center justify-between gap-2"><p className="text-[10px] uppercase tracking-wide text-slate-500">Total payout</p><CircleDollarSign className="h-4 w-4 text-emerald-600 dark:text-emerald-300" /></div>
+                <div className="flex items-center justify-between gap-2"><p className="text-[10px] uppercase tracking-wide text-slate-500">Total credit</p><CircleDollarSign className="h-4 w-4 text-emerald-600 dark:text-emerald-300" /></div>
                 <p className="mt-0.5 text-xl font-bold text-slate-900 dark:text-white sm:text-2xl">{formatCurrency(totalPayout)}</p>
               </div>
             </div>
@@ -130,7 +130,7 @@ export default function StatsCards({
             icon={CircleDollarSign}
             color="green"
             prefix="$"
-            decimalPlaces={3}
+            decimalPlaces={2}
             delay={300}
           />
         )}
