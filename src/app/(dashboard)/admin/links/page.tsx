@@ -1233,12 +1233,12 @@ export default function LinksPage() {
                         { label: "Bots", value: formatNumber(link.botClicks), color: "text-rose-400" },
                         { label: "Earnings", value: `$${Number(link.totalEarning || 0).toFixed(2)}`, color: "text-emerald-300" },
                         ...(canViewSubIdPayout
-                          ? [{ label: "SubID payout", value: `$${Number(link.subIdPayout || 0).toFixed(2)}`, color: "text-cyan-300" }]
+                          ? [{ label: "Credit", value: `$${Number(link.subIdPayout || 0).toFixed(2)}`, color: "text-cyan-300" }]
                           : []),
                       ].map((stat) => (
                         <div
                           key={stat.label}
-                          title={stat.label === "Earnings" && link.invoiceHistory?.length ? "View invoice history" : stat.label === "SubID payout" ? `Total postback payout where sub1 matches slug: ${link.slug}` : undefined}
+                          title={stat.label === "Earnings" && link.invoiceHistory?.length ? "View invoice history" : stat.label === "Credit" ? `Total postback payout where sub1 matches slug: ${link.slug}` : undefined}
                           className={`min-h-[46px] min-w-0 rounded-md border border-slate-800 bg-slate-800/50 px-1.5 py-1 text-center ${stat.label === "Earnings" && link.invoiceHistory?.length ? "cursor-pointer transition-colors hover:border-emerald-400/40 hover:bg-emerald-500/10" : ""}`}
                           onClick={stat.label === "Earnings" && link.invoiceHistory?.length ? () => setInvoiceHistoryLink(link) : undefined}
                           onKeyDown={stat.label === "Earnings" && link.invoiceHistory?.length ? (event) => {
