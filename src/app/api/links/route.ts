@@ -28,6 +28,9 @@ export async function GET(request: Request) {
     }
 
     const ownerUserId = await getOwnerUserId()
+    const defaultOwnerClickRate = ownerUserId
+      ? Number((await prisma.user.findUnique({ where: { id: ownerUserId }, select: { clickRate: true } }))?.clickRate ?? 0) || 0
+      : 0
     const whereClause = getLinkAccountVisibilityWhereClause(user, ownerUserId)
 
     const linkInclude = {
@@ -98,19 +101,23 @@ export async function GET(request: Request) {
     }
 
     return NextResponse.json(
-      links.map((link) => ({
-        ...link,
-        qualifiedClicks: qualifiedClickMap.get(link.id) || 0,
-        totalEarning: (qualifiedClickMap.get(link.id) || 0) * (Number(link.user?.clickRate ?? 0) || 0),
-        ...(canViewSubIdPayout
-          ? { subIdPayout: subIdStatsMap.get(link.slug.trim().toLowerCase()) || 0 }
-          : {}),
-        commissionRate: Number(link.user?.commissionRate ?? 20) || 20,
-        payoutMethod: link.payoutMethod || null,
-        payoutAccount: link.payoutAccount || null,
-        invoiceHistory: link.invoices,
-        invoices: link.invoices.filter((invoice: { isPaid: boolean }) => !invoice.isPaid).slice(0, 1),
-      })),
+      links.map((link) => {
+        const managerClickRate = Number(link.user?.clickRate ?? 0) || 0
+        const effectiveClickRate = managerClickRate > 0 ? managerClickRate : defaultOwnerClickRate
+        return {
+          ...link,
+          qualifiedClicks: qualifiedClickMap.get(link.id) || 0,
+          totalEarning: (qualifiedClickMap.get(link.id) || 0) * effectiveClickRate,
+          ...(canViewSubIdPayout
+            ? { subIdPayout: subIdStatsMap.get(link.slug.trim().toLowerCase()) || 0 }
+            : {}),
+          commissionRate: Number(link.user?.commissionRate ?? 20) || 20,
+          payoutMethod: link.payoutMethod || null,
+          payoutAccount: link.payoutAccount || null,
+          invoiceHistory: link.invoices,
+          invoices: link.invoices.filter((invoice: { isPaid: boolean }) => !invoice.isPaid).slice(0, 1),
+        }
+      }),
       { headers: getCorsHeaders(origin) }
     )
   } catch (error) {

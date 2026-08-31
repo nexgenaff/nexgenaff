@@ -54,31 +54,56 @@ export async function POST(request: Request) {
         )
       }
 
-      const ownerUserId = await getOwnerUserId()
-      const where = isOwner(user)
-        ? {
-            OR: [
-              ...(ownerUserId ? [{ id: ownerUserId }] : []),
-              { role: 'OWNER' as const },
-              { role: 'MANAGER' as const },
-            ],
-          }
-        : { id: user.id }
-
-      const updatedUsers = await prisma.user.updateMany({
-        where,
+      const updatedUser = await prisma.user.update({
+        where: { id: user.id },
         data: { clickRate, updatedAt: new Date() },
       })
 
       return NextResponse.json(
         {
           success: true,
-          clickRate,
-          updatedUsers: updatedUsers.count,
-          message: isOwner(user)
-            ? `USA click rate updated for ${updatedUsers.count} owner and manager accounts.`
-            : 'USA click rate updated for your admin account.',
+          clickRate: updatedUser.clickRate ?? 0,
+          message: 'USA click rate updated successfully.',
         },
+        { headers: getCorsHeaders(origin) }
+      )
+    }
+
+    if (action === 'update-manager-click-rate') {
+      if (!isOwner(user)) {
+        return NextResponse.json(
+          { error: 'Only an owner can update a manager click rate.' },
+          { status: 403, headers: getCorsHeaders(origin) }
+        )
+      }
+
+      const managerId = typeof body?.managerId === 'string' ? body.managerId.trim() : ''
+      const clickRate = Number(body?.clickRate)
+      if (!managerId || !Number.isFinite(clickRate) || clickRate < 0) {
+        return NextResponse.json(
+          { error: 'Manager and a non-negative click rate are required.' },
+          { status: 400, headers: getCorsHeaders(origin) }
+        )
+      }
+
+      const manager = await prisma.user.findUnique({
+        where: { id: managerId },
+        select: { id: true, role: true },
+      })
+      if (!manager || manager.role !== 'MANAGER') {
+        return NextResponse.json(
+          { error: 'Manager account not found.' },
+          { status: 404, headers: getCorsHeaders(origin) }
+        )
+      }
+
+      const updatedManager = await prisma.user.update({
+        where: { id: managerId },
+        data: { clickRate, updatedAt: new Date() },
+      })
+
+      return NextResponse.json(
+        { success: true, managerId, clickRate: updatedManager.clickRate ?? 0, message: 'Manager click rate updated successfully.' },
         { headers: getCorsHeaders(origin) }
       )
     }

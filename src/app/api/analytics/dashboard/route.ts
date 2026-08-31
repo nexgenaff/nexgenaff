@@ -347,6 +347,9 @@ export async function GET(request: Request) {
     const dateRange = getDateRange(period, filters);
 
     const ownerUserId = await getOwnerUserId();
+    const defaultOwnerClickRate = ownerUserId
+      ? Number((await prisma.user.findUnique({ where: { id: ownerUserId }, select: { clickRate: true } }))?.clickRate ?? 0) || 0
+      : 0;
     const linkWhere = getLinkAccountVisibilityWhereClause(user, ownerUserId) as Prisma.LinkAccountWhereInput;
 
     let links: any[];
@@ -468,13 +471,17 @@ export async function GET(request: Request) {
     const uniqueClicks = uniqueIPs.size;
     const botClicks = clicks.filter((c) => c.isBot).length;
 
-    const linkRateById = new Map(links.map((link) => [
-      link.id,
-      {
-        clickRate: Number(link.user?.clickRate ?? 0) || 0,
-        commissionRate: Number(link.user?.commissionRate ?? 20) || 20,
-      },
-    ]));
+    const linkRateById = new Map(links.map((link) => {
+      const managerClickRate = Number(link.user?.clickRate ?? 0) || 0;
+      const clickRate = managerClickRate > 0 ? managerClickRate : defaultOwnerClickRate;
+      return [
+        link.id,
+        {
+          clickRate,
+          commissionRate: Number(link.user?.commissionRate ?? 20) || 20,
+        },
+      ];
+    }));
     const qualifiedClicks = await prisma.click.findMany({
       where: {
         linkAccountId: { in: linkIds },

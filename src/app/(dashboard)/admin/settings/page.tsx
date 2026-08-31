@@ -38,6 +38,7 @@ export default function SettingsPage() {
   const [clickRate, setClickRate] = useState("0");
   const [managers, setManagers] = useState<ManagerOption[]>([]);
   const [selectedManagerId, setSelectedManagerId] = useState("");
+  const [managerClickRate, setManagerClickRate] = useState("0");
   const [managerCommissionRate, setManagerCommissionRate] = useState("20");
   const [showClickRateForm, setShowClickRateForm] = useState(false);
   const [showPasswordForm, setShowPasswordForm] = useState(false);
@@ -148,8 +149,9 @@ export default function SettingsPage() {
       })) : [];
       setManagers(managerOptions);
       if (managerOptions.length > 0) {
-        setSelectedManagerId((current) => current || managerOptions[0].id);
-        setManagerCommissionRate(String(managerOptions[0].commissionRate));
+        const firstManager = managerOptions[0];
+        setSelectedManagerId((current) => current || firstManager.id);
+        setManagerCommissionRate(String(firstManager.commissionRate));
       }
     };
 
@@ -158,10 +160,36 @@ export default function SettingsPage() {
 
   useEffect(() => {
     const manager = managers.find((item) => item.id === selectedManagerId);
-    if (manager) setManagerCommissionRate(String(manager.commissionRate));
+    if (!manager) return;
+
+    const resolvedManagerClickRate = manager.clickRate > 0 ? manager.clickRate : Number(clickRate || 0);
+    setManagerClickRate(String(resolvedManagerClickRate));
+    setManagerCommissionRate(String(manager.commissionRate));
   }, [managers, selectedManagerId]);
 
   const handleManagerClickRateSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setIsSubmitting(true);
+    setFeedback(null);
+    try {
+      const response = await fetch("/api/settings", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "update-manager-click-rate", managerId: selectedManagerId, clickRate: Number(managerClickRate) }),
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.error || "Unable to update manager click rate");
+      setManagers((current) => current.map((manager) => manager.id === selectedManagerId ? { ...manager, clickRate: Number(data.clickRate) } : manager));
+      setFeedback({ type: "success", message: data.message || "Manager click rate updated successfully." });
+    } catch (error) {
+      setFeedback({ type: "error", message: error instanceof Error ? error.message : "Unable to update manager click rate" });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleManagerCommissionSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setIsSubmitting(true);
     setFeedback(null);
@@ -408,23 +436,37 @@ export default function SettingsPage() {
                 <div className="mt-3 space-y-3">
                 <form onSubmit={handleClickRateSubmit} className="space-y-3 rounded-lg border border-emerald-500/20 bg-emerald-500/5 p-4">
                   <div>
-                    <label className="mb-1 block text-xs font-medium text-slate-400">{userInfo.role === "ADMIN" ? "Your USA click rate per unique referrer click" : "USA click rate per unique referrer click"}</label>
+                    <label className="mb-1 block text-xs font-medium text-slate-400">{userInfo.role === "ADMIN" ? "Your default USA click rate per unique referrer click" : "Default USA click rate per unique referrer click"}</label>
                     <input type="number" min="0" step="0.01" value={clickRate} onChange={(event) => setClickRate(event.target.value)} required className="w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-white focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500" />
                   </div>
-                  <button type="submit" disabled={isSubmitting} className="rounded-lg bg-emerald-600 px-4 py-2 text-xs font-medium text-white hover:bg-emerald-500 disabled:opacity-60">{isSubmitting ? "Saving..." : "Save USA click rate"}</button>
+                  <button type="submit" disabled={isSubmitting} className="rounded-lg bg-emerald-600 px-4 py-2 text-xs font-medium text-white hover:bg-emerald-500 disabled:opacity-60">{isSubmitting ? "Saving..." : "Save default click rate"}</button>
                 </form>
                 {userInfo.role === "OWNER" && (
-                  <form onSubmit={handleManagerClickRateSubmit} className="space-y-3 rounded-lg border border-cyan-500/20 bg-cyan-500/5 p-4">
+                  <div className="space-y-3 rounded-lg border border-cyan-500/20 bg-cyan-500/5 p-4">
                     <div>
-                      <label className="mb-1 block text-xs font-medium text-slate-400">Manager commission percentage</label>
-                      <select value={selectedManagerId} onChange={(event) => setSelectedManagerId(event.target.value)} required className="mb-2 w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-white focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500">
+                      <label className="mb-1 block text-xs font-medium text-slate-400">Select manager</label>
+                      <select value={selectedManagerId} onChange={(event) => setSelectedManagerId(event.target.value)} required className="w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-white focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500">
                         <option value="" disabled>Select a manager</option>
                         {managers.map((manager) => <option key={manager.id} value={manager.id}>{manager.fullName || manager.username} (@{manager.username})</option>)}
                       </select>
-                      <input type="number" min="0" max="100" step="0.01" value={managerCommissionRate} onChange={(event) => setManagerCommissionRate(event.target.value)} required className="w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-white focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500" />
                     </div>
-                    <button type="submit" disabled={isSubmitting || managers.length === 0} className="rounded-lg bg-cyan-600 px-4 py-2 text-xs font-medium text-white hover:bg-cyan-500 disabled:opacity-60">{isSubmitting ? "Saving..." : "Save commission percentage"}</button>
-                  </form>
+
+                    <form onSubmit={handleManagerClickRateSubmit} className="space-y-3">
+                      <div>
+                        <label className="mb-1 block text-xs font-medium text-slate-400">Manager override click rate per unique referrer click</label>
+                        <input type="number" min="0" step="0.01" value={managerClickRate} onChange={(event) => setManagerClickRate(event.target.value)} required className="w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-white focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500" />
+                      </div>
+                      <button type="submit" disabled={isSubmitting || !selectedManagerId || managers.length === 0} className="rounded-lg bg-cyan-600 px-4 py-2 text-xs font-medium text-white hover:bg-cyan-500 disabled:opacity-60">{isSubmitting ? "Saving..." : "Save manager override"}</button>
+                    </form>
+
+                    <form onSubmit={handleManagerCommissionSubmit} className="space-y-3">
+                      <div>
+                        <label className="mb-1 block text-xs font-medium text-slate-400">Manager commission percentage</label>
+                        <input type="number" min="0" max="100" step="0.01" value={managerCommissionRate} onChange={(event) => setManagerCommissionRate(event.target.value)} required className="w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-white focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500" />
+                      </div>
+                      <button type="submit" disabled={isSubmitting || !selectedManagerId || managers.length === 0} className="rounded-lg bg-cyan-600 px-4 py-2 text-xs font-medium text-white hover:bg-cyan-500 disabled:opacity-60">{isSubmitting ? "Saving..." : "Save commission percentage"}</button>
+                    </form>
+                  </div>
                 )}
                 </div>
               )}
