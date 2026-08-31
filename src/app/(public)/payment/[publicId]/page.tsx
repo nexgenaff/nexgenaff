@@ -84,6 +84,7 @@ export default function PaymentPage({ params }: { params: Promise<{ publicId: st
       setProfile(data)
       setPayoutMethod(data.payoutMethod || 'BKASH')
       setPayoutAccount(data.payoutAccount || '')
+      setSaved(setupRequired ? 'Payment details saved successfully.' : '')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unable to unlock payment profile')
     } finally {

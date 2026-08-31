@@ -54,21 +54,25 @@ export async function POST(request: Request, { params }: { params: Promise<{ pub
       select: { clickRate: true },
     })
     if (!user) return NextResponse.json({ error: 'Payment account owner is not available.' }, { status: 404 })
+    let savedLinkAccount = dashboard.linkAccount
     if (!dashboard.linkAccount.paymentPasswordHash) {
       if (password.length < 8 || !['BKASH', 'BINANCE'].includes(payoutMethod) || !payoutAccount) {
         return NextResponse.json({ error: 'Set an access password of at least 8 characters and provide a bKash or Binance account.' }, { status: 409 })
       }
       const paymentPasswordHash = await bcrypt.hash(password, 12)
-      await prisma.linkAccount.update({ where: { id: dashboard.linkAccountId }, data: { paymentPasswordHash, payoutMethod, payoutAccount, updatedAt: new Date() } })
+      savedLinkAccount = await prisma.linkAccount.update({
+        where: { id: dashboard.linkAccountId },
+        data: { paymentPasswordHash, payoutMethod, payoutAccount, updatedAt: new Date() },
+      })
     } else if (!password || !(await bcrypt.compare(password, dashboard.linkAccount.paymentPasswordHash))) {
       return NextResponse.json({ error: 'Invalid payment access password.' }, { status: 401 })
     }
 
-    if (hasPayoutUpdate) {
+    if (hasPayoutUpdate && dashboard.linkAccount.paymentPasswordHash) {
       if (!['BKASH', 'BINANCE'].includes(payoutMethod) || !payoutAccount) {
         return NextResponse.json({ error: 'Choose bKash or Binance and provide a payment account.' }, { status: 400 })
       }
-      await prisma.linkAccount.update({
+      savedLinkAccount = await prisma.linkAccount.update({
         where: { id: dashboard.linkAccountId },
         data: { payoutMethod, payoutAccount, updatedAt: new Date() },
       })
@@ -101,8 +105,8 @@ export async function POST(request: Request, { params }: { params: Promise<{ pub
 
     return NextResponse.json({
       accountName: dashboard.linkAccount.accountName,
-      payoutMethod: payoutMethod || dashboard.linkAccount.payoutMethod || 'BKASH',
-      payoutAccount: payoutAccount || dashboard.linkAccount.payoutAccount || '',
+      payoutMethod: savedLinkAccount.payoutMethod || 'BKASH',
+      payoutAccount: savedLinkAccount.payoutAccount || '',
       qualifiedClicks,
       clickRate,
       totalEarning: qualifiedClicks * clickRate,
