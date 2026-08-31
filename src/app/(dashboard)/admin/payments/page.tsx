@@ -253,11 +253,12 @@ export default function PaymentsPage() {
         const unpaid = invoices.filter((invoice) => !invoice.isPaid);
         const paid = invoices.filter((invoice) => invoice.isPaid);
         const current = Number(link.totalEarning) || 0;
-        const unpaidAmount = unpaid.reduce((sum, invoice) => sum + (Number(invoice.totalEarning) || 0), 0) + current;
+        const unpaidInvoiceTotal = unpaid.reduce((sum, invoice) => sum + (Number(invoice.totalEarning) || 0), 0);
         const paidAmount = paid.reduce((sum, invoice) => sum + (Number(invoice.totalEarning) || 0), 0);
+        const unpaidAmount = unpaidInvoiceTotal + current;
         const invoiceTotal = invoices.reduce((sum, invoice) => sum + (Number(invoice.totalEarning) || 0), 0);
         const commissionRate = Number(link.commissionRate ?? 20) || 20;
-        const pendingTotal = invoiceTotal + (invoiceTotal * (commissionRate / 100));
+        const pendingTotal = unpaidAmount + (unpaidAmount * (commissionRate / 100));
         const accrued = unpaidAmount + paidAmount;
         const revenue = accrued + (accrued * (commissionRate / 100));
         return { link, invoices, current, unpaidAmount, paidAmount, invoiceTotal, pendingTotal, accrued, revenue, commission: accrued * (commissionRate / 100) };
