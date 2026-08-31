@@ -513,12 +513,18 @@ export default function OffersPage() {
   const deleteGroup = async (groupName: string) => {
     setConfirmDialog({
       title: "Remove this offer pool?",
-      message: `This will detach all offers currently assigned to “${groupName}” and clear the group association.`,
+      message: `This will permanently delete all offers currently assigned to “${groupName}”.`,
       confirmLabel: "Remove pool",
       tone: "warning",
       onConfirm: async () => {
         try {
-          await applyGroupNameToOffers(groupName, null);
+          const response = await fetch(`/api/offers?groupName=${encodeURIComponent(groupName)}`, {
+            method: "DELETE",
+            credentials: "include",
+          });
+          const data = await response.json().catch(() => ({}));
+          if (!response.ok) throw new Error(data.error || "Failed to remove offer pool");
+          await fetchOffers();
           setDraftGroupNames((prev) => prev.filter((n) => n !== groupName));
         } catch (error) {
           console.error("Failed to delete group:", error);

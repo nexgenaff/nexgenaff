@@ -265,6 +265,51 @@ export async function POST(request: Request) {
   }
 }
 
+export async function DELETE(request: Request) {
+  try {
+    const origin = request.headers.get('origin') || null
+    const cookieHeader = request.headers.get('cookie') || ''
+    const token = getTokenFromCookie(cookieHeader)
+
+    if (!token) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401, headers: getCorsHeaders(origin) })
+    }
+
+    const user = await getUserFromToken(token)
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401, headers: getCorsHeaders(origin) })
+    }
+
+    if (!isOwner(user)) {
+      return NextResponse.json({ error: 'Only an owner can remove an offer pool.' }, { status: 403, headers: getCorsHeaders(origin) })
+    }
+
+    const groupName = new URL(request.url).searchParams.get('groupName')?.trim() || ''
+    if (!groupName) {
+      return NextResponse.json({ error: 'Group name is required.' }, { status: 400, headers: getCorsHeaders(origin) })
+    }
+
+    const ownerUserId = await getOwnerUserId()
+    const result = await prisma.offerVault.deleteMany({
+      where: {
+        groupName,
+        OR: [
+          { userId: ownerUserId || user.id },
+          { user: { role: 'MANAGER' } },
+        ],
+      },
+    })
+
+    return NextResponse.json(
+      { success: true, deletedCount: result.count },
+      { headers: getCorsHeaders(origin) }
+    )
+  } catch (error) {
+    console.error('Error removing offer pool:', error)
+    return NextResponse.json({ error: 'Failed to remove offer pool' }, { status: 500 })
+  }
+}
+
 export async function OPTIONS(request: Request) {
   const origin = request.headers.get('origin') || '*'
   return new NextResponse(null, {
