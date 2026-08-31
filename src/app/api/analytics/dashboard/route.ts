@@ -6,6 +6,7 @@ import { getCorsHeaders } from '@/config/cors';
 import { buildAccountGeoReport } from '@/lib/utils/report-data';
 import { getLinkAccountVisibilityWhereClause } from '@/lib/utils/link-account-access';
 import { isDesktopDeviceType } from '@/lib/utils/visitor-profile';
+import { filterDashboardClicks } from '@/lib/utils/dashboard-metrics';
 
 type Period = 'all' | 'week' | 'month' | 'year' | 'weekly' | 'monthly';
 
@@ -455,13 +456,15 @@ export async function GET(request: Request) {
       take: 100000, // Limit to prevent memory exhaustion
     });
 
-    // Aggregate
-    const aggregated = aggregateClicks(clicks, period, dateRange);
+    const visibleClicks = filterDashboardClicks(clicks, filters.clickType);
 
-    const totalClicks = clicks.length;
+    // Aggregate only visible human traffic by default; bot totals remain available separately.
+    const aggregated = aggregateClicks(visibleClicks, period, dateRange);
+
+    const totalClicks = visibleClicks.length;
     // CRITICAL FIX: Count unique visitors by distinct IP addresses, not by isUnique flag
     // Same IP = same visitor, regardless of fingerprint changes
-    const uniqueIPs = new Set(clicks.map((c) => c.ipAddress).filter((ip) => ip && ip.trim() !== ''));
+    const uniqueIPs = new Set(visibleClicks.map((c) => c.ipAddress).filter((ip) => ip && ip.trim() !== ''));
     const uniqueClicks = uniqueIPs.size;
     const botClicks = clicks.filter((c) => c.isBot).length;
 
@@ -586,7 +589,7 @@ export async function GET(request: Request) {
     };
 
     // Account geo report
-    const accountGeoReport = buildAccountGeoReport(clicks, linkAccounts);
+    const accountGeoReport = buildAccountGeoReport(visibleClicks, linkAccounts);
 
     return NextResponse.json(
       {
