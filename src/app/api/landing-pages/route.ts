@@ -1,6 +1,6 @@
 import { PrismaClient } from '@prisma/client'
 import { NextRequest, NextResponse } from 'next/server'
-import { getUserFromToken, getTokenFromCookie, isOwner } from '@/lib/auth'
+import { getUserFromToken, getTokenFromCookie, getOwnerUserId, isManager, isOwner } from '@/lib/auth'
 import { getCorsHeaders } from '@/config/cors'
 import { z } from 'zod'
 
@@ -99,6 +99,31 @@ export async function POST(req: NextRequest) {
     }
 
     const { subdomain, trackingUrl, templateId, headline, description, imageUrl, buttonText } = validationResult.data
+
+    if (isManager(user)) {
+      const trackingHostname = new URL(trackingUrl).hostname.toLowerCase().replace(/\.$/, '')
+      const ownerUserId = await getOwnerUserId()
+      const domainUserIds = [user.id, ...(ownerUserId ? [ownerUserId] : [])]
+      const availableCustomDomain = await prisma.customDomain.findFirst({
+        where: {
+          userId: { in: domainUserIds },
+          domain: {
+            equals: trackingHostname,
+            mode: 'insensitive',
+          },
+          verified: true,
+          isActive: true,
+        },
+        select: { id: true },
+      })
+
+      if (!availableCustomDomain) {
+        return NextResponse.json(
+          { error: 'Tracking link domain must match your verified and active custom domain.' },
+          { status: 400, headers: getCorsHeaders(origin) }
+        )
+      }
+    }
 
     // Use transaction to prevent race condition on subdomain uniqueness
     const landingPage = await prisma.$transaction(async (tx) => {
