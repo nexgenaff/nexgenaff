@@ -355,7 +355,6 @@ export async function GET(request: Request) {
         select: {
           id: true,
           accountName: true,
-          invoices: { select: { totalEarning: true } },
           user: { select: { clickRate: true, commissionRate: true } },
         },
       });
@@ -492,8 +491,7 @@ export async function GET(request: Request) {
     const revenueByLink = links.map((link) => {
       const rates = linkRateById.get(link.id) || { clickRate: 0, commissionRate: 20 };
       const current = (qualifiedClickMap.get(link.id) || 0) * rates.clickRate;
-      const invoiceTotal = (link.invoices || []).reduce((sum: number, invoice: { totalEarning: number }) => sum + (Number(invoice.totalEarning) || 0), 0);
-      const totalEarned = current + invoiceTotal;
+      const totalEarned = current;
       return { totalEarned, commission: totalEarned * (rates.commissionRate / 100) };
     });
     const totalEarned = revenueByLink.reduce((sum, item) => sum + item.totalEarned, 0);
