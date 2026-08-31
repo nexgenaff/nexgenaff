@@ -1045,10 +1045,10 @@ export default function OffersPage() {
                       className="h-5 w-5 rounded border-white/10 bg-white/5 text-indigo-500 focus:ring-indigo-500 focus:ring-offset-0"
                     />
                     <label htmlFor="content-locker" className="text-sm text-slate-300 cursor-pointer">
-                      Content Locker (constant URL, no slug appended)
+                      Content Locker
                     </label>
                   </div>
-                  <div className="space-y-3 rounded-lg border border-white/5 bg-white/5 p-3">
+                  <div className="rounded-lg border border-white/5 bg-white/5 p-3">
                     <label className="flex items-center gap-3 text-sm text-slate-300 cursor-pointer">
                       <input
                         type="checkbox"
@@ -1059,17 +1059,14 @@ export default function OffersPage() {
                         }
                         className="h-5 w-5 rounded border-white/10 bg-white/5 text-indigo-500 focus:ring-indigo-500 focus:ring-offset-0"
                       />
-                      USA Secret Click Mode
+                      ClickGuard
                     </label>
                     {formData.usaSecretRedirectEnabled && (
-                      <div className="grid gap-2">
+                      <div className="mt-3 flex flex-wrap items-center gap-3">
                         <div className="flex items-center gap-3">
                           <label htmlFor="usa-secret-percentage" className="text-sm font-medium text-slate-300">
-                            Secret redirect percentage
+                            Shield Level
                           </label>
-                          <span className="text-xs text-slate-500">US traffic only</span>
-                        </div>
-                        <div className="flex items-center gap-3">
                           <input
                             id="usa-secret-percentage"
                             type="number"
@@ -1082,13 +1079,9 @@ export default function OffersPage() {
                                 usaSecretRedirectPercentage: Number(e.target.value),
                               })
                             }
-                            className="w-24 rounded-lg border border-white/10 bg-slate-950/70 px-3 py-2 text-sm text-white focus:border-indigo-400/50 focus:outline-none focus:ring-1 focus:ring-indigo-400/30 transition min-h-[44px]"
+                            className="w-20 rounded-lg border border-white/10 bg-slate-950/70 px-3 py-2 text-sm text-white focus:border-indigo-400/50 focus:outline-none focus:ring-1 focus:ring-indigo-400/30 transition min-h-[40px]"
                           />
-                          <span className="text-sm text-slate-300">%</span>
                         </div>
-                        <p className="text-xs text-slate-500">
-                          Percentage of US traffic routed through secret click mode.
-                        </p>
                       </div>
                     )}
                   </div>
