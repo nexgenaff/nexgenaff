@@ -68,6 +68,18 @@ export async function POST(
         },
         select: { id: true, payoutNumber: true, totalEarning: true, invoiceCount: true },
       })
+
+      await transaction.invoice.updateMany({
+        where: {
+          id: { in: invoices.map((invoice) => invoice.id) },
+        },
+        data: {
+          isPaid: true,
+          paidAt: new Date(),
+          paymentReference,
+        },
+      })
+
       return created
     })
 
