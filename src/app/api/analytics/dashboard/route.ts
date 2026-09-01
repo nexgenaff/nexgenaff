@@ -606,7 +606,8 @@ export async function GET(request: Request) {
           tension: 0.35,
           pointRadius: 3,
         },
-        ...geoDatasets,
+        // Only include country breakdown for non-all-time views to keep chart clean
+        ...(period !== 'all' ? geoDatasets : []),
       ],
     };
 
