@@ -53,7 +53,7 @@ const getDateRange = (period: Period, filters: DashboardFilters = {}): DateRange
   let bucketCount = 7;
   let labels: string[] = [];
 
-  const granularity = filters.granularity || (period === 'year' ? 'yearly' : period === 'month' ? 'monthly' : 'daily');
+  const granularity = filters.granularity || (period === 'all' ? 'monthly' : period === 'year' ? 'yearly' : period === 'month' ? 'monthly' : 'daily');
   const groupByWeekly = granularity === 'weekly';
   const groupByMonthly = granularity === 'monthly' || granularity === 'yearly';
 
@@ -114,14 +114,9 @@ const getDateRange = (period: Period, filters: DashboardFilters = {}): DateRange
       });
     }
   } else if (period === 'all') {
-    startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+    // Show all historical data by going back 5 years (1825 days)
+    startDate = new Date(now.getTime() - 1825 * 86400000);
     startDate.setHours(0, 0, 0, 0);
-    bucketCount = now.getDate();
-    labels = Array.from({ length: bucketCount }, (_, i) => {
-      const date = new Date(startDate);
-      date.setDate(startDate.getDate() + i);
-      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-    });
   } else if (groupByWeekly) {
     startDate.setDate(startDate.getDate() - 6 * 7);
     startDate.setHours(0, 0, 0, 0);
