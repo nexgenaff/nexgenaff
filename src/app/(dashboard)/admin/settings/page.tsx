@@ -303,8 +303,8 @@ export default function SettingsPage() {
         <div
           className={`flex items-center justify-between rounded-lg border px-4 py-3 text-sm ${
             feedback.type === "success"
-              ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-200"
-              : "border-red-500/20 bg-red-500/10 text-red-200"
+              ? "border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-200"
+              : "border-red-200 bg-red-50 text-red-700 dark:border-red-500/20 dark:bg-red-500/10 dark:text-red-200"
           }`}
         >
           <div className="flex items-center gap-2">
@@ -326,25 +326,25 @@ export default function SettingsPage() {
         {/* Left Column */}
         <div className="space-y-6">
           {/* Appearance */}
-          <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-5">
+          <div className="rounded-xl border border-slate-200 bg-white/90 p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900/60 dark:shadow-none">
             <div className="mb-4 flex items-center gap-2">
               {darkMode ? (
-                <Moon className="h-4 w-4 text-indigo-400" />
+                <Moon className="h-4 w-4 text-indigo-500" />
               ) : (
-                <Sun className="h-4 w-4 text-indigo-400" />
+                <Sun className="h-4 w-4 text-indigo-500" />
               )}
-              <h3 className="text-sm font-semibold text-white">Appearance</h3>
+              <h3 className="text-sm font-semibold text-slate-900 dark:text-white">Appearance</h3>
             </div>
 
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <p className="text-sm font-medium text-white">Dark mode</p>
-                <p className="text-xs text-slate-400">Switch between dark and light themes.</p>
+                <p className="text-sm font-medium text-slate-900 dark:text-white">Dark mode</p>
+                <p className="text-xs text-slate-500 dark:text-slate-400">Switch between dark and light themes.</p>
               </div>
               <button
                 onClick={toggleTheme}
                 className={`theme-toggle relative inline-flex h-7 w-12 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
-                  darkMode ? "bg-indigo-600" : "bg-slate-700"
+                  darkMode ? "bg-indigo-600" : "bg-slate-200"
                 }`}
               >
                 <span
@@ -357,23 +357,23 @@ export default function SettingsPage() {
           </div>
 
           {/* Account */}
-          <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-5">
+          <div className="rounded-xl border border-slate-200 bg-white/90 p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900/60 dark:shadow-none">
             <div className="mb-4 flex items-center gap-2">
-              <User className="h-4 w-4 text-indigo-400" />
-              <h3 className="text-sm font-semibold text-white">Account</h3>
+              <User className="h-4 w-4 text-indigo-500" />
+              <h3 className="text-sm font-semibold text-slate-900 dark:text-white">Account</h3>
             </div>
 
             <div className="space-y-4">
               <div className="grid gap-3 sm:grid-cols-2">
-                <div className="rounded-lg border border-slate-800 bg-slate-800/50 px-4 py-3">
-                  <p className="text-xs text-slate-400">Username</p>
-                  <p className="mt-1 text-sm font-medium text-white">
+                <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 dark:border-slate-800 dark:bg-slate-800/50">
+                  <p className="text-xs text-slate-500 dark:text-slate-400">Username</p>
+                  <p className="mt-1 text-sm font-medium text-slate-900 dark:text-white">
                     {userInfo?.username || "admin"}
                   </p>
                 </div>
-                <div className="rounded-lg border border-slate-800 bg-slate-800/50 px-4 py-3">
-                  <p className="text-xs text-slate-400">Email</p>
-                  <p className="mt-1 text-sm font-medium text-white">
+                <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 dark:border-slate-800 dark:bg-slate-800/50">
+                  <p className="text-xs text-slate-500 dark:text-slate-400">Email</p>
+                  <p className="mt-1 text-sm font-medium text-slate-900 dark:text-white">
                     {userInfo?.email || "No email added yet"}
                   </p>
                 </div>
@@ -382,14 +382,14 @@ export default function SettingsPage() {
               <div className="flex flex-wrap gap-2">
                 <button
                   onClick={() => setShowPasswordForm((prev) => !prev)}
-                  className="inline-flex items-center gap-1.5 rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-xs font-medium text-slate-300 hover:bg-slate-700"
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
                 >
                   <Key className="h-3.5 w-3.5" />
                   {showPasswordForm ? "Hide" : "Change password"}
                 </button>
                 <button
                   onClick={() => window.location.assign(`/api/auth/google/start?redirect=${encodeURIComponent(window.location.pathname)}&purpose=password-reset`)}
-                  className="inline-flex items-center gap-1.5 rounded-lg border border-cyan-500/25 bg-cyan-500/10 px-3 py-2 text-xs font-medium text-cyan-300 hover:bg-cyan-500/20"
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-cyan-200 bg-cyan-50 px-3 py-2 text-xs font-medium text-cyan-700 hover:bg-cyan-100 dark:border-cyan-500/25 dark:bg-cyan-500/10 dark:text-cyan-300 dark:hover:bg-cyan-500/20"
                 >
                   <ShieldCheck className="h-3.5 w-3.5" />
                   Forget Password? Reset Now
@@ -400,7 +400,7 @@ export default function SettingsPage() {
                       setShowEmailForm((prev) => !prev);
                       if (!showEmailForm) setEmailDraft(userInfo?.email || "");
                     }}
-                    className="inline-flex items-center gap-1.5 rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-xs font-medium text-slate-300 hover:bg-slate-700"
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
                   >
                     {userInfo?.email ? "Update email" : "Add email"}
                   </button>
@@ -408,7 +408,7 @@ export default function SettingsPage() {
                 {(userInfo?.role === "OWNER" || userInfo?.role === "ADMIN") && (
                   <button
                     onClick={() => setShowClickRateForm((prev) => !prev)}
-                    className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-500/20 bg-emerald-500/10 px-3 py-2 text-xs font-medium text-emerald-300 hover:bg-emerald-500/20"
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-medium text-emerald-700 hover:bg-emerald-100 dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-300 dark:hover:bg-emerald-500/20"
                   >
                     USA click rate: ${Number(clickRate).toFixed(2)}
                   </button>
@@ -416,7 +416,7 @@ export default function SettingsPage() {
                 {userInfo?.role !== "MANAGER" && (
                   <button
                     onClick={() => setShowDangerZone((prev) => !prev)}
-                    className="inline-flex items-center gap-1.5 rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-xs font-medium text-slate-300 hover:bg-slate-700"
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
                   >
                     <AlertTriangle className="h-3.5 w-3.5" />
                     {showDangerZone ? "Hide danger zone" : "Danger zone"}
@@ -424,7 +424,7 @@ export default function SettingsPage() {
                 )}
                 <button
                   onClick={handleLogout}
-                  className="inline-flex items-center gap-1.5 rounded-lg border border-red-500/20 bg-red-500/10 px-3 py-2 text-xs font-medium text-red-400 hover:bg-red-500/20"
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-medium text-red-600 hover:bg-red-100 dark:border-red-500/20 dark:bg-red-500/10 dark:text-red-400 dark:hover:bg-red-500/20"
                 >
                   <LogOut className="h-3.5 w-3.5" />
                   Logout

@@ -16,16 +16,16 @@ export default function TelegramCommunityPopup({ onClose }: TelegramCommunityPop
 
   return (
     <div
-      className="relative z-20 w-full max-w-[520px] sm:w-[760px] sm:max-w-[760px] lg:w-[960px] lg:max-w-[960px] overflow-hidden rounded-[20px] border border-cyan-400/25 bg-[linear-gradient(145deg,#171d31,#0f172a)] p-3 shadow-[0_18px_50px_rgba(0,0,0,0.72)]"
+      className="relative z-20 w-full max-w-[520px] sm:w-[760px] sm:max-w-[760px] lg:w-[960px] lg:max-w-[960px] overflow-hidden rounded-[20px] border border-cyan-200/80 bg-white/95 p-3 shadow-[0_18px_50px_rgba(14,116,144,0.16)] backdrop-blur-sm dark:border-cyan-400/25 dark:bg-[linear-gradient(145deg,#171d31,#0f172a)] dark:shadow-[0_18px_50px_rgba(0,0,0,0.72)]"
       onClick={(event) => event.stopPropagation()}
     >
-      <div className="absolute inset-x-0 top-0 h-20 bg-[radial-gradient(circle_at_top,rgba(0,136,204,0.22),transparent_70%)]" />
+      <div className="absolute inset-x-0 top-0 h-20 bg-[radial-gradient(circle_at_top,rgba(0,136,204,0.14),transparent_70%)] dark:bg-[radial-gradient(circle_at_top,rgba(0,136,204,0.22),transparent_70%)]" />
 
       <button
         type="button"
         onClick={handleCloseClick}
         aria-label="Close popup"
-        className="absolute right-2.5 top-2.5 z-30 flex h-7 w-7 items-center justify-center rounded-full border border-white/10 bg-slate-950/40 text-slate-300 backdrop-blur-sm transition-all hover:-rotate-90 hover:bg-slate-900/70 hover:text-white"
+        className="absolute right-2.5 top-2.5 z-30 flex h-7 w-7 items-center justify-center rounded-full border border-slate-200 bg-white/80 text-slate-500 backdrop-blur-sm transition-all hover:-rotate-90 hover:bg-slate-100 hover:text-slate-700 dark:border-white/10 dark:bg-slate-950/40 dark:text-slate-300 dark:hover:bg-slate-900/70 dark:hover:text-white"
       >
         <X className="h-3.5 w-3.5" />
       </button>
@@ -39,12 +39,12 @@ export default function TelegramCommunityPopup({ onClose }: TelegramCommunityPop
       </div>
 
       <div className="relative z-10">
-        <h2 className="mb-1 text-center text-[18px] sm:text-[20px] font-semibold tracking-[-0.3px] text-white">
+        <h2 className="mb-1 text-center text-[18px] sm:text-[20px] font-semibold tracking-[-0.3px] text-slate-900 dark:text-white">
           Join <span className="bg-[linear-gradient(135deg,#0088cc,#00b4ff)] bg-clip-text text-transparent">Afficixo</span> Community
         </h2>
 
-        <p className="mb-3 text-center text-[13px] sm:text-[14px] leading-6 text-slate-400">
-          Get <span className="font-semibold text-slate-200">weekly reports</span>, <span className="font-semibold text-slate-200">payment updates</span> and <span className="font-semibold text-slate-200">direct support</span>
+        <p className="mb-3 text-center text-[13px] sm:text-[14px] leading-6 text-slate-600 dark:text-slate-400">
+          Get <span className="font-semibold text-slate-700 dark:text-slate-200">weekly reports</span>, <span className="font-semibold text-slate-700 dark:text-slate-200">payment updates</span> and <span className="font-semibold text-slate-700 dark:text-slate-200">direct support</span>
         </p>
 
         <div className="mb-3 grid grid-cols-2 gap-3">
@@ -54,13 +54,13 @@ export default function TelegramCommunityPopup({ onClose }: TelegramCommunityPop
             { icon: '💬', title: 'Direct Support', subtitle: '24/7 help & guidance' },
             { icon: '🚀', title: 'Exclusive Updates', subtitle: 'New features & offers' },
           ].map((item) => (
-            <div key={item.title} className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/10 p-3">
-              <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-cyan-500/20 text-sm">
+            <div key={item.title} className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-3 shadow-sm dark:border-white/10 dark:bg-white/10 dark:shadow-none">
+              <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-cyan-100 text-sm text-cyan-700 dark:bg-cyan-500/20 dark:text-cyan-200">
                 {item.icon}
               </div>
               <div className="min-w-0">
-                <div className="truncate text-[11px] sm:text-[12px] font-semibold text-slate-200">{item.title}</div>
-                <div className="truncate text-[10px] sm:text-[11px] text-slate-400">{item.subtitle}</div>
+                <div className="truncate text-[11px] sm:text-[12px] font-semibold text-slate-800 dark:text-slate-200">{item.title}</div>
+                <div className="truncate text-[10px] sm:text-[11px] text-slate-500 dark:text-slate-400">{item.subtitle}</div>
               </div>
             </div>
           ))}
