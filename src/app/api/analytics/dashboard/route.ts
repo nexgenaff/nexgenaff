@@ -114,9 +114,20 @@ const getDateRange = (period: Period, filters: DashboardFilters = {}): DateRange
       });
     }
   } else if (period === 'all') {
-    // Show all historical data by going back 5 years (1825 days)
+    // Show all historical data by going back 5 years (1825 days) with monthly aggregation
     startDate = new Date(now.getTime() - 1825 * 86400000);
     startDate.setHours(0, 0, 0, 0);
+    // Generate monthly labels from start to now
+    const startMonth = startDate.getMonth();
+    const startYear = startDate.getFullYear();
+    const endMonth = endDate.getMonth();
+    const endYear = endDate.getFullYear();
+    bucketCount = (endYear - startYear) * 12 + (endMonth - startMonth) + 1;
+    labels = Array.from({ length: bucketCount }, (_, i) => {
+      const d = new Date(startDate);
+      d.setMonth(startMonth + i);
+      return d.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
+    });
   } else if (groupByWeekly) {
     startDate.setDate(startDate.getDate() - 6 * 7);
     startDate.setHours(0, 0, 0, 0);
