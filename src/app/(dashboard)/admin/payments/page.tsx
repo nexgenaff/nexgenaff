@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Check, CheckCircle, ChevronDown, CircleDollarSign, Copy, CreditCard, Eye, EyeOff, Info, Pencil, Search, WalletCards, X } from "lucide-react";
 import { coerceArray } from "@/lib/utils/array-response";
+import { calculatePendingAmount } from "@/lib/utils/payment-pending";
 
 interface PaymentLink {
   id: string;
@@ -255,11 +256,11 @@ export default function PaymentsPage() {
         const current = Number(link.totalEarning) || 0;
         const unpaidInvoiceTotal = unpaid.reduce((sum, invoice) => sum + (Number(invoice.totalEarning) || 0), 0);
         const paidAmount = paid.reduce((sum, invoice) => sum + (Number(invoice.totalEarning) || 0), 0);
-        const unpaidAmount = unpaidInvoiceTotal + current;
         const invoiceTotal = invoices.reduce((sum, invoice) => sum + (Number(invoice.totalEarning) || 0), 0);
         const commissionRate = Number(link.commissionRate ?? 20) || 20;
-        const pendingTotal = unpaidAmount + (unpaidAmount * (commissionRate / 100));
-        const accrued = unpaidAmount + paidAmount;
+        const unpaidAmount = unpaidInvoiceTotal;
+        const pendingTotal = calculatePendingAmount(unpaid, commissionRate);
+        const accrued = unpaidAmount + paidAmount + current;
         const revenue = accrued + (accrued * (commissionRate / 100));
         return { link, invoices, current, unpaidAmount, paidAmount, invoiceTotal, pendingTotal, accrued, revenue, commission: accrued * (commissionRate / 100) };
       }), [activeLinks]);
@@ -295,8 +296,7 @@ export default function PaymentsPage() {
     const commissionRate = Number(manager.commissionRate ?? 20) || 0;
     const paid = manager.managerPayouts.filter((payout) => payout.isPaid).reduce((sum, payout) => sum + Number(payout.totalEarning || 0), 0);
     const pendingInvoices = invoices.filter((invoice) => !invoice.isPaid && invoice.managerPayouts.length === 0);
-    const pendingInvoiceTotal = pendingInvoices.reduce((sum, invoice) => sum + Number(invoice.totalEarning || 0), 0);
-    const pending = pendingInvoiceTotal + (pendingInvoiceTotal * (commissionRate / 100));
+    const pending = calculatePendingAmount(pendingInvoices, commissionRate);
     const revenue = managerRevenueByUserId.get(manager.id) || 0;
     const firstLink = manager.linkAccounts.find((link) => link.payoutAccount || link.payoutMethod);
     const nextUnpaidInvoice = manager.linkAccounts
