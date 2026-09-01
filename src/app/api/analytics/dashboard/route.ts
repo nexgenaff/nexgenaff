@@ -114,20 +114,13 @@ const getDateRange = (period: Period, filters: DashboardFilters = {}): DateRange
       });
     }
   } else if (period === 'all') {
-    // Show all historical data by going back 5 years (1825 days) with monthly aggregation
+    // Show all historical data from actual earliest click date
+    // Will be populated after fetching clicks, for now set to 5 years back
+    // This gets recalculated in the main handler
     startDate = new Date(now.getTime() - 1825 * 86400000);
     startDate.setHours(0, 0, 0, 0);
-    // Generate monthly labels from start to now
-    const startMonth = startDate.getMonth();
-    const startYear = startDate.getFullYear();
-    const endMonth = endDate.getMonth();
-    const endYear = endDate.getFullYear();
-    bucketCount = (endYear - startYear) * 12 + (endMonth - startMonth) + 1;
-    labels = Array.from({ length: bucketCount }, (_, i) => {
-      const d = new Date(startDate);
-      d.setMonth(startMonth + i);
-      return d.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
-    });
+    bucketCount = 1; // Placeholder, will be recalculated after fetching data
+    labels = ['Loading...'];
   } else if (groupByWeekly) {
     startDate.setDate(startDate.getDate() - 6 * 7);
     startDate.setHours(0, 0, 0, 0);
@@ -466,6 +459,49 @@ export async function GET(request: Request) {
     });
 
     const visibleClicks = filterDashboardClicks(clicks, filters.clickType);
+
+    // For all-time period, recalculate date range based on earliest click
+    if (period === 'all' && visibleClicks.length > 0) {
+      const earliestClick = visibleClicks[0]; // ordered by createdAt asc
+      const earliestDate = new Date(earliestClick.createdAt);
+      earliestDate.setHours(0, 0, 0, 0);
+      
+      dateRange.startDate = earliestDate;
+      
+      // Calculate days between earliest and now
+      const diffMs = dateRange.endDate.getTime() - earliestDate.getTime();
+      const diffDays = Math.floor(diffMs / 86400000);
+      
+      // Use smart grouping: daily for < 365 days, weekly for < 1825 days, monthly for longer
+      if (diffDays <= 365) {
+        dateRange.bucketCount = diffDays + 1;
+        dateRange.granularity = 'daily';
+        dateRange.labels = Array.from({ length: dateRange.bucketCount }, (_, i) => {
+          const d = new Date(earliestDate);
+          d.setDate(earliestDate.getDate() + i);
+          return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        });
+      } else if (diffDays <= 1825) {
+        dateRange.bucketCount = Math.ceil(diffDays / 7) + 1;
+        dateRange.granularity = 'weekly';
+        dateRange.labels = Array.from({ length: dateRange.bucketCount }, (_, i) => {
+          const d = new Date(earliestDate);
+          d.setDate(earliestDate.getDate() + i * 7);
+          return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        });
+      } else {
+        const startMonth = earliestDate.getMonth();
+        const startYear = earliestDate.getFullYear();
+        const endMonth = dateRange.endDate.getMonth();
+        const endYear = dateRange.endDate.getFullYear();
+        dateRange.bucketCount = (endYear - startYear) * 12 + (endMonth - startMonth) + 1;
+        dateRange.granularity = 'monthly';
+        dateRange.labels = Array.from({ length: dateRange.bucketCount }, (_, i) => {
+          const d = new Date(startYear, startMonth + i, 1);
+          return d.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
+        });
+      }
+    }
 
     // Aggregate only visible human traffic by default; bot totals remain available separately.
     const aggregated = aggregateClicks(visibleClicks, period, dateRange);
