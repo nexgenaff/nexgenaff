@@ -136,68 +136,25 @@ export default function StatsCards({
         )}
       </div>
 
-      <div className="performance-panel w-full p-0">
-        <div className="mb-4 flex flex-col gap-4 sm:mb-5 sm:flex-row sm:items-center sm:justify-between px-4 sm:px-6 pt-4">
-          <div>
-            <p className="text-[10px] font-semibold uppercase tracking-[0.32em] text-sky-300">Performance</p>
-            <h3 className="mt-1 text-base font-semibold text-slate-50 sm:text-lg">
-              {onPeriodChange
-                ? `${period.charAt(0).toUpperCase()}${period.slice(1)} click activity`
-                : 'Monthly click activity'}
-            </h3>
-          </div>
-          {onPeriodChange && (
-            <div className="flex flex-wrap gap-2">
-              {(['week', 'month', 'year'] as const).map((item) => (
-                <button
-                  key={item}
-                  onClick={() => onPeriodChange(item)}
-                  className={`rounded-full px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.2em] transition ${
-                    period === item
-                      ? 'bg-sky-500/20 text-sky-200 ring-1 ring-sky-500/30'
-                      : 'text-slate-400 hover:bg-slate-800/70 hover:text-slate-100'
-                  }`}
-                >
-                  {item}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
+      {/* Graph removed as per user request */}
 
-        <div className="chart-surface w-full px-2 sm:px-3">
+      <div className="mt-4 grid grid-cols-1 gap-4 lg:mt-5">
+        <div className="hourly-panel w-full p-4">
+          <div className="mb-3 flex items-center justify-between">
+            <h4 className="text-sm font-medium text-sky-200">Hourly distribution</h4>
+            <span className="text-[11px] uppercase tracking-[0.24em] text-slate-400">24h</span>
+          </div>
           <Chart
-            data={data}
-            height={260}
+            data={hourlyData}
+            height={190}
+            type="bar"
             options={{
               animation: {
                 duration: 800,
                 easing: 'easeOutQuart',
               },
-              // display y-axis scaled: each 10 raw units == 1 on axis labels
-              yScaleFactor: 10,
             }}
           />
-        </div>
-
-        <div className="mt-4 grid grid-cols-1 gap-4 lg:mt-5">
-          <div className="hourly-panel w-full p-4">
-            <div className="mb-3 flex items-center justify-between">
-              <h4 className="text-sm font-medium text-sky-200">Hourly distribution</h4>
-              <span className="text-[11px] uppercase tracking-[0.24em] text-slate-400">24h</span>
-            </div>
-            <Chart
-              data={hourlyData}
-              height={190}
-              type="bar"
-              options={{
-                animation: {
-                  duration: 800,
-                  easing: 'easeOutQuart',
-                },
-              }}
-            />
-          </div>
         </div>
       </div>
     </div>
