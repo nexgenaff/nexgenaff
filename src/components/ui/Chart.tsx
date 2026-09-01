@@ -142,9 +142,10 @@ export function Chart({
         display: true,
         labels: {
           color: chartColors.text,
-          font: { size: 11, weight: '600', family: 'Inter' },
-          padding: 16,
-          usePointStyle: false,
+          font: { size: 12, weight: '600', family: 'Inter' },
+          padding: 18,
+          usePointStyle: true,
+          pointStyle: 'circle',
           // Prepend flag to each label
           generateLabels: function (chart: any) {
             const original = ChartJS.defaults.plugins.legend.labels.generateLabels(chart)
@@ -221,14 +222,14 @@ export function Chart({
     spanGaps: true,
     elements: {
       line: {
-        borderWidth: 1,
-        tension: 0,
-        borderJoinStyle: 'miter',
-        borderCapStyle: 'butt',
+        borderWidth: 2.5,
+        tension: 0.35,
+        borderJoinStyle: 'round',
+        borderCapStyle: 'round',
       },
       point: {
-        radius: 0,
-        hoverRadius: 3,
+        radius: 3,
+        hoverRadius: 5.5,
       },
     },
     ...options, // user overrides
@@ -258,29 +259,29 @@ export function Chart({
       const label = (dataset.label || '').toLowerCase()
       const isClicks = label.includes('click')
 
-      // Colour palette (emerald, cyan, indigo, violet, plus extras)
+      // Modern vibrant colour palette with excellent contrast
       const palette = [
-        { border: '#10b981', bg: 'rgba(16,185,129,0.15)' },
-        { border: '#22d3ee', bg: 'rgba(34,211,238,0.12)' },
-        { border: '#818cf8', bg: 'rgba(129,140,248,0.12)' },
-        { border: '#a78bfa', bg: 'rgba(167,139,250,0.12)' },
-        { border: '#f472b6', bg: 'rgba(244,114,182,0.12)' },
-        { border: '#fb923c', bg: 'rgba(251,146,60,0.12)' },
+        { border: '#0ea5e9', bg: 'rgba(14,165,233,0.18)' },      // Vibrant Sky Blue for Clicks
+        { border: '#f59e0b', bg: 'rgba(245,158,11,0.15)' },      // Golden Amber for Unique
+        { border: '#10b981', bg: 'rgba(16,185,129,0.15)' },      // Emerald Green
+        { border: '#8b5cf6', bg: 'rgba(139,92,246,0.14)' },      // Violet Purple
+        { border: '#ec4899', bg: 'rgba(236,72,153,0.14)' },      // Hot Pink
+        { border: '#06b6d4', bg: 'rgba(6,182,212,0.15)' },       // Cyan Teal
       ]
       const pick = isClicks ? palette[0] : palette[idx % palette.length]
 
       return {
         ...dataset,
         data: dataset.data.map((v) => (Number.isFinite(Number(v)) ? Number(v) : 0)),
-        borderWidth: dataset.borderWidth ?? 1,
-        tension: dataset.tension ?? 0,
-        pointRadius: dataset.pointRadius ?? 0,
+        borderWidth: dataset.borderWidth ?? 2.5,
+        tension: dataset.tension ?? 0.35,
+        pointRadius: dataset.pointRadius ?? 3,
         // If stacked, default fill to true (area) unless user explicitly set it
         fill: dataset.fill ?? (stacked ? true : false),
         borderColor: dataset.borderColor ?? pick.border,
         backgroundColor: dataset.backgroundColor ?? (dataset.fill || stacked ? pick.bg : undefined),
         pointBackgroundColor: dataset.pointBackgroundColor ?? pick.border,
-        pointBorderColor: dataset.pointBorderColor ?? 'rgba(0,0,0,0.2)',
+        pointBorderColor: dataset.pointBorderColor ?? 'rgba(255,255,255,0.3)',
       }
     })
 
