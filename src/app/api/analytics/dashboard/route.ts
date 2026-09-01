@@ -397,7 +397,7 @@ export async function GET(request: Request) {
             labels: Array.from({ length: 24 }, (_, i) => `${String(i).padStart(2, '0')}:00`),
             datasets: [
               {
-                label: 'Hourly Clicks',
+                label: 'TCL',
                 data: Array(24).fill(0),
                 borderColor: '#0EA5E9',
                 backgroundColor: 'rgba(14, 165, 233, 0.18)',
@@ -406,7 +406,7 @@ export async function GET(request: Request) {
                 pointRadius: 2,
               },
               {
-                label: 'Hourly Unique',
+                label: 'UCL',
                 data: Array(24).fill(0),
                 borderColor: '#A855F7',
                 backgroundColor: 'rgba(168, 85, 247, 0.14)',
@@ -618,7 +618,7 @@ export async function GET(request: Request) {
       labels: hourlyLabels,
       datasets: [
         {
-          label: 'Hourly Clicks',
+          label: 'TCL',
           data: hourlyData.hourlyTrend,
           borderColor: '#0EA5E9',
           backgroundColor: 'rgba(14, 165, 233, 0.18)',
@@ -627,7 +627,7 @@ export async function GET(request: Request) {
           pointRadius: 2,
         },
         {
-          label: 'Hourly Unique',
+          label: 'UCL',
           data: hourlyData.hourlyUnique,
           borderColor: '#A855F7',
           backgroundColor: 'rgba(168, 85, 247, 0.14)',
