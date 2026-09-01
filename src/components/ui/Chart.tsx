@@ -140,12 +140,16 @@ export function Chart({
     plugins: {
       legend: {
         display: true,
+        position: 'top' as const,
+        align: 'end' as const,
         labels: {
           color: chartColors.text,
           font: { size: 12, weight: '600', family: 'Inter' },
           padding: 18,
           usePointStyle: true,
           pointStyle: 'circle',
+          boxWidth: 6,
+          boxHeight: 6,
           // Prepend flag to each label
           generateLabels: function (chart: any) {
             const original = ChartJS.defaults.plugins.legend.labels.generateLabels(chart)
@@ -262,11 +266,11 @@ export function Chart({
       // Modern vibrant colour palette with excellent contrast
       const palette = [
         { border: '#0ea5e9', bg: 'rgba(14,165,233,0.18)' },      // Vibrant Sky Blue for Clicks
-        { border: '#f59e0b', bg: 'rgba(245,158,11,0.15)' },      // Golden Amber for Unique
-        { border: '#10b981', bg: 'rgba(16,185,129,0.15)' },      // Emerald Green
+        { border: '#10b981', bg: 'rgba(16,185,129,0.15)' },      // Emerald Green for Unique
+        { border: '#06b6d4', bg: 'rgba(6,182,212,0.15)' },       // Cyan Teal
         { border: '#8b5cf6', bg: 'rgba(139,92,246,0.14)' },      // Violet Purple
         { border: '#ec4899', bg: 'rgba(236,72,153,0.14)' },      // Hot Pink
-        { border: '#06b6d4', bg: 'rgba(6,182,212,0.15)' },       // Cyan Teal
+        { border: '#f59e0b', bg: 'rgba(245,158,11,0.15)' },      // Golden Amber
       ]
       const pick = isClicks ? palette[0] : palette[idx % palette.length]
 

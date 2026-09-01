@@ -399,7 +399,7 @@ export async function GET(request: Request) {
               {
                 label: 'TCL',
                 data: Array(24).fill(0),
-                borderColor: '#0EA5E9',
+                borderColor: '#0ea5e9',
                 backgroundColor: 'rgba(14, 165, 233, 0.18)',
                 fill: true,
                 tension: 0.35,
@@ -408,8 +408,8 @@ export async function GET(request: Request) {
               {
                 label: 'UCL',
                 data: Array(24).fill(0),
-                borderColor: '#A855F7',
-                backgroundColor: 'rgba(168, 85, 247, 0.14)',
+                borderColor: '#10b981',
+                backgroundColor: 'rgba(16, 185, 129, 0.15)',
                 fill: true,
                 tension: 0.35,
                 pointRadius: 2,
@@ -620,7 +620,7 @@ export async function GET(request: Request) {
         {
           label: 'TCL',
           data: hourlyData.hourlyTrend,
-          borderColor: '#0EA5E9',
+          borderColor: '#0ea5e9',
           backgroundColor: 'rgba(14, 165, 233, 0.18)',
           fill: true,
           tension: 0.35,
@@ -629,8 +629,8 @@ export async function GET(request: Request) {
         {
           label: 'UCL',
           data: hourlyData.hourlyUnique,
-          borderColor: '#A855F7',
-          backgroundColor: 'rgba(168, 85, 247, 0.14)',
+          borderColor: '#10b981',
+          backgroundColor: 'rgba(16, 185, 129, 0.15)',
           fill: true,
           tension: 0.35,
           pointRadius: 2,
