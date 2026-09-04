@@ -352,7 +352,34 @@ export function Chart({
         },
         suggestedMax,
       },
+      ...(type === 'bar'
+        ? {
+            x: {
+              ...defaultOptions.scales.x,
+              offset: true,
+              ticks: {
+                ...defaultOptions.scales.x.ticks,
+                autoSkip: true,
+                maxRotation: 0,
+                minRotation: 0,
+              },
+            },
+          }
+        : {}),
     },
+    ...(type === 'bar'
+      ? {
+          datasets: {
+            bar: {
+              categoryPercentage: 0.82,
+              barPercentage: 0.86,
+              borderRadius: 4,
+              borderSkipped: false,
+              maxBarThickness: 20,
+            },
+          },
+        }
+      : {}),
   }
 
   // ── Render ──────────────────────────────────────────────────────────────

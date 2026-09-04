@@ -275,14 +275,18 @@ const buildHourlyData = async (linkIds: string[], dateRange: DateRange) => {
   const now = new Date();
   const hourlyStart = new Date(now);
   hourlyStart.setHours(0, 0, 0, 0);
+  const hourlyEnd = new Date(now);
+  hourlyEnd.setHours(23, 59, 59, 999);
+  const queryStart = new Date(Math.max(hourlyStart.getTime(), dateRange.startDate.getTime()));
+  const queryEnd = new Date(Math.min(hourlyEnd.getTime(), dateRange.endDate.getTime()));
 
-  const hourlyClicks = linkIds.length
+  const hourlyClicks = linkIds.length && queryStart <= queryEnd
     ? await prisma.click.findMany({
         where: {
           linkAccountId: { in: linkIds },
           createdAt: {
-            gte: hourlyStart,
-            lte: dateRange.endDate,
+            gte: queryStart,
+            lte: queryEnd,
           },
         },
         select: { createdAt: true, isUnique: true },

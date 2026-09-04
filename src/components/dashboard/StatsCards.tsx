@@ -73,8 +73,26 @@ export default function StatsCards({
     ],
   }
 
+  const defaultHourlyChartData = {
+    labels: Array.from({ length: 24 }, (_, hour) => `${String(hour).padStart(2, '0')}:00`),
+    datasets: [
+      {
+        label: 'TCL',
+        data: Array(24).fill(0),
+        borderColor: '#0ea5e9',
+        backgroundColor: 'rgba(14, 165, 233, 0.7)',
+      },
+      {
+        label: 'UCL',
+        data: Array(24).fill(0),
+        borderColor: '#10b981',
+        backgroundColor: 'rgba(16, 185, 129, 0.7)',
+      },
+    ],
+  }
+
   const data = chartData || defaultChartData
-  const hourlyData = hourlyChartData || defaultChartData
+  const hourlyData = hourlyChartData || defaultHourlyChartData
   const countryHighlights = [...(countryBreakdown || [])]
     .sort((a, b) => b.clicks - a.clicks)
     .slice(0, 3)
