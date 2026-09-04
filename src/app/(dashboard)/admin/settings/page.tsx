@@ -410,7 +410,7 @@ export default function SettingsPage() {
                     onClick={() => setShowClickRateForm((prev) => !prev)}
                     className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-medium text-emerald-700 hover:bg-emerald-100 dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-300 dark:hover:bg-emerald-500/20"
                   >
-                    USA click rate: ${Number(clickRate).toFixed(2)}
+                    USA click rate: ${Number(clickRate).toFixed(3)}
                   </button>
                 )}
                 {userInfo?.role !== "MANAGER" && (
@@ -437,7 +437,7 @@ export default function SettingsPage() {
                 <form onSubmit={handleClickRateSubmit} className="space-y-3 rounded-lg border border-emerald-500/20 bg-emerald-500/5 p-4">
                   <div>
                     <label className="mb-1 block text-xs font-medium text-slate-400">{userInfo.role === "ADMIN" ? "Your default USA click rate per unique referrer click" : "Default USA click rate per unique referrer click"}</label>
-                    <input type="number" min="0" step="0.01" value={clickRate} onChange={(event) => setClickRate(event.target.value)} required className="w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-white focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500" />
+                    <input type="number" min="0" step="0.001" value={clickRate} onChange={(event) => setClickRate(event.target.value)} required className="w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-white focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500" />
                   </div>
                   <button type="submit" disabled={isSubmitting} className="rounded-lg bg-emerald-600 px-4 py-2 text-xs font-medium text-white hover:bg-emerald-500 disabled:opacity-60">{isSubmitting ? "Saving..." : "Save default click rate"}</button>
                 </form>
@@ -454,7 +454,7 @@ export default function SettingsPage() {
                     <form onSubmit={handleManagerClickRateSubmit} className="space-y-3">
                       <div>
                         <label className="mb-1 block text-xs font-medium text-slate-400">Manager override click rate per unique referrer click</label>
-                        <input type="number" min="0" step="0.01" value={managerClickRate} onChange={(event) => setManagerClickRate(event.target.value)} required className="w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-white focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500" />
+                        <input type="number" min="0" step="0.001" value={managerClickRate} onChange={(event) => setManagerClickRate(event.target.value)} required className="w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-white focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500" />
                       </div>
                       <button type="submit" disabled={isSubmitting || !selectedManagerId || managers.length === 0} className="rounded-lg bg-cyan-600 px-4 py-2 text-xs font-medium text-white hover:bg-cyan-500 disabled:opacity-60">{isSubmitting ? "Saving..." : "Save manager override"}</button>
                     </form>
