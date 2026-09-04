@@ -13,6 +13,7 @@ import {
   XCircle,
   ExternalLink,
   Eye,
+  Activity,
   Clock,
 } from 'lucide-react'
 
@@ -152,8 +153,12 @@ export default function ClickLogs({ filter }: ClickLogsProps) {
   }
 
   return (
-    <div className="rounded-xl border border-white/10 bg-white/5 shadow-sm backdrop-blur-sm overflow-hidden">
+    <div className="rounded-xl bg-white/5 shadow-sm backdrop-blur-sm overflow-hidden transition-colors duration-200">
       <div className="border-0 bg-transparent p-4 sm:p-6">
+      <div className="mb-3 flex items-center gap-2">
+        <Activity className="h-4 w-4 text-indigo-400" strokeWidth={1.5} />
+        <span className="text-sm font-medium text-white/70">Click Activity</span>
+      </div>
       <div className="hidden" aria-hidden="true">
         {clicks.length === 0 ? (
           <div className="flex flex-col items-center gap-1.5 py-10 text-center">
