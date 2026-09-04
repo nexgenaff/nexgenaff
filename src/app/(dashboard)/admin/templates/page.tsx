@@ -348,11 +348,11 @@ export default function TemplateManager() {
                 className="rounded-xl border border-slate-800 bg-slate-900/60 p-4 transition hover:border-slate-700"
               >
                 {template.thumbnail && (
-                  <div className="mb-3 flex aspect-video w-full items-center justify-center overflow-hidden rounded-lg border border-slate-800 bg-slate-950/70 p-2">
+                  <div className="mb-3 flex max-h-96 w-full items-center justify-center overflow-hidden rounded-lg border border-slate-800 bg-slate-950/70 p-2">
                     <img
                       src={template.thumbnail}
                       alt={template.name}
-                      className="h-full w-full object-contain"
+                      className="h-auto max-h-96 w-full object-contain"
                     />
                   </div>
                 )}
