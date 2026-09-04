@@ -242,14 +242,14 @@ export default function ClickLogs({ filter }: ClickLogsProps) {
         <table className={`${clicks.length > 0 ? 'min-w-[980px] table-auto' : 'w-full table-fixed'}`}>
           <thead className={`${clicks.length === 0 ? 'hidden lg:table-header-group' : ''} bg-slate-950/70`}>
             <tr>
-              <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider whitespace-nowrap text-slate-500">Time</th>
-              <th className="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider whitespace-nowrap text-slate-500">IP Address</th>
-              <th className="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider whitespace-nowrap text-slate-500">Campaign</th>
+              <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider whitespace-nowrap text-slate-500">Campaign</th>
               <th className="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider whitespace-nowrap text-slate-500">Location</th>
               <th className="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider whitespace-nowrap text-slate-500">Device</th>
               <th className="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider whitespace-nowrap text-slate-500">Browser</th>
               <th className="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider whitespace-nowrap text-slate-500">Referrer</th>
+              <th className="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider whitespace-nowrap text-slate-500">IP Address</th>
               <th className="px-4 py-2 text-center text-xs font-medium uppercase tracking-wider whitespace-nowrap text-slate-500">Status</th>
+              <th className="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider whitespace-nowrap text-slate-500">Time</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-800/80">
@@ -272,23 +272,6 @@ export default function ClickLogs({ filter }: ClickLogsProps) {
                   className={`transition-all duration-200 ${click.isUnique ? 'hover:bg-slate-800/60' : 'bg-amber-500/5 hover:bg-amber-500/10'}`}
                   style={{ animationDelay: `${index * 50}ms` }}
                 >
-                  <td className="px-4 py-2 text-xs whitespace-nowrap text-slate-300">
-                    <div className="flex flex-col items-start gap-0">
-                      {(() => {
-                        const { date, time } = formatDateTwoLines(click.createdAt)
-                        return (
-                          <>
-                            <div className="flex items-center gap-1">
-                              <Clock className="h-2.5 w-2.5 text-slate-500" />
-                              <span>{date}</span>
-                            </div>
-                            <span className="text-[10px] text-slate-400">{time}</span>
-                          </>
-                        )
-                      })()}
-                    </div>
-                  </td>
-                  <td className="px-4 py-2 text-sm font-mono text-slate-400">{click.ipAddress}</td>
                   <td className="px-4 py-2 text-sm text-slate-300">
                     <div className="flex flex-col gap-0">
                       <span className="font-medium text-cyan-300">{click.linkAccount.accountName}</span>
@@ -334,6 +317,7 @@ export default function ClickLogs({ filter }: ClickLogsProps) {
                       <span className="text-slate-500">Direct</span>
                     )}
                   </td>
+                  <td className="px-4 py-2 text-sm font-mono text-slate-400">{click.ipAddress}</td>
                   <td className="px-4 py-2 text-center">
                     <div className="flex flex-wrap items-center justify-center gap-0.5">
                       {click.isUnique ? (
@@ -345,6 +329,22 @@ export default function ClickLogs({ filter }: ClickLogsProps) {
                           <XCircle className="w-3 h-3" />
                         </span>
                       )}
+                    </div>
+                  </td>
+                  <td className="px-4 py-2 text-xs whitespace-nowrap text-slate-300">
+                    <div className="flex flex-col items-start gap-0">
+                      {(() => {
+                        const { date, time } = formatDateTwoLines(click.createdAt)
+                        return (
+                          <>
+                            <div className="flex items-center gap-1">
+                              <Clock className="h-2.5 w-2.5 text-slate-500" />
+                              <span>{date}</span>
+                            </div>
+                            <span className="text-[10px] text-slate-400">{time}</span>
+                          </>
+                        )
+                      })()}
                     </div>
                   </td>
                 </tr>
