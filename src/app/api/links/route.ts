@@ -6,6 +6,8 @@ import { getLinkAccountVisibilityWhereClause } from '@/lib/utils/link-account-ac
 import { isDesktopDeviceType } from '@/lib/utils/visitor-profile'
 import crypto from 'crypto'
 
+export const dynamic = 'force-dynamic'
+
 export async function GET(request: Request) {
   try {
     const origin = request.headers.get('origin') || null

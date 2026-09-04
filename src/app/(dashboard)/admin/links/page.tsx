@@ -189,7 +189,7 @@ export default function LinksPage() {
 
   const fetchLinks = useCallback(async () => {
     try {
-      const response = await fetch("/api/links", { credentials: "include" });
+      const response = await fetch("/api/links", { credentials: "include", cache: "no-store" });
       if (response.status === 401) {
         router.push("/login");
         return;
@@ -1195,7 +1195,7 @@ export default function LinksPage() {
                     )}
                   </div>
 
-                  <div className="absolute bottom-3 left-3 right-[112px] flex w-auto flex-nowrap items-center gap-1.5 overflow-hidden text-xs sm:left-4 sm:right-[112px]">
+                  <div className="absolute bottom-3 left-3 right-3 flex w-auto flex-wrap items-center gap-1.5 overflow-visible text-xs sm:left-4 sm:right-[112px] sm:flex-nowrap sm:overflow-hidden">
                     <span
                       className="inline-flex shrink-0 items-center gap-1 rounded-md border border-slate-800 bg-slate-800/40 px-1.5 py-0.5 text-slate-400"
                       title="Tracking link: copy this link to send traffic for this account"

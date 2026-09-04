@@ -12,7 +12,7 @@ import {
   CheckCircle,
   XCircle,
   ExternalLink,
-  MousePointerClick,
+  Eye,
   Clock,
 } from 'lucide-react'
 
@@ -152,16 +152,14 @@ export default function ClickLogs({ filter }: ClickLogsProps) {
   }
 
   return (
-    <div className="overflow-hidden rounded-[24px] bg-slate-900/80 shadow-sm backdrop-blur-sm">
-      <div className="bg-slate-900/95 border border-slate-800/80 shadow-sm p-4 sm:p-6">
+    <div className="rounded-xl border border-white/10 bg-white/5 shadow-sm backdrop-blur-sm overflow-hidden">
+      <div className="border-0 bg-transparent p-4 sm:p-6">
       <div className="lg:hidden space-y-3 overflow-y-auto" style={{ WebkitOverflowScrolling: 'touch' }}>
         {clicks.length === 0 ? (
-          <div className="rounded-[24px] bg-slate-950/70 px-4 py-6 text-center">
-            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-900/80">
-              <MousePointerClick className="h-6 w-6 text-slate-300" />
-            </div>
-            <p className="mt-4 text-lg font-semibold text-slate-100">No traffic yet</p>
-            <p className="mt-2 text-sm leading-6 text-slate-400">
+          <div className="flex flex-col items-center gap-1.5 py-10 text-center">
+            <Eye className="h-7 w-7 text-white/10" strokeWidth={1.5} />
+            <p className="text-sm text-white/30">No clicks match your filters</p>
+            <p className="text-xs text-white/20">
               Share a link and the first clicks will appear here with campaign, device, and location insights.
             </p>
           </div>
@@ -253,12 +251,10 @@ export default function ClickLogs({ filter }: ClickLogsProps) {
             {clicks.length === 0 ? (
               <tr>
                 <td colSpan={8} className="px-4 py-12 text-center">
-                  <div className="mx-auto flex max-w-xl flex-col items-center rounded-[24px] border border-slate-800 bg-slate-950/70 px-8 py-10 text-center shadow-inner">
-                    <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl border border-slate-800 bg-slate-900/80">
-                      <MousePointerClick className="h-6 w-6 text-slate-300" />
-                    </div>
-                    <p className="text-lg font-semibold text-slate-100">No traffic yet</p>
-                    <p className="mt-2 max-w-md text-sm leading-6 text-slate-400">
+                  <div className="flex flex-col items-center gap-1.5">
+                    <Eye className="h-7 w-7 text-white/10" strokeWidth={1.5} />
+                    <p className="text-sm text-white/30">No clicks match your filters</p>
+                    <p className="text-xs text-white/20">
                       Share a link and the first clicks will appear here with campaign, device, and location insights.
                     </p>
                   </div>

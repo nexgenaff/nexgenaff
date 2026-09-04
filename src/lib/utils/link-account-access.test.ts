@@ -19,7 +19,23 @@ test('owners see their own and manager-owned links, excluding admin-owned links'
 
   assert.deepEqual(whereClause, {
     OR: [
+      { userId: 'owner-1' },
       { userId: 'owner-999' },
+      { user: { role: 'MANAGER' } },
+    ],
+  })
+})
+
+test('owners see links created under their authenticated id when config uses another owner username', () => {
+  const whereClause = getLinkAccountVisibilityWhereClause(
+    { id: 'owner-1', role: 'OWNER', username: 'owner' },
+    'configured-owner'
+  )
+
+  assert.deepEqual(whereClause, {
+    OR: [
+      { userId: 'owner-1' },
+      { userId: 'configured-owner' },
       { user: { role: 'MANAGER' } },
     ],
   })

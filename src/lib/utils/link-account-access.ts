@@ -26,7 +26,9 @@ export function getLinkAccountVisibilityWhereClause(
   if (isOwner(user)) {
     return {
       OR: [
-        { userId: ownerUserId || user.id },
+        ...[user.id, ownerUserId]
+          .filter((userId, index, userIds): userId is string => Boolean(userId) && userIds.indexOf(userId) === index)
+          .map((userId) => ({ userId })),
         { user: { role: 'MANAGER' } },
       ],
     }
