@@ -27,7 +27,6 @@ interface DashboardStats {
   revenue: number;
   totalPayout: number;
   chartData: any;
-  hourlyChartData: any;
   countryBreakdown: any[];
   referrerBreakdown: any[];
   browserBreakdown: any[];
@@ -62,14 +61,12 @@ export default function DashboardPage() {
     revenue: 0,
     totalPayout: 0,
     chartData: createDefaultChart(),
-    hourlyChartData: createDefaultChart(),
     countryBreakdown: [],
     referrerBreakdown: [],
     browserBreakdown: [],
     deviceBreakdown: [],
   });
   const [chartData, setChartData] = useState(createDefaultChart());
-  const [hourlyChartData, setHourlyChartData] = useState(createDefaultChart());
   const [countryBreakdown, setCountryBreakdown] = useState<any[]>([]);
   const [referrerBreakdown, setReferrerBreakdown] = useState<any[]>([]);
   const [browserBreakdown, setBrowserBreakdown] = useState<any[]>([]);
@@ -141,14 +138,12 @@ export default function DashboardPage() {
             revenue: 0,
             totalPayout: 0,
             chartData: createDefaultChart(),
-            hourlyChartData: createDefaultChart(),
             countryBreakdown: [],
             referrerBreakdown: [],
             browserBreakdown: [],
             deviceBreakdown: [],
           });
           setChartData(createDefaultChart());
-          setHourlyChartData(createDefaultChart());
           setCountryBreakdown([]);
           setReferrerBreakdown([]);
           setBrowserBreakdown([]);
@@ -186,7 +181,6 @@ export default function DashboardPage() {
           revenue: paymentSummary.totalEarned + paymentSummary.commission,
           totalPayout: Number(postbacksData?.totalPayout) || 0,
           chartData: data.chartData || createDefaultChart(),
-          hourlyChartData: data.hourlyChartData || createDefaultChart(),
           countryBreakdown: Array.isArray(data.countryBreakdown)
             ? data.countryBreakdown
             : [],
@@ -203,7 +197,6 @@ export default function DashboardPage() {
 
         setStats(safeData);
         setChartData(safeData.chartData);
-        setHourlyChartData(safeData.hourlyChartData);
         setCountryBreakdown(safeData.countryBreakdown);
         setReferrerBreakdown(safeData.referrerBreakdown);
         setBrowserBreakdown(safeData.browserBreakdown);
@@ -434,7 +427,6 @@ export default function DashboardPage() {
           <StatsCards
             stats={stats}
             chartData={chartData}
-            hourlyChartData={hourlyChartData}
             countryBreakdown={countryBreakdown}
             totalPayout={stats.totalPayout}
             showConversions={userRole !== "MANAGER"}

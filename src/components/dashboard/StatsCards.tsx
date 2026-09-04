@@ -1,7 +1,6 @@
 'use client'
 
 import { StatsCard } from '@/components/ui/StatsCard'
-import { Chart } from '@/components/ui/Chart'
 import { MousePointerClick, Users, Link2, CircleDollarSign } from 'lucide-react'
 import { getCountryFlag } from '@/lib/utils/country'
 import { motion } from 'framer-motion'
@@ -15,15 +14,6 @@ interface StatsCardsProps {
     totalPayout?: number
   }
   chartData?: {
-    labels: string[]
-    datasets: {
-      label: string
-      data: number[]
-      borderColor: string
-      backgroundColor: string
-    }[]
-  }
-  hourlyChartData?: {
     labels: string[]
     datasets: {
       label: string
@@ -51,48 +41,12 @@ function formatCurrency(value: number | undefined, decimalPlaces = 2) {
 export default function StatsCards({
   stats,
   chartData,
-  hourlyChartData,
   countryBreakdown = [],
   period = 'week',
   onPeriodChange,
   totalPayout = 0,
   showConversions = false,
 }: StatsCardsProps) {
-  const defaultChartData = {
-    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-    datasets: [
-      {
-        label: 'Clicks',
-        data: [0, 0, 0, 0, 0, 0, 0],
-        borderColor: '#8B5CF6',
-        backgroundColor: 'rgba(139, 92, 246, 0.14)',
-        fill: true,
-        tension: 0.35,
-        pointRadius: 3,
-      },
-    ],
-  }
-
-  const defaultHourlyChartData = {
-    labels: Array.from({ length: 24 }, (_, hour) => `${String(hour).padStart(2, '0')}:00`),
-    datasets: [
-      {
-        label: 'TCL',
-        data: Array(24).fill(0),
-        borderColor: '#0ea5e9',
-        backgroundColor: 'rgba(14, 165, 233, 0.7)',
-      },
-      {
-        label: 'UCL',
-        data: Array(24).fill(0),
-        borderColor: '#10b981',
-        backgroundColor: 'rgba(16, 185, 129, 0.7)',
-      },
-    ],
-  }
-
-  const data = chartData || defaultChartData
-  const hourlyData = hourlyChartData || defaultHourlyChartData
   const countryHighlights = [...(countryBreakdown || [])]
     .sort((a, b) => b.clicks - a.clicks)
     .slice(0, 3)
@@ -154,27 +108,6 @@ export default function StatsCards({
         )}
       </div>
 
-      {/* Graph removed as per user request */}
-
-      <div className="mt-4 grid grid-cols-1 gap-4 lg:mt-5">
-        <div className="hourly-panel w-full p-4">
-          <div className="mb-3 flex items-center justify-between">
-            <h4 className="text-sm font-medium text-sky-200">Hourly distribution</h4>
-            <span className="text-[11px] uppercase tracking-[0.24em] text-slate-400">24h</span>
-          </div>
-          <Chart
-            data={hourlyData}
-            height={190}
-            type="bar"
-            options={{
-              animation: {
-                duration: 800,
-                easing: 'easeOutQuart',
-              },
-            }}
-          />
-        </div>
-      </div>
     </div>
   )
 }

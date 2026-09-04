@@ -271,41 +271,6 @@ const aggregateClicks = (clicks: ClickRecord[], period: Period, dateRange: DateR
   };
 };
 
-const buildHourlyData = async (linkIds: string[], dateRange: DateRange) => {
-  const now = new Date();
-  const hourlyStart = new Date(now);
-  hourlyStart.setHours(0, 0, 0, 0);
-  const hourlyEnd = new Date(now);
-  hourlyEnd.setHours(23, 59, 59, 999);
-  const queryStart = new Date(Math.max(hourlyStart.getTime(), dateRange.startDate.getTime()));
-  const queryEnd = new Date(Math.min(hourlyEnd.getTime(), dateRange.endDate.getTime()));
-
-  const hourlyClicks = linkIds.length && queryStart <= queryEnd
-    ? await prisma.click.findMany({
-        where: {
-          linkAccountId: { in: linkIds },
-          createdAt: {
-            gte: queryStart,
-            lte: queryEnd,
-          },
-        },
-        select: { createdAt: true, isUnique: true },
-        orderBy: { createdAt: 'asc' },
-        take: 100000, // Limit to prevent memory exhaustion
-      })
-    : [];
-
-  const hourlyTrend = Array(24).fill(0);
-  const hourlyUnique = Array(24).fill(0);
-  hourlyClicks.forEach((click) => {
-    const hour = new Date(click.createdAt).getHours();
-    hourlyTrend[hour] += 1;
-    if (click.isUnique) hourlyUnique[hour] += 1;
-  });
-
-  return { hourlyTrend, hourlyUnique };
-};
-
 // ========== MAIN HANDLER ==========
 
 export async function GET(request: Request) {
@@ -399,29 +364,6 @@ export async function GET(request: Request) {
           revenue: 0,
           geoData: [],
           chartData: { labels: dateRange.labels, datasets: [] },
-          hourlyChartData: {
-            labels: Array.from({ length: 24 }, (_, i) => `${String(i).padStart(2, '0')}:00`),
-            datasets: [
-              {
-                label: 'TCL',
-                data: Array(24).fill(0),
-                borderColor: '#0ea5e9',
-                backgroundColor: 'rgba(14, 165, 233, 0.18)',
-                fill: true,
-                tension: 0.35,
-                pointRadius: 2,
-              },
-              {
-                label: 'UCL',
-                data: Array(24).fill(0),
-                borderColor: '#10b981',
-                backgroundColor: 'rgba(16, 185, 129, 0.15)',
-                fill: true,
-                tension: 0.35,
-                pointRadius: 2,
-              },
-            ],
-          },
           accountGeoReport: { labels: [], datasets: [], accountBreakdown: [] },
         },
         { headers: getCorsHeaders(origin) }
@@ -617,33 +559,6 @@ export async function GET(request: Request) {
       ],
     };
 
-    // Hourly data
-    const hourlyData = await buildHourlyData(linkIds, dateRange);
-    const hourlyLabels = Array.from({ length: 24 }, (_, i) => `${String(i).padStart(2, '0')}:00`);
-    const hourlyChartData = {
-      labels: hourlyLabels,
-      datasets: [
-        {
-          label: 'TCL',
-          data: hourlyData.hourlyTrend,
-          borderColor: '#0ea5e9',
-          backgroundColor: 'rgba(14, 165, 233, 0.18)',
-          fill: true,
-          tension: 0.35,
-          pointRadius: 2,
-        },
-        {
-          label: 'UCL',
-          data: hourlyData.hourlyUnique,
-          borderColor: '#10b981',
-          backgroundColor: 'rgba(16, 185, 129, 0.15)',
-          fill: true,
-          tension: 0.35,
-          pointRadius: 2,
-        },
-      ],
-    };
-
     // Account geo report
     const accountGeoReport = buildAccountGeoReport(visibleClicks, linkAccounts);
 
@@ -662,7 +577,6 @@ export async function GET(request: Request) {
         browserBreakdown,
         deviceBreakdown,
         chartData,
-        hourlyChartData,
         accountGeoReport,
       },
       { headers: getCorsHeaders(origin) }

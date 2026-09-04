@@ -51,18 +51,6 @@ interface DashboardStats {
       pointRadius?: number;
     }[];
   };
-  hourlyChartData?: {
-    labels: string[];
-    datasets: {
-      label: string;
-      data: number[];
-      borderColor: string;
-      backgroundColor: string;
-      fill?: boolean;
-      tension?: number;
-      pointRadius?: number;
-    }[];
-  };
 }
 
 interface FilterParams {
@@ -355,7 +343,6 @@ export default function AnalyticsPage() {
           <StatsCards
             stats={stats}
             chartData={stats.chartData}
-            hourlyChartData={stats.hourlyChartData}
             period={period}
             onPeriodChange={handlePeriodChange}
           />
