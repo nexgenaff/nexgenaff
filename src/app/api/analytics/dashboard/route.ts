@@ -358,6 +358,7 @@ export async function GET(request: Request) {
         select: {
           id: true,
           accountName: true,
+          botClicks: true,
           user: { select: { clickRate: true, commissionRate: true } },
         },
       });
@@ -371,6 +372,7 @@ export async function GET(request: Request) {
         select: {
           id: true,
           accountName: true,
+          botClicks: true,
           invoices: { select: { totalEarning: true } },
           user: { select: { clickRate: true } },
         },
@@ -511,7 +513,7 @@ export async function GET(request: Request) {
     // Same IP = same visitor, regardless of fingerprint changes
     const uniqueIPs = new Set(visibleClicks.map((c) => c.ipAddress).filter((ip) => ip && ip.trim() !== ''));
     const uniqueClicks = uniqueIPs.size;
-    const botClicks = clicks.filter((c) => c.isBot).length;
+    const botClicks = links.reduce((total, link) => total + (link.botClicks || 0), 0);
 
     const linkRateById = new Map(links.map((link) => {
       const managerClickRate = Number(link.user?.clickRate ?? 0) || 0;

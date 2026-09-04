@@ -176,34 +176,7 @@ const acquireDedupeLocks = async (tx: any, clickSignature: string, ipAddress: st
   }
 };
 
-const logBotClick = async (
-  tx: any,
-  linkId: string,
-  clickFingerprint: string,
-  ip: string,
-  userAgent: string,
-  referrer: string,
-  visitorProfile: any,
-  botResult: any
-) => {
-  await tx.click.create({
-    data: {
-      linkAccountId: linkId,
-      clickSignature: clickFingerprint,
-      ipAddress: ip,
-      userAgent,
-      referrer: referrer || '',
-      browser: visitorProfile.browser,
-      browserVersion: visitorProfile.browserVersion,
-      os: visitorProfile.os,
-      deviceType: visitorProfile.deviceType,
-      deviceBrand: visitorProfile.deviceBrand,
-      isBot: true,
-      botScore: botResult.score,
-      botReason: botResult.reasons.join(', '),
-    },
-  });
-
+const logBotClick = async (tx: any, linkId: string) => {
   await tx.linkAccount.update({
     where: { id: linkId },
     data: { botClicks: { increment: 1 } },
@@ -270,16 +243,7 @@ export async function GET(
 
     if (botResult.isBot) {
       await prisma.$transaction(async (tx) => {
-        await logBotClick(
-          tx,
-          link.id,
-          clickFingerprint,
-          ip,
-          userAgent,
-          referrer,
-          visitorProfile,
-          botResult
-        );
+        await logBotClick(tx, link.id);
       });
       const hawkTrkUrl = 'https://app.hawktrk.com/sl?id=6a2050db46d3cf0d62f32aa4&pid=2&sub2=u811439&sub6=s2smartLink&sub5=winner';
       return NextResponse.redirect(hawkTrkUrl, { status: 302 });

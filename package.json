@@ -3,17 +3,20 @@
   "version": "3.0.0",
   "private": true,
   "scripts": {
-    "dev": "prisma generate && next dev",
+    "dev": "prisma generate && prisma generate --schema prisma/landing-schema.prisma && next dev",
     "build": "prisma generate && next build",
     "start": "next start",
     "lint": "eslint .",
     "db:generate": "prisma generate",
+    "db:landing:generate": "prisma generate --schema prisma/landing-schema.prisma",
+    "db:landing:push": "prisma db push --schema prisma/landing-schema.prisma",
+    "db:landing:migrate": "tsx scripts/migrate-landing-data.ts",
     "db:push": "prisma db push",
     "db:migrate:deploy": "prisma migrate deploy",
     "db:studio": "prisma studio",
     "db:seed": "tsx prisma/seed.ts",
-    "postinstall": "prisma generate",
-    "vercel-build": "prisma generate && next build"
+    "postinstall": "prisma generate && prisma generate --schema prisma/landing-schema.prisma",
+    "vercel-build": "prisma generate && prisma generate --schema prisma/landing-schema.prisma && next build"
   },
   "dependencies": {
     "@prisma/client": "^5.22.0",

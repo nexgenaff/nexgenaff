@@ -1,8 +1,7 @@
-import { PrismaClient } from '@prisma/client'
+import { landingPrisma } from '@/lib/db/landing-prisma'
 import { NextRequest, NextResponse } from 'next/server'
 import { getTokenFromCookie, getUserFromToken, isOwner } from '@/lib/auth'
 
-const prisma = new PrismaClient()
 
 // GET specific landing page
 export async function GET(
@@ -12,7 +11,7 @@ export async function GET(
   try {
     const userId = req.headers.get('x-user-id')
     const { id } = await params
-    const landingPage = await prisma.landingPage.findUnique({
+    const landingPage = await landingPrisma.landingPage.findUnique({
       where: { id },
       include: { template: true },
     })
@@ -52,7 +51,7 @@ export async function PUT(
     const { id } = await params
     const updates = await req.json()
 
-    const landingPage = await prisma.landingPage.findUnique({
+    const landingPage = await landingPrisma.landingPage.findUnique({
       where: { id },
     })
 
@@ -71,7 +70,7 @@ export async function PUT(
       )
     }
 
-    const updated = await prisma.landingPage.update({
+    const updated = await landingPrisma.landingPage.update({
       where: { id },
       data: updates,
       include: { template: true },
@@ -98,7 +97,7 @@ export async function DELETE(
     const currentUser = token ? await getUserFromToken(token) : null
     const { id } = await params
 
-    const landingPage = await prisma.landingPage.findUnique({
+    const landingPage = await landingPrisma.landingPage.findUnique({
       where: { id },
     })
 
@@ -117,7 +116,7 @@ export async function DELETE(
       )
     }
 
-    await prisma.landingPage.delete({
+    await landingPrisma.landingPage.delete({
       where: { id },
     })
 

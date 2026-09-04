@@ -257,24 +257,6 @@ export async function GET(
 
     if (botResult.isBot) {
       await prisma.$transaction(async (tx) => {
-        await tx.click.create({
-          data: {
-            linkAccountId: link.id,
-            clickSignature: clickFingerprint,
-            ipAddress: ip,
-            userAgent: userAgent,
-            referrer: referrer || '',
-            browser: visitorProfile.browser,
-            browserVersion: visitorProfile.browserVersion,
-            os: visitorProfile.os,
-            deviceType: visitorProfile.deviceType,
-            deviceBrand: visitorProfile.deviceBrand,
-            isBot: true,
-            botScore: botResult.score,
-            botReason: botResult.reasons.join(', '),
-          },
-        })
-
         await tx.linkAccount.update({
           where: { id: link.id },
           data: { botClicks: { increment: 1 } },

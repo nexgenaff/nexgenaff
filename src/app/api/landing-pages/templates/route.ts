@@ -1,4 +1,4 @@
-import { prisma } from '@/lib/db/prisma'
+import { landingPrisma } from '@/lib/db/landing-prisma'
 import { NextRequest, NextResponse } from 'next/server'
 
 // GET all templates or specific templates
@@ -6,7 +6,7 @@ import { NextRequest, NextResponse } from 'next/server'
 export async function GET(req: NextRequest) {
   try {
     console.log('[TEMPLATES API] Fetching templates...')
-    const templates = await prisma.landingPageTemplate.findMany({
+    const templates = await landingPrisma.landingPageTemplate.findMany({
       where: { isActive: true },
       orderBy: { createdAt: 'desc' },
       select: {
@@ -44,7 +44,7 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    const template = await prisma.landingPageTemplate.create({
+    const template = await landingPrisma.landingPageTemplate.create({
       data: {
         name,
         description,

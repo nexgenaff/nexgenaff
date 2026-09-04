@@ -1,4 +1,4 @@
-import { prisma } from '@/lib/db/prisma'
+import { landingPrisma } from '@/lib/db/landing-prisma'
 import { NextRequest, NextResponse } from 'next/server'
 
 // GET - Fetch a specific template
@@ -16,7 +16,7 @@ export async function GET(
       )
     }
 
-    const template = await prisma.landingPageTemplate.findUnique({
+    const template = await landingPrisma.landingPageTemplate.findUnique({
       where: { id },
     })
 
@@ -63,7 +63,7 @@ export async function PUT(
     }
 
     // Verify ownership
-    const template = await prisma.landingPageTemplate.findUnique({
+    const template = await landingPrisma.landingPageTemplate.findUnique({
       where: { id },
     })
 
@@ -81,7 +81,7 @@ export async function PUT(
       )
     }
 
-    const updated = await prisma.landingPageTemplate.update({
+    const updated = await landingPrisma.landingPageTemplate.update({
       where: { id },
       data: {
         name,
@@ -133,7 +133,7 @@ export async function DELETE(
     }
 
     console.log('[DELETE API] Attempting to find template:', templateId)
-    const template = await prisma.landingPageTemplate.findUnique({
+    const template = await landingPrisma.landingPageTemplate.findUnique({
       where: { id: templateId },
     })
     console.log('[DELETE API] Template found:', template?.name)
@@ -147,7 +147,7 @@ export async function DELETE(
     }
 
     console.log('[DELETE API] Updating template to mark as inactive')
-    const updateResult = await prisma.landingPageTemplate.update({
+    const updateResult = await landingPrisma.landingPageTemplate.update({
       where: { id: templateId },
       data: { isActive: false },
     })

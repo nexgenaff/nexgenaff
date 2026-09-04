@@ -1,7 +1,5 @@
-import { PrismaClient } from '@prisma/client'
 import { NextRequest, NextResponse } from 'next/server'
-
-const prisma = new PrismaClient()
+import { landingPrisma } from '@/lib/db/landing-prisma'
 
 // POST publish/unpublish landing page
 export async function POST(
@@ -13,7 +11,7 @@ export async function POST(
     const { isPublished } = await req.json()
     const { id } = await params
 
-    const landingPage = await prisma.landingPage.findUnique({
+    const landingPage = await landingPrisma.landingPage.findUnique({
       where: { id },
     })
 
@@ -32,7 +30,7 @@ export async function POST(
       )
     }
 
-    const updated = await prisma.landingPage.update({
+    const updated = await landingPrisma.landingPage.update({
       where: { id },
       data: {
         isPublished,

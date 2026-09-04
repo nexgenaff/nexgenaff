@@ -1,8 +1,6 @@
-import { PrismaClient } from '@prisma/client'
 import { NextRequest, NextResponse } from 'next/server'
 import { renderLandingPageHtml } from '@/lib/utils/landing-page-render'
-
-const prisma = new PrismaClient()
+import { landingPrisma } from '@/lib/db/landing-prisma'
 
 // GET rendered HTML for a landing page
 // Replaces all variables with actual values
@@ -14,7 +12,7 @@ export async function GET(
     const userId = req.headers.get('x-user-id')
     const { id } = await params
 
-    const landingPage = await prisma.landingPage.findUnique({
+    const landingPage = await landingPrisma.landingPage.findUnique({
       where: { id },
       include: { template: true },
     })

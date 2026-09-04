@@ -1,0 +1,50 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/landing-prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("LANDING_DATABASE_URL")
+}
+
+model LandingPageTemplate {
+  id           String        @id @default(cuid())
+  name         String
+  description  String?
+  thumbnail    String?
+  htmlContent  String
+  customText   String?
+  isActive     Boolean       @default(true)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  createdBy    String
+  landingPages LandingPage[]
+
+  @@index([isActive])
+  @@map("landing_page_templates")
+}
+
+model LandingPage {
+  id          String               @id @default(cuid())
+  subdomain   String               @unique
+  trackingUrl String
+  templateId  String
+  template    LandingPageTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  userId      String
+  headline    String?
+  description String?
+  imageUrl    String?
+  primaryColor   String             @default("#06B6D4")
+  secondaryColor String             @default("#8B5CF6")
+  buttonText  String               @default("Get Started")
+  isPublished Boolean              @default(false)
+  publishedAt DateTime?
+  totalClicks Int                  @default(0)
+  createdAt   DateTime             @default(now())
+  updatedAt   DateTime             @updatedAt
+
+  @@index([userId])
+  @@index([isPublished])
+  @@map("landing_pages")
+}

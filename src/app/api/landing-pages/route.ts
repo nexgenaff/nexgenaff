@@ -1,10 +1,9 @@
-import { PrismaClient } from '@prisma/client'
+import { prisma } from '@/lib/db/prisma'
 import { NextRequest, NextResponse } from 'next/server'
+import { landingPrisma } from '@/lib/db/landing-prisma'
 import { getUserFromToken, getTokenFromCookie, getOwnerUserId, isManager, isOwner } from '@/lib/auth'
 import { getCorsHeaders } from '@/config/cors'
 import { z } from 'zod'
-
-const prisma = new PrismaClient()
 
 // Zod schema for landing page creation
 const landingPageSchema = z.object({
@@ -43,18 +42,25 @@ export async function GET(req: NextRequest) {
       )
     }
 
-    const landingPages = await prisma.landingPage.findMany({
+    const landingPages = await landingPrisma.landingPage.findMany({
       where: isOwner(user) ? undefined : { userId: user.id },
       include: {
         template: true,
-        user: {
-          select: { id: true, username: true, email: true, role: true },
-        },
       },
       orderBy: { createdAt: 'desc' },
     })
 
-    return NextResponse.json(landingPages, { headers: getCorsHeaders(origin) })
+    const users = await prisma.user.findMany({
+      where: { id: { in: landingPages.map((page) => page.userId) } },
+      select: { id: true, username: true, email: true, role: true },
+    })
+    const usersById = new Map(users.map((landingUser) => [landingUser.id, landingUser]))
+    const pagesWithUsers = landingPages.map((page) => ({
+      ...page,
+      user: usersById.get(page.userId) || null,
+    }))
+
+    return NextResponse.json(pagesWithUsers, { headers: getCorsHeaders(origin) })
   } catch (error) {
     console.error('Error fetching landing pages:', error)
     return NextResponse.json(
@@ -126,7 +132,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Use transaction to prevent race condition on subdomain uniqueness
-    const landingPage = await prisma.$transaction(async (tx) => {
+    const landingPage = await landingPrisma.$transaction(async (tx) => {
       // Check if subdomain is already taken by another landing page
       const existing = await tx.landingPage.findUnique({
         where: { subdomain },
@@ -137,12 +143,8 @@ export async function POST(req: NextRequest) {
       }
 
       // Check if subdomain conflicts with custom domains
-      const customDomainConflict = await tx.customDomain.findFirst({
-        where: {
-          domain: {
-            contains: subdomain,
-          },
-        },
+      const customDomainConflict = await prisma.customDomain.findFirst({
+        where: { domain: { contains: subdomain } },
       })
 
       if (customDomainConflict) {

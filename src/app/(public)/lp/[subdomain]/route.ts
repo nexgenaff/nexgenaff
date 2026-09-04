@@ -1,9 +1,7 @@
-import { PrismaClient } from '@prisma/client'
 import { NextRequest, NextResponse } from 'next/server'
+import { landingPrisma } from '@/lib/db/landing-prisma'
 import { renderLandingPageHtml } from '@/lib/utils/landing-page-render'
 import { BotDetectionService } from '@/lib/services/bot-detection'
-
-const prisma = new PrismaClient()
 
 export async function GET(
   req: NextRequest,
@@ -16,7 +14,7 @@ export async function GET(
 
     // Find the landing page in a case-insensitive way to avoid mismatches
     // between host-derived subdomains and DB records.
-    const landingPage = await prisma.landingPage.findFirst({
+    const landingPage = await landingPrisma.landingPage.findFirst({
       where: {
         subdomain: {
           equals: normalizedSubdomain,
@@ -169,7 +167,7 @@ export async function GET(
     const botResult = await new BotDetectionService().detect(userAgent, ipAddress)
 
     if (!botResult.isBot) {
-      await prisma.landingPage.update({
+      await landingPrisma.landingPage.update({
         where: { id: landingPage.id },
         data: { totalClicks: { increment: 1 } },
       })

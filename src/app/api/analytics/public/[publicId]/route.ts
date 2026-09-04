@@ -149,14 +149,13 @@ export async function GET(
     const baseWhere = buildWhereClause(dashboard.linkAccountId, search, country, unique, referrer, range);
 
     const visibleWhere = { ...baseWhere, isBot: false };
-    const botWhere = { ...baseWhere, isBot: true };
 
     // Get total counts
-    const [totalClicks, uniqueClicks, botClicks] = await Promise.all([
+    const [totalClicks, uniqueClicks] = await Promise.all([
       prisma.click.count({ where: visibleWhere }),
       prisma.click.count({ where: { ...visibleWhere, isUnique: true } }),
-      prisma.click.count({ where: botWhere }),
     ]);
+    const botClicks = dashboard.linkAccount.botClicks;
 
     // Get paginated clicks
     const clicks = await prisma.click.findMany({
