@@ -96,6 +96,12 @@ const formatCurrency = (amount: number) => new Intl.NumberFormat('en-US', {
   maximumFractionDigits: 2,
 }).format(amount)
 
+const formatTaka = (amount: number) => new Intl.NumberFormat('en-US', {
+  style: 'decimal',
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+}).format(amount)
+
 const MetricCard = ({
   icon: Icon,
   label,
@@ -104,7 +110,8 @@ const MetricCard = ({
   color = '#818CF8',
   percentage,
   percentageColor = '#818CF8',
-  isDark = true
+  isDark = true,
+  valueAction,
 }: any) => (
   <div className={`group relative overflow-hidden rounded-xl border p-5 transition-all duration-200 hover:-translate-y-0.5 ${
     isDark
@@ -113,12 +120,17 @@ const MetricCard = ({
   }`}>
     <div className="flex items-start justify-between">
       <div className="space-y-1.5">
-        <p className={`text-[11px] font-medium uppercase tracking-wider ${
+        <div className="flex items-center justify-between gap-2">
+          <p className={`text-[11px] font-medium uppercase tracking-wider ${
           isDark ? 'text-white/40' : 'text-gray-500'
-        }`}>{label}</p>
-        <p className={`text-2xl font-bold tracking-tight ${
-      isDark ? 'text-white' : 'text-gray-800'
-        }`}>{value}</p>
+          }`}>{label}</p>
+          {valueAction}
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <p className={`text-2xl font-bold tracking-tight ${
+        isDark ? 'text-white' : 'text-gray-800'
+          }`}>{value}</p>
+        </div>
         {subtitle && <p className={`text-[11px] ${isDark ? 'text-white/30' : 'text-gray-500'}`}>{subtitle}</p>}
         {percentage !== undefined && (
           <div className="mt-1 flex items-center gap-1.5">
@@ -292,6 +304,7 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
   const [filterUnique, setFilterUnique] = useState<'all' | 'unique' | 'repeat'>('all')
   const [filterReferrer, setFilterReferrer] = useState<'all' | 'direct' | 'referrer'>('all')
   const [timeRange, setTimeRange] = useState<'7d' | '30d' | '90d'>('7d')
+  const [earningCurrency, setEarningCurrency] = useState<'USD' | 'BDT'>('BDT')
   const [refreshKey, setRefreshKey] = useState(0)
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [isCountryDropdownOpen, setIsCountryDropdownOpen] = useState(false)
@@ -749,9 +762,35 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
             <MetricCard
               icon={DollarSign}
               label="Earning"
-              value={formatCurrency(earning)}
+              value={earningCurrency === 'USD' ? formatCurrency(earning) : (
+                <>
+                  <span className="align-baseline text-[0.78em] font-extrabold">৳</span>{' '}
+                  {formatTaka(earning * 118)}
+                </>
+              )}
               color="#34D399"
-              subtitle={`🇺🇸 ${formatNumber(usaUniqueReferrerClicks)} clicks · ${formatCurrency(clickRate)} CPC`}
+              valueAction={(
+                <div className={`flex rounded-md border p-0.5 text-[9px] font-semibold ${
+                  isDark ? 'border-white/10 bg-white/5' : 'border-gray-200 bg-gray-100'
+                }`}>
+                  {(['BDT', 'USD'] as const).map((currency) => (
+                    <button
+                      key={currency}
+                      type="button"
+                      onClick={() => setEarningCurrency(currency)}
+                      className={`rounded px-1.5 py-0.5 transition-colors ${
+                        earningCurrency === currency
+                          ? 'bg-emerald-500 text-white'
+                          : (isDark ? 'text-white/45 hover:text-white/75' : 'text-gray-500 hover:text-gray-800')
+                      }`}
+                      aria-label={`Show earning in ${currency}`}
+                    >
+                      {currency}
+                    </button>
+                  ))}
+                </div>
+              )}
+              subtitle={`🇺🇸 ${formatNumber(usaUniqueReferrerClicks)} clicks · ${formatCurrency(clickRate)} CPC · Rate: $1 = ৳118`}
               isDark={isDark}
             />
           </div>
