@@ -154,7 +154,7 @@ export default function ClickLogs({ filter }: ClickLogsProps) {
   return (
     <div className="rounded-xl border border-white/10 bg-white/5 shadow-sm backdrop-blur-sm overflow-hidden">
       <div className="border-0 bg-transparent p-4 sm:p-6">
-      <div className="lg:hidden space-y-3 overflow-y-auto" style={{ WebkitOverflowScrolling: 'touch' }}>
+      <div className="hidden" aria-hidden="true">
         {clicks.length === 0 ? (
           <div className="flex flex-col items-center gap-1.5 py-10 text-center">
             <Eye className="h-7 w-7 text-white/10" strokeWidth={1.5} />
@@ -233,9 +233,9 @@ export default function ClickLogs({ filter }: ClickLogsProps) {
         )}
       </div>
 
-      <div className="hidden lg:block overflow-x-auto" style={{ WebkitOverflowScrolling: 'touch' }}>
-        <table className="min-w-[980px] w-full table-auto">
-          <thead className="bg-slate-950/70">
+      <div className="block overflow-x-auto" style={{ WebkitOverflowScrolling: 'touch' }}>
+        <table className={`${clicks.length > 0 ? 'min-w-[980px] table-auto' : 'w-full table-fixed'}`}>
+          <thead className={`${clicks.length === 0 ? 'hidden lg:table-header-group' : ''} bg-slate-950/70`}>
             <tr>
               <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider whitespace-nowrap text-slate-500">Time</th>
               <th className="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider whitespace-nowrap text-slate-500">IP Address</th>
