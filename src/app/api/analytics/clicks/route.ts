@@ -125,7 +125,6 @@ export async function GET(request: Request) {
           total: 0,
           page: params.page,
           totalPages: 0,
-          filters: { countries: [], browsers: [], deviceTypes: [] },
         },
         { headers: getCorsHeaders(origin) }
       );
@@ -216,39 +215,12 @@ export async function GET(request: Request) {
       },
     });
 
-    // Get filter options (distinct values)
-    const filterOptions = await prisma.$transaction([
-      prisma.click.findMany({
-        where: { linkAccountId: { in: linkIds } },
-        distinct: ['country'],
-        select: { country: true },
-        orderBy: { country: 'asc' },
-      }),
-      prisma.click.findMany({
-        where: { linkAccountId: { in: linkIds } },
-        distinct: ['browser'],
-        select: { browser: true },
-        orderBy: { browser: 'asc' },
-      }),
-      prisma.click.findMany({
-        where: { linkAccountId: { in: linkIds } },
-        distinct: ['deviceType'],
-        select: { deviceType: true },
-        orderBy: { deviceType: 'asc' },
-      }),
-    ]);
-
     return NextResponse.json(
       {
         clicks,
         total,
         page: params.page,
         totalPages: Math.ceil(total / params.limit),
-        filters: {
-          countries: filterOptions[0].map((c) => c.country).filter(Boolean),
-          browsers: filterOptions[1].map((c) => c.browser).filter(Boolean),
-          deviceTypes: filterOptions[2].map((c) => c.deviceType).filter(Boolean),
-        },
       },
       { headers: getCorsHeaders(origin) }
     );
