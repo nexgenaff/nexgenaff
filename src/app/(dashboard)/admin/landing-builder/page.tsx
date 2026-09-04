@@ -545,9 +545,9 @@ export default function LandingPageBuilder() {
             </div>
 
             <div className="mx-auto max-w-3xl">
-              <form onSubmit={createLandingPage} className="space-y-6">
+              <form onSubmit={createLandingPage} className="flex flex-col space-y-6">
                 {/* Step 1 */}
-                <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-5 sm:p-6">
+                <div className="order-2 rounded-xl border border-slate-800 bg-slate-900/60 p-5 sm:p-6">
                   <div className="mb-4 flex items-center gap-2">
                     <Globe className="h-4 w-4 text-indigo-400" />
                     <h3 className="text-lg font-semibold text-white">Basic Information</h3>
@@ -596,7 +596,7 @@ export default function LandingPageBuilder() {
                 </div>
 
                 {/* Step 2 */}
-                <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-5 sm:p-6">
+                <div className="order-1 rounded-xl border border-slate-800 bg-slate-900/60 p-5 sm:p-6">
                   <div className="mb-4 flex items-center gap-2">
                     <Zap className="h-4 w-4 text-indigo-400" />
                     <h3 className="text-lg font-semibold text-white">Select Template</h3>
@@ -650,7 +650,7 @@ export default function LandingPageBuilder() {
                 </div>
 
                 {/* Submit */}
-                <div className="flex flex-col-reverse gap-3 sm:flex-row">
+                <div className="order-3 flex flex-col-reverse gap-3 sm:flex-row">
                   <button
                     type="button"
                     onClick={() => setCurrentStep('list')}
