@@ -112,6 +112,7 @@ const MetricCard = ({
   percentageColor = '#818CF8',
   isDark = true,
   valueAction,
+  showIcon = true,
 }: any) => (
   <div className={`group relative overflow-hidden rounded-xl border p-5 transition-all duration-200 hover:-translate-y-0.5 ${
     isDark
@@ -124,7 +125,6 @@ const MetricCard = ({
           <p className={`text-[11px] font-medium uppercase tracking-wider ${
           isDark ? 'text-white/40' : 'text-gray-500'
           }`}>{label}</p>
-          {valueAction}
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <p className={`text-2xl font-bold tracking-tight ${
@@ -151,9 +151,12 @@ const MetricCard = ({
           </div>
         )}
       </div>
-      <div className="rounded-lg p-2 shrink-0" style={{ backgroundColor: `${color}20` }}>
-        <Icon className="h-4 w-4" style={{ color }} strokeWidth={1.5} />
-      </div>
+      {valueAction && <div className="shrink-0">{valueAction}</div>}
+      {showIcon && (
+        <div className="rounded-lg p-2 shrink-0" style={{ backgroundColor: `${color}20` }}>
+          <Icon className="h-4 w-4" style={{ color }} strokeWidth={1.5} />
+        </div>
+      )}
     </div>
   </div>
 )
@@ -769,6 +772,7 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
                 </>
               )}
               color="#34D399"
+              showIcon={false}
               valueAction={(
                 <div className={`flex rounded-md border p-0.5 text-[9px] font-semibold ${
                   isDark ? 'border-white/10 bg-white/5' : 'border-gray-200 bg-gray-100'
