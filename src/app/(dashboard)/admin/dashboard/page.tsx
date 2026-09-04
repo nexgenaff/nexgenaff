@@ -397,7 +397,7 @@ export default function DashboardPage() {
             <Link
               href={`${dashboardBasePath}/links/create`}
               aria-label="Create new link"
-              className="min-h-[36px] flex items-center justify-center gap-1.5 px-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-[10px] font-medium text-white shadow-md shadow-indigo-600/25 transition-all active:scale-[0.97] w-full sm:w-auto"
+              className="min-h-[36px] flex items-center justify-center gap-1.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-[10px] font-medium text-white shadow-md shadow-emerald-600/25 transition-all active:scale-[0.97] w-full sm:w-auto"
             >
               <Plus className="w-3 h-3" />
               <span>New Link</span>

@@ -12,7 +12,7 @@ import {
   CheckCircle,
   XCircle,
   ExternalLink,
-  Eye,
+  MousePointerClick,
   Activity,
   Clock,
 } from 'lucide-react'
@@ -146,14 +146,14 @@ export default function ClickLogs({ filter }: ClickLogsProps) {
 
   if (loading) {
     return (
-      <div className="rounded-[24px] border border-slate-800 bg-slate-900/80 p-4 shadow-sm backdrop-blur-sm sm:p-6">
+      <div className="rounded-[24px] !border-0 !bg-slate-900/80 p-4 shadow-sm backdrop-blur-sm sm:p-6">
         <div className="space-y-4">{[...Array(5)].map((_, i) => <div key={i} className="flex items-center gap-4"><div className="w-8 h-8 skeleton rounded" /><div className="flex-1"><div className="h-4 w-48 skeleton rounded" /><div className="h-3 w-32 skeleton rounded mt-2" /></div><div className="h-3 w-20 skeleton rounded" /></div>)}</div>
       </div>
     )
   }
 
   return (
-    <div className="rounded-xl bg-white/5 shadow-sm backdrop-blur-sm overflow-hidden transition-colors duration-200">
+    <div className="rounded-xl !border-0 !bg-slate-900/80 shadow-sm backdrop-blur-sm overflow-hidden transition-colors duration-200">
       <div className="border-0 bg-transparent p-4 sm:p-6">
       <div className="mb-3 flex items-center gap-2">
         <Activity className="h-4 w-4 text-indigo-400" strokeWidth={1.5} />
@@ -162,7 +162,7 @@ export default function ClickLogs({ filter }: ClickLogsProps) {
       <div className="hidden" aria-hidden="true">
         {clicks.length === 0 ? (
           <div className="flex flex-col items-center gap-1.5 py-10 text-center">
-            <Eye className="h-7 w-7 text-white/10" strokeWidth={1.5} />
+            <MousePointerClick className="h-7 w-7 text-white/10" strokeWidth={1.5} />
             <p className="text-sm text-white/30">No clicks match your filters</p>
             <p className="text-xs text-white/20">
               Share a link and the first clicks will appear here with campaign, device, and location insights.
@@ -257,7 +257,7 @@ export default function ClickLogs({ filter }: ClickLogsProps) {
               <tr>
                 <td colSpan={8} className="px-4 py-12 text-center">
                   <div className="flex flex-col items-center gap-1.5">
-                    <Eye className="h-7 w-7 text-white/10" strokeWidth={1.5} />
+                    <MousePointerClick className="h-7 w-7 text-white/10" strokeWidth={1.5} />
                     <p className="text-sm text-white/30">No clicks match your filters</p>
                     <p className="text-xs text-white/20">
                       Share a link and the first clicks will appear here with campaign, device, and location insights.

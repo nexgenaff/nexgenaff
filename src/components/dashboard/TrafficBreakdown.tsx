@@ -40,14 +40,14 @@ function BreakdownSection({
   const maxValue = Math.max(...filteredItems.map(item => item.clicks), 1)
 
   return (
-    <div className="rounded-lg border border-slate-800 bg-slate-950/70 p-2 sm:p-3">
+    <div className="rounded-lg !border-0 !bg-slate-950/70 p-2 sm:p-3">
       <div className="mb-2 flex items-center gap-2">
         <Icon className={`h-3 w-3 ${iconColor ?? 'text-slate-400'}`} />
         <h4 className={`text-xs font-semibold ${titleColor ?? 'text-white'}`}>{title}</h4>
       </div>
 
       {filteredItems.length === 0 ? (
-        <p className="text-xs text-slate-400">No breakdown data yet.</p>
+        <p className="text-xs !text-slate-400">No breakdown data yet.</p>
       ) : (
         <div className="space-y-3">
           {filteredItems.slice(0, 4).map((item, index) => {
@@ -55,18 +55,18 @@ function BreakdownSection({
             return (
               <div key={`${title}-${item.name}-${index}`}>
                 <div className="mb-1 flex items-center justify-between gap-2 text-xs">
-                  <span className="truncate text-slate-100">{item.name}</span>
+                  <span className="truncate !text-slate-100">{item.name}</span>
                   <span className={`${valueColor ?? 'text-slate-400'}`}>{formatNumber(item.clicks)}</span>
                 </div>
 
-                <div className="mt-1 h-1 rounded-full bg-slate-800 overflow-hidden">
+                <div className="mt-1 h-1 rounded-full !bg-slate-800 overflow-hidden">
                   <div
                     className={`${accent} h-1 rounded-full opacity-95`}
                     style={{ width: `${pct}%` }}
                   />
                 </div>
 
-                <div className="mt-1 text-[11px] text-slate-500">{formatNumber(item.uniqueClicks)} unique</div>
+                <div className="mt-1 text-[11px] !text-slate-500">{formatNumber(item.uniqueClicks)} unique</div>
               </div>
             )
           })}
@@ -83,7 +83,7 @@ export function TrafficBreakdown({
   countryBreakdown = [],
 }: TrafficBreakdownProps) {
   return (
-    <div className="rounded-lg bg-slate-900/80 p-3 shadow-sm sm:p-4">
+    <div className="rounded-lg !border-0 !bg-slate-900/80 p-3 shadow-sm sm:p-4">
       
 
       <div className="grid gap-3 grid-cols-1 sm:grid-cols-2">
