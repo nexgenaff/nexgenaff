@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createGoogleAuthResponse, exchangeGoogleCode, getGoogleUserInfo, findGoogleUserByEmail, normalizeGoogleRedirectPath } from '@/lib/auth/google'
-import { generateGooglePasswordResetToken } from '@/lib/auth'
+import { generateGooglePasswordResetToken, JWT_EXPIRY } from '@/lib/auth'
 import { getGoogleOAuthConfig } from '@/lib/auth/google'
 import { getDashboardPath } from '@/lib/auth/dashboard-path'
 
@@ -68,7 +68,7 @@ export async function GET(request: Request) {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
-      maxAge: 60 * 60 * 24,
+      maxAge: JWT_EXPIRY,
       path: '/',
     })
 

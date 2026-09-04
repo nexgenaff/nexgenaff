@@ -121,7 +121,7 @@ export default function DashboardPage() {
       try {
         const response = await fetch(
           "/api/analytics/dashboard?period=all",
-          { credentials: "include" }
+          { credentials: "include", cache: "no-store" }
         );
 
         if (response.status === 401) {
@@ -220,6 +220,21 @@ export default function DashboardPage() {
 
   useEffect(() => {
     void loadDashboardData();
+  }, [loadDashboardData]);
+
+  useEffect(() => {
+    const refreshWhenVisible = () => {
+      if (document.visibilityState === "visible") {
+        void loadDashboardData();
+      }
+    };
+    const refreshTimer = window.setInterval(refreshWhenVisible, 60_000);
+
+    document.addEventListener("visibilitychange", refreshWhenVisible);
+    return () => {
+      window.clearInterval(refreshTimer);
+      document.removeEventListener("visibilitychange", refreshWhenVisible);
+    };
   }, [loadDashboardData]);
 
   useEffect(() => {

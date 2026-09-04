@@ -13,7 +13,7 @@ const JWT_SECRET: string = (() => {
   }
   return secret
 })()
-const JWT_EXPIRY = parseInt(process.env.JWT_EXPIRY || '86400')
+export const JWT_EXPIRY = parseInt(process.env.JWT_EXPIRY || String(60 * 60 * 24 * 30), 10)
 
 export type AccountStatus = 'PENDING' | 'ACTIVE' | 'DISABLED' | 'REJECTED'
 export function normalizeEffectiveUserRole(user: { role?: UserRole; username?: string } | null | undefined): UserRole | undefined {
