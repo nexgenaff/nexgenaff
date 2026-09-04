@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /owner
+Disallow: /dashboard
+Disallow: /_next
+Disallow: /api
+
+Sitemap: https://www.weebly.pro/sitemap.xml
