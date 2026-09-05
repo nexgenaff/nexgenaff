@@ -173,6 +173,12 @@ export async function GET(
       })
     }
 
+    if (landingPage.template?.name === 'URL Shortener') {
+      const redirectResponse = NextResponse.redirect(landingPage.trackingUrl, 302)
+      redirectResponse.headers.set('Referrer-Policy', 'origin-when-cross-origin')
+      return redirectResponse
+    }
+
     // Render HTML with variables replaced, including tracking link
     const renderedHtml = renderLandingPageHtml(landingPage.template?.htmlContent || '', {
       headline: landingPage.headline || '',

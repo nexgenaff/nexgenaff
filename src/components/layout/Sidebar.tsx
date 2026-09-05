@@ -105,6 +105,7 @@ export default function Sidebar() {
       label: 'Workspace',
       items: [
         { href: `${dashboardBasePath}/landing-builder`, label: 'Landing Builder', icon: Layers },
+        { href: `${dashboardBasePath}/url-shortener`, label: 'URL Shortener', icon: Link2 },
         ...(userRole === 'OWNER'
           ? [{ href: `${dashboardBasePath}/templates`, label: 'Templates', icon: Layers }]
           : []),

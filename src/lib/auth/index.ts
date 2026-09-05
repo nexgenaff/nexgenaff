@@ -286,15 +286,20 @@ export async function getUserFromToken(token: string): Promise<AuthUser | null> 
   // user so writes use a proper FK-backed id.
   if (decoded.userId && decoded.userId.startsWith('local-')) {
     const username = decoded.userId.replace(/^local-/, '')
-    const existing = await prisma.user.findUnique({
-      where: { username },
-      select: {
-        id: true,
-        username: true,
-        email: true,
-        role: true,
-      },
-    })
+    let existing: { id: string; username: string; email: string | null; role: UserRole } | null = null
+    try {
+      existing = await prisma.user.findUnique({
+        where: { username },
+        select: {
+          id: true,
+          username: true,
+          email: true,
+          role: true,
+        },
+      })
+    } catch (error) {
+      if (process.env.NODE_ENV === 'production') throw error
+    }
 
     if (existing) {
       return existing as AuthUser
