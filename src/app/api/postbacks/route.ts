@@ -48,6 +48,14 @@ export async function DELETE(request: Request) {
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401, headers: getCorsHeaders(origin) })
   if (!isAdminOrOwner(user)) return NextResponse.json({ error: 'Only owners and admins can manage Telegram notifications.' }, { status: 403, headers: getCorsHeaders(origin) })
 
+  const body = await request.json().catch(() => ({}))
+  const leadId = typeof body?.id === 'string' ? body.id.trim() : ''
+
+  if (leadId) {
+    const result = await prisma.conversionLead.deleteMany({ where: { id: leadId, userId: user.id } })
+    return NextResponse.json({ success: true, deleted: result.count }, { headers: getCorsHeaders(origin) })
+  }
+
   const result = await prisma.conversionLead.deleteMany({ where: { userId: user.id } })
   return NextResponse.json({ success: true, deleted: result.count }, { headers: getCorsHeaders(origin) })
 }
