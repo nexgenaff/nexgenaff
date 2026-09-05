@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import { StatsCard } from '@/components/ui/StatsCard'
 import { MousePointerClick, Users, Link2, CircleDollarSign } from 'lucide-react'
 import { getCountryFlag } from '@/lib/utils/country'
@@ -47,11 +48,16 @@ export default function StatsCards({
   totalPayout = 0,
   showConversions = false,
 }: StatsCardsProps) {
+  const [showCredit, setShowCredit] = useState(false)
+
   const countryHighlights = [...(countryBreakdown || [])]
     .sort((a, b) => b.clicks - a.clicks)
     .slice(0, 3)
 
   const flagColors = ['ring-sky-400/30 bg-sky-400/6', 'ring-violet-400/30 bg-violet-400/6', 'ring-emerald-400/30 bg-emerald-400/6']
+
+  const activeLabel = showCredit ? 'Total Credit' : 'Total Cost'
+  const activeValue = showCredit ? totalPayout : stats.revenue
 
   return (
     <div className="space-y-4">
@@ -78,23 +84,21 @@ export default function StatsCards({
           delay={200}
         />
         {showConversions ? (
-          <motion.div
+          <motion.button
+            type="button"
             initial={{ opacity: 0, y: 16, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             transition={{ duration: 0.45, delay: 0.3 }}
-            className="min-w-0 rounded-lg border border-slate-200 bg-white p-3 shadow-sm transition-colors duration-200 hover:bg-slate-50 sm:p-4 dark:border-slate-700/30 dark:bg-slate-800/30 dark:hover:bg-slate-800/40"
+            className="min-w-0 w-full rounded-lg border border-slate-200 bg-white p-3 text-left shadow-sm transition-colors duration-200 hover:bg-slate-50 sm:p-4 dark:border-slate-700/30 dark:bg-slate-800/30 dark:hover:bg-slate-800/40"
+            onClick={() => setShowCredit((current) => !current)}
+            aria-label={`Toggle balance view. Current value: ${activeLabel}`}
           >
-            <div className="grid grid-cols-2 divide-x divide-slate-200 dark:divide-slate-700/50">
-              <div className="min-w-0 pr-2 sm:pr-3">
-                <div className="flex items-center justify-between gap-2"><p className="text-[10px] uppercase tracking-wide text-slate-500">{showConversions ? 'Total Cost' : 'Revenue'}</p><CircleDollarSign className="h-4 w-4 text-emerald-600 dark:text-emerald-300" /></div>
-                <p className="mt-0.5 text-xl font-bold text-slate-900 dark:text-white sm:text-2xl">{formatCurrency(stats.revenue)}</p>
-              </div>
-              <div className="min-w-0 pl-2 sm:pl-3">
-                <div className="flex items-center justify-between gap-2"><p className="text-[10px] uppercase tracking-wide text-slate-500">Total credit</p><CircleDollarSign className="h-4 w-4 text-emerald-600 dark:text-emerald-300" /></div>
-                <p className="mt-0.5 text-xl font-bold text-slate-900 dark:text-white sm:text-2xl">{formatCurrency(totalPayout)}</p>
-              </div>
+            <div className="flex items-center justify-between gap-2">
+              <p className="text-[10px] uppercase tracking-wide text-slate-500">{activeLabel}</p>
+              <CircleDollarSign className="h-4 w-4 text-emerald-600 dark:text-emerald-300" />
             </div>
-          </motion.div>
+            <p className="mt-0.5 text-xl font-bold text-slate-900 dark:text-white sm:text-2xl">{formatCurrency(activeValue)}</p>
+          </motion.button>
         ) : (
           <StatsCard
             title="Revenue"
