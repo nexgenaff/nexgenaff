@@ -11,12 +11,12 @@ export async function DELETE(
     if (!access) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
     const { id } = await params
-    const shortUrl = await landingPrisma.landingPage.findUnique({
+    const shortUrl = await landingPrisma.shortUrl.findUnique({
       where: { id },
-      select: { id: true, userId: true, template: { select: { name: true } } },
+      select: { id: true, userId: true },
     })
 
-    if (!shortUrl || shortUrl.template.name !== 'URL Shortener') {
+    if (!shortUrl) {
       return NextResponse.json({ error: 'Short URL not found' }, { status: 404 })
     }
 
@@ -24,7 +24,7 @@ export async function DELETE(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
     }
 
-    await landingPrisma.landingPage.delete({ where: { id } })
+    await landingPrisma.shortUrl.delete({ where: { id } })
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error('Error deleting short URL:', error)

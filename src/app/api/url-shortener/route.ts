@@ -32,10 +32,9 @@ export async function GET(req: NextRequest) {
     const access = await getShortenerAccess(req)
     if (!access) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-    const shortUrls = await landingPrisma.landingPage.findMany({
+    const shortUrls = await landingPrisma.shortUrl.findMany({
       where: {
         ...(access.showAll ? {} : { userId: access.userId }),
-        template: { name: 'URL Shortener' },
       },
       select: {
         id: true,
@@ -44,7 +43,6 @@ export async function GET(req: NextRequest) {
         userId: true,
         totalClicks: true,
         createdAt: true,
-        template: { select: { name: true } },
       },
       orderBy: { createdAt: 'desc' },
     })
@@ -71,30 +69,14 @@ export async function POST(req: NextRequest) {
     }
 
     const { subdomain, trackingUrl } = result.data
-    const existing = await landingPrisma.landingPage.findUnique({ where: { subdomain } })
+    const existing = await landingPrisma.shortUrl.findUnique({ where: { subdomain } })
     if (existing) return NextResponse.json({ error: 'That short URL is already in use' }, { status: 409 })
 
-    const template = await landingPrisma.landingPageTemplate.findFirst({
-      where: { name: 'URL Shortener' },
-    })
-    const shortenerTemplate = template || await landingPrisma.landingPageTemplate.create({
-      data: {
-        name: 'URL Shortener',
-        description: 'System template for tracked short URLs',
-        htmlContent: '<!doctype html><html><body></body></html>',
-        createdBy: userId,
-      },
-    })
-
-    const page = await landingPrisma.landingPage.create({
+    const page = await landingPrisma.shortUrl.create({
       data: {
         subdomain,
         trackingUrl,
-        templateId: shortenerTemplate.id,
         userId,
-        buttonText: 'Open link',
-        isPublished: true,
-        publishedAt: new Date(),
       },
       select: { id: true, subdomain: true, trackingUrl: true, userId: true, totalClicks: true, createdAt: true },
     })

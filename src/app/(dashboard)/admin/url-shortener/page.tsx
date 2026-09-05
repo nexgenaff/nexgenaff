@@ -10,7 +10,6 @@ type ShortUrl = {
   userId: string
   totalClicks: number
   createdAt: string
-  template?: { name: string }
 }
 
 const shortUrlDomain = 'weebly.pro'

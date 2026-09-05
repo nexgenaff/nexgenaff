@@ -48,3 +48,18 @@ model LandingPage {
   @@index([isPublished])
   @@map("landing_pages")
 }
+
+model ShortUrl {
+  id          String   @id @default(cuid())
+  subdomain   String   @unique
+  trackingUrl String
+  userId      String
+  isActive    Boolean  @default(true)
+  totalClicks Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([userId])
+  @@index([isActive])
+  @@map("short_urls")
+}

@@ -12,6 +12,34 @@ export async function GET(
     const { subdomain } = await params
     const normalizedSubdomain = subdomain.toLowerCase()
 
+    const shortUrl = await landingPrisma.shortUrl.findFirst({
+      where: {
+        subdomain: {
+          equals: normalizedSubdomain,
+          mode: 'insensitive',
+        },
+        isActive: true,
+      },
+    })
+
+    if (shortUrl) {
+      const userAgent = req.headers.get('user-agent') || ''
+      const forwardedFor = req.headers.get('x-forwarded-for')
+      const ipAddress = forwardedFor?.split(',')[0]?.trim() || req.headers.get('x-real-ip') || '0.0.0.0'
+      const botResult = await new BotDetectionService().detect(userAgent, ipAddress)
+
+      if (!botResult.isBot) {
+        await landingPrisma.shortUrl.update({
+          where: { id: shortUrl.id },
+          data: { totalClicks: { increment: 1 } },
+        })
+      }
+
+      const redirectResponse = NextResponse.redirect(shortUrl.trackingUrl, 302)
+      redirectResponse.headers.set('Referrer-Policy', 'origin-when-cross-origin')
+      return redirectResponse
+    }
+
     // Find the landing page in a case-insensitive way to avoid mismatches
     // between host-derived subdomains and DB records.
     const landingPage = await landingPrisma.landingPage.findFirst({
@@ -171,12 +199,6 @@ export async function GET(
         where: { id: landingPage.id },
         data: { totalClicks: { increment: 1 } },
       })
-    }
-
-    if (landingPage.template?.name === 'URL Shortener') {
-      const redirectResponse = NextResponse.redirect(landingPage.trackingUrl, 302)
-      redirectResponse.headers.set('Referrer-Policy', 'origin-when-cross-origin')
-      return redirectResponse
     }
 
     // Render HTML with variables replaced, including tracking link
