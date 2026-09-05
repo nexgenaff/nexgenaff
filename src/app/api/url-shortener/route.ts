@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { landingPrisma } from '@/lib/db/landing-prisma'
+import { prisma } from '@/lib/db/prisma'
 import { getTokenFromCookie, getUserFromToken, verifyToken } from '@/lib/auth'
 import { z } from 'zod'
 
@@ -12,6 +13,21 @@ const shortUrlSchema = z.object({
     .regex(/^[a-z0-9]([a-z0-9-]*[a-z0-9])?$/i, 'Use only letters, numbers, and hyphens'),
   trackingUrl: z.string().trim().url('Destination must be a valid URL'),
 })
+
+async function getBlockedDestinationMessage(trackingUrl: string): Promise<string | null> {
+  const hostname = new URL(trackingUrl).hostname.toLowerCase().replace(/\.$/, '')
+
+  if (hostname === 'weebly.pro' || hostname.endsWith('.weebly.pro')) {
+    return 'weebly.pro URLs cannot be used as short URL destinations.'
+  }
+
+  const customDomain = await prisma.customDomain.findFirst({
+    where: { domain: { equals: hostname, mode: 'insensitive' } },
+    select: { id: true },
+  })
+
+  return customDomain ? 'Custom domains registered on this site cannot be used as short URL destinations.' : null
+}
 
 export async function getShortenerAccess(req: NextRequest): Promise<{ userId: string; showAll: boolean } | null> {
   const token = getTokenFromCookie(req.headers.get('cookie') || '')
@@ -69,6 +85,18 @@ export async function POST(req: NextRequest) {
     }
 
     const { subdomain, trackingUrl } = result.data
+    let blockedDestinationMessage: string | null
+    try {
+      blockedDestinationMessage = await getBlockedDestinationMessage(trackingUrl)
+    } catch (error) {
+      console.error('Unable to verify short URL destination:', error)
+      return NextResponse.json({ error: 'Unable to verify the destination domain right now' }, { status: 503 })
+    }
+
+    if (blockedDestinationMessage) {
+      return NextResponse.json({ error: blockedDestinationMessage }, { status: 400 })
+    }
+
     const existing = await landingPrisma.shortUrl.findUnique({ where: { subdomain } })
     if (existing) return NextResponse.json({ error: 'That short URL is already in use' }, { status: 409 })
 

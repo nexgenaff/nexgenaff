@@ -53,6 +53,17 @@ export default function UrlShortenerPage() {
 
   const createShortUrl = async (event: FormEvent) => {
     event.preventDefault()
+    try {
+      const hostname = new URL(trackingUrl).hostname.toLowerCase().replace(/\.$/, '')
+      if (hostname === 'weebly.pro' || hostname.endsWith('.weebly.pro')) {
+        setError('weebly.pro URLs cannot be used as short URL destinations.')
+        return
+      }
+    } catch {
+      setError('Enter a valid destination URL')
+      return
+    }
+
     setSaving(true)
     setError('')
     setMessage('')
