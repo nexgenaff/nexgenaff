@@ -1059,7 +1059,7 @@ export default function OffersPage() {
                         }
                         className="h-5 w-5 rounded border-white/10 bg-white/5 text-indigo-500 focus:ring-indigo-500 focus:ring-offset-0"
                       />
-                      ClickGuard
+                      Block Proxy
                     </label>
                     {formData.usaSecretRedirectEnabled && (
                       <div className="mt-3 flex flex-wrap items-center gap-3">
