@@ -344,8 +344,8 @@ export default function LandingPageBuilder() {
           </div>
         )}
         {success && (
-          <div className="mb-4 flex items-center justify-between rounded-lg border border-emerald-500/20 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200">
-            <span>{success}</span>
+          <div className="fixed bottom-4 left-1/2 z-50 flex w-[calc(100%-2rem)] max-w-3xl -translate-x-1/2 items-start justify-between gap-3 rounded-lg border border-emerald-500/20 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200 shadow-lg shadow-emerald-950/20 backdrop-blur-sm">
+            <span className="min-w-0 break-words">{success}</span>
             <button onClick={() => setSuccess('')} className="text-emerald-400 hover:text-emerald-300">
               <X className="h-4 w-4" />
             </button>
@@ -632,7 +632,7 @@ export default function LandingPageBuilder() {
                             <div className="min-w-0">
                               <h4 className="break-words text-sm font-medium text-white">{template.name}</h4>
                               {template.description && (
-                                <p className="mt-0.5 break-words text-xs text-slate-400">
+                                <p className="mt-2 break-words rounded-md border border-amber-400/40 bg-amber-400/10 px-2 py-1.5 text-sm font-semibold leading-5 text-amber-200">
                                   {template.description}
                                 </p>
                               )}

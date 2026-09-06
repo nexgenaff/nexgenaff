@@ -73,7 +73,7 @@ export default function Sidebar() {
       label: 'Overview',
       items: [
         ...(userRole === 'OWNER'
-          ? [{ href: '/owner/managers', label: 'Manager Approvals', icon: ShieldCheck }]
+          ? [{ href: '/owner/managers', label: 'Manage Publishers', icon: ShieldCheck }]
           : []),
         { href: getDashboardPath(userRole), label: 'Dashboard', icon: LayoutDashboard },
       ],
@@ -81,9 +81,9 @@ export default function Sidebar() {
     {
       label: 'Link accounts',
       items: [
-        { href: `${dashboardBasePath}/links/create`, label: 'New Link Account', icon: Plus },
-        { href: `${dashboardBasePath}/links/create-turbo`, label: 'Turbo Link Account', icon: Zap },
-        { href: `${dashboardBasePath}/links`, label: 'Link Accounts', icon: Link2 },
+        { href: `${dashboardBasePath}/links/create`, label: 'Create Link Account', icon: Plus },
+        { href: `${dashboardBasePath}/links/create-turbo`, label: 'Bulk Create', icon: Zap },
+        { href: `${dashboardBasePath}/links`, label: 'All Link Account', icon: Link2 },
       ],
     },
     {
