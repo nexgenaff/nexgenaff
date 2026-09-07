@@ -128,7 +128,7 @@ const MetricCard = ({
           }`}>{label}</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <p className={`text-2xl font-bold tracking-tight ${
+          <p className={`whitespace-nowrap text-2xl font-bold tracking-tight ${
         isDark ? 'text-white' : 'text-gray-800'
           }`}>{value}</p>
         </div>
