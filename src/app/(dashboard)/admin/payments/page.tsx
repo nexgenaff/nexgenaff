@@ -263,7 +263,7 @@ export default function PaymentsPage() {
         const paidAmount = paidInvoiceTotal + (paidInvoiceTotal * (commissionRate / 100));
         const accrued = unpaidAmount + paidAmount + current;
         const revenue = accrued + (accrued * (commissionRate / 100));
-        return { link, invoices, current, unpaidAmount, paidAmount, invoiceTotal, pendingTotal, accrued, revenue, commission: accrued * (commissionRate / 100) };
+        return { link, invoices, current, unpaidAmount, paidAmount, invoiceTotal, pendingTotal, accrued, revenue, commission: current * (commissionRate / 100) };
       }), [activeLinks]);
 
   const hasUnpaidInvoices = (invoices: Array<{ isPaid?: boolean | null }> = []) => invoices.some((invoice) => !invoice.isPaid);
