@@ -559,8 +559,14 @@ export async function GET(request: Request) {
       ],
     };
 
-    // Account geo report
-    const accountGeoReport = buildAccountGeoReport(visibleClicks, linkAccounts);
+    // Keep US account reporting focused on attributable, non-desktop traffic.
+    const accountReportClicks = visibleClicks.filter((click) => {
+      const isUsClick = click.country?.trim().toUpperCase() === 'US';
+      const isDirectClick = !click.referrer?.trim();
+      const isDesktopUsClick = isUsClick && isDesktopDeviceType(click.deviceType);
+      return !(isUsClick && (isDirectClick || isDesktopUsClick));
+    });
+    const accountGeoReport = buildAccountGeoReport(accountReportClicks, linkAccounts);
 
     return NextResponse.json(
       {
