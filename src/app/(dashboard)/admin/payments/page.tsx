@@ -256,11 +256,11 @@ export default function PaymentsPage() {
         const current = Number(link.totalEarning) || 0;
         const unpaidInvoiceTotal = unpaid.reduce((sum, invoice) => sum + (Number(invoice.totalEarning) || 0), 0);
         const paidInvoiceTotal = paid.reduce((sum, invoice) => sum + (Number(invoice.totalEarning) || 0), 0);
-        const invoiceTotal = invoices.reduce((sum, invoice) => sum + (Number(invoice.totalEarning) || 0), 0);
+        const invoiceTotal = unpaidInvoiceTotal;
         const commissionRate = Number(link.commissionRate ?? 20) || 20;
         const unpaidAmount = unpaidInvoiceTotal;
         const pendingTotal = calculatePendingAmount(unpaid, commissionRate);
-        const paidAmount = paidInvoiceTotal + (paidInvoiceTotal * (commissionRate / 100));
+        const paidAmount = paidInvoiceTotal;
         const accrued = unpaidAmount + paidAmount + current;
         const revenue = current + (current * (commissionRate / 100));
         return { link, invoices, current, unpaidAmount, paidAmount, invoiceTotal, pendingTotal, accrued, revenue, commission: current * (commissionRate / 100) };
