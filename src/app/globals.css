@@ -186,6 +186,26 @@ body {
   }
 }
 
+@keyframes dashboardGoldPulse {
+  0%,
+  100% {
+    box-shadow: 0 10px 30px rgba(6, 182, 212, 0.14), 0 0 0 1px rgba(251, 191, 36, 0.18);
+  }
+  50% {
+    box-shadow: 0 10px 30px rgba(6, 182, 212, 0.14), 0 0 0 3px rgba(251, 191, 36, 0.48), 0 0 22px rgba(245, 158, 11, 0.22);
+  }
+}
+
+.dashboard-gold-header {
+  animation: dashboardGoldPulse 3.6s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dashboard-gold-header {
+    animation: none;
+  }
+}
+
 .animate-fade-in-up {
   animation: fadeInUp 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
