@@ -801,7 +801,7 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
                   ))}
                 </div>
               )}
-              subtitle={`🇺🇸 ${formatNumber(usaUniqueReferrerClicks)} clicks · ${formatCurrency(clickRate)} CPC · Rate: $1 = ৳118`}
+              subtitle={`🇺🇸 ${formatNumber(usaUniqueReferrerClicks)} clicks · ${formatCurrency(clickRate)} CPC`}
               isDark={isDark}
             />
           </div>
