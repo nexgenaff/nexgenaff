@@ -265,13 +265,16 @@ export default function PaymentsPage() {
         return { link, invoices, current, unpaidAmount, paidAmount, invoiceTotal, pendingTotal, accrued, revenue, commission: accrued * (commissionRate / 100) };
       }), [activeLinks]);
 
+  const hasUnpaidInvoices = (invoices: Array<{ isPaid?: boolean | null }> = []) => invoices.some((invoice) => !invoice.isPaid);
+
   const rows = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
     return paymentRows.filter(({ link, invoices }) => {
-        const matchesQuery = !normalizedQuery || `${link.accountName} ${link.slug}`.toLowerCase().includes(normalizedQuery);
-      const matchesFilter = filter === "all" || invoices.some((invoice) => !invoice.isPaid);
-        return matchesQuery && matchesFilter;
-      }).sort((first, second) => second.accrued - first.accrued);
+      const matchesQuery = !normalizedQuery || `${link.accountName} ${link.slug}`.toLowerCase().includes(normalizedQuery);
+      const relevantInvoices = link.invoiceHistory?.length ? link.invoiceHistory : invoices;
+      const matchesFilter = filter === "all" || hasUnpaidInvoices(relevantInvoices);
+      return matchesQuery && matchesFilter;
+    }).sort((first, second) => second.accrued - first.accrued);
   }, [filter, paymentRows, query]);
 
   const totals = useMemo(() => paymentRows.reduce(

@@ -117,7 +117,7 @@ export async function GET(request: Request) {
           payoutMethod: link.payoutMethod || null,
           payoutAccount: link.payoutAccount || null,
           invoiceHistory: link.invoices,
-          invoices: link.invoices.filter((invoice: { isPaid: boolean }) => !invoice.isPaid).slice(0, 1),
+          invoices: link.invoices.filter((invoice: { isPaid: boolean }) => !invoice.isPaid),
         }
       }),
       { headers: getCorsHeaders(origin) }

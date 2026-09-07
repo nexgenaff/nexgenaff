@@ -3,6 +3,7 @@ import crypto from 'crypto'
 import { prisma } from '@/lib/db/prisma'
 import { getTokenFromCookie, getUserFromToken, isOwner } from '@/lib/auth'
 import { getCorsHeaders } from '@/config/cors'
+import { calculatePendingAmount } from '@/lib/utils/payment-pending'
 
 export async function POST(
   request: Request,
@@ -47,7 +48,7 @@ export async function POST(
     const payoutMethod = manager.payoutMethod || invoices.find((invoice) => invoice.payoutMethod)?.payoutMethod || (manager.bkashNumber ? 'BKASH' : null)
     const payoutAccount = manager.payoutAccount || invoices.find((invoice) => invoice.payoutAccount)?.payoutAccount || manager.bkashNumber || null
     const commissionRate = Number(manager.commissionRate ?? 20) || 0
-    const totalEarning = invoices.reduce((sum, invoice) => sum + Number(invoice.totalEarning || 0), 0) * (commissionRate / 100)
+    const totalEarning = calculatePendingAmount(invoices, commissionRate)
     const payoutNumber = `MP-${new Date().toISOString().replace(/\D/g, '').slice(0, 14)}-${crypto.randomBytes(3).toString('hex').toUpperCase()}`
 
     const payout = await prisma.$transaction(async (transaction) => {

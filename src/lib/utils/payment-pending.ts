@@ -3,7 +3,7 @@ export type PaymentInvoiceLike = {
   isPaid?: boolean | null
 }
 
-export function calculatePendingAmount(
+export function calculateManagerPayoutTotal(
   invoices: PaymentInvoiceLike[],
   commissionRate: number,
 ): number {
@@ -11,8 +11,12 @@ export function calculatePendingAmount(
     .filter((invoice) => !invoice.isPaid)
     .reduce((sum, invoice) => sum + Number(invoice.totalEarning || 0), 0)
 
-  const pendingBase = unpaidTotal
-  const pendingCommission = pendingBase * (commissionRate / 100)
+  return unpaidTotal + (unpaidTotal * (commissionRate / 100))
+}
 
-  return pendingBase + pendingCommission
+export function calculatePendingAmount(
+  invoices: PaymentInvoiceLike[],
+  commissionRate: number,
+): number {
+  return calculateManagerPayoutTotal(invoices, commissionRate)
 }
