@@ -255,11 +255,12 @@ export default function PaymentsPage() {
         const paid = invoices.filter((invoice) => invoice.isPaid);
         const current = Number(link.totalEarning) || 0;
         const unpaidInvoiceTotal = unpaid.reduce((sum, invoice) => sum + (Number(invoice.totalEarning) || 0), 0);
-        const paidAmount = paid.reduce((sum, invoice) => sum + (Number(invoice.totalEarning) || 0), 0);
+        const paidInvoiceTotal = paid.reduce((sum, invoice) => sum + (Number(invoice.totalEarning) || 0), 0);
         const invoiceTotal = invoices.reduce((sum, invoice) => sum + (Number(invoice.totalEarning) || 0), 0);
         const commissionRate = Number(link.commissionRate ?? 20) || 20;
         const unpaidAmount = unpaidInvoiceTotal;
         const pendingTotal = calculatePendingAmount(unpaid, commissionRate);
+        const paidAmount = paidInvoiceTotal + (paidInvoiceTotal * (commissionRate / 100));
         const accrued = unpaidAmount + paidAmount + current;
         const revenue = accrued + (accrued * (commissionRate / 100));
         return { link, invoices, current, unpaidAmount, paidAmount, invoiceTotal, pendingTotal, accrued, revenue, commission: accrued * (commissionRate / 100) };
@@ -280,12 +281,13 @@ export default function PaymentsPage() {
   const totals = useMemo(() => paymentRows.reduce(
     (summary, row) => ({
       accrued: summary.accrued + row.accrued,
+      current: summary.current + row.current,
       invoices: summary.invoices + row.pendingTotal,
       unpaid: summary.unpaid + row.unpaidAmount,
       paid: summary.paid + row.paidAmount,
       commission: summary.commission + row.commission,
     }),
-    { accrued: 0, invoices: 0, unpaid: 0, paid: 0, commission: 0 },
+    { accrued: 0, current: 0, invoices: 0, unpaid: 0, paid: 0, commission: 0 },
   ), [paymentRows]);
 
   const commission = totals.commission;
@@ -346,7 +348,7 @@ export default function PaymentsPage() {
       {bindingMessage && <p className="rounded-md border border-emerald-500/20 bg-emerald-500/10 px-3 py-2 text-xs text-emerald-700 dark:text-emerald-300">{bindingMessage}</p>}
       <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
         {[
-          { label: "Total Earned", value: totals.accrued, icon: WalletCards, tone: "text-cyan-300", accent: "border-cyan-400/20 bg-cyan-400/[0.07]" },
+          { label: "Total Earned", value: totals.current, icon: WalletCards, tone: "text-cyan-300", accent: "border-cyan-400/20 bg-cyan-400/[0.07]" },
           { label: "Commission", value: commission, icon: CircleDollarSign, tone: "text-orange-300", accent: "border-orange-400/20 bg-orange-400/[0.07]" },
           { label: "Pending", value: pendingSummary, icon: CreditCard, tone: "text-violet-300", accent: "border-violet-400/20 bg-violet-400/[0.07]" },
           { label: "Paid out", value: paidOutSummary, icon: CircleDollarSign, tone: "text-emerald-300", accent: "border-emerald-400/20 bg-emerald-400/[0.07]" },
