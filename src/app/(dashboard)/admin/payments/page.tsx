@@ -550,10 +550,11 @@ export default function PaymentsPage() {
 
         {error ? <div className="p-6 text-center text-sm text-rose-300">{error}</div> : loading ? <div className="p-10 text-center text-sm text-slate-400">Loading payments...</div> : rows.length === 0 ? <div className="p-10 text-center"><WalletCards className="mx-auto h-8 w-8 text-slate-600" /><p className="mt-3 text-sm font-semibold text-slate-300">{activeLinks.length === 0 ? "No active links yet" : "No matching active links"}</p><p className="mt-1 text-xs text-slate-500">{activeLinks.length === 0 ? "Activate a link to start tracking earnings and payouts." : "Try clearing your search or changing the payment filter."}</p></div> : (
           <div className="divide-y divide-white/5">
-            {rows.map(({ link, invoices, current, invoiceTotal, unpaidAmount, paidAmount }) => {
+            {rows.map(({ link, invoices, current, invoiceTotal, paidAmount }) => {
               const hasUnpaidInvoice = invoices.some((invoice) => !invoice.isPaid);
+              const hasPaidInvoice = paidAmount > 0;
               return (
-                <div key={link.id} className="mx-3 my-2 grid gap-3 rounded-lg border border-slate-700/40 bg-slate-900/35 p-3 transition hover:border-cyan-400/25 hover:bg-white/[0.04] sm:mx-0 sm:my-0 sm:gap-4 sm:rounded-none sm:border-0 sm:border-b sm:border-white/5 sm:bg-transparent sm:p-4 sm:hover:border-white/5 sm:hover:bg-white/[0.025] sm:grid-cols-[minmax(180px,1.35fr)_minmax(140px,1fr)_repeat(3,minmax(75px,0.7fr))_auto] sm:items-center">
+                <div key={link.id} className="mx-3 my-2 grid gap-3 rounded-lg border border-slate-700/40 bg-slate-900/35 p-3 transition hover:border-cyan-400/25 hover:bg-white/[0.04] sm:mx-0 sm:my-0 sm:gap-4 sm:rounded-none sm:border-0 sm:border-b sm:border-white/5 sm:bg-transparent sm:p-4 sm:hover:border-white/5 sm:hover:bg-white/[0.025] sm:grid-cols-[minmax(180px,1.25fr)_minmax(150px,1fr)_repeat(3,minmax(88px,0.75fr))_minmax(120px,auto)] sm:items-center">
                   <div className="min-w-0">
                     <p className="mb-1 text-[9px] font-bold uppercase tracking-[0.16em] text-slate-500 sm:hidden">Account name</p>
                     <div className="flex items-center gap-2">
@@ -574,11 +575,11 @@ export default function PaymentsPage() {
                       </button>}
                     </div>
                   </div>
-                  <div><p className="text-[9px] uppercase tracking-wider text-slate-500">Total earning</p><p className="mt-1 text-sm font-bold text-cyan-200">{money(current)}</p></div>
-                  <div><p className="text-[9px] uppercase tracking-wider text-slate-500">Invoice</p><p className="mt-1 text-sm font-bold text-violet-300">{money(invoiceTotal)}</p></div>
-                  <div><p className="text-[9px] uppercase tracking-wider text-slate-500">Total paid</p><p className="mt-1 text-sm font-bold text-emerald-300">{money(paidAmount)}</p></div>
-                  <div className="flex items-center gap-2 sm:justify-end">
-                    <span className={`text-[10px] font-semibold ${hasUnpaidInvoice || unpaidAmount > current ? "text-orange-300" : "text-slate-400"}`}>{hasUnpaidInvoice ? "Unpaid" : "Not Invoiced"}</span>
+                  <div className="min-w-0"><p className="text-[9px] uppercase tracking-wider text-slate-500">Total earning</p><p className="mt-1 text-sm font-bold text-cyan-200">{money(current)}</p></div>
+                  <div className="min-w-0"><p className="text-[9px] uppercase tracking-wider text-slate-500">Invoice</p><p className="mt-1 text-sm font-bold text-violet-300">{money(invoiceTotal)}</p></div>
+                  <div className="min-w-0"><p className="text-[9px] uppercase tracking-wider text-slate-500">Total paid</p><p className="mt-1 text-sm font-bold text-emerald-300">{money(paidAmount)}</p></div>
+                  <div className="flex min-w-[120px] items-center gap-2 sm:justify-end">
+                    <span className={`text-[10px] font-semibold ${hasUnpaidInvoice ? "text-orange-300" : hasPaidInvoice ? "text-emerald-300" : "text-slate-400"}`}>{hasUnpaidInvoice ? "Unpaid" : hasPaidInvoice ? "Paid" : "Not Invoiced"}</span>
                     {hasUnpaidInvoice && <button type="button" onClick={() => { setPaymentLink(link); setPaymentReference(""); }} disabled={payingLinkId === link.id} className="inline-flex shrink-0 items-center gap-1 rounded-md border border-emerald-300/25 bg-emerald-300/10 px-2 py-1.5 text-[10px] font-bold text-emerald-200 transition hover:bg-emerald-300/20 disabled:opacity-60" aria-label={`Mark invoice for ${link.accountName} as paid`}>
                       <CheckCircle className="h-3 w-3" />
                       {payingLinkId === link.id ? "Saving" : "Mark paid"}
