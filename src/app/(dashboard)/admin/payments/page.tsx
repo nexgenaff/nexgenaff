@@ -372,16 +372,16 @@ export default function PaymentsPage() {
             } : undefined}
             aria-label={card.label === "Paid out" && userRole === "OWNER" ? "View paid out transactions" : undefined}
           >
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-slate-400">{card.label}</span>
+            <div className="flex items-center justify-between gap-2">
+              <span className="min-w-0 truncate text-[10px] font-bold uppercase tracking-[0.16em] text-slate-400">{card.label}</span>
+              {card.label === "Commission" && userRole === "MANAGER" && (
+                <span className="shrink-0 rounded-full border border-orange-300/30 bg-orange-300/10 px-1.5 py-0.5 text-[9px] font-semibold tabular-nums text-orange-200">
+                  {displayedCommissionRates.map((rate) => `${rate.toFixed(2)}%`).join(", ")}
+                </span>
+              )}
               <card.icon className={`h-4 w-4 ${card.tone}`} />
             </div>
             <div className={`mt-3 text-2xl font-bold ${card.tone}`}>{money(card.value)}</div>
-            {card.label === "Commission" && userRole === "MANAGER" && (
-              <div className="mt-1 text-[10px] text-slate-500">
-                Rate: {displayedCommissionRates.map((rate) => `${rate.toFixed(2)}%`).join(", ")}
-              </div>
-            )}
           </motion.div>
         ))}
       </div>

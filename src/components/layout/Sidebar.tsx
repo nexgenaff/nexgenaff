@@ -44,7 +44,15 @@ export default function Sidebar() {
   const [supportLoading, setSupportLoading] = useState(false)
   const [supportSending, setSupportSending] = useState(false)
   const [supportError, setSupportError] = useState('')
+  const [supportUnread, setSupportUnread] = useState(false)
+  const supportOpenRef = useRef(supportOpen)
+  const latestOwnerMessageIdRef = useRef<string | null>(null)
+  const supportInitializedRef = useRef(false)
   const supportTranscriptRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    supportOpenRef.current = supportOpen
+  }, [supportOpen])
 
   useEffect(() => {
     const checkMobile = () => {
@@ -66,7 +74,7 @@ export default function Sidebar() {
   }, [pathname])
 
   useEffect(() => {
-    if (!supportOpen || userRole !== 'MANAGER') return
+    if (userRole !== 'MANAGER') return
     let active = true
     const refreshSupport = async (showLoading = false) => {
       if (showLoading) setSupportLoading(true)
@@ -75,7 +83,27 @@ export default function Sidebar() {
         const data = await response.json()
         if (!response.ok) throw new Error(data.error || 'Unable to load messages.')
         if (active) {
-          setSupportConversation(data.conversations[0] || null)
+          const conversation = data.conversations[0] || null
+          const latestOwnerMessage = [...(conversation?.messages || [])].reverse().find((message) => message.sender.role === 'OWNER')
+          if (!supportInitializedRef.current) {
+            latestOwnerMessageIdRef.current = latestOwnerMessage?.id || null
+            supportInitializedRef.current = true
+            if (latestOwnerMessage && conversation) {
+              if (supportOpenRef.current) {
+                window.localStorage.setItem(`support-last-seen-message:${conversation.id}`, latestOwnerMessage.id)
+              } else if (window.localStorage.getItem(`support-last-seen-message:${conversation.id}`) !== latestOwnerMessage.id) {
+                setSupportUnread(true)
+              }
+            }
+          } else if (latestOwnerMessage && latestOwnerMessage.id !== latestOwnerMessageIdRef.current) {
+            latestOwnerMessageIdRef.current = latestOwnerMessage.id
+            if (supportOpenRef.current && conversation) {
+              window.localStorage.setItem(`support-last-seen-message:${conversation.id}`, latestOwnerMessage.id)
+            } else {
+              setSupportUnread(true)
+            }
+          }
+          setSupportConversation(conversation)
           setSupportError('')
         }
       } catch (loadError) {
@@ -91,7 +119,7 @@ export default function Sidebar() {
       active = false
       window.clearInterval(interval)
     }
-  }, [supportOpen, userRole])
+  }, [userRole])
 
   useEffect(() => {
     if (!supportOpen || !supportTranscriptRef.current) return
@@ -284,14 +312,23 @@ export default function Sidebar() {
   const supportShortcut = userRole === 'MANAGER' && pathname !== '/publisher/help' ? (
     <button
       type="button"
-      onClick={() => setSupportOpen((open) => !open)}
-      aria-label={supportOpen ? 'Close help messenger' : 'Open help messenger'}
+      onClick={() => setSupportOpen((open) => {
+        if (!open) {
+          setSupportUnread(false)
+          if (supportConversation?.id && latestOwnerMessageIdRef.current) {
+            window.localStorage.setItem(`support-last-seen-message:${supportConversation.id}`, latestOwnerMessageIdRef.current)
+          }
+        }
+        return !open
+      })}
+      aria-label={supportOpen ? 'Close help messenger' : supportUnread ? 'Open help messenger, new message' : 'Open help messenger'}
       aria-expanded={supportOpen}
       aria-controls="support-messenger-popup"
       title="Get Help"
       className={`group fixed bottom-[calc(1.25rem+env(safe-area-inset-bottom))] right-4 z-[70] flex h-12 w-12 items-center justify-center rounded-full border shadow-lg transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xl focus:outline-none focus-visible:ring-4 focus-visible:ring-cyan-400/25 sm:right-6 ${supportOpen ? 'border-cyan-300 bg-cyan-500 text-slate-950' : 'border-cyan-400/30 bg-slate-900 text-cyan-300 hover:border-cyan-300 hover:bg-slate-800'}`}
     >
       {supportOpen ? <X className="h-5 w-5" /> : <MessageCircle className="h-5 w-5" />}
+      {supportUnread && <span className="absolute right-0 top-0 h-3 w-3 rounded-full border-2 border-slate-900 bg-rose-400 dark:border-slate-950" aria-label="New unread message" />}
       <span className="pointer-events-none absolute right-14 whitespace-nowrap rounded-md bg-slate-900 px-2.5 py-1.5 text-xs font-medium text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">Get Help</span>
     </button>
   ) : null
