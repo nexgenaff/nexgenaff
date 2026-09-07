@@ -1059,8 +1059,8 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
           </div>
 
           {/* Data Table */}
-          <div className={`rounded-xl border overflow-hidden ${
-            isDark ? 'bg-white/5 backdrop-blur-sm border-white/10' : 'bg-white/80 backdrop-blur-sm border-gray-200'
+          <div className={`-mx-4 overflow-hidden border-0 rounded-none ${
+            isDark ? 'bg-white/5' : 'bg-white/80'
           }`}>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
