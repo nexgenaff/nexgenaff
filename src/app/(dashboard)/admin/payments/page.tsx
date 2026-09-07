@@ -262,7 +262,7 @@ export default function PaymentsPage() {
         const pendingTotal = calculatePendingAmount(unpaid, commissionRate);
         const paidAmount = paidInvoiceTotal + (paidInvoiceTotal * (commissionRate / 100));
         const accrued = unpaidAmount + paidAmount + current;
-        const revenue = accrued + (accrued * (commissionRate / 100));
+        const revenue = current + (current * (commissionRate / 100));
         return { link, invoices, current, unpaidAmount, paidAmount, invoiceTotal, pendingTotal, accrued, revenue, commission: current * (commissionRate / 100) };
       }), [activeLinks]);
 
