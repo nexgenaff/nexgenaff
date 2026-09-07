@@ -26,6 +26,10 @@ export default function PublisherHelpPage() {
 
   useEffect(() => {
     loadConversation().catch((loadError) => setError(loadError instanceof Error ? loadError.message : 'Unable to load support messages.')).finally(() => setLoading(false))
+    const interval = window.setInterval(() => {
+      loadConversation().catch((loadError) => setError(loadError instanceof Error ? loadError.message : 'Unable to load support messages.'))
+    }, 2000)
+    return () => window.clearInterval(interval)
   }, [])
 
   useEffect(() => {

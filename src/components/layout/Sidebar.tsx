@@ -67,15 +67,30 @@ export default function Sidebar() {
 
   useEffect(() => {
     if (!supportOpen || userRole !== 'MANAGER') return
-    setSupportLoading(true)
-    fetch('/api/support', { credentials: 'include' })
-      .then(async (response) => {
+    let active = true
+    const refreshSupport = async (showLoading = false) => {
+      if (showLoading) setSupportLoading(true)
+      try {
+        const response = await fetch('/api/support', { credentials: 'include', cache: 'no-store' })
         const data = await response.json()
         if (!response.ok) throw new Error(data.error || 'Unable to load messages.')
-        setSupportConversation(data.conversations[0] || null)
-      })
-      .catch((loadError) => setSupportError(loadError instanceof Error ? loadError.message : 'Unable to load messages.'))
-      .finally(() => setSupportLoading(false))
+        if (active) {
+          setSupportConversation(data.conversations[0] || null)
+          setSupportError('')
+        }
+      } catch (loadError) {
+        if (active) setSupportError(loadError instanceof Error ? loadError.message : 'Unable to load messages.')
+      } finally {
+        if (active && showLoading) setSupportLoading(false)
+      }
+    }
+
+    refreshSupport(true)
+    const interval = window.setInterval(refreshSupport, 2000)
+    return () => {
+      active = false
+      window.clearInterval(interval)
+    }
   }, [supportOpen, userRole])
 
   useEffect(() => {
