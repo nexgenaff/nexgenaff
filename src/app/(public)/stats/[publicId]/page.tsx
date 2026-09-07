@@ -13,6 +13,7 @@ import {
   Globe2,
   Bot,
   DollarSign,
+  CreditCard,
   User,
   CheckCircle,
   XCircle,
@@ -311,6 +312,8 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
   const [refreshKey, setRefreshKey] = useState(0)
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [isCountryDropdownOpen, setIsCountryDropdownOpen] = useState(false)
+  const [showPaymentMethodPrompt, setShowPaymentMethodPrompt] = useState(false)
+  const paymentPromptShown = useRef(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
 
   // Auto-select USA and Unique filters on page load
@@ -349,6 +352,10 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
         const data = await response.json()
         setStats(data)
         setAccountName(data.accountName || 'Afficixo')
+        if (!paymentPromptShown.current && !data.payoutMethod) {
+          paymentPromptShown.current = true
+          setShowPaymentMethodPrompt(true)
+        }
         setError('')
       } catch (err: any) {
         if (err.name !== 'AbortError') {
@@ -668,13 +675,13 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
                 </span>
                 <a
                   href={`/payment/${publicId}`}
-                  className={`group inline-flex shrink-0 items-center gap-1.5 rounded-md border px-2.5 py-1.5 text-xs font-semibold transition-all duration-200 hover:-translate-y-0.5 hover:shadow-sm ${
-                    isDark ? 'border-emerald-400/25 bg-emerald-400/10 text-emerald-300 hover:bg-emerald-400/20' : 'border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
+                  className={`group inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md border transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-400/60 focus:ring-offset-2 ${
+                    isDark ? 'border-white/10 bg-white/5 text-emerald-300 hover:border-emerald-400/40 hover:bg-emerald-400/10 focus:ring-offset-slate-950' : 'border-slate-200 bg-white text-emerald-700 hover:border-emerald-300 hover:bg-emerald-50 focus:ring-offset-white'
                   }`}
-                  title="Add or update your payment method"
+                  title="Payment settings"
+                  aria-label="Payment settings"
                 >
-                  <DollarSign className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
-                  Add payment method
+                  <CreditCard className="h-4 w-4" />
                 </a>
               </div>
             </div>
@@ -1175,6 +1182,33 @@ export default function PublicStatsPage({ params }: { params: Promise<{ publicId
 
         </div>
       </div>
+
+      {showPaymentMethodPrompt && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 px-4" role="dialog" aria-modal="true" aria-labelledby="payment-method-prompt-title" aria-describedby="payment-method-prompt-description" onClick={(event) => { if (event.target === event.currentTarget) setShowPaymentMethodPrompt(false) }}>
+          <div className={`w-full max-w-sm rounded-lg border border-t-2 p-5 shadow-lg ${isDark ? 'border-white/10 border-t-emerald-400/70 bg-slate-900 text-white' : 'border-slate-200 border-t-emerald-600 bg-white text-slate-900'}`}>
+            <div className="flex items-start gap-4">
+              <div className="min-w-0 flex-1">
+                <h2 id="payment-method-prompt-title" className="text-base font-semibold">Payment details missing</h2>
+              </div>
+              <button type="button" onClick={() => setShowPaymentMethodPrompt(false)} className={`rounded p-1.5 ${isDark ? 'text-slate-400 hover:bg-white/10 hover:text-white' : 'text-slate-500 hover:bg-slate-100 hover:text-slate-900'}`} aria-label="Close payment method prompt">
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+            <p id="payment-method-prompt-description" className={`mt-3 text-sm leading-6 ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
+              Add a payment method to receive your earnings.
+            </p>
+            <div className="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+              <button type="button" onClick={() => setShowPaymentMethodPrompt(false)} className={`rounded px-3 py-2.5 text-xs font-semibold transition-colors ${isDark ? 'text-slate-300 hover:bg-white/10' : 'text-slate-600 hover:bg-slate-100'}`}>
+                Remind me later
+              </button>
+              <a href={`/payment/${publicId}`} className="inline-flex items-center justify-center gap-1.5 rounded bg-emerald-500 px-3 py-2.5 text-xs font-bold text-slate-950 transition hover:bg-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-300/70 focus:ring-offset-2 focus:ring-offset-slate-900">
+                Add payment method
+                <ArrowRight className="h-3.5 w-3.5" />
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   )
 }
