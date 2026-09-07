@@ -37,6 +37,8 @@ model User {
   postbackConfigs         PostbackConfig[]
   conversionLeads         ConversionLead[]
   telegramNotification    TelegramNotification?
+  ownedSupportConversations SupportConversation[] @relation("SupportConversationManager")
+  sentSupportMessages      SupportMessage[] @relation("SupportMessageSender")
   
   @@map("users")
 }
@@ -448,4 +450,35 @@ model TelegramNotification {
   updatedAt         DateTime @updatedAt
 
   @@map("telegram_notifications")
+}
+
+model SupportConversation {
+  id          String           @id @default(cuid())
+  managerId   String           @unique
+  manager     User             @relation("SupportConversationManager", fields: [managerId], references: [id], onDelete: Cascade)
+  status      SupportStatus    @default(OPEN)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  messages    SupportMessage[]
+
+  @@index([status, updatedAt])
+  @@map("support_conversations")
+}
+
+model SupportMessage {
+  id             String              @id @default(cuid())
+  conversationId String
+  conversation   SupportConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  senderId       String
+  sender         User                @relation("SupportMessageSender", fields: [senderId], references: [id], onDelete: Cascade)
+  body           String
+  createdAt      DateTime            @default(now())
+
+  @@index([conversationId, createdAt])
+  @@map("support_messages")
+}
+
+enum SupportStatus {
+  OPEN
+  RESOLVED
 }

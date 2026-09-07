@@ -252,7 +252,7 @@ export default function ClickLogs({ filter }: ClickLogsProps) {
               <th className="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider whitespace-nowrap text-slate-500">Time</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-800/80">
+          <tbody className="divide-y divide-slate-800/50">
             {clicks.length === 0 ? (
               <tr>
                 <td colSpan={8} className="px-4 py-12 text-center">
@@ -296,7 +296,7 @@ export default function ClickLogs({ filter }: ClickLogsProps) {
                       </button>
                     </div>
                   </td>
-                  <td className="px-4 py-2 text-sm max-w-[260px] break-all text-cyan-200">
+                  <td className="max-w-[260px] px-4 py-2 text-sm text-cyan-200">
                     {click.referrer ? (() => {
                       const referrerInfo = getReferrerInfo(click.referrer)
                       return (
@@ -305,11 +305,12 @@ export default function ClickLogs({ filter }: ClickLogsProps) {
                           target="_blank"
                           rel="noopener noreferrer"
                           className="flex items-center gap-1 text-slate-400 hover:text-slate-200 hover:underline transition"
+                          title={click.referrer}
                           onClick={(event) => {
                             if (!referrerInfo.href) event.preventDefault()
                           }}
                         >
-                          <span className="break-all">{click.referrer}</span>
+                          <span className="truncate">{referrerInfo.hostname}</span>
                           <ExternalLink className="w-3 h-3 flex-shrink-0" />
                         </a>
                       )
@@ -319,14 +320,16 @@ export default function ClickLogs({ filter }: ClickLogsProps) {
                   </td>
                   <td className="px-4 py-2 text-sm font-mono text-slate-400">{click.ipAddress}</td>
                   <td className="px-4 py-2 text-center">
-                    <div className="flex flex-wrap items-center justify-center gap-0.5">
+                    <div className="flex items-center justify-center">
                       {click.isUnique ? (
-                        <span className="badge badge-success flex items-center gap-1" title="Unique">
+                        <span className="badge badge-success flex items-center gap-1 whitespace-nowrap" title="Unique click">
                           <CheckCircle className="w-3 h-3" />
+                          <span className="text-[10px]">Unique</span>
                         </span>
                       ) : (
-                        <span className="badge badge-warning flex items-center gap-1" title="Duplicate">
+                        <span className="badge badge-warning flex items-center gap-1 whitespace-nowrap" title="Repeat click">
                           <XCircle className="w-3 h-3" />
+                          <span className="text-[10px]">Repeat</span>
                         </span>
                       )}
                     </div>

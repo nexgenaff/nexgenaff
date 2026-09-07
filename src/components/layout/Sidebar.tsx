@@ -3,7 +3,7 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { useState, useEffect } from 'react'
+import { FormEvent, useState, useEffect, useRef } from 'react'
 import {
   LayoutDashboard,
   Plus,
@@ -22,8 +22,14 @@ import {
   Webhook,
   Zap,
   X,
+  MessageCircle,
+  Loader2,
+  Send,
 } from 'lucide-react'
 import { getDashboardBasePath, getDashboardPath } from '@/lib/auth/dashboard-path'
+
+type SupportMessage = { id: string; body: string; sender: { role: string } }
+type SupportConversation = { id: string; messages: SupportMessage[] }
 
 export default function Sidebar() {
   const pathname = usePathname()
@@ -32,6 +38,13 @@ export default function Sidebar() {
   const [isMobile, setIsMobile] = useState<boolean | null>(null)
   const [mobileOpen, setMobileOpen] = useState(false)
   const [userRole, setUserRole] = useState<string | null>(null)
+  const [supportOpen, setSupportOpen] = useState(false)
+  const [supportConversation, setSupportConversation] = useState<SupportConversation | null>(null)
+  const [supportBody, setSupportBody] = useState('')
+  const [supportLoading, setSupportLoading] = useState(false)
+  const [supportSending, setSupportSending] = useState(false)
+  const [supportError, setSupportError] = useState('')
+  const supportTranscriptRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     const checkMobile = () => {
@@ -51,6 +64,24 @@ export default function Sidebar() {
   useEffect(() => {
     setMobileOpen(false)
   }, [pathname])
+
+  useEffect(() => {
+    if (!supportOpen || userRole !== 'MANAGER') return
+    setSupportLoading(true)
+    fetch('/api/support', { credentials: 'include' })
+      .then(async (response) => {
+        const data = await response.json()
+        if (!response.ok) throw new Error(data.error || 'Unable to load messages.')
+        setSupportConversation(data.conversations[0] || null)
+      })
+      .catch((loadError) => setSupportError(loadError instanceof Error ? loadError.message : 'Unable to load messages.'))
+      .finally(() => setSupportLoading(false))
+  }, [supportOpen, userRole])
+
+  useEffect(() => {
+    if (!supportOpen || !supportTranscriptRef.current) return
+    supportTranscriptRef.current.scrollTop = supportTranscriptRef.current.scrollHeight
+  }, [supportOpen, supportConversation?.messages.length])
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -117,7 +148,12 @@ export default function Sidebar() {
     },
     {
       label: 'System',
-      items: [{ href: `${dashboardBasePath}/settings`, label: 'Settings', icon: Settings }],
+      items: [
+        { href: `${dashboardBasePath}/settings`, label: 'Settings', icon: Settings },
+        ...(userRole === 'OWNER'
+          ? [{ href: '/owner/support', label: 'Support Inbox', icon: MessageCircle }]
+          : []),
+      ],
     },
   ]
 
@@ -128,6 +164,24 @@ export default function Sidebar() {
   const handleLogout = async () => {
     await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' })
     router.push('/login')
+  }
+
+  const sendSupportMessage = async (event: FormEvent) => {
+    event.preventDefault()
+    if (!supportBody.trim()) return
+    setSupportSending(true)
+    setSupportError('')
+    try {
+      const response = await fetch('/api/support', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ body: supportBody }), credentials: 'include' })
+      const data = await response.json()
+      if (!response.ok) throw new Error(data.error || 'Unable to send message.')
+      setSupportConversation(data.conversation)
+      setSupportBody('')
+    } catch (sendError) {
+      setSupportError(sendError instanceof Error ? sendError.message : 'Unable to send message.')
+    } finally {
+      setSupportSending(false)
+    }
   }
 
   const sidebarContent = (
@@ -212,9 +266,48 @@ export default function Sidebar() {
     </div>
   )
 
+  const supportShortcut = userRole === 'MANAGER' && pathname !== '/publisher/help' ? (
+    <button
+      type="button"
+      onClick={() => setSupportOpen((open) => !open)}
+      aria-label={supportOpen ? 'Close help messenger' : 'Open help messenger'}
+      aria-expanded={supportOpen}
+      aria-controls="support-messenger-popup"
+      title="Get Help"
+      className={`group fixed bottom-[calc(1.25rem+env(safe-area-inset-bottom))] right-4 z-[70] flex h-12 w-12 items-center justify-center rounded-full border shadow-lg transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xl focus:outline-none focus-visible:ring-4 focus-visible:ring-cyan-400/25 sm:right-6 ${supportOpen ? 'border-cyan-300 bg-cyan-500 text-slate-950' : 'border-cyan-400/30 bg-slate-900 text-cyan-300 hover:border-cyan-300 hover:bg-slate-800'}`}
+    >
+      {supportOpen ? <X className="h-5 w-5" /> : <MessageCircle className="h-5 w-5" />}
+      <span className="pointer-events-none absolute right-14 whitespace-nowrap rounded-md bg-slate-900 px-2.5 py-1.5 text-xs font-medium text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">Get Help</span>
+    </button>
+  ) : null
+
+  const supportPopup = userRole === 'MANAGER' && pathname !== '/publisher/help' && supportOpen ? (
+    <div id="support-messenger-popup" role="dialog" aria-label="Help messenger with Rayan" className="fixed bottom-[calc(5rem+env(safe-area-inset-bottom))] right-4 z-[70] flex w-[min(22rem,calc(100vw-2rem))] flex-col overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-2xl shadow-slate-900/15 dark:border-white/10 dark:bg-slate-900 sm:right-6">
+      <div className="flex items-center gap-3 border-b border-slate-200/70 px-4 py-3 dark:border-white/10">
+        <div className="relative h-9 w-9 shrink-0 overflow-hidden rounded-full border border-slate-200 dark:border-white/10"><Image src="/apple-touch-icon.png" alt="Afficixo" fill sizes="36px" className="object-cover" /><span className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full border-2 border-white bg-emerald-400 dark:border-slate-900" /></div>
+        <div className="min-w-0"><p className="truncate text-sm font-semibold text-slate-800 dark:text-slate-100">Rayan</p><p className="text-[11px] text-slate-500 dark:text-slate-400">How can we help?</p></div>
+        <Link href="/publisher/help" target="_blank" rel="noreferrer" className="ml-auto text-[11px] font-medium text-cyan-600 hover:text-cyan-500 dark:text-cyan-300">Open full page</Link>
+      </div>
+      <div ref={supportTranscriptRef} className="h-64 space-y-1.5 overflow-y-auto bg-slate-50/70 p-3 dark:bg-slate-950/30">
+        {supportLoading && <div className="flex h-full items-center justify-center text-xs text-slate-500"><Loader2 className="mr-2 h-4 w-4 animate-spin text-cyan-500" />Loading...</div>}
+        {!supportLoading && !supportConversation && <div className="flex h-full items-center justify-center px-5 text-center text-xs leading-5 text-slate-500">Send a message to start a private conversation.</div>}
+        {supportConversation?.messages.map((message, index) => {
+          const isManagerMessage = message.sender.role === 'MANAGER'
+          const previousMessage = supportConversation.messages[index - 1]
+          const showOwnerAvatar = !isManagerMessage && (index === 0 || previousMessage?.sender.role === 'MANAGER')
+          return <div key={message.id} className={`flex items-end gap-1.5 ${isManagerMessage ? 'justify-end' : 'justify-start'}`}>{!isManagerMessage && <div className={`flex h-5 w-5 shrink-0 overflow-hidden rounded-full border border-slate-200 dark:border-white/10 ${showOwnerAvatar ? '' : 'invisible'}`}><Image src="/apple-touch-icon.png" alt="Afficixo" width={20} height={20} className="h-full w-full object-cover" /></div>}<div className={`max-w-[78%] whitespace-pre-wrap break-words px-3 py-2 text-xs leading-5 ${isManagerMessage ? 'rounded-xl rounded-br-sm bg-cyan-500 text-slate-950' : `rounded-xl border border-slate-200 bg-white text-slate-700 dark:border-white/10 dark:bg-slate-800 dark:text-slate-200 ${showOwnerAvatar ? 'rounded-bl-sm' : 'rounded-l-md'}`}`}>{message.body}</div></div>
+        })}
+      </div>
+      {supportError && <p className="border-t border-red-500/15 bg-red-500/5 px-3 py-2 text-xs text-red-600 dark:text-red-300">{supportError}</p>}
+      <form onSubmit={sendSupportMessage} className="flex items-end gap-2 border-t border-slate-200/70 bg-white p-3 dark:border-white/10 dark:bg-slate-900"><textarea value={supportBody} onChange={(event) => setSupportBody(event.target.value)} placeholder="Write a message..." aria-label="Message to Rayan" rows={2} maxLength={5000} className="min-h-12 flex-1 resize-none rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-2 text-xs leading-5 text-slate-800 outline-none focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/15 focus-visible:outline-none dark:border-white/10 dark:bg-slate-950/50 dark:text-white" /><button type="submit" disabled={supportSending || !supportBody.trim()} aria-label="Send message" className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-cyan-500 text-slate-950 transition hover:bg-cyan-400 focus:outline-none focus-visible:outline-none focus:ring-2 focus:ring-cyan-400/20 disabled:bg-slate-200 disabled:text-slate-400 dark:disabled:bg-slate-700 dark:disabled:text-slate-400"><Send className="h-4 w-4" /></button></form>
+    </div>
+  ) : null
+
   if (isMobile) {
     return (
       <>
+        {supportPopup}
+        {supportShortcut}
         <button
           onClick={() => setMobileOpen(!mobileOpen)}
           type="button"
@@ -238,6 +331,8 @@ export default function Sidebar() {
 
   return (
     <>
+      {supportPopup}
+      {supportShortcut}
       <button
         type="button"
         onClick={() => setCollapsed(!collapsed)}

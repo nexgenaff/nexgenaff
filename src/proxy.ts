@@ -46,7 +46,9 @@ export function proxy(request: NextRequest) {
     path === '/owner/dashboard' ||
     path === '/owner/managers' ||
     path.startsWith('/owner/managers/') ||
-    path === '/publisher/dashboard'
+    path === '/owner/support' ||
+    path === '/publisher/dashboard' ||
+    path === '/publisher/help'
 
   if (dashboardAlias && !hasDedicatedRoute) {
     const rewrittenUrl = request.nextUrl.clone()

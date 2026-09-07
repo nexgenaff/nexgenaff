@@ -325,6 +325,8 @@ export default function PaymentsPage() {
   const paidOutSummary = userRole === "OWNER"
     ? managerPaymentRows.reduce((sum, row) => sum + row.paid, 0)
     : totals.paid;
+  const managerCommissionRates = [...new Set(paymentRows.map((row) => Number(row.link.commissionRate ?? 20)).filter((rate) => Number.isFinite(rate)))];
+  const displayedCommissionRates = managerCommissionRates.length > 0 ? managerCommissionRates : [20];
   const payoutTransactions = managerPayments.flatMap((manager) => manager.managerPayouts
     .filter((payout) => payout.isPaid)
     .map((payout) => ({ manager, payout })))
@@ -375,6 +377,11 @@ export default function PaymentsPage() {
               <card.icon className={`h-4 w-4 ${card.tone}`} />
             </div>
             <div className={`mt-3 text-2xl font-bold ${card.tone}`}>{money(card.value)}</div>
+            {card.label === "Commission" && userRole === "MANAGER" && (
+              <div className="mt-1 text-[10px] text-slate-500">
+                Rate: {displayedCommissionRates.map((rate) => `${rate.toFixed(2)}%`).join(", ")}
+              </div>
+            )}
           </motion.div>
         ))}
       </div>

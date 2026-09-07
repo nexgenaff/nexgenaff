@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import {
   AlertTriangle,
+  Clock3,
   CheckCircle2,
   ShieldCheck,
   Search,
@@ -100,7 +101,7 @@ function ActionButtons({
           type="button"
           disabled={isActionLoading}
           onClick={() => updateStatus(manager.id, 'ACTIVE')}
-          className={`inline-flex flex-1 items-center justify-center gap-1.5 bg-emerald-600 font-medium text-white transition hover:bg-emerald-500 disabled:cursor-wait disabled:opacity-60 ${buttonBase}`}
+          className={`inline-flex flex-1 items-center justify-center gap-1.5 border border-cyan-400/25 bg-cyan-400/10 font-medium text-cyan-300 transition hover:border-cyan-300/40 hover:bg-cyan-400/15 disabled:cursor-wait disabled:opacity-60 ${buttonBase}`}
         >
           {isActionLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <CheckCircle2 className="h-3.5 w-3.5" />}
           Approve
@@ -112,7 +113,7 @@ function ActionButtons({
           type="button"
           disabled={isActionLoading}
           onClick={() => updateStatus(manager.id, 'DISABLED')}
-          className={`inline-flex flex-1 items-center justify-center gap-1.5 bg-slate-600 font-medium text-white transition hover:bg-slate-500 disabled:cursor-wait disabled:opacity-60 ${buttonBase}`}
+          className={`inline-flex flex-1 items-center justify-center gap-1.5 border border-slate-600 bg-slate-800/70 font-medium text-slate-300 transition hover:border-slate-500 hover:bg-slate-700 disabled:cursor-wait disabled:opacity-60 ${buttonBase}`}
         >
           {isActionLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <UserX className="h-3.5 w-3.5" />}
           Disable
@@ -124,7 +125,7 @@ function ActionButtons({
           type="button"
           disabled={isActionLoading}
           onClick={() => updateStatus(manager.id, 'PENDING')}
-          className={`inline-flex flex-1 items-center justify-center gap-1.5 bg-amber-500 font-medium text-white transition hover:bg-amber-400 disabled:cursor-wait disabled:opacity-60 ${buttonBase}`}
+          className={`inline-flex flex-1 items-center justify-center gap-1.5 border border-amber-400/25 bg-amber-400/10 font-medium text-amber-300 transition hover:border-amber-300/40 hover:bg-amber-400/15 disabled:cursor-wait disabled:opacity-60 ${buttonBase}`}
         >
           {isActionLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <AlertTriangle className="h-3.5 w-3.5" />}
           Pending
@@ -136,7 +137,7 @@ function ActionButtons({
           type="button"
           disabled={isActionLoading}
           onClick={() => updateStatus(manager.id, 'REJECTED')}
-          className={`inline-flex flex-1 items-center justify-center gap-1.5 bg-red-600 font-medium text-white transition hover:bg-red-500 disabled:cursor-wait disabled:opacity-60 ${buttonBase}`}
+          className={`inline-flex flex-1 items-center justify-center gap-1.5 border border-rose-400/25 bg-rose-400/10 font-medium text-rose-300 transition hover:border-rose-300/40 hover:bg-rose-400/15 disabled:cursor-wait disabled:opacity-60 ${buttonBase}`}
         >
           {isActionLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <AlertTriangle className="h-3.5 w-3.5" />}
           Reject
@@ -147,7 +148,7 @@ function ActionButtons({
         type="button"
         disabled={isActionLoading}
         onClick={() => openDeleteConfirm(manager)}
-        className={`inline-flex flex-1 items-center justify-center gap-1.5 border border-red-500/20 bg-red-500/5 font-medium text-red-400 transition hover:bg-red-500/10 disabled:cursor-wait disabled:opacity-60 ${buttonBase}`}
+        className={`inline-flex flex-1 items-center justify-center gap-1.5 border border-slate-700 bg-slate-800/40 font-medium text-slate-400 transition hover:border-rose-400/30 hover:bg-rose-400/10 hover:text-rose-300 disabled:cursor-wait disabled:opacity-60 ${buttonBase}`}
       >
         {isActionLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
         Delete
@@ -344,7 +345,7 @@ export default function OwnerManagersPage() {
     {
       label: 'Pending review',
       value: summary.pending,
-      icon: AlertTriangle,
+      icon: Clock3,
       color: 'text-amber-400',
       bg: 'bg-amber-500/10',
     },

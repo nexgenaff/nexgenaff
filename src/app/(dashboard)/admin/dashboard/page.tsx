@@ -8,8 +8,6 @@ import { motion } from "framer-motion";
 import StatsCards from "@/components/dashboard/StatsCards";
 import ClickLogs from "@/components/dashboard/ClickLogs";
 import { TrafficBreakdown } from "@/components/dashboard/TrafficBreakdown";
-import TelegramCommunityPopup from "@/components/ui/TelegramCommunityPopup";
-import { consumeManagerTelegramPopupPending } from "@/lib/utils/telegram-popup";
 import { getDashboardBasePath } from "@/lib/auth/dashboard-path";
 import {
   Plus,
@@ -75,10 +73,7 @@ export default function DashboardPage() {
   const [, setRefreshing] = useState(false);
   const [logFilter] = useState<string>("all");
   const [now, setNow] = useState(() => new Date());
-  const [showTelegramPopup, setShowTelegramPopup] = useState(false);
   const [userRole, setUserRole] = useState<string | null>(null);
-  const [authIdentity, setAuthIdentity] = useState<string | null>(null);
-  const [isHelpPopoverOpen, setIsHelpPopoverOpen] = useState(false);
   const dashboardBasePath = getDashboardBasePath(userRole);
 
   // ─── ZOOM FIX: ensure viewport meta is correct ───
@@ -237,59 +232,14 @@ export default function DashboardPage() {
         if (!response.ok) return;
 
         const data = await response.json();
-        const nextIdentity = data.id ? `${data.role ?? "unknown"}:${data.id}` : null;
         setUserRole(data.role ?? null);
-        setAuthIdentity((currentIdentity) => {
-          if (currentIdentity === nextIdentity) {
-            return currentIdentity;
-          }
-
-          return nextIdentity;
-        });
       } catch (error) {
-        console.error("Failed to load user role for popup", error);
+        console.error("Failed to load user role", error);
       }
     };
 
     void loadUserRole();
   }, []);
-
-  useEffect(() => {
-    if (userRole !== "MANAGER" || !authIdentity) return;
-
-    const shouldOpenPopup = consumeManagerTelegramPopupPending(window);
-
-    if (shouldOpenPopup) {
-      const timer = window.setTimeout(() => {
-        setShowTelegramPopup(true);
-        setIsHelpPopoverOpen(true);
-      }, 800);
-      return () => window.clearTimeout(timer);
-    }
-  }, [userRole, authIdentity]);
-
-  const handleCloseTelegramPopup = () => {
-    setShowTelegramPopup(false);
-    setIsHelpPopoverOpen(false);
-  };
-
-  const handleOpenHelpPopover = () => {
-    setShowTelegramPopup(true);
-    setIsHelpPopoverOpen(true);
-  };
-
-  useEffect(() => {
-    if (!showTelegramPopup) return;
-
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key !== "Escape" && event.key !== "Esc") return;
-      event.preventDefault();
-      handleCloseTelegramPopup();
-    };
-
-    document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [showTelegramPopup]);
 
   if (loading) {
     return (
@@ -382,18 +332,6 @@ export default function DashboardPage() {
           </div>
 
           <div className="flex items-center justify-end gap-2 w-full sm:w-auto">
-            {userRole === "MANAGER" ? (
-              <button
-                type="button"
-                onClick={handleOpenHelpPopover}
-                aria-label="Open help popup"
-                className="group flex h-10 w-10 items-center justify-center rounded-2xl border border-cyan-400/20 bg-[linear-gradient(135deg,rgba(0,136,204,0.22),rgba(0,136,204,0.08))] text-slate-100 shadow-[0_8px_24px_rgba(0,136,204,0.16)] transition-all duration-200 hover:-translate-y-0.5 hover:border-cyan-300/40 hover:bg-[linear-gradient(135deg,rgba(0,136,204,0.3),rgba(0,136,204,0.14))] hover:shadow-[0_10px_28px_rgba(0,136,204,0.24)]"
-              >
-                <svg viewBox="0 0 24 24" className="h-5 w-5 fill-current transition-transform duration-200 group-hover:scale-105">
-                  <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z" />
-                </svg>
-              </button>
-            ) : null}
             <Link
               href={`${dashboardBasePath}/links/create`}
               aria-label="Create new link"
@@ -405,25 +343,8 @@ export default function DashboardPage() {
           </div>
         </header>
 
-        {showTelegramPopup && userRole === "MANAGER" && isHelpPopoverOpen ? (
-          <div className="fixed inset-0 z-50 flex items-start justify-center px-4 pt-24 sm:pt-28">
-            <div
-              className="absolute inset-0 bg-slate-950/60 backdrop-blur-sm"
-              onClick={handleCloseTelegramPopup}
-            />
-            <div className="relative pointer-events-auto">
-              <TelegramCommunityPopup onClose={handleCloseTelegramPopup} />
-            </div>
-          </div>
-        ) : null}
-
         {/* ─── Stats & Charts ─── */}
         <section className="mb-4 sm:mb-6 relative">
-          {userRole === "MANAGER" && (
-            <div className="mb-3 inline-flex items-center rounded-lg border border-cyan-400/20 bg-cyan-400/10 px-3 py-2 text-xs font-medium text-cyan-200">
-              Commission rate: {stats.commissionRate.toFixed(2)}%
-            </div>
-          )}
           <StatsCards
             stats={stats}
             chartData={chartData}
